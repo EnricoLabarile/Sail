@@ -1,0 +1,54 @@
+# Builds the game for the web at every push to main and publishes it on GitHub Pages
+# (https://enricolabarile.github.io/Sail/). One-time setup on GitHub:
+# Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+name: Web build
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency: { group: pages, cancel-in-progress: true }
+env:
+  GODOT_VERSION: 4.7.2      # keep it the same as the editor (Help -> About)
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache Godot and export templates
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            godot-bin
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}
+      - name: Download Godot and export templates
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          V=$GODOT_VERSION
+          wget -q https://github.com/godotengine/godot/releases/download/$V-stable/Godot_v$V-stable_linux.x86_64.zip
+          wget -q https://github.com/godotengine/godot/releases/download/$V-stable/Godot_v$V-stable_export_templates.tpz
+          unzip -q Godot_v$V-stable_linux.x86_64.zip && mv Godot_v$V-stable_linux.x86_64 godot-bin
+          mkdir -p ~/.local/share/godot/export_templates/$V.stable
+          unzip -q Godot_v$V-stable_export_templates.tpz
+          mv templates/* ~/.local/share/godot/export_templates/$V.stable/
+          rm -rf templates *.zip *.tpz
+      - name: Export
+        run: |
+          mkdir -p build/web
+          ./godot-bin --headless --path . --import || true
+          ./godot-bin --headless --path . --export-release "Web" build/web/index.html
+          touch build/web/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: build/web }
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: { name: github-pages, url: '${{ steps.d.outputs.page_url }}' }
+    steps:
+      - id: d
+        uses: actions/deploy-pages@v4
