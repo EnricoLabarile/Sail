@@ -5,7 +5,11 @@
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=205557729]
+transform = Transform3D(0.73173654, -0.494587, 0.4689833, 0.6815876, 0.5309771, -0.50348955, 0, 0.6880749, 0.7256397, 0, 0, 0)
 mesh = SubResource("BoxMesh_8ksrx")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=933363992]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 2.7965164, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1368980780]
+transform = Transform3D(1, 0, 0, 0, -0.19662558, 0.98047864, 0, -0.98047864, -0.19662558, -1.0107801, 3.2389839, -1.0212293)
