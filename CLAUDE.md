@@ -1,6 +1,7 @@
 # Vento e Vele (Godot) — notes for Claude Code
 
 - **Reply to Enrico in Italian.** All text inside the game stays in English.
+- Enrico comes from **Unreal Engine**: explain Godot things through their Unreal equivalents (scene ≈ Blueprint/level, node ≈ component/actor, instancing a scene ≈ placing a Blueprint, CanvasLayer + shader ≈ a post-process material, GDScript ≈ Blueprint graph logic, autoload ≈ GameInstance subsystem).
 - The remake in Godot 4.7 (Standard, GDScript, Compatibility renderer) of the HTML prototype in
   `EnricoLabarile/Sail---Prototype` (its `index.html` and `CLAUDE.md` describe the game; its `docs/godot-plan.md`
   is the plan: 2D world with a few simple 3D models like the boat, phone held upright, phases 0–10).
