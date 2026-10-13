@@ -3,7 +3,7 @@
 shader_type spatial;
 render_mode unshaded;
 
-uniform vec4 water : source_color = vec4(0.80, 0.80, 0.78, 1.0);
+uniform vec4 water : source_color = vec4(0.92, 0.92, 0.90, 1.0);
 uniform vec4 wavelet : source_color = vec4(0.25, 0.25, 0.24, 1.0);
 uniform float cell = 2.2;       // units between wavelets
 uniform float dash_len = 0.22;  // a wavelet's half length, in cells

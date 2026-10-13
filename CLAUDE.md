@@ -15,6 +15,12 @@
 - Check a change without the editor: `godot --headless --path . --import` then `--quit-after 30` for script errors.
 
 ## Keeping the project folder clean (Enrico's rules)
+- **The layout now (Enrico chose it, Oct 2026)**: everything under `Assets/`, by part: `Assets/Boat/` (`boat/boat.tscn`,
+  `boat.gd`; `boat_test.tscn`, the test scene), `Assets/Landscape/world/` (the sea), `Assets/Post_Process/dither/`,
+  `Assets/UI/` (`helm.tscn`, the wheel), `Assets/Scenes/` (`Overworld.tscn`, the main scene, which `run/main_scene`
+  points at by uid; `main.tscn`), plus `Dangers/`, `SFX/` when they get files. Follow this layout for new files; it
+  replaces the lower-case `boat/ world/ ui/ shared/` plan below (the other rules still hold, and since the folders now
+  have capitals, spell every `res://` path exactly as on disk: the web export is case-sensitive).
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
   ```
   res://
