@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3]
 
-[ext_resource type="Shader" path="res://shared/dither/dither.gdshader" id="1_dither"]
+[ext_resource type="Shader" uid="uid://c5kqsxs38t588" path="res://Assets/Post_Process/dither/dither.gdshader" id="1_dither"]
+
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_dither"]
 shader = ExtResource("1_dither")
