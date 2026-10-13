@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://dhestvacwpffc"]
+
+[ext_resource type="Script" uid="uid://dxb2hspq8rmba" path="res://Assets/Boat/boat.gd" id="1_boat"]
+[ext_resource type="PackedScene" uid="uid://gsohuvlddwlj" path="res://Assets/Boat/sm_boat_hull.fbx" id="2_da1jx"]
+[ext_resource type="PackedScene" uid="uid://da2mslnca7e31" path="res://Assets/Boat/sm_boat_mast.fbx" id="3_ee1eo"]
+[ext_resource type="PackedScene" uid="uid://bkhrx3gsk66tq" path="res://Assets/Boat/sm_boat_sail.fbx" id="4_og2vt"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_ink"]
+albedo_color = Color(0.12, 0.11, 0.1, 1)
+
+[sub_resource type="CapsuleMesh" id="Mesh_helmsman"]
+material = SubResource("Mat_ink")
+radius = 0.22
+height = 0.8
+
+[node name="Boat" type="Node3D" unique_id=1479473515]
+script = ExtResource("1_boat")
+
+[node name="Model" type="Node3D" parent="." unique_id=1073816525]
+
+[node name="Helmsman" type="MeshInstance3D" parent="Model" unique_id=1864005739]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0.8, 1.2)
+mesh = SubResource("Mesh_helmsman")
+
+[node name="Rig" type="Node3D" parent="Model" unique_id=503799022]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.7)
+
+[node name="sm_boat_mast" parent="Model/Rig" unique_id=429624402 instance=ExtResource("3_ee1eo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.27126563, -0.012751341)
+
+[node name="sm_boat_sail" parent="Model/Rig" unique_id=139299008 instance=ExtResource("4_og2vt")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 1.0014727, -0.011779666)
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1565566446]
+keep_aspect = 0
+projection = 1
+current = true
+size = 24.0
+far = 200.0
+
+[node name="sm_boat_hull" parent="." unique_id=1085224572 instance=ExtResource("2_da1jx")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0.31564635, -0.21666029)
