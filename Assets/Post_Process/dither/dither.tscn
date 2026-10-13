@@ -7,7 +7,7 @@
 shader = ExtResource("1_dither")
 shader_parameter/paper_color = Color(0.922, 0.906, 0.863, 1)
 shader_parameter/ink_color = Color(0.106, 0.102, 0.09, 1)
-shader_parameter/pixel_size = 2.0
+shader_parameter/pixel_size = 0.67
 shader_parameter/brightness = 0.0
 shader_parameter/contrast = 1.0
 
