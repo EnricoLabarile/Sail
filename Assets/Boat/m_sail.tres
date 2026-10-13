@@ -1,4 +1,67 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://cxxqt27qgicya"]
+[gd_resource type="ArrayMesh" format=4 uid="uid://dk2h6hqxgmawl"]
+
+[ext_resource type="Material" uid="uid://c1miq16wasqg6" path="res://Assets/Boat/sail.tres" id="1_i5ljm"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5lx02"]
+resource_name = "boat_mast"
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.9063318, 0.9063318, 0.9063318, 1)
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 0.0
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_nlnfb"]
+_surfaces = [{
+"aabb": AABB(-0.018474532, 0.038816944, -0.21492872, 2.7851486, 2.8629854, 0.21101016),
+"format": 34359742465,
+"index_count": 48,
+"index_data": PackedByteArray("DAABAA0AAwABAAwAAQAHAA0ABAADAAwAAwAEAAUADAAAAAQAAAAMAA4ADQAOAAwADgAGAAAABgAOAAgACAAOAA0ACAAJAAYADQACAAgAAgANAAcABwAKAAIACwAKAAcA"),
+"lods": [0.117329106, PackedByteArray("AAABAAIAAwABAAAABAADAAAAAwAEAAUAAgAGAAAAAQAHAAIACAAGAAIACAAJAAYABwAKAAIACwAKAAcA")],
+"name": "sail",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 15,
+"vertex_data": PackedByteArray("cne0P4T+Hj1KaYC7JT3DP2+wtz9dK0m+oXx7PtWQvD/5gv+9TCsWQB2dGj8frfO9EUASQHZgLD2kaoC7MBExQI/eOj2Ia4C7jd0IP6BgLD0FaIC73WMzP1asDUBnmxi+oBhpPtvuIT9ee3q9GFvqPcPeOj03Z4C75Q1KPvqhDEBYFMu951eXvCG3OUDeaIC7cne0P33zFz/ukSy+Fyo5PzE5tT9GFly++W82P7xUFz/OiUG+")
+}, {
+"aabb": AABB(0.05946583, -0.05224095, -0.052240916, 2.7533867, 0.10448183, 0.10448182),
+"format": 34359742465,
+"index_count": 36,
+"index_data": PackedByteArray("AAABAAIAAgADAAAAAAADAAQAAwACAAUABQAEAAMABQACAAEABAAGAAAABgAEAAUAAQAAAAYABQAHAAYABgAHAAEAAQAHAAUA"),
+"name": "boat_mast",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 8,
+"vertex_data": PackedByteArray("xwU0QKVfA72jXwO9xwU0QGlfAz2hXwO9c5JzPYr6VT2S+lW9cZJzPZn6Vb2S+lW9c5JzPZv6Vb2P+lU9dZJzPYj6VT2P+lU9xwU0QKVfA71qXwM9xwU0QGlfAz1rXwM9")
+}]
+blend_shape_mode = 0
 
 [resource]
-albedo_color = Color(1, 0.49803922, 1, 1)
+resource_name = "Cube_002"
+_surfaces = [{
+"aabb": AABB(-0.018474532, 0.038816944, -0.21492872, 2.7851486, 2.8629854, 0.21101016),
+"attribute_data": PackedByteArray("AAAAP7hEej4AAAA/GLD5Pf//Hz8AAAA+mG3ZPgAAQD7qjtk+AACAPgAAwD4AAIA+izgTPwAAgD40SRM/AACAPf//Hz8EAEA+AAAgPwAAgD7//x8/CACAPQAAID8AAAAAAAAAP0DcPD4GYxM/AAAAPjNJEz8AAEA+"),
+"format": 34359742487,
+"index_count": 48,
+"index_data": PackedByteArray("DAABAA0AAwABAAwAAQAHAA0ABAADAAwAAwAEAAUADAAAAAQAAAAMAA4ADQAOAAwADgAGAAAABgAOAAgACAAOAA0ACAAJAAYADQACAAgAAgANAAcABwAKAAIACwAKAAcA"),
+"lods": [0.117329106, PackedByteArray("AAABAAIAAwABAAAABAADAAAAAwAEAAUAAgAGAAAAAQAHAAIACAAGAAIACAAJAAYABwAKAAIACwAKAAcA")],
+"material": ExtResource("1_i5ljm"),
+"name": "sail",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 15,
+"vertex_data": PackedByteArray("cne0P4T+Hj1KaYC7JT3DP2+wtz9dK0m+oXx7PtWQvD/5gv+9TCsWQB2dGj8frfO9EUASQHZgLD2kaoC7MBExQI/eOj2Ia4C7jd0IP6BgLD0FaIC73WMzP1asDUBnmxi+oBhpPtvuIT9ee3q9GFvqPcPeOj03Z4C75Q1KPvqhDEBYFMu951eXvCG3OUDeaIC7cne0P33zFz/ukSy+Fyo5PzE5tT9GFly++W82P7xUFz/OiUG+DeQRAlUBNL4v/xAEWQA2wrYAaexzG43EquwOAxAElbxe6KwBggOkvUDqKADvAIe/mxY4CDMO+sIXCAz2uwuPwDALnxL6GbzD5RB8DlIT1cGjCDzzxBAevgQLIPXcDiu+4e48A6IA3r1PAZb2/BD+w7UP/QeuDofD")
+}, {
+"aabb": AABB(0.05946583, -0.05224095, -0.052240916, 2.7533867, 0.10448183, 0.10448182),
+"attribute_data": PackedByteArray("AAAgPwAAQD8AACA/AACAPwAAwD4AAIA/AADAPgAAQD8AAMA+AAAAPwAAID8AAAA/AAAgPwAAQD8AAMA+AABAPwAAwD4AAIA+AAAgPwAAgD4AACA/AAAAPwAAwD4AAAA/AAAgPwAAAAAAACA/AACAPgAAwD4AAIA+AADAPgAAAAAAAMA+AACAPgAAwD4AAAA/AAAAPgAAAD8AAAA+AACAPgAAYD8AAIA+AABgPwAAAD8AACA/AAAAPwAAID8AAIA+"),
+"format": 34359742487,
+"index_count": 36,
+"index_data": PackedByteArray("AAABAAIAAgADAAAABAAFAAYABgAHAAQACAAJAAoACgALAAgADAANAA4ADgAPAAwAEAARABIAEgATABAAFAAVABYAFgAXABQA"),
+"material": SubResource("StandardMaterial3D_5lx02"),
+"name": "boat_mast",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 24,
+"vertex_data": PackedByteArray("xwU0QKVfA72jXwO9xwU0QGlfAz2hXwO9c5JzPYr6VT2S+lW9cZJzPZn6Vb2S+lW9c5JzPZv6Vb2P+lU9xwU0QKVfA71qXwM9xwU0QKVfA72jXwO9cZJzPZn6Vb2S+lW9dZJzPYj6VT2P+lU9xwU0QGlfAz1rXwM9xwU0QKVfA71qXwM9c5JzPZv6Vb2P+lU9xwU0QGlfAz2hXwO9xwU0QGlfAz1rXwM9dZJzPYj6VT2P+lU9c5JzPYr6VT2S+lW9dZJzPYj6VT2P+lU9c5JzPZv6Vb2P+lU9cZJzPZn6Vb2S+lW9c5JzPYr6VT2S+lW9xwU0QGlfAz2hXwO9xwU0QKVfA72jXwO9xwU0QKVfA71qXwM9xwU0QGlfAz1rXwM9//8Q/zH+jr///xD/Jf6Iv///EP8s/nLA//8Q/yX+dcDtgO4ALP51wO2A7gAS/+vA7YDuABL/5sDtgO4AJf51wO2A/38Z/+jA7YD/fxL/Er/tgP9/Hf8Yv+2A/38S/+vA7YAQ/xL/GL/tgBD/Ev8Sv+2AEP8s/oi/7YAQ/yX+iL8AAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//////////f/////////9//////////3//////")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_nlnfb")

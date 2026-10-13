@@ -38,12 +38,24 @@ animation/import_rest_as_RESET=false
 import_script/path=""
 materials/extract=0
 materials/extract_format=0
-materials/extract_path=""
+materials/extract_path="res://Assets/Boat"
 _subresources={
 "materials": {
-"@MATERIAL:0": {
+"sail": {
 "use_external/enabled": true,
-"use_external/path": "uid://cxxqt27qgicya"
+"use_external/fallback_path": "res://Assets/Boat/sail.tres",
+"use_external/path": "uid://c1miq16wasqg6"
+}
+},
+"meshes": {
+"Cube_002": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://Assets/Boat/m_sail.tres",
+"save_to_file/path": "uid://cxxqt27qgicya"
 }
 }
 }

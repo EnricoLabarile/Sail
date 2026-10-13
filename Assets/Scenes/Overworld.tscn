@@ -13,6 +13,7 @@ transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.6
 [node name="Sea" parent="." unique_id=1750240136 instance=ExtResource("1_sea")]
 
 [node name="Boat" parent="." unique_id=1762906152 instance=ExtResource("2_boat")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0037660599, -0.009083748, -0.0004223585)
 
 [node name="Dither" parent="." unique_id=1041423395 instance=ExtResource("4_dither")]
 
