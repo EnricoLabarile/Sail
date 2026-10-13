@@ -51,7 +51,7 @@ func _physics_process(dt: float) -> void:
 	var drive := 0.0 if anchored else polar(off)
 
 	# speed eases toward what the sail gives; the anchor takes her way off quickly
-	var target := top_speed * drive * Wind.strength
+	var target := top_speed * drive
 	speed += (target - speed) * minf(1.0, dt * (anchor_bite if anchored else accel))
 
 	# she turns only with way on (and not at anchor)

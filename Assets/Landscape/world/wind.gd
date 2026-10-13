@@ -1,45 +1,92 @@
 extends Node
-## The wind, for the whole game (an Autoload: like a World Subsystem in Unreal, reachable from any
-## script as `Wind`). As in the HTML prototype: it starts from a random direction, holds steady for a
-## while (longer at the start), then shifts by 30–90° one way or the other over a few seconds, eased
-## in and out, and holds again; its strength swells and fades slowly between 0.5 and 1.
+## THE WIND, for the whole game.
+##
+## This script is an Autoload (Project Settings → Globals → Autoload, name "Wind"): Godot creates it
+## once when the game starts and any other script can read it by writing `Wind.from_deg`.
+## (In Unreal it would be a World Subsystem.)
+##
+## What it does, as in the HTML prototype:
+##   1. at the start the wind comes from a random direction;
+##   2. it HOLDS steady for a while;
+##   3. then it SHIFTS: it turns 30–90°, left or right at random, smoothly, over a few seconds;
+##   4. then it holds again, and so on.
+## The wind's strength never changes: only its direction does.
 
-const FIRST_HOLD := Vector2(28.0, 36.0)   # s of steady wind at the start
-const HOLD := Vector2(12.0, 22.0)         # s of steady wind between shifts
-const SHIFT_DEG := Vector2(30.0, 90.0)    # how far a shift turns it
-const SHIFT_TIME := Vector2(3.0, 5.0)     # s a shift takes
-const STRENGTH_MID := 0.75                # the breeze swells this ± STRENGTH_SWING (0.5..1, as in the prototype)…
-const STRENGTH_SWING := 0.25
-const STRENGTH_RATE := 0.06               # …this slowly (rad/s of a sine: a full swell every ~100 s)
 
-var from_deg := randf() * 360.0           # where the wind blows from: 0 = north (up the screen), 90 = east
-var strength := STRENGTH_MID              # 0.5..1, how fresh the breeze is
+# ---- Knobs (constants: values you set here by hand, they never change while playing) ----
+# A Vector2 is used here as a pair of numbers: x = the smallest value, y = the largest.
+# Each time, a random number between the two is picked.
 
-var _hold := randf_range(FIRST_HOLD.x, FIRST_HOLD.y)
-var _shift_from := 0.0
-var _shift_by := 0.0
-var _shift_t := 0.0
-var _shift_dur := 0.0
-var _strength_t := 0.0
+const FIRST_HOLD := Vector2(28.0, 36.0)   # seconds the wind holds still at the start of the game
+const HOLD := Vector2(12.0, 22.0)         # seconds it holds still between one shift and the next
+const SHIFT_DEG := Vector2(30.0, 90.0)    # how many degrees a shift turns it
+const SHIFT_TIME := Vector2(3.0, 5.0)     # how many seconds a shift takes
 
+
+# ---- The value other scripts read ----
+
+## Where the wind blows FROM, in degrees: 0 = from the north (top of the screen), 90 = from the east,
+## 180 = from the south, 270 = from the west.
+var from_deg := randf() * 360.0           # randf() gives a random number between 0 and 1
+
+
+# ---- Internal state (the "_" in front of a name means: only this script uses it) ----
+
+var _hold_left := randf_range(FIRST_HOLD.x, FIRST_HOLD.y)   # seconds left before the next shift
+var _shifting := false                    # true while the wind is turning
+var _shift_start_deg := 0.0               # the direction when the shift began
+var _shift_amount := 0.0                  # how many degrees this shift turns it (+ = clockwise)
+var _shift_elapsed := 0.0                 # seconds since the shift began
+var _shift_duration := 0.0                # how many seconds this shift lasts
+
+
+## Godot calls _process once every frame (like Event Tick in Unreal).
+## dt is the time since the last frame, in seconds.
 func _process(dt: float) -> void:
-	if _shift_dur > 0.0:
-		_shift_t += dt
-		var k := minf(1.0, _shift_t / _shift_dur)
-		from_deg = fposmod(_shift_from + _shift_by * k * k * (3.0 - 2.0 * k), 360.0)
-		if k >= 1.0:
-			_shift_dur = 0.0
-			_hold = randf_range(HOLD.x, HOLD.y)
+	if _shifting:
+		_update_shift(dt)
 	else:
-		_hold -= dt
-		if _hold <= 0.0:
-			_shift_from = from_deg
-			_shift_by = randf_range(SHIFT_DEG.x, SHIFT_DEG.y) * (1.0 if randf() < 0.5 else -1.0)
-			_shift_t = 0.0
-			_shift_dur = randf_range(SHIFT_TIME.x, SHIFT_TIME.y)
-	_strength_t += dt * STRENGTH_RATE
-	strength = STRENGTH_MID + STRENGTH_SWING * sin(_strength_t)
+		_update_hold(dt)
 
-## Where the wind comes from, as a direction on the sea (Godot's -Z is north).
+
+## While the wind holds still: count down, and when the time is up start a shift.
+func _update_hold(dt: float) -> void:
+	_hold_left -= dt
+	if _hold_left > 0.0:
+		return                            # still time left: nothing to do this frame
+
+	# Time's up: get a new shift ready.
+	_shifting = true
+	_shift_start_deg = from_deg
+	_shift_amount = randf_range(SHIFT_DEG.x, SHIFT_DEG.y)
+	if randf() < 0.5:                     # half the time it turns the other way
+		_shift_amount = -_shift_amount
+	_shift_elapsed = 0.0
+	_shift_duration = randf_range(SHIFT_TIME.x, SHIFT_TIME.y)
+
+
+## While the wind is turning: move the direction a little further each frame.
+func _update_shift(dt: float) -> void:
+	_shift_elapsed += dt
+
+	# progress goes from 0 (shift just begun) to 1 (shift done).
+	var progress := minf(_shift_elapsed / _shift_duration, 1.0)
+
+	# "Smoothstep": instead of turning at a steady speed, it starts slowly, speeds up in the middle
+	# and slows down again at the end. Same idea as an "ease in/out" curve in a Timeline.
+	var eased := progress * progress * (3.0 - 2.0 * progress)
+
+	# The new direction = where it started + the part of the shift done so far.
+	# fposmod(..., 360) keeps the angle between 0 and 360 (e.g. 370° becomes 10°).
+	from_deg = fposmod(_shift_start_deg + _shift_amount * eased, 360.0)
+
+	if progress >= 1.0:                   # the shift is over: hold still again for a while
+		_shifting = false
+		_hold_left = randf_range(HOLD.x, HOLD.y)
+
+
+## The direction the wind comes from as an arrow lying on the sea (a Vector3 of length 1).
+## In Godot's 3D, -Z is north and +X is east, so "from the north" = (0, 0, -1).
 func from_vector() -> Vector3:
-	return Vector3(sin(deg_to_rad(from_deg)), 0.0, -cos(deg_to_rad(from_deg)))
+	var a := deg_to_rad(from_deg)         # sin and cos want radians, not degrees
+	return Vector3(sin(a), 0.0, -cos(a))

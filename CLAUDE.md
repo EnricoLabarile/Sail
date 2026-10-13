@@ -26,7 +26,7 @@
   have capitals, spell every `res://` path exactly as on disk: the web export is case-sensitive).
 - **Autoloads** (project.godot): `PhoneFrame` (`Assets/Scenes/phone_frame.gd`, a phone-shaped frame on wide screens) and
   `Wind` (`Assets/Landscape/world/wind.gd`, the prototype's wind: random start, holds, shifts 30–90° over 3–5 s,
-  strength 0.5..1 swelling slowly; the boat and the wind vane read `Wind.from_deg` / `Wind.strength`).
+  constant strength (Enrico: only the direction changes); the boat and the wind vane read `Wind.from_deg`).
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
   ```
   res://
