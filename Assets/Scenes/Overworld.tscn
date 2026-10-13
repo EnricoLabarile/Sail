@@ -3,17 +3,17 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/world/sea.tscn" id="1_sea"]
 [ext_resource type="PackedScene" path="res://Assets/Boat/boat/boat.tscn" id="2_boat"]
 [ext_resource type="PackedScene" path="res://Assets/UI/helm.tscn" id="3_helm"]
-[ext_resource type="PackedScene" path="res://Assets/Post_Process/dither/dither.tscn" id="4_dither"]
+[ext_resource type="PackedScene" uid="uid://bba4hwropmrh4" path="res://Assets/Post_Process/dither/dither.tscn" id="4_dither"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
-[node name="Sun" type="DirectionalLight3D" parent="."]
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=387418916]
 transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 10, 0)
 
-[node name="Sea" parent="." instance=ExtResource("1_sea")]
+[node name="Sea" parent="." unique_id=1750240136 instance=ExtResource("1_sea")]
 
-[node name="Boat" parent="." instance=ExtResource("2_boat")]
+[node name="Boat" parent="." unique_id=1762906152 instance=ExtResource("2_boat")]
 
-[node name="Dither" parent="." instance=ExtResource("4_dither")]
+[node name="Dither" parent="." unique_id=1041423395 instance=ExtResource("4_dither")]
 
-[node name="Helm" parent="." instance=ExtResource("3_helm")]
+[node name="Helm" parent="." unique_id=1401139767 instance=ExtResource("3_helm")]
