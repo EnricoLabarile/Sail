@@ -2,6 +2,9 @@
 
 - **Reply to Enrico in Italian.** All text inside the game stays in English.
 - Enrico comes from **Unreal Engine**: explain Godot things through their Unreal equivalents (scene ≈ Blueprint/level, node ≈ component/actor, instancing a scene ≈ placing a Blueprint, CanvasLayer + shader ≈ a post-process material, GDScript ≈ Blueprint graph logic, autoload ≈ GameInstance subsystem).
+- **Enrico is learning GDScript**: keep code simple and easy to read (plain names, short functions, no clever
+  one-liners), comment it generously (what each block does and why, in plain words), and when I add or change code,
+  explain it to him step by step in my reply: what each part does, how it connects to the scene, where to change it.
 - The remake in Godot 4.7 (Standard, GDScript, Compatibility renderer) of the HTML prototype in
   `EnricoLabarile/Sail---Prototype` (its `index.html` and `CLAUDE.md` describe the game; its `docs/godot-plan.md`
   is the plan: 2D world with a few simple 3D models like the boat, phone held upright, phases 0–10).
