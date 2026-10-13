@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3]
 
-[ext_resource type="Script" path="res://world/sea.gd" id="1_sea"]
-[ext_resource type="Shader" path="res://world/sea.gdshader" id="2_sea"]
+[ext_resource type="Script" uid="uid://babooar1kgx1g" path="res://Assets/Landscape/world/sea.gd" id="1_sea"]
+[ext_resource type="Shader" uid="uid://y01s8ugtrxyq" path="res://Assets/Landscape/world/sea.gdshader" id="2_sea"]
+
 
 [sub_resource type="ShaderMaterial" id="Mat_sea"]
 shader = ExtResource("2_sea")

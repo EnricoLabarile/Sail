@@ -1,6 +1,7 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene format=3]
 
-[ext_resource type="Script" path="res://boat/boat.gd" id="1_boat"]
+[ext_resource type="Script" uid="uid://dxb2hspq8rmba" path="res://Assets/Boat/boat/boat.gd" id="1_boat"]
+
 
 [sub_resource type="StandardMaterial3D" id="Mat_paper"]
 albedo_color = Color(0.95, 0.94, 0.9, 1)

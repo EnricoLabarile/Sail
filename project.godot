@@ -13,7 +13,6 @@ config_version=5
 config/name="SAIL"
 run/main_scene="uid://cfpjn7myu4ohs"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/icon="res://icon.svg"
 
 [display]
 
