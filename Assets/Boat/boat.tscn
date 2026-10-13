@@ -38,5 +38,5 @@ current = true
 size = 24.0
 far = 200.0
 
-[node name="sm_boat_hull" parent="." unique_id=1085224572 instance=ExtResource("2_da1jx")]
+[node name="sm_boat_hull" parent="Model" unique_id=1085224572 instance=ExtResource("2_da1jx")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0.31564635, -0.21666029)

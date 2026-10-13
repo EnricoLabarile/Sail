@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dhestvacwpffc" path="res://Assets/Boat/boat.tscn" id="2_boat"]
 [ext_resource type="PackedScene" path="res://Assets/UI/helm.tscn" id="3_helm"]
 [ext_resource type="PackedScene" uid="uid://bba4hwropmrh4" path="res://Assets/Post_Process/dither/dither.tscn" id="4_dither"]
+[ext_resource type="PackedScene" path="res://Assets/UI/wind_vane.tscn" id="5_vane"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -18,3 +19,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0037660599, -0.009083748, -
 [node name="Dither" parent="." unique_id=1041423395 instance=ExtResource("4_dither")]
 
 [node name="Helm" parent="." unique_id=1401139767 instance=ExtResource("3_helm")]
+
+[node name="WindVane" parent="." instance=ExtResource("5_vane")]
