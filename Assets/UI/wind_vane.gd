@@ -3,13 +3,14 @@ extends Control
 ## screen's up is always north). The ink arrow flies the way the wind blows, its feathered tail on
 ## the side the wind comes from; the small hollow triangle on the rim is where the bow points, so the
 ## angle between them tells you how she sails. It reads the boat's wind every frame, so it follows any
-## change of wind. (Like a UMG widget that reads a value from the pawn on tick.)
+## change of wind (it shifts now and then, see Wind); the arrow is longer the fresher the breeze. (Like a UMG widget that reads a value from the pawn on tick.)
 
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
 
 var wind_deg := 0.0      # where the wind blows from (0 = north, 90 = east)
 var heading := Vector2.UP
+var breeze := 1.0       # the wind's strength: the arrow is longer in a fresher breeze
 
 func _process(_dt: float) -> void:
 	var b := get_tree().get_first_node_in_group("player_boat") as Node3D
@@ -17,9 +18,10 @@ func _process(_dt: float) -> void:
 		return
 	var fwd := -b.global_transform.basis.z
 	var h := Vector2(fwd.x, fwd.z).normalized()           # world +x = screen right, world +z = screen down
-	var w: float = b.wind_from_deg
-	if not is_equal_approx(w, wind_deg) or h.distance_to(heading) > 0.01:
+	var w: float = Wind.from_deg
+	if absf(w - wind_deg) > 0.2 or absf(Wind.strength - breeze) > 0.01 or h.distance_to(heading) > 0.01:
 		wind_deg = w
+		breeze = Wind.strength
 		heading = h
 		queue_redraw()
 
@@ -39,8 +41,9 @@ func _draw() -> void:
 	draw_string(f, c + Vector2(-4.0, -r + 18.0), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, INK)
 	# the wind: from its side toward the other
 	var from := Vector2(sin(deg_to_rad(wind_deg)), -cos(deg_to_rad(wind_deg)))
-	var tail := c + from * (r * 0.62)
-	var tip := c - from * (r * 0.62)
+	var arm := r * 0.62 * (0.55 + 0.45 * breeze)
+	var tail := c + from * arm
+	var tip := c - from * arm
 	var side := Vector2(-from.y, from.x)
 	draw_line(tail, tip + from * 6.0, INK, 3.0)
 	draw_colored_polygon(PackedVector2Array([tip, tip + from * 10.0 + side * 6.0, tip + from * 10.0 - side * 6.0]), INK)

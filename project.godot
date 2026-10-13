@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 [autoload]
 
 PhoneFrame="*res://Assets/Scenes/phone_frame.gd"
+Wind="*res://Assets/Landscape/world/wind.gd"
 
 [display]
 

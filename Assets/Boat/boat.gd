@@ -8,7 +8,6 @@ extends Node3D
 @export var accel := 0.9            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 1.2        # rad/s at full rudder once she has way on
-@export var wind_from_deg := 0.0    # where the wind blows from: 0 = north (up the screen), 90 = east
 @export var heel_max_deg := 10.0    # how far she leans with the wind on the sail
 @export var camera_tilt_deg := 30.0 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 
@@ -47,12 +46,12 @@ func _physics_process(dt: float) -> void:
 		toggle_anchor()
 
 	var fwd := -global_transform.basis.z                        # Godot's forward is -Z
-	var wind_from := Vector3(sin(deg_to_rad(wind_from_deg)), 0.0, -cos(deg_to_rad(wind_from_deg)))
+	var wind_from: Vector3 = Wind.from_vector()                 # the wind (Assets/Landscape/world/wind.gd)
 	var off := rad_to_deg(fwd.angle_to(wind_from))               # 0 = head to wind, 180 = wind astern
 	var drive := 0.0 if anchored else polar(off)
 
 	# speed eases toward what the sail gives; the anchor takes her way off quickly
-	var target := top_speed * drive
+	var target := top_speed * drive * Wind.strength
 	speed += (target - speed) * minf(1.0, dt * (anchor_bite if anchored else accel))
 
 	# she turns only with way on (and not at anchor)
