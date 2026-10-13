@@ -1,6 +1,7 @@
 extends Control
 ## The ship's wheel (like a UMG widget that drives the pawn): drag round the rim to steer,
-## half a turn either way = full rudder; hold the hub to drop or weigh the anchor.
+## half a turn either way = full rudder, and let go it spins back to the middle; hold the hub to drop
+## or weigh the anchor. The arrow keys turn it too.
 ## It finds the boat through the group "player_boat".
 
 const PAPER := Color("ebe7dc")
@@ -8,6 +9,9 @@ const INK := Color("1b1a17")
 
 @export var hub_hold := 0.33     # s to hold the hub for the anchor
 @export var lock_turn := PI      # how far the wheel turns for full rudder (PI = half a turn)
+@export var return_rate := 3.5   # let go, the wheel spins back to the middle: this share of its angle a second…
+@export var return_min := 0.8    # …but at least this many rad/s, so it gets all the way back (as in the HTML prototype)
+@export var key_rate := PI * 1.1 # rad/s the arrow keys turn it
 
 var wheel_angle := 0.0
 var drag_index := -1             # the finger turning the wheel
@@ -64,12 +68,17 @@ func _process(dt: float) -> void:
 			hub_index = -1
 			hub_t = 0.0
 		queue_redraw()
-	if b and drag_index == -1:
-		# follow the boat's rudder (the keyboard may have moved it)
-		var want: float = b.rudder * lock_turn
-		if absf(want - wheel_angle) > 0.001:
-			wheel_angle = want
+	if drag_index == -1:
+		var keys := Input.get_axis("ui_left", "ui_right")
+		if keys != 0.0:                                   # the arrow keys turn it
+			wheel_angle = clampf(wheel_angle + keys * key_rate * dt, -lock_turn, lock_turn)
 			queue_redraw()
+		elif wheel_angle != 0.0:                          # let go: it spins back to the middle
+			var step := maxf(absf(wheel_angle) * return_rate, return_min) * dt
+			wheel_angle = 0.0 if absf(wheel_angle) <= step else wheel_angle - signf(wheel_angle) * step
+			queue_redraw()
+		if b:
+			b.set_rudder(wheel_angle / lock_turn)
 	if b and b.anchored != shown_anchor:
 		shown_anchor = b.anchored
 		queue_redraw()

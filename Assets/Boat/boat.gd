@@ -1,7 +1,7 @@
 extends Node3D
 ## The player's boat (like a Pawn in Unreal): she sails by the wind, turns with the rudder,
 ## stops at anchor. The wheel (ui/helm) finds her through the group "player_boat" and sets
-## her rudder; the arrow keys and Space work too. Her camera follows her without turning.
+## her rudder; Space works the anchor. Her camera follows her without turning.
 ## 1 unit = 10 px of the HTML prototype.
 
 @export var top_speed := 4.2        # units/s with the sail at its best (~42 px/s in the prototype)
@@ -42,10 +42,7 @@ func polar(off_deg: float) -> float:
 	return POLAR[-1][1]
 
 func _physics_process(dt: float) -> void:
-	# the keyboard: arrows steer, Space / Enter works the anchor
-	var keys := Input.get_axis("ui_left", "ui_right")
-	if keys != 0.0:
-		rudder = keys
+	# the keyboard: Space / Enter works the anchor (the arrows turn the wheel, in ui/helm)
 	if Input.is_action_just_pressed("ui_accept"):
 		toggle_anchor()
 
