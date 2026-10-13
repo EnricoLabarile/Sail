@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://world/sea.tscn" id="1_sea"]
+[ext_resource type="PackedScene" path="res://boat/boat.tscn" id="2_boat"]
+[ext_resource type="PackedScene" path="res://ui/helm.tscn" id="3_helm"]
+
+[node name="BoatTest" type="Node3D"]
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 10, 0)
+
+[node name="Sea" parent="." instance=ExtResource("1_sea")]
+
+[node name="Boat" parent="." instance=ExtResource("2_boat")]
+
+[node name="Helm" parent="." instance=ExtResource("3_helm")]
