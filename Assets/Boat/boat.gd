@@ -8,6 +8,7 @@ extends Node3D
 @export var accel := 0.9            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 1.2        # rad/s at full rudder once she has way on
+@export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 10.0    # how far she leans with the wind on the sail
 @export var camera_tilt_deg := 30.0 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 
@@ -58,7 +59,7 @@ func _physics_process(dt: float) -> void:
 	var way := clampf(speed / top_speed * 1.5, 0.0, 1.0)
 	if not anchored:
 		rotate_y(-rudder * turn_rate * maxf(way, 0.25) * dt)
-	global_position += fwd * speed * dt
+	move_unless_land(fwd * speed * dt)
 
 	# the look: heel away from the wind, the boom out to leeward, a gentle bob
 	var side := signf(global_transform.basis.x.dot(wind_from))   # + = wind from starboard
@@ -66,6 +67,19 @@ func _physics_process(dt: float) -> void:
 	var boom := side * deg_to_rad(clampf(off * 0.5, 8.0, 80.0))
 	rig.rotation.y = lerpf(rig.rotation.y, boom if drive > 0.0 else 0.0, dt * 2.0)
 	model.position.y = sin(Time.get_ticks_msec() * 0.0013) * 0.04
+
+## Moves her by `step`, unless that would put her middle or her bow on land (the Land autoload,
+## which reads map_collision.png). On the shore she just stops: speed 0. She can still turn away
+## (slowly, see turn_rate) and sail off again.
+func move_unless_land(step: Vector3) -> void:
+	var next := global_position + step                  # where she would be
+	var fwd := -global_transform.basis.z
+	var next_bow := next + fwd * bow_reach               # where her bow would be
+	if Land.is_land(next) or Land.is_land(next_bow):
+		speed = 0.0                                      # aground: she stops
+	else:
+		global_position = next
+
 
 func _process(_dt: float) -> void:
 	# the camera: from the south, tilted, always the same way up (like a spring arm that doesn't rotate)
