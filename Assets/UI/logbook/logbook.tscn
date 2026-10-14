@@ -1,0 +1,30 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/UI/logbook/logbook.gd" id="1_logbook"]
+[ext_resource type="Script" path="res://Assets/UI/logbook/book_icon.gd" id="2_icon"]
+[ext_resource type="Script" path="res://Assets/UI/logbook/book.gd" id="3_book"]
+
+[node name="Logbook" type="Node"]
+script = ExtResource("1_logbook")
+
+[node name="IconLayer" type="CanvasLayer" parent="."]
+layer = 95
+
+[node name="BookIcon" type="Control" parent="IconLayer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 9.0
+offset_top = -120.0
+offset_right = 85.0
+offset_bottom = -44.0
+grow_vertical = 0
+script = ExtResource("2_icon")
+
+[node name="BookLayer" type="CanvasLayer" parent="."]
+layer = 120
+
+[node name="Book" type="Control" parent="BookLayer"]
+offset_right = 346.0
+offset_bottom = 390.0
+script = ExtResource("3_book")
