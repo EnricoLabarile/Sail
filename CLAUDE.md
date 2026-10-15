@@ -44,8 +44,8 @@
   the bow swung off up to 0.3 rad toward the open side. No wobble (Enrico removed it), no damage, sound or buzz yet. In the **shallows** (land within
   `shallows_width` 6 m of her middle, `Land.is_near_land`: 3 rings × 16 points of the mask) the sail's drive is ×
   `shallows_sail` 0.3 (Enrico: less wind by the coast). **The current** (prototype's `CURRENT_DRIFT`): `drift` =
-  downwind × `current_speed` 1.8 m/s × `drift_amount` (eases at `current_ease` 0.8/s), added to her motion; off at
-  anchor (no anchor line yet); pressing her against a shore she just stays (a bump only from her own way). She
+  downwind × `current_speed` 1.8 m/s × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; also at
+  anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
 - **Fog of war** (`Fog` autoload, `Assets/Landscape/world/fog.gd`, as the prototype's): the map in cells of `CELL`
   4.8 m (105 a side); a cell is seen for good once her middle comes within `SIGHT` 22 m of it (`Fog.reveal`, called
