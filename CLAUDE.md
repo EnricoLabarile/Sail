@@ -41,7 +41,9 @@
   0.6 s cooldown; a push `knock` along `Land.way_to_sea()` of 2 + 0.9 × the hit speed, fading at 3.5/s; speed × 0.25;
   the bow swung off up to 0.3 rad toward the open side. No wobble (Enrico removed it), no damage, sound or buzz yet. In the **shallows** (land within
   `shallows_width` 6 m of her middle, `Land.is_near_land`: 3 rings × 16 points of the mask) the sail's drive is ×
-  `shallows_sail` 0.3 (Enrico: less wind by the coast). She
+  `shallows_sail` 0.3 (Enrico: less wind by the coast). **The current** (prototype's `CURRENT_DRIFT`): `drift` =
+  downwind × `current_speed` 1.8 m/s × `drift_amount` (eases at `current_ease` 0.8/s), added to her motion; off at
+  anchor (no anchor line yet); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
 - **The boat's hierarchy** (Enrico's, Oct 2026): `Boat / Model / sm_boat_hull / sm_boat_mast / Rig / sm_boat_sail`
   (+ `Model/Helmsman`, `Boat/Camera3D`). `Model` heels and bobs (everything follows), `Rig` (at the mast's foot) turns the

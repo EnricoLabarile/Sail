@@ -17,6 +17,11 @@ extends Node3D
 @export var shallows_width := 6.0   # metres from the land that count as shallows (the grey band on the map)
 @export var shallows_sail := 0.3    # what the sail gives there, as a share of the usual (0.3 = 30%)
 
+# The current (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, and the water carries her
+# downwind whatever the sail does, so she must steer to make up for it. None at anchor (the anchor holds her).
+@export var current_speed := 1.8    # m/s the current carries her downwind (18 px/s in the prototype)
+@export var current_ease := 0.8     # how quickly it takes hold after weighing anchor (and lets go when it's dropped)
+
 # Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
 @export var bounce_kick := 2.0      # m/s of push away from the shore on any bump…
 @export var bounce_extra := 0.9     # …plus this much of the speed she hit it with
@@ -33,6 +38,8 @@ var speed := 0.0
 var anchored := true   # she starts at anchor: hold the wheel's hub (or press Space) to weigh it
 var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +1 full to starboard (right)
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
+var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her motion
+var drift_amount := 0.0     # 0..1: how much the current has her (eases in and out, see current_ease)
 var bump_wait := 0.0        # seconds left before another bump can count
 
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
@@ -88,6 +95,7 @@ func _physics_process(dt: float) -> void:
 	var way := clampf(speed / top_speed * 1.5, 0.0, 1.0)
 	if not anchored:
 		rotate_y(-rudder * turn_rate * maxf(way, 0.25) * dt)
+	update_current(dt, wind_from)
 	move_and_bounce(dt)
 
 	# the look: heel away from the wind, the boom out to leeward, a gentle bob
@@ -128,7 +136,8 @@ func move_and_bounce(dt: float) -> void:
 	knock *= exp(-bounce_fade * dt)                      # the push of the last bump dies away
 
 	var fwd := -global_transform.basis.z
-	var velocity := fwd * speed + knock                  # how she's moving now, in m/s
+	var own_way := fwd * speed                           # her own way, from the sail
+	var velocity := own_way + knock + drift              # how she's moving now, in m/s (her way + a bump's push + the current)
 	var next := global_position + velocity * dt          # where she would be
 	var next_bow := next + fwd * bow_reach               # where her bow would be
 
@@ -147,11 +156,22 @@ func move_and_bounce(dt: float) -> void:
 	if out == Vector3.ZERO:
 		speed = 0.0                                      # land all round that point: never go there
 		return
-	var into := -velocity.dot(out)                       # how fast she's going INTO the shore (m/s)
-	if into <= 0.0:
-		global_position = next                           # moving away from it (e.g. the push): let her go
+	if velocity.dot(out) >= 0.0:
+		global_position = next                           # all in all moving away from it (e.g. the push): let her go
 		return
-	bump(out, into)                                      # moving into it: a bump, and she stays put this frame
+	# Moving into the shore: she stays put this frame. It's a bump only if her OWN way takes her into it
+	# (as in the prototype); if it's just the current pressing her against the shore, she simply stays there.
+	var into := -own_way.dot(out)                        # how fast her own way goes INTO the shore (m/s)
+	if into > 0.0:
+		bump(out, into)
+
+
+## The current: downwind (the opposite of where the wind comes from), at current_speed.
+## It eases in after the anchor is weighed and eases out when it's dropped (drift_amount 0..1).
+func update_current(dt: float, wind_from: Vector3) -> void:
+	var target := 0.0 if anchored else 1.0
+	drift_amount += (target - drift_amount) * minf(1.0, dt * current_ease)
+	drift = -wind_from * current_speed * drift_amount
 
 
 ## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).
