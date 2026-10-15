@@ -47,6 +47,11 @@
   downwind × `current_speed` 1.8 m/s × `drift_amount` (eases at `current_ease` 0.8/s), added to her motion; off at
   anchor (no anchor line yet); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
+- **Fog of war** (`Fog` autoload, `Assets/Landscape/world/fog.gd`, as the prototype's): the map in cells of `CELL`
+  4.8 m (105 a side); a cell is seen for good once her middle comes within `SIGHT` 22 m of it (`Fog.reveal`, called
+  by `boat.gd` every physics frame). Kept in `Fog.image` (L8, 1 px a cell, white = fog), sent to `Fog.texture` only
+  when a cell changes; `sea.gd` hands it to `sea.gdshader` (`fog_tex`, linear filter = soft edge), which paints the
+  fog solid black. Only the sea plane is fogged (the boat is drawn over it). Nothing is always clear yet.
 - **The boat's hierarchy** (Enrico's, Oct 2026): `Boat / Model / sm_boat_hull / sm_boat_mast / Rig / sm_boat_sail`
   (+ `Model/Helmsman`, `Boat/Camera3D`). `Model` heels and bobs (everything follows), `Rig` (at the mast's foot) turns the
   boom to leeward, the sail's shape keys `Inflated_Right` / `Inflated_Left` make its belly. `boat.gd` finds `Rig` and

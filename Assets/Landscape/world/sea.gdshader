@@ -4,6 +4,7 @@
 //   1. it shows the map Enrico paints (map_paint.png), once, stretched over the plane;
 //   2. on the sea only (where map_collision.png is black), it adds short dark wavelets that stay
 //      fixed in the world, so you can see the boat moving.
+//   3. it covers in black what the boat hasn't seen yet (the fog of war, fog.gd).
 // Unshaded: no light on it, the greys are shown as painted; the dither turns them into paper and ink.
 shader_type spatial;
 render_mode unshaded;
@@ -12,6 +13,9 @@ render_mode unshaded;
 uniform sampler2D map_tex : source_color, filter_linear_mipmap;
 // White = land, black = sea (the same image the boat uses to find the shore).
 uniform sampler2D land_mask : filter_linear;
+// The fog of war (set by sea.gd from the Fog autoload): one pixel a cell, white = not seen yet.
+// filter_linear stretches it smoothly, so the fog's edge is soft, not blocky.
+uniform sampler2D fog_tex : filter_linear;
 
 uniform vec4 wavelet : source_color = vec4(0.25, 0.25, 0.24, 1.0);
 uniform float cell = 2.2;       // metres between wavelets
@@ -42,5 +46,9 @@ void fragment() {
 	float blink = step(0.35, 0.5 + 0.5 * sin(TIME * 0.7 + hash(id + 3.1) * 6.28));   // each fades in and out
 	float at_sea = step(is_land, 0.5);                  // 1 at sea, 0 on land: no wavelets on the land
 
-	ALBEDO = mix(painted, wavelet.rgb, on * blink * at_sea);
+	vec3 col = mix(painted, wavelet.rgb, on * blink * at_sea);
+
+	// The fog of war: where the boat hasn't been, solid black (ink once dithered), as in the prototype.
+	float fog = texture(fog_tex, UV).r;                 // 1 = in fog, 0 = seen
+	ALBEDO = mix(col, vec3(0.0), fog);
 }

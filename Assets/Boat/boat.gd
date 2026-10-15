@@ -97,6 +97,7 @@ func _physics_process(dt: float) -> void:
 		rotate_y(-rudder * turn_rate * maxf(way, 0.25) * dt)
 	update_current(dt, wind_from)
 	move_and_bounce(dt)
+	Fog.reveal(global_position)                                 # clear the fog round her (fog.gd)
 
 	# the look: heel away from the wind, the boom out to leeward, a gentle bob
 	var side := signf(global_transform.basis.x.dot(wind_from))   # + = wind from starboard

@@ -3,6 +3,7 @@
 [ext_resource type="Shader" uid="uid://y01s8ugtrxyq" path="res://Assets/Landscape/world/sea.gdshader" id="2_sea"]
 [ext_resource type="Texture2D" path="res://Assets/Landscape/world/map_paint.png" id="3_map"]
 [ext_resource type="Texture2D" path="res://Assets/Landscape/world/map_collision.png" id="4_mask"]
+[ext_resource type="Script" path="res://Assets/Landscape/world/sea.gd" id="5_script"]
 
 [sub_resource type="ShaderMaterial" id="Mat_sea"]
 shader = ExtResource("2_sea")
@@ -15,3 +16,4 @@ size = Vector2(504, 504)
 
 [node name="Sea" type="MeshInstance3D"]
 mesh = SubResource("Mesh_sea")
+script = ExtResource("5_script")
