@@ -33,8 +33,11 @@
   wavelets only where `map_collision.png` is black. Both PNGs are imported Lossless, no VRAM compression
   (`detect_3d/compress_to=0`: the web export has no mobile VRAM formats). The template to paint on is in `art_src/map/`
   (`map_paint_base.png`, `map_guide.png` = A1..I9 grid and home as a top layer; `make_map_template.py` makes them from
-  the prototype's `DRAWN_LAND`). The boat stops when her middle or bow (`bow_reach`) would be on land; she starts at
-  (0, 0, -34), in the sea just north of home.
+  the prototype's `DRAWN_LAND`). When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
+  `impact()`, in `boat.gd`: `move_and_bounce`, `bump`; knobs `bounce_*`): only moving into the shore at ≥ 0.4 m/s,
+  0.6 s cooldown; a push `knock` along `Land.way_to_sea()` of 2 + 0.9 × the hit speed, fading at 3.5/s; speed × 0.25;
+  the bow swung off up to 0.3 rad toward the open side; `rock` wobbles `Model`. No damage, sound or buzz yet. She
+  starts at (0, 0, -34), in the sea just north of home.
 - **The boat's hierarchy** (Enrico's, Oct 2026): `Boat / Model / sm_boat_hull / sm_boat_mast / Rig / sm_boat_sail`
   (+ `Model/Helmsman`, `Boat/Camera3D`). `Model` heels and bobs (everything follows), `Rig` (at the mast's foot) turns the
   boom to leeward, the sail's shape keys `Inflated_Right` / `Inflated_Left` make its belly. `boat.gd` finds `Rig` and

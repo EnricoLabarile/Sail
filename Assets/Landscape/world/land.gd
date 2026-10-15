@@ -31,3 +31,21 @@ func is_land(pos: Vector3) -> bool:
 	var py := int(v * _mask.get_height())
 	# 3. White (bright) = land.
 	return _mask.get_pixel(px, py).r > 0.5
+
+
+## Which way the open sea is from a point near the coast: a flat arrow of length 1 pointing away from
+## the land (in Unreal terms, the "impact normal" of a hit). Used to bounce the boat off the shore.
+##
+## How: it looks at 16 points on a circle round `pos` (like the hours on a clock) and adds up the
+## directions of those that are sea. Where most of the sea is, the arrow points.
+func way_to_sea(pos: Vector3) -> Vector3:
+	const LOOK := 2.0                    # metres: how far round the point it looks
+	var total := Vector3.ZERO
+	for i in 16:
+		var angle := i * TAU / 16.0
+		var direction := Vector3(cos(angle), 0.0, sin(angle))
+		if not is_land(pos + direction * LOOK):
+			total += direction
+	if total.length() < 0.001:
+		return Vector3.ZERO                # land all round: no way out found
+	return total.normalized()

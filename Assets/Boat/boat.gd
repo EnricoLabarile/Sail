@@ -13,6 +13,14 @@ extends Node3D
 @export var camera_tilt_deg := 30.0 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 @export var sail_fill_rate := 2.0   # how quickly the sail fills or empties (higher = quicker)
 
+# Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
+@export var bounce_kick := 2.0      # m/s of push away from the shore on any bump…
+@export var bounce_extra := 0.9     # …plus this much of the speed she hit it with
+@export var bounce_fade := 3.5      # how quickly the push dies away (higher = shorter)
+@export var bounce_slowdown := 0.25 # her speed is multiplied by this (0.25 = a quarter left)
+@export var bounce_min_speed := 0.4 # m/s: slower than this into the shore, it's a nudge, not a bump
+@export var bounce_cooldown := 0.6  # s after a bump before the next one counts (one bump, not one per frame)
+
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
 const POLAR := [[0.0, 0.0], [5.0, 0.4], [10.0, 0.8], [15.0, 1.0], [180.0, 1.0]]
 
@@ -20,6 +28,9 @@ var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0
 var anchored := true   # she starts at anchor: hold the wheel's hub (or press Space) to weigh it
 var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +1 full to starboard (right)
+var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
+var bump_wait := 0.0        # seconds left before another bump can count
+var rock := 0.0             # how much she's still rocking after a bump (fades away)
 
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
 # (children, children of children, and so on), so you can rearrange the hierarchy freely: only the
@@ -71,11 +82,14 @@ func _physics_process(dt: float) -> void:
 	var way := clampf(speed / top_speed * 1.5, 0.0, 1.0)
 	if not anchored:
 		rotate_y(-rudder * turn_rate * maxf(way, 0.25) * dt)
-	move_unless_land(fwd * speed * dt)
+	move_and_bounce(dt)
 
 	# the look: heel away from the wind, the boom out to leeward, a gentle bob
 	var side := signf(global_transform.basis.x.dot(wind_from))   # + = wind from starboard
 	model.rotation.z = lerpf(model.rotation.z, side * deg_to_rad(heel_max_deg) * drive, dt * 2.0)
+	# after a bump she rocks from side to side for a moment (a quick wobble that dies away)
+	rock = maxf(0.0, rock - dt * 1.5)
+	model.rotation.z += sin(Time.get_ticks_msec() * 0.012) * rock * 0.08
 	# The boom swings out to leeward, the side away from the wind: wind from starboard (side = +1)
 	# puts the sail out to port. A positive rotation.y turns the rig anticlockwise seen from above,
 	# which swings the boom (behind the mast) over to starboard: so the sign is the opposite of `side`.
@@ -103,17 +117,62 @@ func update_sail_belly(dt: float, side: float) -> void:
 		sail_mesh.set_blend_shape_value(key_left, maxf(-belly, 0.0))
 
 
-## Moves her by `step`, unless that would put her middle or her bow on land (the Land autoload,
-## which reads map_collision.png). On the shore she just stops: speed 0. She can still turn away
-## (slowly, see turn_rate) and sail off again.
-func move_unless_land(step: Vector3) -> void:
-	var next := global_position + step                  # where she would be
+## Moves her for this frame: her own way (forward × speed) plus the push of a bump (knock).
+## If that would put her middle or her bow on land (the Land autoload), she doesn't go there:
+## she bumps (see bump) and bounces back off the shore.
+func move_and_bounce(dt: float) -> void:
+	bump_wait = maxf(0.0, bump_wait - dt)
+	knock *= exp(-bounce_fade * dt)                      # the push of the last bump dies away
+
 	var fwd := -global_transform.basis.z
+	var velocity := fwd * speed + knock                  # how she's moving now, in m/s
+	var next := global_position + velocity * dt          # where she would be
 	var next_bow := next + fwd * bow_reach               # where her bow would be
-	if Land.is_land(next) or Land.is_land(next_bow):
-		speed = 0.0                                      # aground: she stops
-	else:
+
+	# Which point would touch land? (none: just go)
+	var touching := Vector3.INF
+	if Land.is_land(next_bow):
+		touching = next_bow
+	elif Land.is_land(next):
+		touching = next
+	if touching == Vector3.INF:
 		global_position = next
+		return
+
+	# She'd touch land. Which way is the open sea from there?
+	var out := Land.way_to_sea(touching)
+	if out == Vector3.ZERO:
+		speed = 0.0                                      # land all round that point: never go there
+		return
+	var into := -velocity.dot(out)                       # how fast she's going INTO the shore (m/s)
+	if into <= 0.0:
+		global_position = next                           # moving away from it (e.g. the push): let her go
+		return
+	bump(out, into)                                      # moving into it: a bump, and she stays put this frame
+
+
+## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).
+## As in the HTML prototype: a push back out, much less speed, the bow swung off a little, a rock.
+func bump(out: Vector3, into: float) -> void:
+	speed *= bounce_slowdown                             # she loses most of her way
+	if bump_wait > 0.0 or into < bounce_min_speed:
+		return                                           # just a nudge, or the same bump as a moment ago
+	bump_wait = bounce_cooldown
+
+	# 1. The push away from the shore: a bit more the harder she hit.
+	knock += out * (bounce_kick + into * bounce_extra)
+
+	# 2. The bow swings off, so she doesn't hit the same spot again. Which way? Away from the shore:
+	#    the "cross" of her heading and the way out says if the sea is on her left or her right.
+	var fwd := -global_transform.basis.z
+	var turn_side := signf(fwd.cross(out).y)
+	if turn_side == 0.0:
+		turn_side = 1.0 if randf() < 0.5 else -1.0          # head-on: either way
+	var swing := minf(0.3, 0.08 + into / top_speed * 0.25)  # radians, at most about 17 degrees
+	rotate_y(turn_side * swing)
+
+	# 3. She rocks for a while, more after a hard knock.
+	rock = minf(2.5, rock + 0.6 + into / top_speed)
 
 
 func _process(_dt: float) -> void:
