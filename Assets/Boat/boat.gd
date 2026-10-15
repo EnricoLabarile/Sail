@@ -14,6 +14,11 @@ extends Node3D
 @export var sail_fill_rate := 1   # how quickly the sail fills or empties (higher = quicker)
 @export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
 
+# The waves: she rocks gently on them, side to side (roll) and bow to stern (pitch).
+@export var wave_roll_deg := 3.0    # how far she rolls each way on the waves, in degrees
+@export var wave_pitch_deg := 2.0   # how far the bow rises and dips on the waves, in degrees
+@export var wave_period := 3.0      # seconds for one wave to pass under her (higher = slower rocking)
+
 # The shallows: near the coast there's less wind, so the sail gives less.
 @export var shallows_width := 6.0   # metres from the land that count as shallows (the grey band on the map)
 @export var shallows_sail := 0.3    # what the sail gives there, as a share of the usual (0.3 = 30%)
@@ -41,7 +46,8 @@ var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
 var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her motion
 var drift_amount := 0.0     # 0..1: how much the current has her (eases in and out, see current_ease)
-var bump_wait := 0.0        # seconds left before another bump can count
+var bump_wait := 0.0
+var heel := 0.0             # how far she leans with the wind (radians), without the waves' roll        # seconds left before another bump can count
 
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
 # (children, children of children, and so on), so you can rearrange the hierarchy freely: only the
@@ -102,7 +108,8 @@ func _physics_process(dt: float) -> void:
 
 	# the look: heel away from the wind, the boom out to leeward, a gentle bob
 	var side := signf(global_transform.basis.x.dot(wind_from))   # + = wind from starboard
-	model.rotation.z = lerpf(model.rotation.z, side * deg_to_rad(heel_max_deg) * drive, dt * 2.0)
+	heel = lerpf(heel, side * deg_to_rad(heel_max_deg) * drive, dt * 2.0)
+	rock_on_waves()
 	# The boom swings out to leeward, the side away from the wind: wind from starboard (side = +1)
 	# puts the sail out to port. A positive rotation.y turns the rig anticlockwise seen from above,
 	# which swings the boom (behind the mast) over to starboard: so the sign is the opposite of `side`.
@@ -112,6 +119,19 @@ func _physics_process(dt: float) -> void:
 	rig.rotation.y = lerpf(rig.rotation.y, boom if drive > 0.0 else 0.0, dt * 2.0)
 	model.position.y = sin(Time.get_ticks_msec() * 0.0013) * 0.04
 	update_sail_belly(dt, side)
+
+## The waves: roll (leaning side to side) and pitch (bow up and down), each a slow sine wave.
+## The roll is added on top of the heel, so she still leans away from the wind while she rocks.
+## Pitch runs a little quicker than roll (wave_period * 0.8), so the two don't move in step:
+## the rocking looks less mechanical.
+func rock_on_waves() -> void:
+	var seconds := Time.get_ticks_msec() / 1000.0
+	# sin() goes from -1 to 1 and back; TAU (2 x pi) / period makes one full swing take `period` seconds.
+	var roll := sin(seconds * TAU / wave_period) * deg_to_rad(wave_roll_deg)
+	var pitch := sin(seconds * TAU / (wave_period * 0.8)) * deg_to_rad(wave_pitch_deg)
+	model.rotation.z = heel + roll   # z: round her length, so she leans left and right
+	model.rotation.x = pitch         # x: across her, so the bow goes up and down
+
 
 ## The sail fills with the wind: the faster she goes, the fuller it is, and the belly is always on the
 ## side away from the wind (to leeward, like the boom). Uses the two shape keys made in Blender.
