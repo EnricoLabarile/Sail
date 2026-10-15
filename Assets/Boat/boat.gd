@@ -30,7 +30,6 @@ var anchored := true   # she starts at anchor: hold the wheel's hub (or press Sp
 var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +1 full to starboard (right)
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
 var bump_wait := 0.0        # seconds left before another bump can count
-var rock := 0.0             # how much she's still rocking after a bump (fades away)
 
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
 # (children, children of children, and so on), so you can rearrange the hierarchy freely: only the
@@ -87,9 +86,6 @@ func _physics_process(dt: float) -> void:
 	# the look: heel away from the wind, the boom out to leeward, a gentle bob
 	var side := signf(global_transform.basis.x.dot(wind_from))   # + = wind from starboard
 	model.rotation.z = lerpf(model.rotation.z, side * deg_to_rad(heel_max_deg) * drive, dt * 2.0)
-	# after a bump she rocks from side to side for a moment (a quick wobble that dies away)
-	rock = maxf(0.0, rock - dt * 1.5)
-	model.rotation.z += sin(Time.get_ticks_msec() * 0.012) * rock * 0.08
 	# The boom swings out to leeward, the side away from the wind: wind from starboard (side = +1)
 	# puts the sail out to port. A positive rotation.y turns the rig anticlockwise seen from above,
 	# which swings the boom (behind the mast) over to starboard: so the sign is the opposite of `side`.
@@ -152,7 +148,7 @@ func move_and_bounce(dt: float) -> void:
 
 
 ## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).
-## As in the HTML prototype: a push back out, much less speed, the bow swung off a little, a rock.
+## As in the HTML prototype: a push back out, much less speed, the bow swung off a little.
 func bump(out: Vector3, into: float) -> void:
 	speed *= bounce_slowdown                             # she loses most of her way
 	if bump_wait > 0.0 or into < bounce_min_speed:
@@ -170,9 +166,6 @@ func bump(out: Vector3, into: float) -> void:
 		turn_side = 1.0 if randf() < 0.5 else -1.0          # head-on: either way
 	var swing := minf(0.3, 0.08 + into / top_speed * 0.25)  # radians, at most about 17 degrees
 	rotate_y(turn_side * swing)
-
-	# 3. She rocks for a while, more after a hard knock.
-	rock = minf(2.5, rock + 0.6 + into / top_speed)
 
 
 func _process(_dt: float) -> void:

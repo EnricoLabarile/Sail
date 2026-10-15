@@ -1,6 +1,9 @@
 # Vento e Vele (Godot) — notes for Claude Code
 
 - **Reply to Enrico in Italian.** All text inside the game stays in English.
+- **Do only what Enrico asks.** No extra features, effects or animations he didn't request, even if the prototype
+  has them or they seem nice: he decides what goes in. If something extra seems worth it, suggest it in one line
+  and wait for his yes.
 - Enrico comes from **Unreal Engine**: explain Godot things through their Unreal equivalents (scene ≈ Blueprint/level, node ≈ component/actor, instancing a scene ≈ placing a Blueprint, CanvasLayer + shader ≈ a post-process material, GDScript ≈ Blueprint graph logic, autoload ≈ GameInstance subsystem).
 - **Enrico is learning GDScript**: keep code simple and easy to read (plain names, short functions, no clever
   one-liners), comment it generously (what each block does and why, in plain words), and when I add or change code,
@@ -36,7 +39,7 @@
   the prototype's `DRAWN_LAND`). When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
   `impact()`, in `boat.gd`: `move_and_bounce`, `bump`; knobs `bounce_*`): only moving into the shore at ≥ 0.4 m/s,
   0.6 s cooldown; a push `knock` along `Land.way_to_sea()` of 2 + 0.9 × the hit speed, fading at 3.5/s; speed × 0.25;
-  the bow swung off up to 0.3 rad toward the open side; `rock` wobbles `Model`. No damage, sound or buzz yet. She
+  the bow swung off up to 0.3 rad toward the open side. No wobble (Enrico removed it), no damage, sound or buzz yet. She
   starts at (0, 0, -34), in the sea just north of home.
 - **The boat's hierarchy** (Enrico's, Oct 2026): `Boat / Model / sm_boat_hull / sm_boat_mast / Rig / sm_boat_sail`
   (+ `Model/Helmsman`, `Boat/Camera3D`). `Model` heels and bobs (everything follows), `Rig` (at the mast's foot) turns the
