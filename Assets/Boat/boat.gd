@@ -9,7 +9,7 @@ extends Node3D
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 1.5        # rad/s at full rudder once she has way on
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
-@export var heel_max_deg := 15    # how far she leans with the wind on the sail
+@export var heel_max_deg := 7    # how far she leans with the wind on the sail
 @export var camera_tilt_deg := 15 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
 @export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
