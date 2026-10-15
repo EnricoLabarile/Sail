@@ -10,8 +10,8 @@ extends Node3D
 @export var turn_rate := 1.5        # rad/s at full rudder once she has way on
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 15    # how far she leans with the wind on the sail
-@export var camera_tilt_deg := 45 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
-@export var sail_fill_rate := 1   # how quickly the sail fills or empties (higher = quicker)
+@export var camera_tilt_deg := 15 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
+@export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
 @export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
 
 # The waves: she rocks gently on them, side to side (roll) and bow to stern (pitch).
@@ -25,7 +25,7 @@ extends Node3D
 
 # The current (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, and the water carries her
 # downwind whatever the sail does, so she must steer to make up for it. None at anchor (the anchor holds her).
-@export var current_speed := 1.5    # m/s the current carries her downwind (18 px/s in the prototype)
+@export var current_speed := 1.2    # m/s the current carries her downwind (18 px/s in the prototype)
 @export var current_ease := 0.8     # how quickly it takes hold after weighing anchor (and lets go when it's dropped)
 
 # Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
@@ -37,7 +37,7 @@ extends Node3D
 @export var bounce_cooldown := 0.6  # s after a bump before the next one counts (one bump, not one per frame)
 
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
-const POLAR := [[0.0, 0.0], [30.0, 0.4], [45.0, 0.8], [90.0, 1.0], [180.0, 1.0]]
+const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.8], [45.0, 1.0], [180.0, 1.0]]
 
 var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0
