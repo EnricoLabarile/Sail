@@ -4,7 +4,7 @@
 resource_name = "sail"
 cull_mode = 2
 vertex_color_use_as_albedo = true
-albedo_color = Color(0.00508024, 0.0054287547, 0.008862849, 1)
+albedo_color = Color(0.5251013, 0.5251013, 0.5251013, 1)
 metallic_specular = 0.0
 emission = Color(1, 1, 1, 1)
 emission_energy_multiplier = 0.0

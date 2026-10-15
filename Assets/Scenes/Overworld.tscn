@@ -14,6 +14,7 @@
 transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 10, 0)
 
 [node name="Sea" parent="." unique_id=1750240136 instance=ExtResource("1_sea")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11217594, 0.08686733, -0.18092918)
 
 [node name="Boat" parent="." unique_id=1762906152 instance=ExtResource("2_boat")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -34)
@@ -22,8 +23,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -34)
 
 [node name="Helm" parent="." unique_id=1401139767 instance=ExtResource("3_helm")]
 
-[node name="WindVane" parent="." instance=ExtResource("5_vane")]
+[node name="WindVane" parent="." unique_id=1472540336 instance=ExtResource("5_vane")]
 
-[node name="Logbook" parent="." instance=ExtResource("6_logbook")]
+[node name="Logbook" parent="." unique_id=1838272232 instance=ExtResource("6_logbook")]
 
-[node name="StartScreen" parent="." instance=ExtResource("7_start")]
+[node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("7_start")]
