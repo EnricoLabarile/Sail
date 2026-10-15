@@ -14,6 +14,10 @@ extends Node3D
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
 @export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
 
+# Turning: she leans out of the turn, like a bike's opposite (the prototype's "lean out of a turn").
+@export var turn_lean_deg := 6.0    # how far she leans at full rudder and full speed, in degrees
+@export var turn_lean_rate := 3.0   # how quickly she leans in and comes back up (higher = quicker)
+
 # The waves: she rocks gently on them, side to side (roll) and bow to stern (pitch).
 @export var wave_roll_deg := 3.0    # how far she rolls each way on the waves, in degrees
 @export var wave_pitch_deg := 2.0   # how far the bow rises and dips on the waves, in degrees
@@ -46,8 +50,9 @@ var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
 var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her motion
 var drift_amount := 0.0     # 0..1: how much the current has her (eases in and out, see current_ease)
-var bump_wait := 0.0
-var heel := 0.0             # how far she leans with the wind (radians), without the waves' roll        # seconds left before another bump can count
+var bump_wait := 0.0        # seconds left before another bump can count
+var heel := 0.0             # how far she leans with the wind (radians), without the waves' roll
+var turn_lean := 0.0        # how far she leans out of a turn (radians)
 
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
 # (children, children of children, and so on), so you can rearrange the hierarchy freely: only the
@@ -109,6 +114,7 @@ func _physics_process(dt: float) -> void:
 	# the look: heel away from the wind, the boom out to leeward, a gentle bob
 	var side := signf(global_transform.basis.x.dot(wind_from))   # + = wind from starboard
 	heel = lerpf(heel, side * deg_to_rad(heel_max_deg) * drive, dt * 2.0)
+	update_turn_lean(dt)
 	rock_on_waves()
 	# The boom swings out to leeward, the side away from the wind: wind from starboard (side = +1)
 	# puts the sail out to port. A positive rotation.y turns the rig anticlockwise seen from above,
@@ -120,8 +126,22 @@ func _physics_process(dt: float) -> void:
 	model.position.y = sin(Time.get_ticks_msec() * 0.0013) * 0.04
 	update_sail_belly(dt, side)
 
+## Turning: she leans out of the turn, more the harder the wheel is over and the faster she goes.
+## Turning right (rudder +1) she leans left (to port), and the other way round.
+func update_turn_lean(dt: float) -> void:
+	# 1. How fast she's going, as a share of her top speed: standing still, the rudder doesn't lean her.
+	var speed_share := clampf(speed / top_speed, 0.0, 1.0)
+	# 2. No turning at anchor.
+	var helm := 0.0 if anchored else rudder
+	# 3. Where she should lean: + is to port (left), the same sign as the heel. Rudder + turns her right,
+	#    so she leans left: the same sign as the rudder.
+	var target := helm * speed_share * deg_to_rad(turn_lean_deg)
+	# 4. Lean gently toward it (no snapping), and come back up the same way when the wheel is centred.
+	turn_lean = lerpf(turn_lean, target, minf(1.0, dt * turn_lean_rate))
+
+
 ## The waves: roll (leaning side to side) and pitch (bow up and down), each a slow sine wave.
-## The roll is added on top of the heel, so she still leans away from the wind while she rocks.
+## The roll is added on top of the heel and the turn's lean, so she still leans away from the wind while she rocks.
 ## Pitch runs a little quicker than roll (wave_period * 0.8), so the two don't move in step:
 ## the rocking looks less mechanical.
 func rock_on_waves() -> void:
@@ -129,7 +149,7 @@ func rock_on_waves() -> void:
 	# sin() goes from -1 to 1 and back; TAU (2 x pi) / period makes one full swing take `period` seconds.
 	var roll := sin(seconds * TAU / wave_period) * deg_to_rad(wave_roll_deg)
 	var pitch := sin(seconds * TAU / (wave_period * 0.8)) * deg_to_rad(wave_pitch_deg)
-	model.rotation.z = heel + roll   # z: round her length, so she leans left and right
+	model.rotation.z = heel + turn_lean + roll   # z: round her length, so she leans left and right
 	model.rotation.x = pitch         # x: across her, so the bow goes up and down
 
 
