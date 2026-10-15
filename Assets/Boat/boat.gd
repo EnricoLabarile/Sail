@@ -7,12 +7,12 @@ extends Node3D
 @export var top_speed := 4.2        # units/s with the sail at its best (~42 px/s in the prototype)
 @export var accel := 0.9            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
-@export var turn_rate := 1.2        # rad/s at full rudder once she has way on
+@export var turn_rate := 1.5        # rad/s at full rudder once she has way on
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
-@export var heel_max_deg := 10.0    # how far she leans with the wind on the sail
-@export var camera_tilt_deg := 30.0 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
-@export var sail_fill_rate := 2.0   # how quickly the sail fills or empties (higher = quicker)
-@export var boom_max_deg := 30.0    # the furthest the sail swings out from the boat's middle line, either side
+@export var heel_max_deg := 15    # how far she leans with the wind on the sail
+@export var camera_tilt_deg := 45 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
+@export var sail_fill_rate := 1   # how quickly the sail fills or empties (higher = quicker)
+@export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
 
 # The shallows: near the coast there's less wind, so the sail gives less.
 @export var shallows_width := 6.0   # metres from the land that count as shallows (the grey band on the map)
@@ -20,11 +20,11 @@ extends Node3D
 
 # The current (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, and the water carries her
 # downwind whatever the sail does, so she must steer to make up for it. None at anchor (the anchor holds her).
-@export var current_speed := 1.8    # m/s the current carries her downwind (18 px/s in the prototype)
+@export var current_speed := 1.5    # m/s the current carries her downwind (18 px/s in the prototype)
 @export var current_ease := 0.8     # how quickly it takes hold after weighing anchor (and lets go when it's dropped)
 
 # Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
-@export var bounce_kick := 2.0      # m/s of push away from the shore on any bump…
+@export var bounce_kick := 7     # m/s of push away from the shore on any bump…
 @export var bounce_extra := 0.9     # …plus this much of the speed she hit it with
 @export var bounce_fade := 3.5      # how quickly the push dies away (higher = shorter)
 @export var bounce_slowdown := 0.25 # her speed is multiplied by this (0.25 = a quarter left)
@@ -32,7 +32,7 @@ extends Node3D
 @export var bounce_cooldown := 0.6  # s after a bump before the next one counts (one bump, not one per frame)
 
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
-const POLAR := [[0.0, 0.0], [5.0, 0.4], [10.0, 0.8], [15.0, 1.0], [180.0, 1.0]]
+const POLAR := [[0.0, 0.0], [30.0, 0.4], [45.0, 0.8], [90.0, 1.0], [180.0, 1.0]]
 
 var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0
