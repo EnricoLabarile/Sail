@@ -11,6 +11,7 @@ extends Node3D
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 10.0    # how far she leans with the wind on the sail
 @export var camera_tilt_deg := 30.0 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
+@export var sail_fill_rate := 2.0   # how quickly the sail fills or empties (higher = quicker)
 
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
 const POLAR := [[0.0, 0.0], [5.0, 0.4], [10.0, 0.8], [15.0, 1.0], [180.0, 1.0]]
@@ -18,10 +19,18 @@ const POLAR := [[0.0, 0.0], [5.0, 0.4], [10.0, 0.8], [15.0, 1.0], [180.0, 1.0]]
 var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0
 var anchored := true   # she starts at anchor: hold the wheel's hub (or press Space) to weigh it
+var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +1 full to starboard (right)
 
 @onready var model: Node3D = $Model
 @onready var rig: Node3D = $Model/Rig
 @onready var camera: Camera3D = $Camera3D
+
+# The sail's mesh: the MeshInstance3D inside the imported sm_boat_sail (the FBX makes it a little scene
+# of its own, so we look for the first MeshInstance3D inside it).
+@onready var sail_mesh: MeshInstance3D = $Model/Rig/sm_boat_sail.find_children("*", "MeshInstance3D")[0]
+# The numbers of its two shape keys (made in Blender). find_blend_shape_by_name gives -1 if there's none.
+@onready var key_right: int = sail_mesh.find_blend_shape_by_name("Inflated_Right")   # belly to starboard
+@onready var key_left: int = sail_mesh.find_blend_shape_by_name("Inflated_Left")     # belly to port
 
 func _ready() -> void:
 	add_to_group("player_boat")
@@ -70,6 +79,26 @@ func _physics_process(dt: float) -> void:
 	var boom := -side * deg_to_rad(clampf(off * 0.5, 8.0, 80.0))
 	rig.rotation.y = lerpf(rig.rotation.y, boom if drive > 0.0 else 0.0, dt * 2.0)
 	model.position.y = sin(Time.get_ticks_msec() * 0.0013) * 0.04
+	update_sail_belly(dt, side)
+
+## The sail fills with the wind: the faster she goes, the fuller it is, and the belly is always on the
+## side away from the wind (to leeward, like the boom). Uses the two shape keys made in Blender.
+## side: +1 if the wind comes from starboard, -1 if from port (worked out in _physics_process).
+func update_sail_belly(dt: float, side: float) -> void:
+	# 1. How full: her speed as a share of her top speed (0 = still, 1 = full speed).
+	var fullness := clampf(speed / top_speed, 0.0, 1.0)
+	# 2. Which way: away from the wind. Wind from port (side = -1) fills it to starboard (+).
+	var target := -side * fullness
+	# 3. Change it gently, not all at once. When she changes tack the target jumps to the other side,
+	#    and belly slides there through 0: the sail empties, goes flat, and fills on the other side.
+	belly = lerpf(belly, target, minf(1.0, dt * sail_fill_rate))
+	# 4. Share it out to the two shape keys: one gets the belly, the other stays at 0.
+	#    (maxf(belly, 0) is belly when it's positive and 0 when it's negative.)
+	if key_right >= 0:
+		sail_mesh.set_blend_shape_value(key_right, maxf(belly, 0.0))
+	if key_left >= 0:
+		sail_mesh.set_blend_shape_value(key_left, maxf(-belly, 0.0))
+
 
 ## Moves her by `step`, unless that would put her middle or her bow on land (the Land autoload,
 ## which reads map_collision.png). On the shore she just stops: speed 0. She can still turn away
