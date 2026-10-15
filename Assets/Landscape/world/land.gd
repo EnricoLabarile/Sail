@@ -49,3 +49,18 @@ func way_to_sea(pos: Vector3) -> Vector3:
 	if total.length() < 0.001:
 		return Vector3.ZERO                # land all round: no way out found
 	return total.normalized()
+
+
+## True if there is land within `distance` metres of `pos` (for example: is she in the shallows?).
+##
+## How: it looks at points on three circles round `pos` (at a third, two thirds and all of the
+## distance), 16 points each, like the hours on a clock. If any of them is land, the answer is yes.
+func is_near_land(pos: Vector3, distance: float) -> bool:
+	for ring in [1.0, 2.0, 3.0]:
+		var radius: float = distance * ring / 3.0
+		for i in 16:
+			var angle := i * TAU / 16.0
+			var direction := Vector3(cos(angle), 0.0, sin(angle))
+			if is_land(pos + direction * radius):
+				return true
+	return false

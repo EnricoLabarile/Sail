@@ -13,6 +13,10 @@ extends Node3D
 @export var camera_tilt_deg := 30.0 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 @export var sail_fill_rate := 2.0   # how quickly the sail fills or empties (higher = quicker)
 
+# The shallows: near the coast there's less wind, so the sail gives less.
+@export var shallows_width := 6.0   # metres from the land that count as shallows (the grey band on the map)
+@export var shallows_sail := 0.3    # what the sail gives there, as a share of the usual (0.3 = 30%)
+
 # Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
 @export var bounce_kick := 2.0      # m/s of push away from the shore on any bump…
 @export var bounce_extra := 0.9     # …plus this much of the speed she hit it with
@@ -72,6 +76,9 @@ func _physics_process(dt: float) -> void:
 	var wind_from: Vector3 = Wind.from_vector()                 # the wind (Assets/Landscape/world/wind.gd)
 	var off := rad_to_deg(fwd.angle_to(wind_from))               # 0 = head to wind, 180 = wind astern
 	var drive := 0.0 if anchored else polar(off)
+	# In the shallows (land within shallows_width metres) the sail gives only shallows_sail of its push.
+	if Land.is_near_land(global_position, shallows_width):
+		drive *= shallows_sail
 
 	# speed eases toward what the sail gives; the anchor takes her way off quickly
 	var target := top_speed * drive
