@@ -21,13 +21,16 @@ var speed := 0.0
 var anchored := true   # she starts at anchor: hold the wheel's hub (or press Space) to weigh it
 var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +1 full to starboard (right)
 
-@onready var model: Node3D = $Model
-@onready var rig: Node3D = $Model/Rig
+# The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
+# (children, children of children, and so on), so you can rearrange the hierarchy freely: only the
+# NAMES must stay the same. ($Model, with the $, is a fixed address: it must be a direct child of Boat.)
+@onready var model: Node3D = $Model            # heels and bobs: everything inside it follows
+@onready var rig: Node3D = find_child("Rig")   # turns round the mast: the sail (and boom) inside it swing out
 @onready var camera: Camera3D = $Camera3D
 
 # The sail's mesh: the MeshInstance3D inside the imported sm_boat_sail (the FBX makes it a little scene
 # of its own, so we look for the first MeshInstance3D inside it).
-@onready var sail_mesh: MeshInstance3D = $Model/Rig/sm_boat_sail.find_children("*", "MeshInstance3D")[0]
+@onready var sail_mesh: MeshInstance3D = find_child("sm_boat_sail").find_children("*", "MeshInstance3D")[0]
 # The numbers of its two shape keys (made in Blender). find_blend_shape_by_name gives -1 if there's none.
 @onready var key_right: int = sail_mesh.find_blend_shape_by_name("Inflated_Right")   # belly to starboard
 @onready var key_left: int = sail_mesh.find_blend_shape_by_name("Inflated_Left")     # belly to port

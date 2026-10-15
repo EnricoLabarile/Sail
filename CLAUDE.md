@@ -35,6 +35,10 @@
   (`map_paint_base.png`, `map_guide.png` = A1..I9 grid and home as a top layer; `make_map_template.py` makes them from
   the prototype's `DRAWN_LAND`). The boat stops when her middle or bow (`bow_reach`) would be on land; she starts at
   (0, 0, -34), in the sea just north of home.
+- **The boat's hierarchy** (Enrico's, Oct 2026): `Boat / Model / sm_boat_hull / sm_boat_mast / Rig / sm_boat_sail`
+  (+ `Model/Helmsman`, `Boat/Camera3D`). `Model` heels and bobs (everything follows), `Rig` (at the mast's foot) turns the
+  boom to leeward, the sail's shape keys `Inflated_Right` / `Inflated_Left` make its belly. `boat.gd` finds `Rig` and
+  `sm_boat_sail` with `find_child` (by name, anywhere inside), so the hierarchy can change as long as the names stay.
 - **The logbook** (`Assets/UI/logbook/`: `logbook.tscn` + `logbook.gd`, `book_icon.gd`, `book.gd`; in Overworld): as the
   prototype's. The button bottom left (76 px, drawn in greys on a CanvasLayer under the dither, 95, so it's 1-bit) emits
   `pressed`; `logbook.gd` tweens `drop` (the shut book comes down, 0.26 s) then `book.unfold` (the cover swings open on
