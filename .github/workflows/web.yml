@@ -37,6 +37,11 @@ jobs:
           unzip -q Godot_v$V-stable_export_templates.tpz
           mv templates/* ~/.local/share/godot/export_templates/$V.stable/
           rm -rf templates *.zip *.tpz
+      - name: Stamp the build (its number and start time, Italian time) for the start screen
+        run: |
+          printf '## Written by the web build (.github/workflows/web.yml): this build'"'"'s number and start time.\n\nconst NUMBER := "%s"\nconst STARTED := "%s"\n' \
+            "${{ github.run_number }}" "$(TZ=Europe/Rome date '+%Y-%m-%d %H:%M')" > Assets/UI/build_info.gd
+          cat Assets/UI/build_info.gd
       - name: Export
         run: |
           mkdir -p build/web

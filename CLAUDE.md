@@ -51,6 +51,10 @@
   the spine while the book re-centres, 0.33 s), the reverse to close. `book.gd` (CanvasLayer 120, crisp) draws the
   leather (a 15 px tile of dots), stitching, metal corners, the pages with the edges beneath, and only spread 0 for
   now (Enrico): the 9×9 map A1..I9 across both pages (the prototype's 100-unit layout), a blinking dot for the boat.
+- **The start screen** (`Assets/UI/start_screen.tscn` + `.gd`, CanvasLayer 130, in Overworld): a card with the title, "Build
+  N" and the build's start time, and "Set sail"; the game is paused until it's pressed. The numbers come from
+  `Assets/UI/build_info.gd` ("local" in the repo); `web.yml` rewrites it before exporting with `github.run_number`
+  and the time (Europe/Rome). Only identification for now (Enrico): no settings or knobs on it.
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
   ```
   res://

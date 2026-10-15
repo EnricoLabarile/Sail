@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bba4hwropmrh4" path="res://Assets/Post_Process/dither/dither.tscn" id="4_dither"]
 [ext_resource type="PackedScene" path="res://Assets/UI/wind_vane.tscn" id="5_vane"]
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="6_logbook"]
+[ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="7_start"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -24,3 +25,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -34)
 [node name="WindVane" parent="." instance=ExtResource("5_vane")]
 
 [node name="Logbook" parent="." instance=ExtResource("6_logbook")]
+
+[node name="StartScreen" parent="." instance=ExtResource("7_start")]
