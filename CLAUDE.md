@@ -53,9 +53,23 @@
   when a cell changes; `sea.gd` hands it to `sea.gdshader` (`fog_tex`, linear filter = soft edge), which paints the
   fog solid black. Only the sea plane is fogged (the boat is drawn over it). Nothing is always clear yet.
 - **The boat's hierarchy** (Enrico's, Oct 2026): `Boat / Model / sm_boat_hull / sm_boat_mast / Rig / sm_boat_sail`
-  (+ `Model/Helmsman`, `Boat/Camera3D`). `Model` heels, bobs and rocks on the waves (`rock_on_waves`: roll `wave_roll_deg` 3° and pitch `wave_pitch_deg` 2°, sines of `wave_period` 3 s and 0.8× that, roll added to `heel` and `turn_lean`: she leans out of a turn, `update_turn_lean`, rudder × speed share × `turn_lean_deg` 6°, eased at `turn_lean_rate` 3/s, none at anchor; everything follows), `Rig` (at the mast's foot) turns the
+  (+ `Model/Helmsman`, `Boat/Camera3D`). `Model` heels, bobs and rocks on the waves (`rock_on_waves`: roll `wave_roll_deg` 3° and pitch `wave_pitch_deg` 2°, sines of `wave_period` 3 s and 0.8× that, roll added to `heel` and `turn_lean`: she leans out of a turn, `update_turn_lean`, rudder × speed share × `turn_lean_deg` 6°, eased at `turn_lean_rate` 3/s, none at anchor; the bow lifts as she gathers way and dips as she slows, `update_surge_pitch`: acceleration × `surge_pitch_deg` 3° per m/s², at most `surge_pitch_max_deg` 4.5°; everything follows), `Rig` (at the mast's foot) turns the
   boom to leeward (half the wind's angle off the bow, 8° to `boom_max_deg` 30° either side: never across her), the sail's shape keys `Inflated_Right` / `Inflated_Left` make its belly. `boat.gd` finds `Rig` and
   `sm_boat_sail` with `find_child` (by name, anywhere inside), so the hierarchy can change as long as the names stay.
+- **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
+  `bow_point()` = middle + `bow_reach` forward) and stays there; the current now carries her at anchor too; once the
+  bow is `anchor_rode` 3 m from it, `hold_at_anchor` holds the bow there and the hull trails from it, so she swings
+  round it, bow to the anchor (carried > 4 × the rode off, it drags and bites again). At anchor the sail is gathered
+  onto the boom (`update_furl`: `sm_boat_sail` scale.y → `furled_height` 0.06 at `furl_rate` 2.2, spread again at
+  `unfurl_rate` 3.5). No line drawn yet.
+- **The wheel** (`Assets/UI/helm.gd`, `helm.tscn`: CanvasLayer 95, under the dither, 221 × 242 px, 30 px off the
+  bottom), as the prototype's `drawWheel`: drawn in greys in its units (×`WHEEL_SCALE` 1.3): a dark backing, eight
+  turned spokes and handles (king spoke whipped), rim with grain and brass caps, the boss; over it the big hub
+  (×2: brass bezel lit top left, four rivets, light face with an ink anchor sailing, dark face with a paper anchor
+  and a light rim at anchor). Drag to steer (half a turn = full rudder, springs back to the middle); the hub's grip is
+  16.5 sailing / 21 at anchor (× 2.6): held `hub_hold` 0.33 s (a ring fills) it works the anchor and shakes; a finger
+  moving 9 off the hub turns the wheel instead; at anchor the wheel doesn't steer (drag and arrow keys). No sound or
+  buzz yet.
 - **The logbook** (`Assets/UI/logbook/`: `logbook.tscn` + `logbook.gd`, `book_icon.gd`, `book.gd`; in Overworld): as the
   prototype's. The button bottom left (76 px, drawn in greys on a CanvasLayer under the dither, 95, so it's 1-bit) emits
   `pressed`; `logbook.gd` tweens `drop` (the shut book comes down, 0.26 s) then `book.unfold` (the cover swings open on

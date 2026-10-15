@@ -18,6 +18,18 @@ extends Node3D
 @export var turn_lean_deg := 6.0    # how far she leans at full rudder and full speed, in degrees
 @export var turn_lean_rate := 3.0   # how quickly she leans in and comes back up (higher = quicker)
 
+# Speeding up and slowing down: the bow lifts as she gathers way and dips as she slows (as in the prototype).
+@export var surge_pitch_deg := 3.0      # degrees the bow lifts for every m/s² she speeds up (dips the same slowing down)
+@export var surge_pitch_max_deg := 4.5  # never more than this, either way
+@export var surge_pitch_rate := 3.0     # how quickly the bow follows (higher = quicker)
+
+# The anchor (the prototype's ANCHOR_RODE): it stays where it fell, off the bow. The current carries her
+# until the line is taut; then the line holds her bow and she swings round the anchor, stern downstream.
+@export var anchor_rode := 3.0          # metres of anchor line from the bow to the anchor
+@export var furl_rate := 2.2            # how quickly the sail is gathered up when the anchor goes down…
+@export var unfurl_rate := 3.5          # …and spread again when it comes up (higher = quicker)
+@export var furled_height := 0.06       # how tall the sail is when gathered up, as a share of its full height
+
 # The waves: she rocks gently on them, side to side (roll) and bow to stern (pitch).
 @export var wave_roll_deg := 3.0    # how far she rolls each way on the waves, in degrees
 @export var wave_pitch_deg := 2.0   # how far the bow rises and dips on the waves, in degrees
@@ -28,9 +40,9 @@ extends Node3D
 @export var shallows_sail := 0.3    # what the sail gives there, as a share of the usual (0.3 = 30%)
 
 # The current (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, and the water carries her
-# downwind whatever the sail does, so she must steer to make up for it. None at anchor (the anchor holds her).
+# downwind whatever the sail does, so she must steer to make up for it. At anchor too: the anchor line holds her.
 @export var current_speed := 1.2    # m/s the current carries her downwind (18 px/s in the prototype)
-@export var current_ease := 0.8     # how quickly it takes hold after weighing anchor (and lets go when it's dropped)
+@export var current_ease := 0.8     # how quickly it takes hold at the start
 
 # Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
 @export var bounce_kick := 7     # m/s of push away from the shore on any bump…
@@ -53,6 +65,10 @@ var drift_amount := 0.0     # 0..1: how much the current has her (eases in and o
 var bump_wait := 0.0        # seconds left before another bump can count
 var heel := 0.0             # how far she leans with the wind (radians), without the waves' roll
 var turn_lean := 0.0        # how far she leans out of a turn (radians)
+var surge_pitch := 0.0      # how far the bow is lifted (+) or dipped (-) by speeding up or slowing (radians)
+var last_speed := 0.0       # her speed a frame ago (to work out how quickly it changes)
+var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
+var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she starts at anchor: gathered up)
 
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
 # (children, children of children, and so on), so you can rearrange the hierarchy freely: only the
@@ -60,6 +76,7 @@ var turn_lean := 0.0        # how far she leans out of a turn (radians)
 @onready var model: Node3D = $Model            # heels and bobs: everything inside it follows
 @onready var rig: Node3D = find_child("Rig")   # turns round the mast: the sail (and boom) inside it swing out
 @onready var camera: Camera3D = $Camera3D
+@onready var sail_node: Node3D = find_child("sm_boat_sail")   # the whole sail: squashed down onto the boom to furl it
 
 # The sail's mesh: the MeshInstance3D inside the imported sm_boat_sail (the FBX makes it a little scene
 # of its own, so we look for the first MeshInstance3D inside it).
@@ -71,12 +88,21 @@ var turn_lean := 0.0        # how far she leans out of a turn (radians)
 func _ready() -> void:
 	add_to_group("player_boat")
 	camera.top_level = true   # it follows her position but not her turning
+	anchor_point = bow_point()   # she starts at anchor: it lies off her bow
 
 func set_rudder(v: float) -> void:
 	rudder = clampf(v, -1.0, 1.0)
 
 func toggle_anchor() -> void:
 	anchored = not anchored
+	if anchored:
+		anchor_point = bow_point()   # let go off the bow: it stays there
+
+
+## Where her bow is now, on the water.
+func bow_point() -> Vector3:
+	var fwd := -global_transform.basis.z
+	return global_position + fwd * bow_reach
 
 func polar(off_deg: float) -> float:
 	for i in range(1, POLAR.size()):
@@ -109,12 +135,14 @@ func _physics_process(dt: float) -> void:
 		rotate_y(-rudder * turn_rate * maxf(way, 0.25) * dt)
 	update_current(dt, wind_from)
 	move_and_bounce(dt)
+	hold_at_anchor()
 	Fog.reveal(global_position)                                 # clear the fog round her (fog.gd)
 
 	# the look: heel away from the wind, the boom out to leeward, a gentle bob
 	var side := signf(global_transform.basis.x.dot(wind_from))   # + = wind from starboard
 	heel = lerpf(heel, side * deg_to_rad(heel_max_deg) * drive, dt * 2.0)
 	update_turn_lean(dt)
+	update_surge_pitch(dt)
 	rock_on_waves()
 	# The boom swings out to leeward, the side away from the wind: wind from starboard (side = +1)
 	# puts the sail out to port. A positive rotation.y turns the rig anticlockwise seen from above,
@@ -125,6 +153,7 @@ func _physics_process(dt: float) -> void:
 	rig.rotation.y = lerpf(rig.rotation.y, boom if drive > 0.0 else 0.0, dt * 2.0)
 	model.position.y = sin(Time.get_ticks_msec() * 0.0013) * 0.04
 	update_sail_belly(dt, side)
+	update_furl(dt)
 
 ## Turning: she leans out of the turn, more the harder the wheel is over and the faster she goes.
 ## Turning right (rudder +1) she leans left (to port), and the other way round.
@@ -140,6 +169,18 @@ func update_turn_lean(dt: float) -> void:
 	turn_lean = lerpf(turn_lean, target, minf(1.0, dt * turn_lean_rate))
 
 
+## Speeding up lifts the bow, slowing down dips it (as in the prototype).
+func update_surge_pitch(dt: float) -> void:
+	# 1. How quickly her speed is changing, in m/s every second (+ speeding up, - slowing down).
+	var acceleration := (speed - last_speed) / dt
+	last_speed = speed
+	# 2. The bow's angle for it, kept within surge_pitch_max_deg either way.
+	var max_angle := deg_to_rad(surge_pitch_max_deg)
+	var target := clampf(acceleration * deg_to_rad(surge_pitch_deg), -max_angle, max_angle)
+	# 3. Follow it gently.
+	surge_pitch = lerpf(surge_pitch, target, minf(1.0, dt * surge_pitch_rate))
+
+
 ## The waves: roll (leaning side to side) and pitch (bow up and down), each a slow sine wave.
 ## The roll is added on top of the heel and the turn's lean, so she still leans away from the wind while she rocks.
 ## Pitch runs a little quicker than roll (wave_period * 0.8), so the two don't move in step:
@@ -150,7 +191,7 @@ func rock_on_waves() -> void:
 	var roll := sin(seconds * TAU / wave_period) * deg_to_rad(wave_roll_deg)
 	var pitch := sin(seconds * TAU / (wave_period * 0.8)) * deg_to_rad(wave_pitch_deg)
 	model.rotation.z = heel + turn_lean + roll   # z: round her length, so she leans left and right
-	model.rotation.x = pitch         # x: across her, so the bow goes up and down
+	model.rotation.x = pitch + surge_pitch   # x: across her, so the bow goes up (+) and down (-)
 
 
 ## The sail fills with the wind: the faster she goes, the fuller it is, and the belly is always on the
@@ -170,6 +211,49 @@ func update_sail_belly(dt: float, side: float) -> void:
 		sail_mesh.set_blend_shape_value(key_right, maxf(belly, 0.0))
 	if key_left >= 0:
 		sail_mesh.set_blend_shape_value(key_left, maxf(-belly, 0.0))
+
+
+## At anchor the line is a pivot. The anchor stays where it fell. While the line is slack she drifts
+## freely (the current carries her); once her bow is anchor_rode metres from the anchor, the taut line
+## holds the bow there, and the hull trails behind it the way it's pushed: she swings round the anchor,
+## bow to the anchor, stern downstream. (The prototype's anchorPt.)
+func hold_at_anchor() -> void:
+	if not anchored:
+		return
+	var bow := bow_point()
+	var from_anchor := bow - anchor_point
+	from_anchor.y = 0.0
+	var distance := from_anchor.length()
+	# Carried very far off some other way (a bump, say): the anchor drags and bites again where she is.
+	if distance > anchor_rode * 4.0:
+		anchor_point = bow
+		return
+	# Slack line: nothing to do, she drifts.
+	if distance <= anchor_rode:
+		return
+	# 1. Taut line: the bow can go no further than anchor_rode from the anchor.
+	bow = anchor_point + from_anchor / distance * anchor_rode
+	# 2. The hull trails from the bow, the way it was being pushed: her middle goes back to bow_reach
+	#    metres from the bow, along the line from the bow to where her middle is now.
+	var bow_to_middle := global_position - bow
+	bow_to_middle.y = 0.0
+	var back := bow_to_middle.normalized()
+	global_position = bow + back * bow_reach
+	# 3. She faces the anchor: her forward (-Z) points from her middle to her bow, the opposite of `back`.
+	#    A turn of rotation.y = a points her +Z along (sin a, 0, cos a), so a = atan2(back.x, back.z).
+	rotation.y = atan2(back.x, back.z)
+	# 4. The line takes her way off.
+	speed = minf(speed, 0.0)
+	knock *= 0.5
+
+
+## At anchor the sail is gathered up onto the boom (only a look: as in the prototype); it spreads
+## again as the anchor comes up. Done by squashing the sail's node down (scale.y) onto the boom.
+func update_furl(dt: float) -> void:
+	var target := 1.0 if anchored else 0.0
+	var rate := furl_rate if anchored else unfurl_rate
+	furl = lerpf(furl, target, minf(1.0, dt * rate))
+	sail_node.scale.y = lerpf(1.0, furled_height, furl)
 
 
 ## Moves her for this frame: her own way (forward × speed) plus the push of a bump (knock).
@@ -211,10 +295,10 @@ func move_and_bounce(dt: float) -> void:
 
 
 ## The current: downwind (the opposite of where the wind comes from), at current_speed.
-## It eases in after the anchor is weighed and eases out when it's dropped (drift_amount 0..1).
+## It eases in at the start (drift_amount 0..1). It carries her at anchor too: the anchor line holds her
+## (see hold_at_anchor).
 func update_current(dt: float, wind_from: Vector3) -> void:
-	var target := 0.0 if anchored else 1.0
-	drift_amount += (target - drift_amount) * minf(1.0, dt * current_ease)
+	drift_amount += (1.0 - drift_amount) * minf(1.0, dt * current_ease)
 	drift = -wind_from * current_speed * drift_amount
 
 
