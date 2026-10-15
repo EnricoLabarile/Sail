@@ -12,6 +12,7 @@ extends Node3D
 @export var heel_max_deg := 10.0    # how far she leans with the wind on the sail
 @export var camera_tilt_deg := 30.0 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 @export var sail_fill_rate := 2.0   # how quickly the sail fills or empties (higher = quicker)
+@export var boom_max_deg := 30.0    # the furthest the sail swings out from the boat's middle line, either side
 
 # The shallows: near the coast there's less wind, so the sail gives less.
 @export var shallows_width := 6.0   # metres from the land that count as shallows (the grey band on the map)
@@ -105,7 +106,9 @@ func _physics_process(dt: float) -> void:
 	# The boom swings out to leeward, the side away from the wind: wind from starboard (side = +1)
 	# puts the sail out to port. A positive rotation.y turns the rig anticlockwise seen from above,
 	# which swings the boom (behind the mast) over to starboard: so the sign is the opposite of `side`.
-	var boom := -side * deg_to_rad(clampf(off * 0.5, 8.0, 80.0))
+	# How far out: half the wind's angle off the bow, but never less than 8 degrees and never more than
+	# boom_max_deg (30), so the sail never stands across the boat.
+	var boom := -side * deg_to_rad(clampf(off * 0.5, 8.0, boom_max_deg))
 	rig.rotation.y = lerpf(rig.rotation.y, boom if drive > 0.0 else 0.0, dt * 2.0)
 	model.position.y = sin(Time.get_ticks_msec() * 0.0013) * 0.04
 	update_sail_belly(dt, side)
