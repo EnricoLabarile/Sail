@@ -64,7 +64,10 @@ func _physics_process(dt: float) -> void:
 	# the look: heel away from the wind, the boom out to leeward, a gentle bob
 	var side := signf(global_transform.basis.x.dot(wind_from))   # + = wind from starboard
 	model.rotation.z = lerpf(model.rotation.z, side * deg_to_rad(heel_max_deg) * drive, dt * 2.0)
-	var boom := side * deg_to_rad(clampf(off * 0.5, 8.0, 80.0))
+	# The boom swings out to leeward, the side away from the wind: wind from starboard (side = +1)
+	# puts the sail out to port. A positive rotation.y turns the rig anticlockwise seen from above,
+	# which swings the boom (behind the mast) over to starboard: so the sign is the opposite of `side`.
+	var boom := -side * deg_to_rad(clampf(off * 0.5, 8.0, 80.0))
 	rig.rotation.y = lerpf(rig.rotation.y, boom if drive > 0.0 else 0.0, dt * 2.0)
 	model.position.y = sin(Time.get_ticks_msec() * 0.0013) * 0.04
 
