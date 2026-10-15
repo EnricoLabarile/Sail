@@ -30,9 +30,11 @@
 - **Autoloads** (project.godot): `PhoneFrame` (`Assets/Scenes/phone_frame.gd`, a phone-shaped frame on wide screens) and
   `Wind` (`Assets/Landscape/world/wind.gd`, the prototype's wind: random start, holds, shifts 30–90° over 3–5 s,
   constant strength (Enrico: only the direction changes); the boat and the wind vane read `Wind.from_deg`).
-  `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` reads `map_collision.png` (1024², white = land).
+  `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` reads `map_collision.png` (1024², white = land);
+  outside the map counts as land, so the map's edge is a wall the boat bumps into.
 - **The landscape is a painted map** (Enrico's choice, option 1): `Assets/Landscape/world/map_paint.png` (4096², greys,
-  the whole 504 m world, home = the middle, wraps at the edges) shown by `sea.gdshader` on the sea plane, with the
+  the whole 504 m world, home = the middle) shown by `sea.gdshader` on the sea plane, a fixed 504 × 504 plane at the
+  origin (Enrico: no wrap-around, one place per point, for hand-placed things), with the
   wavelets only where `map_collision.png` is black. Both PNGs are imported Lossless, no VRAM compression
   (`detect_3d/compress_to=0`: the web export has no mobile VRAM formats). The template to paint on is in `art_src/map/`
   (`map_paint_base.png`, `map_guide.png` = A1..I9 grid and home as a top layer; `make_map_template.py` makes them from

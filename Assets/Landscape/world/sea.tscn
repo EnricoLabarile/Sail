@@ -1,6 +1,5 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://babooar1kgx1g" path="res://Assets/Landscape/world/sea.gd" id="1_sea"]
 [ext_resource type="Shader" uid="uid://y01s8ugtrxyq" path="res://Assets/Landscape/world/sea.gdshader" id="2_sea"]
 [ext_resource type="Texture2D" path="res://Assets/Landscape/world/map_paint.png" id="3_map"]
 [ext_resource type="Texture2D" path="res://Assets/Landscape/world/map_collision.png" id="4_mask"]
@@ -12,8 +11,7 @@ shader_parameter/land_mask = ExtResource("4_mask")
 
 [sub_resource type="PlaneMesh" id="Mesh_sea"]
 material = SubResource("Mat_sea")
-size = Vector2(200, 200)
+size = Vector2(504, 504)
 
 [node name="Sea" type="MeshInstance3D"]
 mesh = SubResource("Mesh_sea")
-script = ExtResource("1_sea")

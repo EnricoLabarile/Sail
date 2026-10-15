@@ -214,10 +214,9 @@ func _draw_map(page: Rect2, half: int, squeeze: float) -> void:
 	# The boat: a dot where she is, blinking (shown 0.4 s, hidden 0.4 s).
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if boat and fmod(_blink_time, 0.8) < 0.4:
-		# her place in the world as a share of the map, 0..1 (home, world 0, 0, is the middle);
-		# fposmod wraps it, because the world repeats.
-		var share_x := fposmod(boat.global_position.x / WORLD_SIZE + 0.5, 1.0)
-		var share_z := fposmod(boat.global_position.z / WORLD_SIZE + 0.5, 1.0)
+		# her place in the world as a share of the map, 0..1 (home, world 0, 0, is the middle)
+		var share_x := boat.global_position.x / WORLD_SIZE + 0.5
+		var share_z := boat.global_position.z / WORLD_SIZE + 0.5
 		var u := GRID_START + share_x * ROOMS * ROOM_SIZE
 		var v := GRID_START + share_z * ROOMS * ROOM_SIZE
 		if u >= lo and u < hi:

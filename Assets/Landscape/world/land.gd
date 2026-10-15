@@ -7,6 +7,9 @@ extends Node
 ## It reads map_collision.png: a black and white picture of the whole world, white = land, black = sea.
 ## Home (world position 0, 0) is the middle of the picture. If you change the coasts in the painting,
 ## change this picture the same way (or ask me to make it again from the painting).
+##
+## The map doesn't repeat: it's one picture, 504 x 504 metres, and outside it counts as land.
+## So the edge of the map is a wall the boat bumps into, like any coast.
 
 const WORLD_SIZE := 504.0      # metres the picture covers, a side (the prototype's 5040 px world)
 const MASK_PATH := "res://Assets/Landscape/world/map_collision.png"
@@ -23,13 +26,15 @@ func _ready() -> void:
 ## True if this point of the world is land. Only x and z count (the height doesn't matter).
 func is_land(pos: Vector3) -> bool:
 	# 1. From metres to a share of the picture, 0..1. Home (0, 0) is the middle, 0.5.
-	#    fposmod(..., 1.0) wraps it: the world repeats, so 1.2 becomes 0.2.
-	var u := fposmod(pos.x / WORLD_SIZE + 0.5, 1.0)
-	var v := fposmod(pos.z / WORLD_SIZE + 0.5, 1.0)
-	# 2. From a share to a pixel of the picture.
+	var u := pos.x / WORLD_SIZE + 0.5
+	var v := pos.z / WORLD_SIZE + 0.5
+	# 2. Outside the picture (below 0 or above 1): the edge of the map, a wall. It counts as land.
+	if u < 0.0 or u >= 1.0 or v < 0.0 or v >= 1.0:
+		return true
+	# 3. From a share to a pixel of the picture.
 	var px := int(u * _mask.get_width())
 	var py := int(v * _mask.get_height())
-	# 3. White (bright) = land.
+	# 4. White (bright) = land.
 	return _mask.get_pixel(px, py).r > 0.5
 
 
