@@ -53,9 +53,21 @@
   when a cell changes; `sea.gd` hands it to `sea.gdshader` (`fog_tex`, linear filter = soft edge), which paints the
   fog solid black. Only the sea plane is fogged (the boat is drawn over it). Nothing is always clear yet.
 - **The boat's hierarchy** (Enrico's, Oct 2026): `Boat / Model / sm_boat_hull / sm_boat_mast / Rig / sm_boat_sail`
-  (+ `Model/Helmsman`, `Boat/Camera3D`). `Model` heels, bobs and rocks on the waves (`rock_on_waves`: roll `wave_roll_deg` 3° and pitch `wave_pitch_deg` 2°, sines of `wave_period` 3 s and 0.8× that, roll added to `heel` and `turn_lean`: she leans out of a turn, `update_turn_lean`, rudder × speed share × `turn_lean_deg` 6°, eased at `turn_lean_rate` 3/s, none at anchor; the bow lifts as she gathers way and dips as she slows, `update_surge_pitch`: acceleration × `surge_pitch_deg` 3° per m/s², at most `surge_pitch_max_deg` 4.5°; everything follows), `Rig` (at the mast's foot) turns the
+  (+ `Model/Helmsman`, `Boat/Camera3D`). `Model` heels, bobs and rocks (`rock_and_roll`, the prototype's damped springs: roll pulled toward heel + lean out of a turn + the waves' roll, pitch toward the surge + the waves' pitch, `roll_stiffness` 16 / `roll_damping` 3.2, `pitch_stiffness` 22 / `pitch_damping` 4.5, clamped ±0.6 / ±0.3 rad; the lean out of a turn is the measured `turn_speed` / `turn_rate` × speed / `top_speed` × `turn_lean_deg` 22°; the surge is acceleration × `surge_pitch_deg` 3°/(m/s²), at most `surge_pitch_max_deg` 4.5°; the waves `wave_roll_deg` 3°, `wave_pitch_deg` 2°, `wave_period` 3 s and 0.8× that; everything follows), `Rig` (at the mast's foot) turns the
   boom to leeward (half the wind's angle off the bow, 8° to `boom_max_deg` 30° either side: never across her), the sail's shape keys `Inflated_Right` / `Inflated_Left` make its belly. `boat.gd` finds `Rig` and
   `sm_boat_sail` with `find_child` (by name, anywhere inside), so the hierarchy can change as long as the names stay.
+- **Turning** (as the prototype): `turn_rate` rad/s at full rudder whatever her speed (no slower with less way),
+  × `paddle_turn_mult` 1.5 while the paddle wheels push; none at anchor.
+- **The paddle wheels and the crank** (the prototype's `CRANK_DIRECT`): `Assets/Boat/paddle_wheel.tscn` is a stand-in
+  model (four boards, two rims, a hub, an axle; its child `Spin` turns), two instances in `boat.tscn` under `Model`
+  (`PaddleWheelLeft` / `Right` at x ±1.36, y 0.1, z 0.1). `Assets/UI/crank.tscn` + `crank.gd` (CanvasLayer 95, under
+  the dither; 84 px, bottom right, 4 px from the right, 28 from the bottom; drawn in greys in the prototype's 72-unit
+  SVG: dotted gear with 16 teeth, hatched plate, three rivets, a ring that fills with `paddle_power`, the arm and knob;
+  `_has_point` only its round face, and the wheel's only inside its handles): turned clockwise (a ratchet), its speed
+  smoothed, `boat.set_crank(speed / crank_full_rate 5 rad/s)`. In `boat.gd`: `paddle_power` eases to that at
+  `crank_ease` 3.75 (0 at anchor), the target speed is max(sail, `paddle_speed` 5.88 m/s × power) and the push bites
+  at `crank_bite` 5.25. `spin_paddle_wheels`: rad/s = max(push / `paddle_radius` 0.7, speed / radius × 0.9) ∓ turn ×
+  `paddle_half_beam` 1.36 / radius × 0.9 (outside wheel faster). No sound or buzz yet.
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
   `bow_point()` = middle + `bow_reach` forward) and stays there; the current now carries her at anchor too; once the
   bow is `anchor_rode` 3 m from it, `hold_at_anchor` holds the bow there and the hull trails from it, so she swings

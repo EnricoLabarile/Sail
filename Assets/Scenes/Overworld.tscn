@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/wind_vane.tscn" id="5_vane"]
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="6_logbook"]
 [ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="7_start"]
+[ext_resource type="PackedScene" path="res://Assets/UI/crank.tscn" id="8_crank"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -22,6 +23,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -34)
 [node name="Dither" parent="." unique_id=1041423395 instance=ExtResource("4_dither")]
 
 [node name="Helm" parent="." unique_id=1401139767 instance=ExtResource("3_helm")]
+
+[node name="Crank" parent="." instance=ExtResource("8_crank")]
 
 [node name="WindVane" parent="." unique_id=1472540336 instance=ExtResource("5_vane")]
 

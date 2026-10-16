@@ -7,21 +7,35 @@ extends Node3D
 @export var top_speed := 4.2        # units/s with the sail at its best (~42 px/s in the prototype)
 @export var accel := 0.9            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
-@export var turn_rate := 1.5        # rad/s at full rudder once she has way on
+@export var turn_rate := 1.5        # rad/s at full rudder, whatever her speed (as in the prototype; it had 1.62)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 7    # how far she leans with the wind on the sail
 @export var camera_tilt_deg := 15 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
 @export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
 
-# Turning: she leans out of the turn, like a bike's opposite (the prototype's "lean out of a turn").
-@export var turn_lean_deg := 6.0    # how far she leans at full rudder and full speed, in degrees
-@export var turn_lean_rate := 3.0   # how quickly she leans in and comes back up (higher = quicker)
+# Turning: she leans out of the turn (the prototype's "lean out of a turn"), more the quicker she turns
+# and the faster she goes.
+@export var turn_lean_deg := 22.0   # how far she leans turning at turn_rate at top_speed, in degrees (the prototype's)
 
 # Speeding up and slowing down: the bow lifts as she gathers way and dips as she slows (as in the prototype).
 @export var surge_pitch_deg := 3.0      # degrees the bow lifts for every m/s² she speeds up (dips the same slowing down)
 @export var surge_pitch_max_deg := 4.5  # never more than this, either way
-@export var surge_pitch_rate := 3.0     # how quickly the bow follows (higher = quicker)
+
+# How she leans and pitches: not straight to where she should be, but like a weight on a spring, so she
+# swings a little past it and settles (the prototype's damped springs). This is what makes her feel alive.
+@export var roll_stiffness := 16.0      # how strongly the roll is pulled to where it should be (higher = snappier)
+@export var roll_damping := 3.2         # how quickly the swinging dies away (lower = more swinging)
+@export var pitch_stiffness := 22.0     # the same for the pitch (bow up and down)
+@export var pitch_damping := 4.5
+
+# The paddle wheels (the prototype's crank, CRANK_DIRECT): while the crank is turned they push her.
+@export var paddle_speed := 5.88        # m/s the wheels give her with the crank turned fast enough (58.8 px/s)
+@export var crank_ease := 3.75          # how quickly the wheels take up and let go as the cranking starts or stops
+@export var crank_bite := 5.25          # how quickly her speed catches up with the wheels' push
+@export var paddle_turn_mult := 1.5     # turning is this much quicker while the wheels push
+@export var paddle_radius := 0.7        # metres: the wheels' size (to turn them as fast as the water goes by)
+@export var paddle_half_beam := 1.36    # metres from her middle to each wheel (turning, the two go at different speeds)
 
 # The anchor (the prototype's ANCHOR_RODE): it stays where it fell, off the bow. The current carries her
 # until the line is taut; then the line holds her bow and she swings round the anchor, stern downstream.
@@ -64,9 +78,16 @@ var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her m
 var drift_amount := 0.0     # 0..1: how much the current has her (eases in and out, see current_ease)
 var bump_wait := 0.0        # seconds left before another bump can count
 var heel := 0.0             # how far she leans with the wind (radians), without the waves' roll
-var turn_lean := 0.0        # how far she leans out of a turn (radians)
-var surge_pitch := 0.0      # how far the bow is lifted (+) or dipped (-) by speeding up or slowing (radians)
 var last_speed := 0.0       # her speed a frame ago (to work out how quickly it changes)
+var turn_speed := 0.0       # how quickly she is turning now, in rad/s (+ = to the left), measured each frame
+var roll := 0.0             # her lean now (radians, + = to port), and how quickly it's changing (the spring)
+var roll_velocity := 0.0
+var pitch := 0.0            # the bow's angle now (radians, + = up), and how quickly it's changing
+var pitch_velocity := 0.0
+var crank_turning := 0.0    # 0..1: how fast the crank is being turned (set by the crank, Assets/UI/crank.gd)
+var paddle_power := 0.0     # 0..1: how hard the wheels push now (follows crank_turning, eased)
+var wheel_spin_left := 0.0  # the wheels' angles (radians)
+var wheel_spin_right := 0.0
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
 var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she starts at anchor: gathered up)
 
@@ -77,6 +98,9 @@ var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she 
 @onready var rig: Node3D = find_child("Rig")   # turns round the mast: the sail (and boom) inside it swing out
 @onready var camera: Camera3D = $Camera3D
 @onready var sail_node: Node3D = find_child("sm_boat_sail")   # the whole sail: squashed down onto the boom to furl it
+# The paddle wheels (Assets/Boat/paddle_wheel.tscn, a stand-in model): the part called "Spin" inside each turns.
+@onready var wheel_left: Node3D = find_child("PaddleWheelLeft").get_node("Spin")
+@onready var wheel_right: Node3D = find_child("PaddleWheelRight").get_node("Spin")
 
 # The sail's mesh: the MeshInstance3D inside the imported sm_boat_sail (the FBX makes it a little scene
 # of its own, so we look for the first MeshInstance3D inside it).
@@ -125,25 +149,37 @@ func _physics_process(dt: float) -> void:
 	if Land.is_near_land(global_position, shallows_width):
 		drive *= shallows_sail
 
-	# speed eases toward what the sail gives; the anchor takes her way off quickly
-	var target := top_speed * drive
-	speed += (target - speed) * minf(1.0, dt * (anchor_bite if anchored else accel))
+	# The paddle wheels: their push follows the crank (none at anchor).
+	update_paddle_power(dt)
+	var paddle_push := paddle_speed * paddle_power
 
-	# she turns only with way on (and not at anchor)
-	var way := clampf(speed / top_speed * 1.5, 0.0, 1.0)
+	# speed eases toward what the sail gives, or the wheels if they give more; the anchor takes her way off quickly
+	var target := maxf(top_speed * drive, paddle_push)
+	speed += (target - speed) * minf(1.0, dt * (anchor_bite if anchored else accel))
+	# the wheels bite quicker than the sail fills (crank_bite)
+	if not anchored and paddle_push > speed:
+		speed += (paddle_push - speed) * minf(1.0, dt * crank_bite)
+
+	# She turns at the same rate whatever her speed, as in the prototype (quicker while the wheels push);
+	# not at anchor.
+	var yaw_before := rotation.y
 	if not anchored:
-		rotate_y(-rudder * turn_rate * maxf(way, 0.25) * dt)
+		var rate := turn_rate
+		if paddle_power > 0.01:
+			rate *= paddle_turn_mult
+		rotate_y(-rudder * rate * dt)
 	update_current(dt, wind_from)
 	move_and_bounce(dt)
 	hold_at_anchor()
+	# How quickly she really turned this frame (the rudder, a bump, the anchor line swinging her):
+	# wrapf keeps the difference between -PI and PI when the angle goes round past 180 degrees.
+	turn_speed = wrapf(rotation.y - yaw_before, -PI, PI) / dt
 	Fog.reveal(global_position)                                 # clear the fog round her (fog.gd)
 
 	# the look: heel away from the wind, the boom out to leeward, a gentle bob
 	var side := signf(global_transform.basis.x.dot(wind_from))   # + = wind from starboard
-	heel = lerpf(heel, side * deg_to_rad(heel_max_deg) * drive, dt * 2.0)
-	update_turn_lean(dt)
-	update_surge_pitch(dt)
-	rock_on_waves()
+	heel = side * deg_to_rad(heel_max_deg) * drive
+	rock_and_roll(dt)
 	# The boom swings out to leeward, the side away from the wind: wind from starboard (side = +1)
 	# puts the sail out to port. A positive rotation.y turns the rig anticlockwise seen from above,
 	# which swings the boom (behind the mast) over to starboard: so the sign is the opposite of `side`.
@@ -154,44 +190,81 @@ func _physics_process(dt: float) -> void:
 	model.position.y = sin(Time.get_ticks_msec() * 0.0013) * 0.04
 	update_sail_belly(dt, side)
 	update_furl(dt)
+	spin_paddle_wheels(dt)
 
-## Turning: she leans out of the turn, more the harder the wheel is over and the faster she goes.
-## Turning right (rudder +1) she leans left (to port), and the other way round.
-func update_turn_lean(dt: float) -> void:
-	# 1. How fast she's going, as a share of her top speed: standing still, the rudder doesn't lean her.
-	var speed_share := clampf(speed / top_speed, 0.0, 1.0)
-	# 2. No turning at anchor.
-	var helm := 0.0 if anchored else rudder
-	# 3. Where she should lean: + is to port (left), the same sign as the heel. Rudder + turns her right,
-	#    so she leans left: the same sign as the rudder.
-	var target := helm * speed_share * deg_to_rad(turn_lean_deg)
-	# 4. Lean gently toward it (no snapping), and come back up the same way when the wheel is centred.
-	turn_lean = lerpf(turn_lean, target, minf(1.0, dt * turn_lean_rate))
+## How she leans (roll) and how her bow rises and dips (pitch). First where she should be:
+##   roll  = the heel from the wind + the lean out of a turn + the waves' roll
+##   pitch = the bow lifting as she speeds up (dipping as she slows) + the waves' pitch
+## Then, instead of jumping there, she is pulled there like a weight on a spring (a damped spring):
+## she swings a little past it and settles. That swing is what makes the boat feel alive when you turn.
+func rock_and_roll(dt: float) -> void:
+	# 1. The lean out of a turn: as in the prototype, how quickly she turns × how fast she goes.
+	#    Turning right, turn_speed is negative and she leans left (+), so the sign is flipped.
+	var turn_share := -turn_speed / turn_rate          # 1 = turning right at turn_rate
+	var speed_share := speed / top_speed               # 1 = at top speed
+	var turn_lean := turn_share * speed_share * deg_to_rad(turn_lean_deg)
 
-
-## Speeding up lifts the bow, slowing down dips it (as in the prototype).
-func update_surge_pitch(dt: float) -> void:
-	# 1. How quickly her speed is changing, in m/s every second (+ speeding up, - slowing down).
+	# 2. The bow and her speed: how quickly her speed changes (m/s every second), in degrees, kept within
+	#    surge_pitch_max_deg either way.
 	var acceleration := (speed - last_speed) / dt
 	last_speed = speed
-	# 2. The bow's angle for it, kept within surge_pitch_max_deg either way.
-	var max_angle := deg_to_rad(surge_pitch_max_deg)
-	var target := clampf(acceleration * deg_to_rad(surge_pitch_deg), -max_angle, max_angle)
-	# 3. Follow it gently.
-	surge_pitch = lerpf(surge_pitch, target, minf(1.0, dt * surge_pitch_rate))
+	var max_surge := deg_to_rad(surge_pitch_max_deg)
+	var surge := clampf(acceleration * deg_to_rad(surge_pitch_deg), -max_surge, max_surge)
 
-
-## The waves: roll (leaning side to side) and pitch (bow up and down), each a slow sine wave.
-## The roll is added on top of the heel and the turn's lean, so she still leans away from the wind while she rocks.
-## Pitch runs a little quicker than roll (wave_period * 0.8), so the two don't move in step:
-## the rocking looks less mechanical.
-func rock_on_waves() -> void:
+	# 3. The waves: two slow sine waves (pitch a little quicker than roll, so they don't move in step).
+	#    TAU (2 x pi) / period makes one full swing take `period` seconds.
 	var seconds := Time.get_ticks_msec() / 1000.0
-	# sin() goes from -1 to 1 and back; TAU (2 x pi) / period makes one full swing take `period` seconds.
-	var roll := sin(seconds * TAU / wave_period) * deg_to_rad(wave_roll_deg)
-	var pitch := sin(seconds * TAU / (wave_period * 0.8)) * deg_to_rad(wave_pitch_deg)
-	model.rotation.z = heel + turn_lean + roll   # z: round her length, so she leans left and right
-	model.rotation.x = pitch + surge_pitch   # x: across her, so the bow goes up (+) and down (-)
+	var wave_roll := sin(seconds * TAU / wave_period) * deg_to_rad(wave_roll_deg)
+	var wave_pitch := sin(seconds * TAU / (wave_period * 0.8)) * deg_to_rad(wave_pitch_deg)
+
+	# 4. Where she should be.
+	var roll_target := heel + turn_lean + wave_roll
+	var pitch_target := surge + wave_pitch
+
+	# 5. The springs: the further she is from the target, the harder she's pulled toward it (stiffness);
+	#    the faster she's moving, the more that's held back (damping). velocity changes the angle.
+	roll_velocity += (roll_stiffness * (roll_target - roll) - roll_damping * roll_velocity) * dt
+	roll += roll_velocity * dt
+	pitch_velocity += (pitch_stiffness * (pitch_target - pitch) - pitch_damping * pitch_velocity) * dt
+	pitch += pitch_velocity * dt
+	# never further than the prototype allowed: about 34 degrees of roll, 17 of pitch
+	roll = clampf(roll, -0.6, 0.6)
+	pitch = clampf(pitch, -0.3, 0.3)
+
+	model.rotation.z = roll    # z: round her length, so she leans left (+) and right (-)
+	model.rotation.x = pitch   # x: across her, so the bow goes up (+) and down (-)
+
+
+## The paddle wheels' push follows the crank: crank_turning (0..1, set by the crank) eases in and out
+## at crank_ease. At anchor they don't push (you can still turn the crank).
+func update_paddle_power(dt: float) -> void:
+	var want := 0.0 if anchored else crank_turning
+	paddle_power += (want - paddle_power) * minf(1.0, dt * crank_ease)
+	if paddle_power < 0.005:
+		paddle_power = 0.0
+
+
+## The crank calls this every frame with how fast it's being turned (0 = still, 1 = fast enough for full push).
+func set_crank(turning: float) -> void:
+	crank_turning = clampf(turning, 0.0, 1.0)
+
+
+## Turns the paddle wheels. They turn with the crank's push, or, under sail, freewheel, dragged round by
+## the water going by; whichever is quicker (as in the prototype). Turning, the wheel on the outside of
+## the turn goes faster and the inside one slower (spun on the spot, they turn opposite ways).
+func spin_paddle_wheels(dt: float) -> void:
+	# 1. How fast (rad/s): the water's speed divided by the wheel's radius.
+	var pushed := paddle_speed * paddle_power / paddle_radius
+	var freewheel := maxf(speed, 0.0) / paddle_radius * 0.9
+	var base := maxf(pushed, freewheel)
+	# 2. Turning left (turn_speed +), the right wheel is on the outside: faster; the left one slower.
+	var turn_part := turn_speed * paddle_half_beam / paddle_radius * 0.9
+	# 3. Going forward, the top of a wheel moves toward the bow (-Z): that's a negative turn round X.
+	#    (wrapf keeps the angle between -PI and PI, so the number never grows huge)
+	wheel_spin_left = wrapf(wheel_spin_left - (base - turn_part) * dt, -PI, PI)
+	wheel_spin_right = wrapf(wheel_spin_right - (base + turn_part) * dt, -PI, PI)
+	wheel_left.rotation.x = wheel_spin_left
+	wheel_right.rotation.x = wheel_spin_right
 
 
 ## The sail fills with the wind: the faster she goes, the fuller it is, and the belly is always on the
