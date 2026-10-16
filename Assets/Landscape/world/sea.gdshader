@@ -15,7 +15,9 @@ uniform sampler2D map_tex : source_color, filter_linear_mipmap;
 uniform sampler2D land_mask : filter_linear;
 // The fog of war (set by sea.gd from the Fog autoload): one pixel a cell, white = not seen yet.
 // filter_linear stretches it smoothly, so the fog's edge is soft, not blocky.
-uniform sampler2D fog_tex : filter_linear;
+// hint_default_black: when no picture is given, it counts as all black = no fog. That's the editor:
+// the Fog autoload and sea.gd only run in the game, so in the editor you see the whole map.
+uniform sampler2D fog_tex : filter_linear, hint_default_black;
 
 uniform vec4 wavelet : source_color = vec4(0.25, 0.25, 0.24, 1.0);
 uniform float cell = 2.2;       // metres between wavelets
