@@ -35,7 +35,7 @@
 - **The landscape is a painted map** (Enrico's choice, option 1): `Assets/Landscape/world/map_paint.png` (4096², greys,
   the whole 504 m world, home = the middle) shown by `sea.gdshader` on the sea plane, a fixed 504 × 504 plane at the
   origin (Enrico: no wrap-around, one place per point, for hand-placed things), with the
-  wavelets only where `map_collision.png` is black. Both PNGs are imported Lossless, no VRAM compression
+  wavelets only where `map_collision.png` is black; the shader writes `DEPTH = 0.0` (the farthest: Godot 4 uses reversed depth, also in Compatibility), so the sea is a backdrop and the boat is never cut by the water when she heels (her parts under the waterline show too). Both PNGs are imported Lossless, no VRAM compression
   (`detect_3d/compress_to=0`: the web export has no mobile VRAM formats). The template to paint on is in `art_src/map/`
   (`map_paint_base.png`, `map_guide.png` = A1..I9 grid and home as a top layer; `make_map_template.py` makes them from
   the prototype's `DRAWN_LAND`). When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
