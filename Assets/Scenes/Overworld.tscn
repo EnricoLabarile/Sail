@@ -24,7 +24,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -34)
 
 [node name="Helm" parent="." unique_id=1401139767 instance=ExtResource("3_helm")]
 
-[node name="Crank" parent="." instance=ExtResource("8_crank")]
+[node name="Crank" parent="." unique_id=31512667 instance=ExtResource("8_crank")]
 
 [node name="WindVane" parent="." unique_id=1472540336 instance=ExtResource("5_vane")]
 

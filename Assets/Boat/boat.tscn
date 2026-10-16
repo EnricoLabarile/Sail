@@ -6,38 +6,26 @@
 [ext_resource type="PackedScene" uid="uid://bkhrx3gsk66tq" path="res://Assets/Boat/sm_boat_sail.fbx" id="4_og2vt"]
 [ext_resource type="PackedScene" path="res://Assets/Boat/paddle_wheel.tscn" id="5_paddle"]
 
-[sub_resource type="StandardMaterial3D" id="Mat_ink"]
-albedo_color = Color(0.12, 0.11, 0.1, 1)
-
-[sub_resource type="CapsuleMesh" id="Mesh_helmsman"]
-material = SubResource("Mat_ink")
-radius = 0.22
-height = 0.8
-
 [node name="Boat" type="Node3D" unique_id=1479473515]
 script = ExtResource("1_boat")
 
 [node name="Model" type="Node3D" parent="." unique_id=1073816525]
 
-[node name="Helmsman" type="MeshInstance3D" parent="Model" unique_id=1864005739]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0.8, 1.2)
-mesh = SubResource("Mesh_helmsman")
-
 [node name="sm_boat_hull" parent="Model" unique_id=1085224572 instance=ExtResource("2_da1jx")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0.31564635, -0.2166603)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0.004143417, -0.2166603)
 
 [node name="sm_boat_mast" parent="Model/sm_boat_hull" unique_id=429624402 instance=ExtResource("3_ee1eo")]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.80755496, -0.044380724, 3.5299347e-08)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.5874774, 0.7457499, 2.5679455e-08)
 
 [node name="Rig" type="Node3D" parent="Model/sm_boat_hull/sm_boat_mast" unique_id=503799022]
 
 [node name="sm_boat_sail" parent="Model/sm_boat_hull/sm_boat_mast/Rig" unique_id=139299008 instance=ExtResource("4_og2vt")]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0.7883911, 0)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0.23171997, 0)
 
-[node name="PaddleWheelLeft" parent="Model" instance=ExtResource("5_paddle")]
+[node name="PaddleWheelLeft" parent="Model" unique_id=622844927 instance=ExtResource("5_paddle")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.36, 0.1, 0.1)
 
-[node name="PaddleWheelRight" parent="Model" instance=ExtResource("5_paddle")]
+[node name="PaddleWheelRight" parent="Model" unique_id=958712090 instance=ExtResource("5_paddle")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.36, 0.1, 0.1)
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1565566446]

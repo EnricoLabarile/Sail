@@ -9,17 +9,17 @@ extends Node3D
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 1.5        # rad/s at full rudder, whatever her speed (as in the prototype; it had 1.62)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
-@export var heel_max_deg := 7    # how far she leans with the wind on the sail
-@export var camera_tilt_deg := 15 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
+@export var heel_max_deg := 5    # how far she leans with the wind on the sail
+@export var camera_tilt_deg := 30 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
 @export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
 
 # Turning: she leans out of the turn (the prototype's "lean out of a turn"), more the quicker she turns
 # and the faster she goes.
-@export var turn_lean_deg := 22.0   # how far she leans turning at turn_rate at top_speed, in degrees (the prototype's)
+@export var turn_lean_deg := 5.0   # how far she leans turning at turn_rate at top_speed, in degrees (the prototype's)
 
 # Speeding up and slowing down: the bow lifts as she gathers way and dips as she slows (as in the prototype).
-@export var surge_pitch_deg := 3.0      # degrees the bow lifts for every m/s² she speeds up (dips the same slowing down)
+@export var surge_pitch_deg := 5      # degrees the bow lifts for every m/s² she speeds up (dips the same slowing down)
 @export var surge_pitch_max_deg := 4.5  # never more than this, either way
 
 # How she leans and pitches: not straight to where she should be, but like a weight on a spring, so she
