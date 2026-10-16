@@ -4,10 +4,14 @@
 //   1. it shows the map Enrico paints (map_paint.png), once, stretched over the plane;
 //   2. on the sea only (where map_collision.png is black), it adds short dark wavelets that stay
 //      fixed in the world, so you can see the boat moving.
-//   3. it covers in black what the boat hasn't seen yet (the fog of war, fog.gd).
+//   3. it covers in black what the boat hasn't seen yet (the fog of war, fog.gd);
+//   4. it never covers the boat: it skips every pixel the boat's mask has marked (a stencil, see
+//      Assets/Boat/boat_mask.gdshader), so the water doesn't cut through her when she heels.
 // Unshaded: no light on it, the greys are shown as painted; the dither turns them into paper and ink.
 shader_type spatial;
 render_mode unshaded;
+// The stencil: draw only where the stencil buffer is NOT 1 (1 = the boat's mask was drawn there).
+stencil_mode read, compare_not_equal, 1;
 
 // The painted map.
 uniform sampler2D map_tex : source_color, filter_linear_mipmap;
@@ -53,4 +57,7 @@ void fragment() {
 	// The fog of war: where the boat hasn't been, solid black (ink once dithered), as in the prototype.
 	float fog = texture(fog_tex, UV).r;                 // 1 = in fog, 0 = seen
 	ALBEDO = mix(col, vec3(0.0), fog);
+	// Fully solid, but writing ALPHA puts the sea among the see-through things, which Godot draws AFTER
+	// the solid ones: so the boat (and its mask) is already drawn when the sea comes, and the stencil works.
+	ALPHA = 1.0;
 }

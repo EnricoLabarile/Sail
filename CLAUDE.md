@@ -56,6 +56,10 @@
   (+ `Model/Helmsman`, `Boat/Camera3D`). `Model` heels, bobs and rocks (`rock_and_roll`, the prototype's damped springs: roll pulled toward heel + lean out of a turn + the waves' roll, pitch toward the surge + the waves' pitch, `roll_stiffness` 16 / `roll_damping` 3.2, `pitch_stiffness` 22 / `pitch_damping` 4.5, clamped ±0.6 / ±0.3 rad; the lean out of a turn is the measured `turn_speed` / `turn_rate` × speed / `top_speed` × `turn_lean_deg` 22°; the surge is acceleration × `surge_pitch_deg` 3°/(m/s²), at most `surge_pitch_max_deg` 4.5°; the waves `wave_roll_deg` 3°, `wave_pitch_deg` 2°, `wave_period` 3 s and 0.8× that; everything follows), `Rig` (at the mast's foot) turns the
   boom to leeward (half the wind's angle off the bow, 8° to `boom_max_deg` 30° either side: never across her), the sail's shape keys `Inflated_Right` / `Inflated_Left` make its belly. `boat.gd` finds `Rig` and
   `sm_boat_sail` with `find_child` (by name, anywhere inside), so the hierarchy can change as long as the names stay.
+- **The water never cuts the boat** (a stencil): `boat.gd` `add_water_mask()` puts `Assets/Boat/boat_mask.gdshader`
+  (invisible, `stencil_mode write, compare_always, 1`, render_priority -1) as `material_overlay` on every mesh inside
+  `Model`; `sea.gdshader` reads it (`stencil_mode read, compare_not_equal, 1`) and writes `ALPHA = 1.0`, which puts it
+  in the transparent pass, drawn after the boat: it skips her pixels, so the parts under the waterline show too.
 - **Turning** (as the prototype): `turn_rate` rad/s at full rudder whatever her speed (no slower with less way),
   × `paddle_turn_mult` 1.5 while the paddle wheels push; none at anchor.
 - **The paddle wheels and the crank** (the prototype's `CRANK_DIRECT`): `Assets/Boat/paddle_wheel.tscn` is a stand-in

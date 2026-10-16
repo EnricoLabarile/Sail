@@ -113,6 +113,18 @@ func _ready() -> void:
 	add_to_group("player_boat")
 	camera.top_level = true   # it follows her position but not her turning
 	anchor_point = bow_point()   # she starts at anchor: it lies off her bow
+	add_water_mask()
+
+
+## Puts the boat's mask (Assets/Boat/boat_mask.gdshader) on every mesh inside Model, as a
+## material_overlay: an extra invisible layer that marks her pixels, so the sea doesn't draw over her.
+## Done here in code, so it covers new or swapped meshes too (hull, mast, sail, paddle wheels…).
+func add_water_mask() -> void:
+	var mask := ShaderMaterial.new()
+	mask.shader = load("res://Assets/Boat/boat_mask.gdshader")
+	mask.render_priority = -1    # among the see-through things, drawn before the sea (which has 0)
+	for mesh in model.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_overlay = mask
 
 func set_rudder(v: float) -> void:
 	rudder = clampf(v, -1.0, 1.0)
