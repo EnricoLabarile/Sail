@@ -4,8 +4,7 @@
 //   1. it shows the map Enrico paints (map_paint.png), once, stretched over the plane;
 //   2. on the sea only (where map_collision.png is black), it adds short dark wavelets that stay
 //      fixed in the world, so you can see the boat moving.
-//   3. it covers in black what the boat hasn't seen yet (the fog of war, fog.gd);
-//   4. it sits behind everything (DEPTH = 0.0), so the boat is never cut by the water.
+//   3. it covers in black what the boat hasn't seen yet (the fog of war, fog.gd).
 // Unshaded: no light on it, the greys are shown as painted; the dither turns them into paper and ink.
 shader_type spatial;
 render_mode unshaded;
@@ -54,10 +53,4 @@ void fragment() {
 	// The fog of war: where the boat hasn't been, solid black (ink once dithered), as in the prototype.
 	float fog = texture(fog_tex, UV).r;                 // 1 = in fog, 0 = seen
 	ALBEDO = mix(col, vec3(0.0), fog);
-
-	// The sea is a backdrop: it tells the depth buffer it's as far away as anything can be (in Godot 4
-	// 0.0 is the farthest, 1.0 the nearest). So whatever is drawn over it, the boat, always shows whole,
-	// even the parts that dip under the water when she heels: the water never cuts through her.
-	// (In Unreal: like a sky sphere, always behind.)
-	DEPTH = 0.0;
 }
