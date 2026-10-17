@@ -34,8 +34,10 @@
   `intersect_ray`): anything solid hit = land; outside the 504 m map counts as land, so the map's edge is a wall.
 - **The landscape: a plain sea plane and 3D coast meshes** (Enrico, Oct 2026; the painted map `map_paint.png` and
   its mask `map_collision.png` are gone; the templates in `art_src/map/` stay for now). `sea.tscn`: a fixed
-  504 × 504 PlaneMesh at the origin, `sea.gdshader` one flat `sea_color` grey with the wavelets everywhere, the fog
-  and the boat's stencil. Enrico places the coasts as 3D meshes under the `Coast` node in `Overworld.tscn`; each needs
+  504 × 504 PlaneMesh at the origin, `sea.gdshader`: Enrico's texture `sea_tex` (none yet: white, so plain `sea_color`, which also
+  tints it; nearest, repeating) tiled in world space every `tile_size` 8 m, animated as a flipbook (`frames_x` ×
+  `frames_y` cells in one image, `fps`) and/or scrolled (`scroll` m/s): one texture read a pixel, the cheapest; the
+  wavelets on top; the boat's stencil. (Import the PNG Lossless, no VRAM compression.) Enrico places the coasts as 3D meshes under the `Coast` node in `Overworld.tscn`; each needs
   a collision (a StaticBody3D with a CollisionShape3D: in the editor select the mesh, Mesh menu → Create Trimesh
   Static Body, or name it with the `-col` suffix in Blender), which is what `Land` hits. When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
   `impact()`, in `boat.gd`: `move_and_bounce`, `bump`; knobs `bounce_*`): only moving into the shore at ≥ 0.4 m/s,
