@@ -8,8 +8,10 @@ extends MeshInstance3D
 
 # The sea texture follows the wind (Wind.from_deg), a little late.
 @export var follow_time := 1.0        # seconds: how late the texture turns after the wind
-@export var texture_turn_deg := 0.0   # extra turn, if the drawing should face another way (the wind comes from
-                                      # the TOP of the drawing when this is 0)
+# The drawing points to its RIGHT: that's the way the wind blows in it. With the wind blowing toward the east
+# (coming from the west, Wind.from_deg = 270) the drawing isn't turned at all; for any other wind it's turned by
+# the difference. That's what the 90 below does: 270 + 90 = 360 = no turn.
+@export var texture_turn_deg := 90.0  # change it only if the drawing should point another way (0 = toward the bottom)
 
 var texture_angle := 0.0              # where the texture is turned now (radians, clockwise from north)
 var texture_offset := Vector2.ZERO    # a shift that keeps the water under the boat still while it turns
