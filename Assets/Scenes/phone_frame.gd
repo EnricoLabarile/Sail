@@ -4,7 +4,6 @@ extends Node
 ## evenly with bars at the sides, so it looks just as on the phone. On a phone it fills the screen
 ## as before (stretch aspect "expand": a taller phone just sees more sea).
 
-const PHONE := Vector2(360, 800)
 const WIDE := 0.8   # width/height above which a screen counts as "not a phone" (4:5, like the HTML prototype)
 
 func _ready() -> void:

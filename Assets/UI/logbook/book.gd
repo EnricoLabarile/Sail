@@ -27,7 +27,7 @@ const ROOMS := 9              # 9 x 9 squares
 const LABEL_MARGIN := 6.0     # room for the letters on top and the numbers on the left
 const GRID_START := 8.0       # where the first square starts
 const ROOM_SIZE := 10.0       # one square
-const WORLD_SIZE := 504.0     # metres the whole map covers (the same world as the painted landscape)
+const WORLD_SIZE := 504.0     # metres the whole map covers (the same world as the sea plane)
 
 ## How open the book is, 0..1. Every change redraws it (see book_icon.gd for how "set(value)" works).
 var unfold := 0.0:

@@ -45,7 +45,7 @@ extends Node3D
 @export var wave_period := 3.0      # seconds for one wave to pass under her (higher = slower rocking)
 
 # The shallows: near the coast there's less wind, so the sail gives less.
-@export var shallows_width := 6.0   # metres from the land that count as shallows (the grey band on the map)
+@export var shallows_width := 6.0   # metres from the land that count as shallows
 @export var shallows_sail := 0.3    # what the sail gives there, as a share of the usual (0.3 = 30%)
 
 # The current (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, and the water carries her

@@ -32,8 +32,8 @@
   constant strength (Enrico: only the direction changes); the boat and the wind vane read `Wind.from_deg`).
   `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` shoots a physics ray straight down (y 100 → -20,
   `intersect_ray`): anything solid hit = land; outside the 504 m map counts as land, so the map's edge is a wall.
-- **The landscape: a plain sea plane and 3D coast meshes** (Enrico, Oct 2026; the painted map `map_paint.png` and
-  its mask `map_collision.png` are gone; the templates in `art_src/map/` stay for now). `sea.tscn`: a fixed
+- **The landscape: a plain sea plane and 3D coast meshes** (Enrico, Oct 2026; the painted map, its mask and the templates
+  in `art_src/map/` are gone). `sea.tscn`: a fixed
   504 × 504 PlaneMesh at the origin, `sea.gdshader`: Enrico's texture `sea_tex` (`sea_tex.png`, 128², a 4 × 4 test flipbook of numbers; set in `sea.tscn`'s material; `sea_color` also
   tints it; nearest, repeating) tiled in world space every `tile_size` 8 m, animated as a flipbook (`frames_x` ×
   `frames_y` cells in one image, `fps`) and/or scrolled (`scroll` m/s), turned to follow the wind (`sea.gd` `_process`: `texture_angle` eases toward `Wind.from_deg` + `texture_turn_deg` 90 with `lerp_angle` over `follow_time` 1 s; Enrico's drawing points right = the way the wind blows, so a wind blowing east (from 270°) leaves it unturned; it turns round the boat, `texture_offset` keeping the water under her still; uniforms `wind_angle`, `wind_offset`): one texture read a pixel, the cheapest (the wavelets are
@@ -65,20 +65,13 @@
   black with that alpha. Tall objects are fogged as the water just behind them. The boat is drawn under it but she's
   always in seen water. Made in code, so the editor shows the whole map. Nothing is always clear yet.
 - **The boat's hierarchy** (Enrico's, Oct 2026): `Boat / Model / sm_boat_hull / sm_boat_mast / Rig / sm_boat_sail`
-  (+ `Model/Helmsman`, `Boat/Camera3D`). `Model` heels, bobs and rocks (`rock_and_roll`, the prototype's damped springs: roll pulled toward heel + lean out of a turn + the waves' roll, pitch toward the surge + the waves' pitch, `roll_stiffness` 16 / `roll_damping` 3.2, `pitch_stiffness` 22 / `pitch_damping` 4.5, clamped ±0.6 / ±0.3 rad; the lean out of a turn is the measured `turn_speed` / `turn_rate` × speed / `top_speed` × `turn_lean_deg` 22°; the surge is acceleration × `surge_pitch_deg` 3°/(m/s²), at most `surge_pitch_max_deg` 4.5°; the waves `wave_roll_deg` 3°, `wave_pitch_deg` 2°, `wave_period` 3 s and 0.8× that; everything follows), `Rig` (at the mast's foot) turns the
+  (+ `Boat/Camera3D`). `Model` heels, bobs and rocks (`rock_and_roll`, the prototype's damped springs: roll pulled toward heel + lean out of a turn + the waves' roll, pitch toward the surge + the waves' pitch, `roll_stiffness` 16 / `roll_damping` 3.2, `pitch_stiffness` 22 / `pitch_damping` 4.5, clamped ±0.6 / ±0.3 rad; the lean out of a turn is the measured `turn_speed` / `turn_rate` × speed / `top_speed` × `turn_lean_deg` 22°; the surge is acceleration × `surge_pitch_deg` 3°/(m/s²), at most `surge_pitch_max_deg` 4.5°; the waves `wave_roll_deg` 3°, `wave_pitch_deg` 2°, `wave_period` 3 s and 0.8× that; everything follows), `Rig` (at the mast's foot) turns the
   boom to leeward (half the wind's angle off the bow, 8° to `boom_max_deg` 30° either side: never across her), the sail's shape keys `Inflated_Right` / `Inflated_Left` make its belly. `boat.gd` finds `Rig` and
   `sm_boat_sail` with `find_child` (by name, anywhere inside), so the hierarchy can change as long as the names stay.
 - **The water never cuts the boat** (a stencil): `boat.gd` `add_water_mask()` puts `Assets/Boat/boat_mask.gdshader`
   (invisible, `stencil_mode write, compare_always, 1`, render_priority -1) as `material_overlay` on every mesh inside
   `Model`; `sea.gdshader` reads it (`stencil_mode read, compare_not_equal, 1`) and writes `ALPHA = 1.0`, which puts it
   in the transparent pass, drawn after the boat: it skips her pixels, so the parts under the waterline show too.
-- **The wake** (`Assets/Boat/wake.gd` on the `Wake` MeshInstance3D in `boat.tscn`, top_level, `wake.gdshader`): a
-  ribbon of foam: every `point_spacing` 0.8 m (while speed > `min_speed` 0.5) a point is dropped at the stern
-  (`stern_offset` 2 m behind her middle, `height` 0.03), kept `life` 3 s; each frame an `ImmediateMesh` triangle
-  strip is rebuilt through them up to the stern, `width_start` 0.8 → `width_end` 3 m as they age, alpha = speed
-  share when dropped × (1 − age); the shader: unshaded white (`foam_color`, optional `foam_tex` drawing, u across /
-  v along), soft edges (`edge_softness`), render_priority 1. One draw call; ~0.12 ms a frame to build in the
-  headless test. (Bow spray: not yet.)
 - **The outline** (`Assets/Boat/boat_outline.gdshader`, made by `boat.gd` `add_outline()`: a QuadMesh child of the
   camera, stretched over the screen in the vertex shader, render_priority 1, after the sea): reads the depth buffer
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
