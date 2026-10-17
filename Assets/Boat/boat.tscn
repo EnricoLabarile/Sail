@@ -25,5 +25,5 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0
 keep_aspect = 0
 projection = 1
 current = true
-size = 24.0
+size = 40.0
 far = 200.0
