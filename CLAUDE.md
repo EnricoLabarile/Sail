@@ -65,18 +65,8 @@
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
   0.0 = nothing), and paints ink on pixels with no boat but boat within `outline_width` (boat.gd export, 1.5 phone
   points) in 8 directions. Made in code so it doesn't cover the editor's view. Any future solid 3D object gets it too.
-- **Turning** (as the prototype): `turn_rate` rad/s at full rudder whatever her speed (no slower with less way),
-  × `paddle_turn_mult` 1.5 while the paddle wheels push; none at anchor.
-- **The paddle wheels and the crank** (the prototype's `CRANK_DIRECT`): `Assets/Boat/paddle_wheel.tscn` is a stand-in
-  model (four boards, two rims, a hub, an axle; its child `Spin` turns), two instances in `boat.tscn` under `Model`
-  (`PaddleWheelLeft` / `Right` at x ±1.36, y 0.1, z 0.1). `Assets/UI/crank.tscn` + `crank.gd` (CanvasLayer 95, under
-  the dither; 84 px, bottom right, 4 px from the right, 28 from the bottom; drawn in greys in the prototype's 72-unit
-  SVG: dotted gear with 16 teeth, hatched plate, three rivets, a ring that fills with `paddle_power`, the arm and knob;
-  `_has_point` only its round face, and the wheel's only inside its handles): turned clockwise (a ratchet), its speed
-  smoothed, `boat.set_crank(speed / crank_full_rate 5 rad/s)`. In `boat.gd`: `paddle_power` eases to that at
-  `crank_ease` 3.75 (0 at anchor), the target speed is max(sail, `paddle_speed` 5.88 m/s × power) and the push bites
-  at `crank_bite` 5.25. `spin_paddle_wheels`: rad/s = max(push / `paddle_radius` 0.7, speed / radius × 0.9) ∓ turn ×
-  `paddle_half_beam` 1.36 / radius × 0.9 (outside wheel faster). No sound or buzz yet.
+- **Turning** (as the prototype): `turn_rate` rad/s at full rudder whatever her speed (no slower with less way);
+  none at anchor. (Paddle wheels and the crank were added, then removed for now by Enrico.)
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
   `bow_point()` = middle + `bow_reach` forward) and stays there; the current now carries her at anchor too; once the
   bow is `anchor_rode` 3 m from it, `hold_at_anchor` holds the bow there and the hull trails from it, so she swings

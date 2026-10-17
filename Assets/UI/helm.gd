@@ -70,7 +70,7 @@ func _local(screen_pos: Vector2) -> Vector2:
 # ---- touching it ----
 
 ## Only a touch on the wheel itself counts (inside its handles): the corners of this box let a touch
-## through to what's under them (the crank, the logbook).
+## through to what's under them (the logbook).
 func _has_point(point: Vector2) -> bool:
 	return _local(point).length() < OUTER_GRIP * WHEEL_SCALE
 

@@ -29,14 +29,6 @@ extends Node3D
 @export var pitch_stiffness := 22.0     # the same for the pitch (bow up and down)
 @export var pitch_damping := 4.5
 
-# The paddle wheels (the prototype's crank, CRANK_DIRECT): while the crank is turned they push her.
-@export var paddle_speed := 5.88        # m/s the wheels give her with the crank turned fast enough (58.8 px/s)
-@export var crank_ease := 3.75          # how quickly the wheels take up and let go as the cranking starts or stops
-@export var crank_bite := 5.25          # how quickly her speed catches up with the wheels' push
-@export var paddle_turn_mult := 1.5     # turning is this much quicker while the wheels push
-@export var paddle_radius := 0.7        # metres: the wheels' size (to turn them as fast as the water goes by)
-@export var paddle_half_beam := 1.36    # metres from her middle to each wheel (turning, the two go at different speeds)
-
 # The anchor (the prototype's ANCHOR_RODE): it stays where it fell, off the bow. The current carries her
 # until the line is taut; then the line holds her bow and she swings round the anchor, stern downstream.
 @export var anchor_rode := 3.0          # metres of anchor line from the bow to the anchor
@@ -87,10 +79,6 @@ var roll := 0.0             # her lean now (radians, + = to port), and how quick
 var roll_velocity := 0.0
 var pitch := 0.0            # the bow's angle now (radians, + = up), and how quickly it's changing
 var pitch_velocity := 0.0
-var crank_turning := 0.0    # 0..1: how fast the crank is being turned (set by the crank, Assets/UI/crank.gd)
-var paddle_power := 0.0     # 0..1: how hard the wheels push now (follows crank_turning, eased)
-var wheel_spin_left := 0.0  # the wheels' angles (radians)
-var wheel_spin_right := 0.0
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
 var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she starts at anchor: gathered up)
 
@@ -101,9 +89,6 @@ var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she 
 @onready var rig: Node3D = find_child("Rig")   # turns round the mast: the sail (and boom) inside it swing out
 @onready var camera: Camera3D = $Camera3D
 @onready var sail_node: Node3D = find_child("sm_boat_sail")   # the whole sail: squashed down onto the boom to furl it
-# The paddle wheels (Assets/Boat/paddle_wheel.tscn, a stand-in model): the part called "Spin" inside each turns.
-@onready var wheel_left: Node3D = find_child("PaddleWheelLeft").get_node("Spin")
-@onready var wheel_right: Node3D = find_child("PaddleWheelRight").get_node("Spin")
 
 # The sail's mesh: the MeshInstance3D inside the imported sm_boat_sail (the FBX makes it a little scene
 # of its own, so we look for the first MeshInstance3D inside it).
@@ -139,7 +124,7 @@ func add_outline() -> void:
 
 ## Puts the boat's mask (Assets/Boat/boat_mask.gdshader) on every mesh inside Model, as a
 ## material_overlay: an extra invisible layer that marks her pixels, so the sea doesn't draw over her.
-## Done here in code, so it covers new or swapped meshes too (hull, mast, sail, paddle wheels…).
+## Done here in code, so it covers new or swapped meshes too (hull, mast, sail…).
 func add_water_mask() -> void:
 	var mask := ShaderMaterial.new()
 	mask.shader = load("res://Assets/Boat/boat_mask.gdshader")
@@ -182,25 +167,14 @@ func _physics_process(dt: float) -> void:
 	if Land.is_near_land(global_position, shallows_width):
 		drive *= shallows_sail
 
-	# The paddle wheels: their push follows the crank (none at anchor).
-	update_paddle_power(dt)
-	var paddle_push := paddle_speed * paddle_power
-
-	# speed eases toward what the sail gives, or the wheels if they give more; the anchor takes her way off quickly
-	var target := maxf(top_speed * drive, paddle_push)
+	# speed eases toward what the sail gives; the anchor takes her way off quickly
+	var target := top_speed * drive
 	speed += (target - speed) * minf(1.0, dt * (anchor_bite if anchored else accel))
-	# the wheels bite quicker than the sail fills (crank_bite)
-	if not anchored and paddle_push > speed:
-		speed += (paddle_push - speed) * minf(1.0, dt * crank_bite)
 
-	# She turns at the same rate whatever her speed, as in the prototype (quicker while the wheels push);
-	# not at anchor.
+	# She turns at the same rate whatever her speed, as in the prototype; not at anchor.
 	var yaw_before := rotation.y
 	if not anchored:
-		var rate := turn_rate
-		if paddle_power > 0.01:
-			rate *= paddle_turn_mult
-		rotate_y(-rudder * rate * dt)
+		rotate_y(-rudder * turn_rate * dt)
 	update_current(dt, wind_from)
 	move_and_bounce(dt)
 	hold_at_anchor()
@@ -223,7 +197,6 @@ func _physics_process(dt: float) -> void:
 	model.position.y = sin(Time.get_ticks_msec() * 0.0013) * 0.04
 	update_sail_belly(dt, side)
 	update_furl(dt)
-	spin_paddle_wheels(dt)
 
 ## How she leans (roll) and how her bow rises and dips (pitch). First where she should be:
 ##   roll  = the heel from the wind + the lean out of a turn + the waves' roll
@@ -266,38 +239,6 @@ func rock_and_roll(dt: float) -> void:
 
 	model.rotation.z = roll    # z: round her length, so she leans left (+) and right (-)
 	model.rotation.x = pitch   # x: across her, so the bow goes up (+) and down (-)
-
-
-## The paddle wheels' push follows the crank: crank_turning (0..1, set by the crank) eases in and out
-## at crank_ease. At anchor they don't push (you can still turn the crank).
-func update_paddle_power(dt: float) -> void:
-	var want := 0.0 if anchored else crank_turning
-	paddle_power += (want - paddle_power) * minf(1.0, dt * crank_ease)
-	if paddle_power < 0.005:
-		paddle_power = 0.0
-
-
-## The crank calls this every frame with how fast it's being turned (0 = still, 1 = fast enough for full push).
-func set_crank(turning: float) -> void:
-	crank_turning = clampf(turning, 0.0, 1.0)
-
-
-## Turns the paddle wheels. They turn with the crank's push, or, under sail, freewheel, dragged round by
-## the water going by; whichever is quicker (as in the prototype). Turning, the wheel on the outside of
-## the turn goes faster and the inside one slower (spun on the spot, they turn opposite ways).
-func spin_paddle_wheels(dt: float) -> void:
-	# 1. How fast (rad/s): the water's speed divided by the wheel's radius.
-	var pushed := paddle_speed * paddle_power / paddle_radius
-	var freewheel := maxf(speed, 0.0) / paddle_radius * 0.9
-	var base := maxf(pushed, freewheel)
-	# 2. Turning left (turn_speed +), the right wheel is on the outside: faster; the left one slower.
-	var turn_part := turn_speed * paddle_half_beam / paddle_radius * 0.9
-	# 3. Going forward, the top of a wheel moves toward the bow (-Z): that's a negative turn round X.
-	#    (wrapf keeps the angle between -PI and PI, so the number never grows huge)
-	wheel_spin_left = wrapf(wheel_spin_left - (base - turn_part) * dt, -PI, PI)
-	wheel_spin_right = wrapf(wheel_spin_right - (base + turn_part) * dt, -PI, PI)
-	wheel_left.rotation.x = wheel_spin_left
-	wheel_right.rotation.x = wheel_spin_right
 
 
 ## The sail fills with the wind: the faster she goes, the fuller it is, and the belly is always on the
