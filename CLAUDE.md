@@ -72,6 +72,13 @@
   (invisible, `stencil_mode write, compare_always, 1`, render_priority -1) as `material_overlay` on every mesh inside
   `Model`; `sea.gdshader` reads it (`stencil_mode read, compare_not_equal, 1`) and writes `ALPHA = 1.0`, which puts it
   in the transparent pass, drawn after the boat: it skips her pixels, so the parts under the waterline show too.
+- **The wake** (`Assets/Boat/wake.gd` on the `Wake` MeshInstance3D in `boat.tscn`, top_level, `wake.gdshader`): a
+  ribbon of foam: every `point_spacing` 0.8 m (while speed > `min_speed` 0.5) a point is dropped at the stern
+  (`stern_offset` 2 m behind her middle, `height` 0.03), kept `life` 3 s; each frame an `ImmediateMesh` triangle
+  strip is rebuilt through them up to the stern, `width_start` 0.8 → `width_end` 3 m as they age, alpha = speed
+  share when dropped × (1 − age); the shader: unshaded white (`foam_color`, optional `foam_tex` drawing, u across /
+  v along), soft edges (`edge_softness`), render_priority 1. One draw call; ~0.12 ms a frame to build in the
+  headless test. (Bow spray: not yet.)
 - **The outline** (`Assets/Boat/boat_outline.gdshader`, made by `boat.gd` `add_outline()`: a QuadMesh child of the
   camera, stretched over the screen in the vertex shader, render_priority 1, after the sea): reads the depth buffer
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
