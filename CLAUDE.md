@@ -34,7 +34,7 @@
   `intersect_ray`): anything solid hit = land; outside the 504 m map counts as land, so the map's edge is a wall.
 - **The landscape: a plain sea plane and 3D coast meshes** (Enrico, Oct 2026; the painted map `map_paint.png` and
   its mask `map_collision.png` are gone; the templates in `art_src/map/` stay for now). `sea.tscn`: a fixed
-  504 × 504 PlaneMesh at the origin, `sea.gdshader`: Enrico's texture `sea_tex` (none yet: white, so plain `sea_color`, which also
+  504 × 504 PlaneMesh at the origin, `sea.gdshader`: Enrico's texture `sea_tex` (`sea_tex.png`, 128², a 4 × 4 test flipbook of numbers; set in `sea.tscn`'s material; `sea_color` also
   tints it; nearest, repeating) tiled in world space every `tile_size` 8 m, animated as a flipbook (`frames_x` ×
   `frames_y` cells in one image, `fps`) and/or scrolled (`scroll` m/s): one texture read a pixel, the cheapest (the wavelets are
   gone, Enrico); the boat's stencil. (Import the PNG Lossless, no VRAM compression.) Enrico chose the flipbook. Later (Enrico): a wave on the shore, somehow (not started). Enrico places the coasts as 3D meshes under the `Coast` node in `Overworld.tscn`; each needs
