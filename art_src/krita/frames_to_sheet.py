@@ -5,10 +5,11 @@
 # - It takes FRAMES frames starting at the first frame of the timeline's range (frame 0 normally), and for
 #   each one the whole picture as you see it (all visible layers, masks and fills together).
 # - The document must be RGB/Alpha, 8-bit (Image > Properties).
-# - It saves "<your file name>_sheet.png" next to your .kra file.
+# - When it's done it asks where to save the PNG and under what name (it suggests "<your file name>_sheet.png"
+#   next to your .kra file). Cancel and nothing is saved.
 
 from krita import Krita, InfoObject
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QFileDialog
 import os
 
 FRAMES = 16    # how many frames to put in the sheet
@@ -40,12 +41,20 @@ for i in range(FRAMES):
 doc.setCurrentTime(start_time)        # back to the frame you were on
 sheet.refreshProjection()
 
-# 3. Save it as a PNG next to the .kra file.
+# 3. Ask where to save it and under what name (a normal "Save as" window), suggesting next to the .kra file.
 kra = doc.fileName()
 folder = os.path.dirname(kra) if kra else os.path.expanduser("~")
 base = os.path.splitext(os.path.basename(kra))[0] if kra else "sea"
-path = os.path.join(folder, base + "_sheet.png")
-sheet.setBatchmode(True)
-sheet.exportImage(path, InfoObject())
+suggested = os.path.join(folder, base + "_sheet.png")
+path, _ = QFileDialog.getSaveFileName(None, "Save the sheet as", suggested, "PNG image (*.png)")
+
+# 4. Save it there (if a name was picked: Cancel gives an empty name, and nothing is saved).
+if path:
+    if not path.lower().endswith(".png"):
+        path += ".png"
+    sheet.setBatchmode(True)
+    sheet.exportImage(path, InfoObject())
+    print("Saved " + path + "  (" + str(COLUMNS) + " x " + str(rows) + " frames of " + str(w) + " x " + str(h) + ")")
+else:
+    print("Not saved (cancelled)")
 sheet.close()
-print("Saved " + path + "  (" + str(COLUMNS) + " x " + str(rows) + " frames of " + str(w) + " x " + str(h) + ")")
