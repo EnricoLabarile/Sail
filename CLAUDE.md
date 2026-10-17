@@ -77,7 +77,7 @@
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
   0.0 = nothing), and paints ink on pixels with no boat but boat within `outline_width` (boat.gd export, 1.5 phone
   points) in 8 directions. Made in code so it doesn't cover the editor's view. Any future solid 3D object gets it too.
-- **Turning** (as the prototype): `turn_rate` rad/s at full rudder whatever her speed (no slower with less way);
+- **Turning** (as the prototype): `turn_rate` 3 rad/s (doubled by Enrico, as `top_speed` 8.4 m/s) at full rudder whatever her speed (no slower with less way);
   none at anchor. (Paddle wheels and the crank were added, then removed for now by Enrico.)
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
   `bow_point()` = middle + `bow_reach` forward) and stays there; the current now carries her at anchor too; once the

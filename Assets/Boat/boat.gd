@@ -4,10 +4,10 @@ extends Node3D
 ## her rudder; Space works the anchor. Her camera follows her without turning.
 ## 1 unit = 10 px of the HTML prototype.
 
-@export var top_speed := 4.2        # units/s with the sail at its best (~42 px/s in the prototype)
+@export var top_speed := 8.4        # m/s with the sail at its best (doubled by Enrico; the prototype had ~4.2)
 @export var accel := 0.9            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
-@export var turn_rate := 1.5        # rad/s at full rudder, whatever her speed (as in the prototype; it had 1.62)
+@export var turn_rate := 3.0        # rad/s at full rudder, whatever her speed (doubled by Enrico from 1.5)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 5		    # how far she leans with the wind on the sail
 @export var camera_tilt_deg := 45 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
