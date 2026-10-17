@@ -22,19 +22,33 @@ uniform int frames_x = 1;
 uniform int frames_y = 1;
 uniform float fps = 6.0;
 uniform vec2 scroll = vec2(0.0, 0.0);   // metres a second the texture slides (0, 0 = it stays put)
+// The turn that follows the wind (set every frame by sea.gd; 0 in the editor): the angle, and a shift that
+// keeps the water under the boat still while it turns.
+uniform float wind_angle = 0.0;
+uniform vec2 wind_offset = vec2(0.0, 0.0);
 // (The fog of war is a screen effect of its own: fog.gdshader, put on screen by sea.gd.)
 
 // world_pos: where on the sea this pixel is, in metres. vertex() works it out, fragment() reads it.
 varying vec3 world_pos;
+
+// Turns a point round (0, 0) by an angle, clockwise seen from above (the same as Vector2.rotated in GDScript).
+vec2 rotate(vec2 p, float angle) {
+	float c = cos(angle);
+	float s = sin(angle);
+	return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+}
 
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
 void fragment() {
-	// The texture. 1. Which point of the tile this is: the position in the world (in metres, plus the
-	//    scroll), divided by the tile's size; fract() keeps only the part after the point, 0..1 in the tile.
-	vec2 in_tile = fract((world_pos.xz + scroll * TIME) / tile_size);
+	// The texture. 0. Turn it with the wind: read the drawing at this point turned back by the wind's angle
+	//    (so the drawing looks turned forward by it), plus the shift from sea.gd.
+	vec2 turned = rotate(world_pos.xz, -wind_angle) + wind_offset;
+	// 1. Which point of the tile this is: that position (in metres, plus the scroll), divided by the tile's
+	//    size; fract() keeps only the part after the point, 0..1 in the tile.
+	vec2 in_tile = fract((turned + scroll * TIME) / tile_size);
 	// 2. Which frame now: the time × frames a second, counted round (% = what's left after dividing).
 	int frame_count = frames_x * frames_y;
 	int frame = int(TIME * fps) % frame_count;
