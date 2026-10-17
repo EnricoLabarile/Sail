@@ -14,7 +14,7 @@ script = ExtResource("1_boat")
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0.004143417, -0.2166603)
 
 [node name="sm_boat_mast" parent="Model/sm_boat_hull" unique_id=429624402 instance=ExtResource("3_ee1eo")]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.5874774, 0.7457499, 2.5679455e-08)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.08832236, 0.9484325, 3.860701e-09)
 
 [node name="Rig" type="Node3D" parent="Model/sm_boat_hull/sm_boat_mast" unique_id=503799022]
 
