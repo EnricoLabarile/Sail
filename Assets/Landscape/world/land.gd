@@ -4,38 +4,35 @@ extends Node
 ## This script is an Autoload (Project Settings → Globals → Autoload, name "Land"), like `Wind`:
 ## any script can ask `Land.is_land(position)`. (In Unreal: a World Subsystem.)
 ##
-## It reads map_collision.png: a black and white picture of the whole world, white = land, black = sea.
-## Home (world position 0, 0) is the middle of the picture. If you change the coasts in the painting,
-## change this picture the same way (or ask me to make it again from the painting).
+## The land is made of 3D meshes (the coasts) placed in the level, each with a collision shape
+## (a StaticBody3D: in Unreal, a mesh with "Block All" collision). To find out if a point is land,
+## it shoots a ray straight down from high above that point, like a line trace in Unreal:
+## if the ray hits anything solid, that point is land; if it falls through to nothing, it's sea.
 ##
-## The map doesn't repeat: it's one picture, 504 x 504 metres, and outside it counts as land.
-## So the edge of the map is a wall the boat bumps into, like any coast.
+## The map is 504 x 504 metres round home (0, 0), and outside it counts as land: so the edge of the map
+## is a wall the boat bumps into, like any coast.
 
-const WORLD_SIZE := 504.0      # metres the picture covers, a side (the prototype's 5040 px world)
-const MASK_PATH := "res://Assets/Landscape/world/map_collision.png"
-
-var _mask: Image               # the picture, kept in memory so we can read its pixels
-
-
-## Called once, when the game starts: load the picture.
-func _ready() -> void:
-	var texture: Texture2D = load(MASK_PATH)
-	_mask = texture.get_image()
+const WORLD_SIZE := 504.0      # metres the map covers, a side (the prototype's 5040 px world)
+const RAY_TOP := 100.0         # metres: the ray starts this high above the sea…
+const RAY_BOTTOM := -20.0      # …and goes down to this depth
 
 
 ## True if this point of the world is land. Only x and z count (the height doesn't matter).
 func is_land(pos: Vector3) -> bool:
-	# 1. From metres to a share of the picture, 0..1. Home (0, 0) is the middle, 0.5.
-	var u := pos.x / WORLD_SIZE + 0.5
-	var v := pos.z / WORLD_SIZE + 0.5
-	# 2. Outside the picture (below 0 or above 1): the edge of the map, a wall. It counts as land.
-	if u < 0.0 or u >= 1.0 or v < 0.0 or v >= 1.0:
+	# 1. Outside the map: the edge, a wall. It counts as land.
+	var half := WORLD_SIZE / 2.0
+	if absf(pos.x) >= half or absf(pos.z) >= half:
 		return true
-	# 3. From a share to a pixel of the picture.
-	var px := int(u * _mask.get_width())
-	var py := int(v * _mask.get_height())
-	# 4. White (bright) = land.
-	return _mask.get_pixel(px, py).r > 0.5
+	# 2. A ray straight down through the point (a line trace). get_world_3d() is the 3D world of the
+	#    game; its direct_space_state is where you ask the physics engine questions like this one.
+	var space := get_viewport().get_world_3d().direct_space_state
+	var from := Vector3(pos.x, RAY_TOP, pos.z)
+	var to := Vector3(pos.x, RAY_BOTTOM, pos.z)
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	var hit := space.intersect_ray(query)
+	# 3. It hit something (a coast's collision): land. Nothing: sea. (hit is an empty Dictionary when
+	#    nothing was hit.)
+	return not hit.is_empty()
 
 
 ## Which way the open sea is from a point near the coast: a flat arrow of length 1 pointing away from

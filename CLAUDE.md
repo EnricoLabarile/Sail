@@ -30,19 +30,18 @@
 - **Autoloads** (project.godot): `PhoneFrame` (`Assets/Scenes/phone_frame.gd`, a phone-shaped frame on wide screens) and
   `Wind` (`Assets/Landscape/world/wind.gd`, the prototype's wind: random start, holds, shifts 30–90° over 3–5 s,
   constant strength (Enrico: only the direction changes); the boat and the wind vane read `Wind.from_deg`).
-  `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` reads `map_collision.png` (1024², white = land);
-  outside the map counts as land, so the map's edge is a wall the boat bumps into.
-- **The landscape is a painted map** (Enrico's choice, option 1): `Assets/Landscape/world/map_paint.png` (4096², greys,
-  the whole 504 m world, home = the middle) shown by `sea.gdshader` on the sea plane, a fixed 504 × 504 plane at the
-  origin (Enrico: no wrap-around, one place per point, for hand-placed things), with the
-  wavelets only where `map_collision.png` is black. Both PNGs are imported Lossless, no VRAM compression
-  (`detect_3d/compress_to=0`: the web export has no mobile VRAM formats). The template to paint on is in `art_src/map/`
-  (`map_paint_base.png`, `map_guide.png` = A1..I9 grid and home as a top layer; `make_map_template.py` makes them from
-  the prototype's `DRAWN_LAND`). When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
+  `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` shoots a physics ray straight down (y 100 → -20,
+  `intersect_ray`): anything solid hit = land; outside the 504 m map counts as land, so the map's edge is a wall.
+- **The landscape: a plain sea plane and 3D coast meshes** (Enrico, Oct 2026; the painted map `map_paint.png` and
+  its mask `map_collision.png` are gone; the templates in `art_src/map/` stay for now). `sea.tscn`: a fixed
+  504 × 504 PlaneMesh at the origin, `sea.gdshader` one flat `sea_color` grey with the wavelets everywhere, the fog
+  and the boat's stencil. Enrico places the coasts as 3D meshes under the `Coast` node in `Overworld.tscn`; each needs
+  a collision (a StaticBody3D with a CollisionShape3D: in the editor select the mesh, Mesh menu → Create Trimesh
+  Static Body, or name it with the `-col` suffix in Blender), which is what `Land` hits. When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
   `impact()`, in `boat.gd`: `move_and_bounce`, `bump`; knobs `bounce_*`): only moving into the shore at ≥ 0.4 m/s,
   0.6 s cooldown; a push `knock` along `Land.way_to_sea()` of 2 + 0.9 × the hit speed, fading at 3.5/s; speed × 0.25;
   the bow swung off up to 0.3 rad toward the open side. No wobble (Enrico removed it), no damage, sound or buzz yet. In the **shallows** (land within
-  `shallows_width` 6 m of her middle, `Land.is_near_land`: 3 rings × 16 points of the mask) the sail's drive is ×
+  `shallows_width` 6 m of her middle, `Land.is_near_land`: 3 rings × 16 rays) the sail's drive is ×
   `shallows_sail` 0.3 (Enrico: less wind by the coast). **The current** (prototype's `CURRENT_DRIFT`): `drift` =
   downwind × `current_speed` 1.8 m/s × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; also at
   anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
