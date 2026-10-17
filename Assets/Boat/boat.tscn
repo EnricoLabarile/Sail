@@ -5,6 +5,52 @@
 [ext_resource type="PackedScene" uid="uid://da2mslnca7e31" path="res://Assets/Boat/sm_boat_mast.fbx" id="3_ee1eo"]
 [ext_resource type="PackedScene" uid="uid://bkhrx3gsk66tq" path="res://Assets/Boat/sm_boat_sail.fbx" id="4_og2vt"]
 
+
+[sub_resource type="StandardMaterial3D" id="Mat_wake"]
+render_priority = 1
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+
+[sub_resource type="CylinderMesh" id="Mesh_wake"]
+material = SubResource("Mat_wake")
+top_radius = 0.5
+bottom_radius = 0.5
+height = 0.001
+radial_segments = 8
+rings = 0
+cap_bottom = false
+
+[sub_resource type="Curve" id="Curve_wake_size"]
+_data = [Vector2(0, 0.31), 0.0, 0.69, 0, 1, Vector2(1, 1), 0.69, 0.0, 1, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Grad_wake"]
+colors = PackedColorArray(0, 0, 0, 0.8, 0, 0, 0, 0)
+
+[sub_resource type="StandardMaterial3D" id="Mat_spray"]
+render_priority = 1
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+
+[sub_resource type="CylinderMesh" id="Mesh_spray"]
+material = SubResource("Mat_spray")
+top_radius = 0.5
+bottom_radius = 0.5
+height = 0.001
+radial_segments = 8
+rings = 0
+cap_bottom = false
+
+[sub_resource type="Curve" id="Curve_spray_size"]
+_data = [Vector2(0, 0.45), 0.0, 0.55, 0, 1, Vector2(1, 1), 0.55, 0.0, 1, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Grad_spray"]
+offsets = PackedFloat32Array(0, 0.55, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
 [node name="Boat" type="Node3D" unique_id=1479473515]
 script = ExtResource("1_boat")
 
@@ -27,3 +73,48 @@ projection = 1
 current = true
 size = 40.0
 far = 200.0
+
+[node name="Wake" type="CPUParticles3D" parent="." unique_id=1734210981]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 1.7)
+emitting = false
+amount = 28
+lifetime = 1.2
+local_coords = false
+mesh = SubResource("Mesh_wake")
+emission_shape = 4
+emission_points = PackedVector3Array(-0.55, 0, 0, 0.55, 0, 0)
+emission_normals = PackedVector3Array(-1, 0, 0, 1, 0, 0)
+direction = Vector3(0, 0, 1)
+spread = 5.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 1.2
+initial_velocity_max = 1.2
+damping_min = 0.8
+damping_max = 0.8
+scale_amount_min = 0.9
+scale_amount_max = 0.9
+scale_amount_curve = SubResource("Curve_wake_size")
+color_ramp = SubResource("Grad_wake")
+
+[node name="BowSpray" type="CPUParticles3D" parent="." unique_id=902117346]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+emitting = false
+amount = 30
+lifetime = 0.45
+lifetime_randomness = 0.5
+local_coords = false
+mesh = SubResource("Mesh_spray")
+emission_shape = 4
+emission_points = PackedVector3Array(-0.25, 0, -1.85, 0.25, 0, -1.85, -0.25, 0, -1.85, 0.25, 0, -1.85, -0.45, 0, -1.45, 0.45, 0, -1.45, -0.6, 0, -1.0, 0.6, 0, -1.0)
+emission_normals = PackedVector3Array(-0.96, 0, -0.29, 0.96, 0, -0.29, -0.96, 0, -0.29, 0.96, 0, -0.29, -0.98, 0, -0.2, 0.98, 0, -0.2, -1, 0, -0.1, 1, 0, -0.1)
+direction = Vector3(0, 0, 1)
+spread = 15.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 1.0
+initial_velocity_max = 3.0
+damping_min = 3.0
+damping_max = 3.0
+scale_amount_min = 0.35
+scale_amount_max = 0.7
+scale_amount_curve = SubResource("Curve_spray_size")
+color_ramp = SubResource("Grad_spray")

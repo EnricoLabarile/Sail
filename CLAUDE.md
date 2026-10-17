@@ -72,6 +72,14 @@
   (invisible, `stencil_mode write, compare_always, 1`, render_priority -1) as `material_overlay` on every mesh inside
   `Model`; `sea.gdshader` reads it (`stencil_mode read, compare_not_equal, 1`) and writes `ALPHA = 1.0`, which puts it
   in the transparent pass, drawn after the boat: it skips her pixels, so the parts under the waterline show too.
+- **Wake and bow spray** (as the prototype's wake dots and `bowSpray`): two `CPUParticles3D` children of `Boat` in
+  `boat.tscn` (`Wake`, `BowSpray`; their look is set in the Inspector), `local_coords` off so what they leave stays on
+  the water, flat 8-sided discs (a CylinderMesh with no height), unshaded, vertex colour + alpha, render_priority 1.
+  `Wake`: at the stern (z +1.7), two points ±0.55 m pushed outward 1.2 m/s, 28 dots, life 1.2 s (short), ink, alpha
+  0.8 → 0, growing 0.28 → 0.9 m. `BowSpray`: points along both sides of the bow, flung outward 1–3 m/s, 30 bits, life
+  0.45 s ± half, white, fading in the second half, growing. `boat.gd` `update_water_fx()`: on only above 6% of
+  `top_speed` and not at anchor; `speed_scale` = her share of top speed (at least 0.35), so slower = fewer dots, still
+  the same distance apart (CPUParticles3D has no `amount_ratio`).
 - **The outline** (`Assets/Boat/boat_outline.gdshader`, made by `boat.gd` `add_outline()`: a QuadMesh child of the
   camera, stretched over the screen in the vertex shader, render_priority 1, after the sea): reads the depth buffer
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;

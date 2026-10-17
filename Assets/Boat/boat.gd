@@ -88,6 +88,8 @@ var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she 
 @onready var model: Node3D = $Model            # heels and bobs: everything inside it follows
 @onready var rig: Node3D = find_child("Rig")   # turns round the mast: the sail (and boom) inside it swing out
 @onready var camera: Camera3D = $Camera3D
+@onready var wake: CPUParticles3D = find_child("Wake")          # the dots left behind the stern
+@onready var bow_spray: CPUParticles3D = find_child("BowSpray") # the white spray thrown off the bow
 @onready var sail_node: Node3D = find_child("sm_boat_sail")   # the whole sail: squashed down onto the boom to furl it
 
 # The sail's mesh: the MeshInstance3D inside the imported sm_boat_sail (the FBX makes it a little scene
@@ -197,6 +199,7 @@ func _physics_process(dt: float) -> void:
 	model.position.y = sin(Time.get_ticks_msec() * 0.0013) * 0.04
 	update_sail_belly(dt, side)
 	update_furl(dt)
+	update_water_fx()
 
 ## How she leans (roll) and how her bow rises and dips (pitch). First where she should be:
 ##   roll  = the heel from the wind + the lean out of a turn + the waves' roll
@@ -296,6 +299,21 @@ func hold_at_anchor() -> void:
 
 ## At anchor the sail is gathered up onto the boom (only a look: as in the prototype); it spreads
 ## again as the anchor comes up. Done by squashing the sail's node down (scale.y) onto the boom.
+## The wake and the bow spray (the two CPUParticles3D nodes in boat.tscn, like two small CPU Niagara
+## emitters: their look is set in the Inspector). Here only how fast they run: the slower she goes, the
+## slower they play (speed_scale), so fewer dots come out and they drift aside more slowly. That keeps the
+## dots the same distance apart on the water whatever her speed, as in the HTML prototype (a dot every
+## 0.7 m). Nothing when she's (almost) still or at anchor; the dots already out fade by themselves.
+func update_water_fx() -> void:
+	var k := clampf(speed / top_speed, 0.0, 1.0)   # 0 = still, 1 = top speed
+	var on := k > 0.06 and not anchored            # the prototype's "none below 6% of top speed"
+	for fx in [wake, bow_spray]:
+		if fx == null:                              # the node was removed from boat.tscn: skip it
+			continue
+		fx.emitting = on
+		# never slower than 0.35, or the last dots would hang on the water for ages
+		fx.speed_scale = maxf(k, 0.35) if on else 1.0
+
 func update_furl(dt: float) -> void:
 	var target := 1.0 if anchored else 0.0
 	var rate := furl_rate if anchored else unfurl_rate
