@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://8jgdj032t3vx" path="res://Assets/Landscape/clouds/clouds.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://b8sc7qvuc6yea" path="res://Assets/Landscape/clouds/cloud_1.png" id="2_c1"]
+[ext_resource type="Texture2D" uid="uid://dbkrvek8l3htx" path="res://Assets/Landscape/clouds/cloud_2.png" id="3_c2"]
+[ext_resource type="Texture2D" uid="uid://inb05w52fpp3" path="res://Assets/Landscape/clouds/cloud_3.png" id="4_c3"]
+
+[node name="Clouds" type="Node3D"]
+script = ExtResource("1_script")
+cloud_textures = Array[Texture2D]([ExtResource("2_c1"), ExtResource("3_c2"), ExtResource("4_c3")])

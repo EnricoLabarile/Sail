@@ -48,6 +48,12 @@
   downwind × `current_speed` 1.8 m/s × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; also at
   anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
+- **Clouds** (`Assets/Landscape/clouds/`: `clouds.tscn` + `clouds.gd`, instanced as `Clouds` in Overworld): flat image
+  planes (PlaneMesh facing up, `StandardMaterial3D` unshaded, alpha from the PNG, both faces, render_priority 1)
+  `height` 15 m up; `cloud_count` 12 made at start from `cloud_textures` (in turn; stand-ins `cloud_1..3.png`, soft
+  white blobs, to be replaced by Enrico's; imported Lossless, no VRAM compression), random place, size
+  `size_min`–`size_max` 20–40 m and turn; every frame moved downwind (`-Wind.from_vector()` × `speed` 2 m/s) and
+  wrapped round the 504 m map. Static pictures for now (flipbooks later, maybe).
 - **Fog of war** (`Fog` autoload, `Assets/Landscape/world/fog.gd`, as the prototype's): the map in cells of `CELL`
   4.8 m (105 a side); a cell is seen for good once her middle comes within `SIGHT` 22 m of it (`Fog.reveal`, called
   by `boat.gd` every physics frame). Kept in `Fog.image` (L8, 1 px a cell, white = fog), sent to `Fog.texture` only
