@@ -60,6 +60,11 @@
   (invisible, `stencil_mode write, compare_always, 1`, render_priority -1) as `material_overlay` on every mesh inside
   `Model`; `sea.gdshader` reads it (`stencil_mode read, compare_not_equal, 1`) and writes `ALPHA = 1.0`, which puts it
   in the transparent pass, drawn after the boat: it skips her pixels, so the parts under the waterline show too.
+- **The outline** (`Assets/Boat/boat_outline.gdshader`, made by `boat.gd` `add_outline()`: a QuadMesh child of the
+  camera, stretched over the screen in the vertex shader, render_priority 1, after the sea): reads the depth buffer
+  (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
+  0.0 = nothing), and paints ink on pixels with no boat but boat within `outline_width` (boat.gd export, 1.5 phone
+  points) in 8 directions. Made in code so it doesn't cover the editor's view. Any future solid 3D object gets it too.
 - **Turning** (as the prototype): `turn_rate` rad/s at full rudder whatever her speed (no slower with less way),
   × `paddle_turn_mult` 1.5 while the paddle wheels push; none at anchor.
 - **The paddle wheels and the crank** (the prototype's `CRANK_DIRECT`): `Assets/Boat/paddle_wheel.tscn` is a stand-in

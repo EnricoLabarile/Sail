@@ -44,6 +44,9 @@ extends Node3D
 @export var unfurl_rate := 3.5          # …and spread again when it comes up (higher = quicker)
 @export var furled_height := 0.06       # how tall the sail is when gathered up, as a share of its full height
 
+# The ink outline round her (Assets/Boat/boat_outline.gdshader).
+@export var outline_width := 1.5        # how thick, in phone points (0 = no outline)
+
 # The waves: she rocks gently on them, side to side (roll) and bow to stern (pitch).
 @export var wave_roll_deg := 3.0    # how far she rolls each way on the waves, in degrees
 @export var wave_pitch_deg := 2.0   # how far the bow rises and dips on the waves, in degrees
@@ -114,6 +117,24 @@ func _ready() -> void:
 	camera.top_level = true   # it follows her position but not her turning
 	anchor_point = bow_point()   # she starts at anchor: it lies off her bow
 	add_water_mask()
+	add_outline()
+
+
+## The ink outline round the boat (Assets/Boat/boat_outline.gdshader): a rectangle in front of the
+## camera that the shader stretches over the whole screen. Made here in code (and not in the scene) so it
+## doesn't cover the editor's view.
+func add_outline() -> void:
+	var outline := ShaderMaterial.new()
+	outline.shader = load("res://Assets/Boat/boat_outline.gdshader")
+	outline.render_priority = 1                 # drawn after the sea (0), so the line sits on the water
+	outline.set_shader_parameter("outline_width", outline_width)
+	var quad := QuadMesh.new()
+	quad.material = outline
+	var screen := MeshInstance3D.new()
+	screen.mesh = quad
+	screen.extra_cull_margin = 16384.0         # never skipped as "out of view" (the shader moves it)
+	screen.position = Vector3(0.0, 0.0, -1.0)  # just in front of the camera
+	camera.add_child(screen)
 
 
 ## Puts the boat's mask (Assets/Boat/boat_mask.gdshader) on every mesh inside Model, as a
