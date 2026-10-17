@@ -7,7 +7,7 @@ extends Node3D
 @export var top_speed := 8.4        # m/s with the sail at its best (doubled by Enrico; the prototype had ~4.2)
 @export var accel := 0.9            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
-@export var turn_rate := 3.0        # rad/s at full rudder, whatever her speed (doubled by Enrico from 1.5)
+@export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 5		    # how far she leans with the wind on the sail
 @export var camera_tilt_deg := 45 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
@@ -124,15 +124,21 @@ func add_outline() -> void:
 	camera.add_child(screen)
 
 
-## Puts the boat's mask (Assets/Boat/boat_mask.gdshader) on every mesh inside Model, as a
-## material_overlay: an extra invisible layer that marks her pixels, so the sea doesn't draw over her.
-## Done here in code, so it covers new or swapped meshes too (hull, mast, sail…).
+## Puts the boat's mask (Assets/Boat/boat_mask.gdshader) on the INSIDE of the hull only, as a
+## material_overlay: an extra invisible layer that marks those pixels, so the sea doesn't draw over them.
+## Everything else (the outside of the hull, mast, sail) has no mask: where it sits below the water
+## (y = 0) the sea covers it, so she looks partly sunk in the water, as a real boat.
+## The inside is any mesh with "inner" in its name, or in its parent's name (e.g. sm_boat_hull_inner,
+## made in Blender as an object of its own): the floor of the boat lies below the water line, and
+## without the mask the sea would cover it.
 func add_water_mask() -> void:
 	var mask := ShaderMaterial.new()
 	mask.shader = load("res://Assets/Boat/boat_mask.gdshader")
 	mask.render_priority = -1    # among the see-through things, drawn before the sea (which has 0)
 	for mesh in model.find_children("*", "MeshInstance3D", true, false):
-		mesh.material_overlay = mask
+		var names: String = (String(mesh.name) + " " + String(mesh.get_parent().name)).to_lower()
+		if names.contains("inner"):
+			mesh.material_overlay = mask
 
 func set_rudder(v: float) -> void:
 	rudder = clampf(v, -1.0, 1.0)

@@ -68,10 +68,13 @@
   (+ `Boat/Camera3D`). `Model` heels, bobs and rocks (`rock_and_roll`, the prototype's damped springs: roll pulled toward heel + lean out of a turn + the waves' roll, pitch toward the surge + the waves' pitch, `roll_stiffness` 16 / `roll_damping` 3.2, `pitch_stiffness` 22 / `pitch_damping` 4.5, clamped ±0.6 / ±0.3 rad; the lean out of a turn is the measured `turn_speed` / `turn_rate` × speed / `top_speed` × `turn_lean_deg` 22°; the surge is acceleration × `surge_pitch_deg` 3°/(m/s²), at most `surge_pitch_max_deg` 4.5°; the waves `wave_roll_deg` 3°, `wave_pitch_deg` 2°, `wave_period` 3 s and 0.8× that; everything follows), `Rig` (at the mast's foot) turns the
   boom to leeward (half the wind's angle off the bow, 8° to `boom_max_deg` 30° either side: never across her), the sail's shape keys `Inflated_Right` / `Inflated_Left` make its belly. `boat.gd` finds `Rig` and
   `sm_boat_sail` with `find_child` (by name, anywhere inside), so the hierarchy can change as long as the names stay.
-- **The water never cuts the boat** (a stencil): `boat.gd` `add_water_mask()` puts `Assets/Boat/boat_mask.gdshader`
-  (invisible, `stencil_mode write, compare_always, 1`, render_priority -1) as `material_overlay` on every mesh inside
-  `Model`; `sea.gdshader` reads it (`stencil_mode read, compare_not_equal, 1`) and writes `ALPHA = 1.0`, which puts it
-  in the transparent pass, drawn after the boat: it skips her pixels, so the parts under the waterline show too.
+- **She sits in the water; only her inside is never cut** (a stencil): `boat.gd` `add_water_mask()` puts
+  `Assets/Boat/boat_mask.gdshader` (invisible, `stencil_mode write, compare_always, 1`, render_priority -1) as
+  `material_overlay` only on meshes inside `Model` with `inner` in their name or their parent's (Enrico: the hull's
+  inside as its own object, `sm_boat_hull_inner`); `sea.gdshader` reads it (`stencil_mode read, compare_not_equal, 1`)
+  and writes `ALPHA = 1.0`, which puts it in the transparent pass, drawn after the boat: it skips those pixels, so the
+  floor of the boat (below y 0) shows. The outside of the hull, mast and sail have no mask: the sea covers what's
+  below the water. Until the inner mesh exists, nothing is masked (the sea shows over her floor).
 - **Wake and bow spray** (as the prototype's wake dots and `bowSpray`): two `CPUParticles3D` children of `Boat` in
   `boat.tscn` (`Wake`, `BowSpray`; their look is set in the Inspector), `local_coords` off so what they leave stays on
   the water, flat 8-sided discs (a CylinderMesh with no height), unshaded, vertex colour + alpha, render_priority 1.
@@ -85,7 +88,7 @@
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
   0.0 = nothing), and paints ink on pixels with no boat but boat within `outline_width` (boat.gd export, 1.5 phone
   points) in 8 directions. Made in code so it doesn't cover the editor's view. Any future solid 3D object gets it too.
-- **Turning** (as the prototype): `turn_rate` 3 rad/s (doubled by Enrico, as `top_speed` 8.4 m/s) at full rudder whatever her speed (no slower with less way);
+- **Turning** (as the prototype): `turn_rate` 2.25 rad/s (Enrico: between the old 1.5 and the doubled 3) at full rudder whatever her speed (no slower with less way);
   none at anchor. (Paddle wheels and the crank were added, then removed for now by Enrico.)
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
   `bow_point()` = middle + `bow_reach` forward) and stays there; the current now carries her at anchor too; once the
