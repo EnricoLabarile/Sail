@@ -74,8 +74,8 @@
   inside as its own object, `sm_boat_hull_inner`); `sea.gdshader` reads it (`stencil_mode read, compare_not_equal, 1`)
   and writes `ALPHA = 1.0`, which puts it in the transparent pass, drawn after the boat: it skips those pixels, so the
   floor of the boat (below y 0) shows. The outside of the hull, mast and sail have no mask: the sea covers what's
-  below the water. Until the inner mesh exists, nothing is masked (the sea shows over her floor). She sits
-  `sink_depth` 0.4 m down (`Model`'s y = −sink_depth + the bob), so the water line cuts her sides.
+  below the water. Until the inner mesh exists, nothing is masked (the sea shows over her floor). How deep she sits
+  is `Model`'s y in `boat.tscn` (Enrico places it; −0.4 now): `boat.gd` reads it at start (`model_height`) and bobs round it.
 - **Wake and bow spray** (as the prototype's wake dots and `bowSpray`): two `CPUParticles3D` children of `Boat` in
   `boat.tscn` (`Wake`, `BowSpray`; their look is set in the Inspector), `local_coords` off so what they leave stays on
   the water, flat 8-sided discs (a CylinderMesh with no height), unshaded, vertex colour + alpha, render_priority 1.

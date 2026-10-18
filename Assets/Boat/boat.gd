@@ -9,7 +9,6 @@ extends Node3D
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
-@export var sink_depth := 0.4      # metres she sits down in the water: the sea hides her hull below the water line
 @export var heel_max_deg := 5		    # how far she leans with the wind on the sail
 @export var camera_tilt_deg := 45 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
@@ -81,6 +80,7 @@ var roll_velocity := 0.0
 var pitch := 0.0            # the bow's angle now (radians, + = up), and how quickly it's changing
 var pitch_velocity := 0.0
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
+var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
 var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she starts at anchor: gathered up)
 
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
@@ -104,6 +104,7 @@ func _ready() -> void:
 	add_to_group("player_boat")
 	camera.top_level = true   # it follows her position but not her turning
 	anchor_point = bow_point()   # she starts at anchor: it lies off her bow
+	model_height = model.position.y   # how deep she sits: wherever Model was placed in boat.tscn
 	add_water_mask()
 	add_outline()
 
@@ -203,8 +204,8 @@ func _physics_process(dt: float) -> void:
 	# boom_max_deg (30), so the sail never stands across the boat.
 	var boom := -side * deg_to_rad(clampf(off * 0.5, 8.0, boom_max_deg))
 	rig.rotation.y = lerpf(rig.rotation.y, boom if drive > 0.0 else 0.0, dt * 2.0)
-	# She sits sink_depth down in the water (the sea covers what's below it), and bobs a little round there.
-	model.position.y = -sink_depth + sin(Time.get_ticks_msec() * 0.0013) * 0.04
+	# A gentle bob up and down, round the height Model has in the scene (set it there to sink her more or less).
+	model.position.y = model_height + sin(Time.get_ticks_msec() * 0.0013) * 0.04
 	update_sail_belly(dt, side)
 	update_furl(dt)
 	update_water_fx()
