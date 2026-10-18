@@ -122,13 +122,19 @@
   (their Volume dB = the level; the loops fade in over `fade_in_time` 2 s); nothing plays while the game is paused.
   (Headless `--quit-after` prints "resources still in use at exit" for the playing loops: harmless.)
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
-  Bayer 4×4 to paper/ink. One dot = `pixel_size` game pixels × the screen's scale (real pixels per game pixel:
-  screen size / 360×800, on an upright screen the width (the camera keeps the width; the browser's bars eat the height:
-  Enrico's phone gave 1080×1965, 2 by the smaller side), on a wide one the smaller side, rounded, ≥ 1), so a phone drawing at ~1080×2340 gets 3×3 dots like the
-  PC's 360×800 window gets 1×1 (one real pixel a dot melted into grey there). `dither.gd` (on the Dither layer) sets the
-  root's 3D resolution scale (`scaling_3d_scale`, Unreal's Screen Percentage) to 1 / that scale (and again on a resize):
-  the 3D world is drawn at one pixel per game pixel (1/3 on the phone, 9× less fill for sea, shadows, outline, fog),
-  the UI at full resolution; on the PC 1, unchanged. (Enrico's phone ran ~30 fps before.)
+  Bayer 4×4 to paper/ink, one dot per pixel of the game view (below; the shader still works out a scale from its
+  screen, which is 1 there).
+- **The game view** (`Assets/Post_Process/game_view.gd`, node `GameView` in Overworld; Enrico asked for performance):
+  at start (deferred, after every node is ready) it moves `Sea`, `Coast`, `Clouds`, `Boat`, `Dither`, `Helm` and the
+  logbook's `IconLayer` into a `SubViewport` drawn at the game's resolution, and shows its picture on a full-screen
+  `TextureRect` (CanvasLayer 1, nearest filter: sharp dots). Size: real pixels of the game area
+  (`get_visible_rect().size × get_final_transform().get_scale()`) / `dot_scale`, `dot_scale` = round(real width /
+  360), ≥ 1 (phone 1080 wide → 360×655, ×3; the PC's 360×800 window → ×1; a wide PC screen in the phone frame
+  405×900 → ×1). So the world, the shadows, the dither and the wheel are drawn ~9× smaller on the phone; what stays
+  crisp at full resolution on top: the wind vane (110), the open book (120), the start screen (130). Taps and drags
+  on the picture are passed into the view (`_pass_input`: `push_input`, scaled to its pixels). In the editor the
+  scene looks as always. (Before: the 3D at 1/3 with `scaling_3d_scale`, the dither at full resolution; `dither.gd`
+  is gone.) The 3D world is shared (the SubViewport uses the root's World3D: `Land`'s rays still work).
 - **Turning** (as the prototype): `turn_rate` 2.25 rad/s (Enrico: between the old 1.5 and the doubled 3) at full rudder whatever her speed (no slower with less way);
   none at anchor. (Paddle wheels and the crank were added, then removed for now by Enrico.)
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
@@ -141,7 +147,10 @@
   bottom), as the prototype's `drawWheel`: drawn in greys in its units (×`WHEEL_SCALE` 1.3): a dark backing, eight
   turned spokes and handles (king spoke whipped), rim with grain and brass caps, the boss; over it the big hub
   (×2: brass bezel lit top left, four rivets, light face with an ink anchor sailing, dark face with a paper anchor
-  and a light rim at anchor). Drag to steer (half a turn = full rudder, springs back to the middle); the hub's grip is
+  and a light rim at anchor), **drawn once into pictures** (`_make_picture`: a SubViewport with a painter Control,
+  rendered `UPDATE_ONCE`, again only on resize): the wheel at angle 0 (drawn every frame turned by `wheel_angle`, linear
+  filter), the hub sailing and the hub at anchor; only the rim's fixed shade, the hub's shake and its hold ring are
+  drawn live (draw calls ~290 → ~45: the wheel's discs of 40 triangles each were most of them). Drag to steer (half a turn = full rudder, springs back to the middle); the hub's grip is
   16.5 sailing / 21 at anchor (× 2.6): held `hub_hold` 0.33 s (a ring fills) it works the anchor and shakes; a finger
   moving 9 off the hub turns the wheel instead; at anchor the wheel doesn't steer (drag and arrow keys). No sound or
   buzz yet.
@@ -152,7 +161,7 @@
   leather (a 15 px tile of dots), stitching, metal corners, the pages with the edges beneath, and only spread 0 for
   now (Enrico): the 9×9 map A1..I9 across both pages (the prototype's 100-unit layout), the square she's in shaded
   (ink 0.3; no dot any more, Enrico); a tiny faint frame-rate counter in the right page's bottom right corner, over it
-  the window's real resolution and the 3D scale ("1080x2340  3D 0.33" / "60 fps"): a `Label` child of the book
+  the game view's size and dot scale, then fps, ms a frame and draw calls ("360x655  x3" / "60 fps  16.7 ms  45 dc"): a `Label` child of the book
   (`_make_fps_label`), filled every frame by `_process` while the book is fully open (Enrico), hidden otherwise.
   **The book itself is not redrawn every frame** (Enrico): `logbook.gd` calls `book.refresh()` on opening, which reads
   the square once; after that it's drawn again only while the cover turns (`unfold`'s setter).

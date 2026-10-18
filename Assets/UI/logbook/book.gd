@@ -53,15 +53,21 @@ func _process(_dt: float) -> void:
 	_fps_label.visible = open
 	if not open:
 		return
-	# The real pixels of the window (the phone's screen in the browser) and how big the 3D is drawn
-	# (scaling_3d_scale, set by the dither: 1 = full resolution, 0.33 = a third), then the frame rate.
-	var window := get_tree().root
-	_fps_label.text = str(window.size.x) + "x" + str(window.size.y) + "  3D " + str(snappedf(window.scaling_3d_scale, 0.01)) \
-		+ "\n" + str(int(Engine.get_frames_per_second())) + " fps"
+	# First line: the game view's size (the dithered picture, in game pixels) and how many real pixels a
+	# game pixel is (game_view.gd), e.g. "360x655 x3". Second line: frames a second, milliseconds a frame,
+	# and the draw calls (the jobs sent to the graphics chip this frame: fewer is lighter).
+	var top := ""
+	var game_view := get_tree().get_first_node_in_group("game_view")
+	if game_view and game_view.view:
+		top = str(game_view.view.size.x) + "x" + str(game_view.view.size.y) + "  x" + str(game_view.dot_scale)
+	var fps := Engine.get_frames_per_second()
+	var ms := 1000.0 / maxf(fps, 1.0)
+	var draw_calls := int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
+	_fps_label.text = top + "\n" + str(int(fps)) + " fps  " + str(snappedf(ms, 0.1)) + " ms  " + str(draw_calls) + " dc"
 	# In the bottom right corner of the right page, 4 px in (the same page as _draw works out).
 	var page_w := size.x * 0.5 - CREASE * 0.5 - PAD_SIDE
 	var page_bottom_right := Vector2(size.x - PAD_SIDE, size.y - PAD_BOTTOM)
-	_fps_label.size = Vector2(minf(140.0, page_w), 26.0)
+	_fps_label.size = Vector2(minf(160.0, page_w), 26.0)
 	_fps_label.position = page_bottom_right - _fps_label.size - Vector2(4.0, 2.0)
 
 

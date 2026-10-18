@@ -149,6 +149,8 @@ func _process(dt: float) -> void:
 
 
 # ---- little drawing helpers ----
+# Each takes `c`, the CanvasItem to draw on (see "Drawing it once" below: the wheel and the hub are drawn
+# into pictures, each on its own painter).
 
 ## A grey (0 = black, 255 = white).
 func grey(v: float, alpha: float = 1.0) -> Color:
@@ -176,25 +178,25 @@ func turned_flank(stations: Array) -> PackedVector2Array:
 
 
 ## A closed outline: the polygon's points joined, back to the first.
-func draw_outline(points: PackedVector2Array, color: Color, width: float) -> void:
+func outline(c: CanvasItem, points: PackedVector2Array, color: Color, width: float) -> void:
 	var closed := points.duplicate()
 	closed.append(points[0])
-	draw_polyline(closed, color, width, true)
+	c.draw_polyline(closed, color, width, true)
 
 
 ## A disc whose grey changes from the middle (inner) to the edge (outer): a radial gradient.
 ## Made of a fan of triangles, one colour at the middle point and another on the rim (Godot blends between).
-func radial_disc(center: Vector2, radius: float, inner: Color, outer: Color) -> void:
+func radial_disc(c: CanvasItem, center: Vector2, radius: float, inner: Color, outer: Color) -> void:
 	var n := 40
 	for i in n:
 		var a0 := TAU * i / n
 		var a1 := TAU * (i + 1) / n
 		var tri := PackedVector2Array([center, center + Vector2(cos(a0), sin(a0)) * radius, center + Vector2(cos(a1), sin(a1)) * radius])
-		draw_polygon(tri, PackedColorArray([inner, outer, outer]))
+		c.draw_polygon(tri, PackedColorArray([inner, outer, outer]))
 
 
 ## A disc lit from the top left: light at the top left, dark at the bottom right (a diagonal gradient).
-func lit_disc(radius: float, light: Color, middle: Color, dark: Color) -> void:
+func lit_disc(c: CanvasItem, radius: float, light: Color, middle: Color, dark: Color) -> void:
 	var points := PackedVector2Array()
 	var colors := PackedColorArray()
 	for i in 40:
@@ -203,7 +205,7 @@ func lit_disc(radius: float, light: Color, middle: Color, dark: Color) -> void:
 		points.append(p)
 		var t := clampf(((p.x + p.y) / (radius * 2.0)) + 0.5, 0.0, 1.0)   # 0 top left .. 1 bottom right
 		colors.append(light.lerp(middle, t * 2.0) if t < 0.5 else middle.lerp(dark, t * 2.0 - 1.0))
-	draw_polygon(points, colors)
+	c.draw_polygon(points, colors)
 
 
 ## Points along a curve from a to b, pulled toward the control point c (a quadratic Bezier curve).
@@ -215,125 +217,194 @@ func curve(a: Vector2, c: Vector2, b: Vector2) -> PackedVector2Array:
 	return points
 
 
-# ---- the drawing ----
+# ---- drawing it once ----
+# The wheel is made of a few hundred shapes (discs of 40 triangles, spokes, handles, outlines). Drawn every
+# frame, each shape was a separate job for the graphics chip (about 235 "draw calls", most of the game's).
+# So it's drawn ONCE into pictures (in Unreal: a Render Target), and every frame the helm only draws those
+# pictures: the wheel's picture turned by wheel_angle, and the hub's picture on top (one for sailing, one at
+# anchor). They are drawn again only if the helm changes size.
+# How: a SubViewport (an off-screen picture) holding a "painter", an empty Control; when the painter is asked
+# to draw, it calls our drawing function with itself as the canvas.
+
+const WHEEL_REACH := 82.0   # how far the wheel's drawing reaches from its middle (the handles' tips), in units
+const HUB_REACH := 18.0     # the same for the hub (its light rim at anchor)
+
+var _wheel_picture: SubViewport
+var _hub_picture_sailing: SubViewport
+var _hub_picture_anchored: SubViewport
+
+
+func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR    # the turned picture stays smooth (the dither makes it dots)
+	_wheel_picture = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_wheel(c, middle, k))
+	_hub_picture_sailing = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, false))
+	_hub_picture_anchored = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, true))
+	resized.connect(_redraw_pictures)
+	_redraw_pictures()
+
+
+## A picture: a SubViewport (see-through background) with a painter in it. `paint` is called with the
+## painter, the picture's middle and the scale, whenever the picture is drawn again.
+func _make_picture(paint: Callable) -> SubViewport:
+	var picture := SubViewport.new()
+	picture.transparent_bg = true
+	picture.disable_3d = true
+	picture.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	var painter := Control.new()
+	picture.add_child(painter)
+	painter.draw.connect(func(): paint.call(painter, Vector2(picture.size) * 0.5, _k()))
+	add_child(picture)
+	return picture
+
+
+## Draws the three pictures again, at the helm's current size (on start and if the helm is resized).
+func _redraw_pictures() -> void:
+	var k := _k()
+	_set_picture_size(_wheel_picture, WHEEL_REACH * WHEEL_SCALE * k)
+	_set_picture_size(_hub_picture_sailing, HUB_REACH * WHEEL_SCALE * HUB_SCALE * k)
+	_set_picture_size(_hub_picture_anchored, HUB_REACH * WHEEL_SCALE * HUB_SCALE * k)
+	queue_redraw()
+
+
+## Sizes a picture to hold a drawing that reaches `reach` pixels from its middle, and draws it once.
+func _set_picture_size(picture: SubViewport, reach: float) -> void:
+	var side := int(ceil(reach * 2.0)) + 4
+	picture.size = Vector2i(side, side)
+	var painter: Control = picture.get_child(0)
+	painter.size = Vector2(side, side)
+	painter.queue_redraw()
+	picture.render_target_update_mode = SubViewport.UPDATE_ONCE   # render it this once, then keep it
+
+
+# ---- the drawing (every frame it's needed: just the pictures) ----
 
 func _draw() -> void:
 	var k := _k()
-	var middle_on_screen := size * 0.5 + (MIDDLE - Vector2(DRAW_W, DRAW_H) * 0.5) * k
-	_draw_wheel(middle_on_screen, k)
-	_draw_hub(middle_on_screen, k)
+	var middle := size * 0.5 + (MIDDLE - Vector2(DRAW_W, DRAW_H) * 0.5) * k
+	var s := k * WHEEL_SCALE
+	# 1. The wheel's picture, turned by wheel_angle round the middle.
+	var wheel := _wheel_picture.get_texture()
+	draw_set_transform(middle, wheel_angle, Vector2.ONE)
+	draw_texture(wheel, -Vector2(wheel.get_size()) * 0.5)
+	# 2. The rim is darker at the bottom right: the light comes from the top left, so this shade doesn't
+	#    turn with the wheel. Drawn here, over the turning picture.
+	draw_set_transform(middle, 0.0, Vector2(s, s))
+	draw_arc(Vector2.ZERO, 55.0, -0.15 * PI, 0.85 * PI, 32, grey(0, 0.18), 8.6)
+	# 3. The hub's picture (sailing or at anchor), with its little shake after a press.
+	var shake_x := sin(Time.get_ticks_msec() * 0.09) * 2.2 * hub_shake
+	var hub_middle := middle + Vector2(shake_x * s, 0.0)
+	var hub := (_hub_picture_anchored if _is_anchored() else _hub_picture_sailing).get_texture()
+	draw_set_transform(hub_middle, 0.0, Vector2.ONE)
+	draw_texture(hub, -Vector2(hub.get_size()) * 0.5)
+	# 4. Holding the hub: a ring fills round it (ink, with a paper edge so it reads anywhere).
+	if hub_index != -1:
+		var hs := s * HUB_SCALE
+		var fill := minf(1.0, hub_t / hub_hold)
+		var end := -PI / 2.0 + fill * TAU
+		draw_set_transform(hub_middle, 0.0, Vector2(hs, hs))
+		draw_arc(Vector2.ZERO, 16.5, -PI / 2.0, end, 32, grey(255), 4.8)
+		draw_arc(Vector2.ZERO, 16.5, -PI / 2.0, end, 32, grey(0), 2.8)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)    # back to normal
 
 
-## The wheel: a dark backing, eight spokes with turned handles, the rim, and the small hub boss.
-## Everything is drawn round (0, 0), turned by wheel_angle and scaled by WHEEL_SCALE.
-func _draw_wheel(middle: Vector2, k: float) -> void:
+## The wheel (drawn once into its picture, not turned): a dark backing, eight spokes with turned handles,
+## the rim, and the small hub boss. Everything round `middle`, scaled by WHEEL_SCALE.
+func _draw_wheel(c: CanvasItem, middle: Vector2, k: float) -> void:
 	var ink := grey(0)
 	var paper := grey(255)
 	var s := k * WHEEL_SCALE
-	draw_set_transform(middle, wheel_angle, Vector2(s, s))
+	c.draw_set_transform(middle, 0.0, Vector2(s, s))
 
 	# 1. A dark backing inside the rim: the gaps between the spokes are a deep dotted tone,
 	#    so the light wood reads on any sea. A touch lighter toward the middle.
-	radial_disc(Vector2.ZERO, 50.0, grey(70), grey(44))
+	radial_disc(c, Vector2.ZERO, 50.0, grey(70), grey(44))
 
 	# 2. The eight spokes, each with its handle past the rim.
 	for i in 8:
-		var a := wheel_angle + i * PI / 4.0 - PI / 2.0
-		draw_set_transform(middle, a, Vector2(s, s))      # turn the drawing so this spoke lies along +x
+		var a := i * PI / 4.0 - PI / 2.0
+		c.draw_set_transform(middle, a, Vector2(s, s))    # turn the drawing so this spoke lies along +x
 		# the handle: wood, a shaded lower flank, an ink outline, a grain line and an ink band at the neck
-		draw_colored_polygon(turned(HANDLE), grey(WOOD))
-		draw_colored_polygon(turned_flank(HANDLE), grey(WOOD_SHADE))
-		draw_outline(turned(HANDLE), ink, 1.6)
-		draw_line(Vector2(69.5, -5.4), Vector2(69.5, 5.4), ink, 1.0)
-		draw_rect(Rect2(63.2, -3.4, 1.6, 6.8), ink)
+		c.draw_colored_polygon(turned(HANDLE), grey(WOOD))
+		c.draw_colored_polygon(turned_flank(HANDLE), grey(WOOD_SHADE))
+		outline(c, turned(HANDLE), ink, 1.6)
+		c.draw_line(Vector2(69.5, -5.4), Vector2(69.5, 5.4), ink, 1.0)
+		c.draw_rect(Rect2(63.2, -3.4, 1.6, 6.8), ink)
 		if i == 0:                                        # the king spoke: a whipped rope band, to see the middle
-			draw_rect(Rect2(66.5, -5.2, 6.0, 10.4), ink)
+			c.draw_rect(Rect2(66.5, -5.2, 6.0, 10.4), ink)
 			var u := 67.3
 			while u < 72.5:
-				draw_line(Vector2(u, -4.6), Vector2(u + 0.8, 4.6), paper, 0.9)
+				c.draw_line(Vector2(u, -4.6), Vector2(u + 0.8, 4.6), paper, 0.9)
 				u += 1.6
 		# the spoke
-		draw_colored_polygon(turned(SPOKE), grey(WOOD))
-		draw_colored_polygon(turned_flank(SPOKE), grey(WOOD_SHADE))
-		draw_outline(turned(SPOKE), ink, 1.4)
+		c.draw_colored_polygon(turned(SPOKE), grey(WOOD))
+		c.draw_colored_polygon(turned_flank(SPOKE), grey(WOOD_SHADE))
+		outline(c, turned(SPOKE), ink, 1.4)
 
-	# 3. The rim: two ink edges round a wooden band, darker at the bottom right (the light comes from
-	#    the top left, so this shade doesn't turn with the wheel), with grain marks along it.
-	draw_set_transform(middle, wheel_angle, Vector2(s, s))
-	draw_arc(Vector2.ZERO, 55.0, 0.0, TAU, 64, ink, 12.0)
-	draw_arc(Vector2.ZERO, 55.0, 0.0, TAU, 64, grey(WOOD_RIM), 8.6)
-	draw_arc(Vector2.ZERO, 55.0, -0.15 * PI - wheel_angle, 0.85 * PI - wheel_angle, 32, grey(0, 0.18), 8.6)
+	# 3. The rim: two ink edges round a wooden band, with grain marks along it (its shade is drawn live in _draw).
+	c.draw_set_transform(middle, 0.0, Vector2(s, s))
+	c.draw_arc(Vector2.ZERO, 55.0, 0.0, TAU, 64, ink, 12.0)
+	c.draw_arc(Vector2.ZERO, 55.0, 0.0, TAU, 64, grey(WOOD_RIM), 8.6)
 	for g in 10:
 		var a0 := g * 0.63 + (g % 3) * 0.07
 		var radius := 53.5 + (g % 2) * 2.5
 		var length := 0.22 + (g % 3) * 0.06
-		draw_arc(Vector2.ZERO, radius, a0, a0 + length, 6, ink, 0.8)
+		c.draw_arc(Vector2.ZERO, radius, a0, a0 + length, 6, ink, 0.8)
 	# brass caps with a rivet where each spoke passes through the rim
 	for i in 8:
-		draw_set_transform(middle, wheel_angle + i * PI / 4.0 - PI / 2.0, Vector2(s, s))
-		draw_rect(Rect2(50.2, -3.6, 9.6, 7.2), ink)
-		draw_rect(Rect2(51.4, -2.4, 7.2, 4.8), paper)
-		draw_circle(Vector2(55.0, 0.0), 1.3, ink)
+		c.draw_set_transform(middle, i * PI / 4.0 - PI / 2.0, Vector2(s, s))
+		c.draw_rect(Rect2(50.2, -3.6, 9.6, 7.2), ink)
+		c.draw_rect(Rect2(51.4, -2.4, 7.2, 4.8), paper)
+		c.draw_circle(Vector2(55.0, 0.0), 1.3, ink)
 
 	# 4. The hub's boss: an ink ring with eight bolts, an inked cap and a bright axle.
-	draw_set_transform(middle, wheel_angle, Vector2(s, s))
-	draw_circle(Vector2.ZERO, 15.5, ink)
-	draw_circle(Vector2.ZERO, 13.0, grey(WOOD_SHADE))
-	draw_circle(Vector2.ZERO, 9.5, ink)
+	c.draw_set_transform(middle, 0.0, Vector2(s, s))
+	c.draw_circle(Vector2.ZERO, 15.5, ink)
+	c.draw_circle(Vector2.ZERO, 13.0, grey(WOOD_SHADE))
+	c.draw_circle(Vector2.ZERO, 9.5, ink)
 	for i in 8:
 		var a := i * PI / 4.0
-		draw_circle(Vector2(cos(a), sin(a)) * 11.3, 1.1, ink)
-	draw_circle(Vector2.ZERO, 4.8, paper)
-	draw_arc(Vector2.ZERO, 2.4, 0.0, TAU, 16, ink, 1.2)
-	draw_line(Vector2(-2.4, 0.0), Vector2(2.4, 0.0), ink, 1.2)
+		c.draw_circle(Vector2(cos(a), sin(a)) * 11.3, 1.1, ink)
+	c.draw_circle(Vector2.ZERO, 4.8, paper)
+	c.draw_arc(Vector2.ZERO, 2.4, 0.0, TAU, 16, ink, 1.2)
+	c.draw_line(Vector2(-2.4, 0.0), Vector2(2.4, 0.0), ink, 1.2)
 
 
-## The hub, the anchor button, drawn big over the middle of the wheel (it doesn't turn with it):
-## a brass bezel lit from the top left with four rivets, a shaded face with a glint of glass, and an anchor.
-## Sailing: a light face with an ink anchor. At anchor: a dark face, one light rim, a paper anchor.
-func _draw_hub(middle: Vector2, k: float) -> void:
+## The hub, the anchor button, drawn big over the middle of the wheel (it doesn't turn with it), once
+## for each look: a brass bezel lit from the top left with four rivets, a shaded face with a glint of glass,
+## and an anchor. Sailing: a light face with an ink anchor. At anchor: a dark face, one light rim, a paper anchor.
+func _draw_hub(c: CanvasItem, middle: Vector2, k: float, anchored: bool) -> void:
 	var ink := grey(0)
 	var paper := grey(255)
-	var anchored := _is_anchored()
-	var shake_x := sin(Time.get_ticks_msec() * 0.09) * 2.2 * hub_shake    # a little shake after a press
 	var s := k * WHEEL_SCALE * HUB_SCALE
-	draw_set_transform(middle + Vector2(shake_x * k * WHEEL_SCALE, 0.0), 0.0, Vector2(s, s))
+	c.draw_set_transform(middle, 0.0, Vector2(s, s))
 	var hub_r := 15.0
 	var face_r := hub_r - 3.2
 
 	# 1. The bezel, with its ink edge and four rivets (each with a speck of light).
-	lit_disc(hub_r, grey(245), grey(200), grey(140))
-	draw_arc(Vector2.ZERO, hub_r, 0.0, TAU, 48, ink, 1.6)
+	lit_disc(c, hub_r, grey(245), grey(200), grey(140))
+	c.draw_arc(Vector2.ZERO, hub_r, 0.0, TAU, 48, ink, 1.6)
 	for i in 4:
 		var a := PI / 4.0 + i * PI / 2.0
 		var r := Vector2(cos(a), sin(a)) * (hub_r - 1.6)
-		draw_circle(r, 1.05, ink)
-		draw_rect(Rect2(r.x - 0.6, r.y - 0.6, 0.6, 0.6), paper)
+		c.draw_circle(r, 1.05, ink)
+		c.draw_rect(Rect2(r.x - 0.6, r.y - 0.6, 0.6, 0.6), paper)
 
 	# 2. The face: light while sailing, dark at anchor (a little lighter toward its top left).
 	if anchored:
-		radial_disc(Vector2(-face_r * 0.15, -face_r * 0.15), face_r, grey(100), grey(28))
+		radial_disc(c, Vector2(-face_r * 0.15, -face_r * 0.15), face_r, grey(100), grey(28))
 	else:
-		radial_disc(Vector2(-face_r * 0.15, -face_r * 0.15), face_r, grey(255), grey(182))
-	draw_arc(Vector2.ZERO, face_r, 0.0, TAU, 40, ink, 1.0)
-	draw_arc(Vector2.ZERO, face_r - 1.6, PI * 1.08, PI * 1.38, 8, paper, 1.1)    # the glint
+		radial_disc(c, Vector2(-face_r * 0.15, -face_r * 0.15), face_r, grey(255), grey(182))
+	c.draw_arc(Vector2.ZERO, face_r, 0.0, TAU, 40, ink, 1.0)
+	c.draw_arc(Vector2.ZERO, face_r - 1.6, PI * 1.08, PI * 1.38, 8, paper, 1.1)    # the glint
 	if anchored:
-		draw_arc(Vector2.ZERO, hub_r + 1.4, 0.0, TAU, 48, paper, 1.3)           # a light rim: reads on dark water
+		c.draw_arc(Vector2.ZERO, hub_r + 1.4, 0.0, TAU, 48, paper, 1.3)           # a light rim: reads on dark water
 
-	# 3. Holding it: a ring fills round it (ink, with a paper edge so it reads anywhere).
-	if hub_index != -1:
-		var fill := minf(1.0, hub_t / hub_hold)
-		var end := -PI / 2.0 + fill * TAU
-		draw_arc(Vector2.ZERO, hub_r + 1.5, -PI / 2.0, end, 32, paper, 4.8)
-		draw_arc(Vector2.ZERO, hub_r + 1.5, -PI / 2.0, end, 32, ink, 2.8)
-
-	# 4. The anchor: ink on the light face, paper on the dark one.
+	# 3. The anchor: ink on the light face, paper on the dark one.
 	var mark := paper if anchored else ink
 	var w := 1.7 if anchored else 1.75
-	draw_set_transform(middle + Vector2(shake_x * k * WHEEL_SCALE, 0.0), 0.0, Vector2(s, s) * 1.2)
-	draw_arc(Vector2(0.0, -7.0), 1.9, 0.0, TAU, 16, mark, w)                     # the ring at the top
-	draw_line(Vector2(0.0, -5.0), Vector2(0.0, 7.5), mark, w)                     # the shank
-	draw_line(Vector2(-4.5, -2.2), Vector2(4.5, -2.2), mark, w)                   # the stock
-	draw_polyline(curve(Vector2(-6.5, 2.5), Vector2(-5.0, 7.5), Vector2(0.0, 7.5)), mark, w)   # the arms
-	draw_polyline(curve(Vector2(0.0, 7.5), Vector2(5.0, 7.5), Vector2(6.5, 2.5)), mark, w)
+	c.draw_set_transform(middle, 0.0, Vector2(s, s) * 1.2)
+	c.draw_arc(Vector2(0.0, -7.0), 1.9, 0.0, TAU, 16, mark, w)                     # the ring at the top
+	c.draw_line(Vector2(0.0, -5.0), Vector2(0.0, 7.5), mark, w)                     # the shank
+	c.draw_line(Vector2(-4.5, -2.2), Vector2(4.5, -2.2), mark, w)                   # the stock
+	c.draw_polyline(curve(Vector2(-6.5, 2.5), Vector2(-5.0, 7.5), Vector2(0.0, 7.5)), mark, w)   # the arms
+	c.draw_polyline(curve(Vector2(0.0, 7.5), Vector2(5.0, 7.5), Vector2(6.5, 2.5)), mark, w)

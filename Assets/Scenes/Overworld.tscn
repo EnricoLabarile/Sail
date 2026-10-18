@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="6_logbook"]
 [ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="7_start"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/clouds/clouds.tscn" id="20_clouds"]
+[ext_resource type="Script" path="res://Assets/Post_Process/game_view.gd" id="21_game_view"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -31,3 +32,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)
 [node name="Logbook" parent="." unique_id=1838272232 instance=ExtResource("6_logbook")]
 
 [node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("7_start")]
+
+[node name="GameView" type="Node" parent="."]
+script = ExtResource("21_game_view")
