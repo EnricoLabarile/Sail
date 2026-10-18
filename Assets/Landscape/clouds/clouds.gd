@@ -25,6 +25,8 @@ extends Node3D
 @export var shadow_opacity := 0.35                      # how dark: 0 = invisible, 1 = solid black
 @export var shadow_area := 160.0                        # metres round the boat the cloud map covers (bigger than the screen)
 @export var shadow_resolution := 256                    # pixels a side of the cloud map (more = sharper, a bit dearer)
+@export var shadow_updates_per_second := 10.0           # how often the cloud map is drawn again (not every frame: the
+														# clouds move 0.2 m in a tenth of a second, less than a map pixel)
 
 const CLOUD_LAYER := 2   # the clouds are on render layer 2 (value 2): the cloud-map camera sees only that layer
 
@@ -32,6 +34,7 @@ const WORLD_SIZE := 504.0            # the map, a side (as Land.WORLD_SIZE): clo
 
 var clouds: Array[MeshInstance3D] = []
 var map_camera: Camera3D            # the camera looking down on the clouds (makes the cloud map)
+var map_wait := 0.0                 # seconds left before the cloud map is drawn again
 var shadow_material: ShaderMaterial # the screen effect that draws the shadows (cloud_shadow.gdshader)
 
 
@@ -82,7 +85,7 @@ func add_cloud_map() -> void:
 	var map := SubViewport.new()
 	map.size = Vector2i(shadow_resolution, shadow_resolution)
 	map.transparent_bg = true                                  # no clouds = see-through
-	map.render_target_update_mode = SubViewport.UPDATE_ALWAYS  # redraw it every frame
+	map.render_target_update_mode = SubViewport.UPDATE_ONCE    # drawn now, then again shadow_updates_per_second times a second
 	add_child(map)
 	map_camera = Camera3D.new()
 	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
@@ -152,6 +155,11 @@ func _process(dt: float) -> void:
 		# wrapf keeps a number inside a range: past one edge, it comes back from the other.
 		cloud.position.x = wrapf(cloud.position.x, -half, half)
 		cloud.position.z = wrapf(cloud.position.z, -half, half)
-	# The cloud map stays over the boat.
+	# The cloud map: a few times a second it moves over the boat and is drawn once more (UPDATE_ONCE). Not every
+	# frame: it's a second picture of the world, and drawing it costs about as much as a small scene.
 	if map_camera != null:
-		follow_boat()
+		map_wait -= dt
+		if map_wait <= 0.0:
+			map_wait = 1.0 / shadow_updates_per_second
+			follow_boat()
+			map_camera.get_viewport().render_target_update_mode = SubViewport.UPDATE_ONCE

@@ -31,6 +31,8 @@ func _build() -> void:
 	view = SubViewport.new()
 	view.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(view)
+	# Time how long drawing it takes (on the processor and on the graphics chip), for the logbook's counter.
+	RenderingServer.viewport_set_measure_render_time(view.get_viewport_rid(), true)
 
 	# 2. Move the dithered nodes into it: the world, the dither and the controls under it.
 	var scene := get_parent()

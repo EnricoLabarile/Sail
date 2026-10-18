@@ -44,7 +44,8 @@
   `impact()`, in `boat.gd`: `move_and_bounce`, `bump`; knobs `bounce_*`): only moving into the shore at ≥ 0.4 m/s,
   0.6 s cooldown; a push `knock` along `Land.way_to_sea()` of 2 + 0.9 × the hit speed, fading at 3.5/s; speed × 0.25;
   the bow swung off up to 0.3 rad toward the open side. No wobble (Enrico removed it), no damage, sound or buzz yet. In the **shallows** (land within
-  `shallows_width` 6 m of her middle, `Land.is_near_land`: 3 rings × 16 rays) the sail's drive is ×
+  `shallows_width` 6 m of her middle, `Land.is_near_land`: 3 rings × 16 rays, looked again only every `shallows_check_time`
+  0.2 s, `in_shallows`) the sail's drive is ×
   `shallows_sail` 0.3 (Enrico: less wind by the coast). **The current** (prototype's `CURRENT_DRIFT`): `drift` =
   downwind × `current_speed` 1.8 m/s × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; also at
   anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
@@ -55,7 +56,8 @@
   white blobs, to be replaced by Enrico's; imported Lossless, no VRAM compression), random place, size
   `size_min`–`size_max` 20–40 m and turn; every frame moved downwind (`-Wind.from_vector()` × `speed` 2 m/s) and
   wrapped round the 504 m map. Static pictures for now (flipbooks later, maybe). **Shadows** (they darken sea, land and boat alike):
-  a **cloud map**, a `SubViewport` (`shadow_resolution` 256², transparent background, redrawn every frame) whose
+  a **cloud map**, a `SubViewport` (`shadow_resolution` 256², transparent background, drawn again `shadow_updates_per_second`
+  10 times a second with `UPDATE_ONCE`, the camera moved over the boat at the same moment: not every frame) whose
   orthographic camera looks straight down on the clouds alone (`cull_mask` = `CLOUD_LAYER` 2), `shadow_area` 160 m a
   side, kept over the boat in steps of one map pixel (`follow_boat`, so it doesn't shimmer); and a **screen effect**,
   `cloud_shadow.gdshader` on a QuadMesh stretched over the screen (render_priority 1: after the sea, before the clouds
@@ -65,7 +67,7 @@
   so real light shadows wouldn't show.)
 - **Fog of war** (`Fog` autoload, `Assets/Landscape/world/fog.gd`, as the prototype's): the map in cells of `CELL`
   4.8 m (105 a side); a cell is seen for good once her middle comes within `SIGHT` 22 m of it (`Fog.reveal`, called
-  by `boat.gd` every physics frame). Kept in `Fog.image` (L8, 1 px a cell, white = fog), sent to `Fog.texture` only
+  by `boat.gd` every physics frame; it does its sums only once she has moved 1 m since the last time, `last_pos`). Kept in `Fog.image` (L8, 1 px a cell, white = fog), sent to `Fog.texture` only
   when a cell changes. Drawn as a **screen effect** (Enrico: it must cover 3D objects too):
   `Assets/Landscape/world/fog.gdshader` on a QuadMesh that `sea.gd` makes at start (child of Sea, huge
   `extra_cull_margin`, render_priority 3, after the sea, the outline, the cloud shadows and the clouds), stretched over the screen in the vertex
@@ -161,7 +163,9 @@
   leather (a 15 px tile of dots), stitching, metal corners, the pages with the edges beneath, and only spread 0 for
   now (Enrico): the 9×9 map A1..I9 across both pages (the prototype's 100-unit layout), the square she's in shaded
   (ink 0.3; no dot any more, Enrico); a tiny faint frame-rate counter in the right page's bottom right corner, over it
-  the game view's size and dot scale, then fps, ms a frame and draw calls ("360x655  x3" / "60 fps  16.7 ms  45 dc"): a `Label` child of the book
+  the game view's size and dot scale, then fps, ms a frame and draw calls ("360x655  x3" / "60 fps  16.7 ms  45 dc" / "script · phys · cpu · gpu" ms: `Performance.TIME_PROCESS`,
+  `TIME_PHYSICS_PROCESS`, and the game view's measured render time, `viewport_set_measure_render_time` switched on by
+  `game_view.gd`; gpu 0 where the browser won't time it): a `Label` child of the book
   (`_make_fps_label`), filled every frame by `_process` while the book is fully open (Enrico), hidden otherwise.
   **The book itself is not redrawn every frame** (Enrico): `logbook.gd` calls `book.refresh()` on opening, which reads
   the square once; after that it's drawn again only while the cover turns (`unfold`'s setter).

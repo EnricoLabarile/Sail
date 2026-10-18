@@ -51,6 +51,7 @@ extends Node3D
 # The shallows: near the coast there's less wind, so the sail gives less.
 @export var shallows_width := 6.0   # metres from the land that count as shallows
 @export var shallows_sail := 0.3    # what the sail gives there, as a share of the usual (0.3 = 30%)
+@export var shallows_check_time := 0.2   # seconds between looks for land nearby (it's up to 48 rays: not every frame)
 
 # The current (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, and the water carries her
 # downwind whatever the sail does, so she must steer to make up for it. At anchor too: the anchor line holds her.
@@ -70,6 +71,8 @@ const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.1], [45.0, 1.5], [180.0, 1.0]]
 
 var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0
+var in_shallows := false     # land within shallows_width? (looked again every shallows_check_time seconds)
+var shallows_wait := 0.0     # seconds left before the next look
 var anchored := true   # she starts at anchor: hold the wheel's hub (or press Space) to weigh it
 var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +1 full to starboard (right)
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
@@ -179,7 +182,12 @@ func _physics_process(dt: float) -> void:
 	var off := rad_to_deg(fwd.angle_to(wind_from))               # 0 = head to wind, 180 = wind astern
 	var drive := 0.0 if anchored else polar(off)
 	# In the shallows (land within shallows_width metres) the sail gives only shallows_sail of its push.
-	if Land.is_near_land(global_position, shallows_width):
+	# Looking for land takes up to 48 rays, so it's done every shallows_check_time seconds, not every frame.
+	shallows_wait -= dt
+	if shallows_wait <= 0.0:
+		shallows_wait = shallows_check_time
+		in_shallows = Land.is_near_land(global_position, shallows_width)
+	if in_shallows:
 		drive *= shallows_sail
 
 	# speed eases toward what the sail gives; the anchor takes her way off quickly

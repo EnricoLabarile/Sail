@@ -19,6 +19,7 @@ const SIGHT := 22.0            # metres of fog cleared round the boat (the proto
 var cells := int(round(WORLD_SIZE / CELL))   # cells a side: 105
 var image: Image               # one pixel a cell
 var texture: ImageTexture      # the same picture, handed to the sea's shader
+var last_pos := Vector3(INF, 0.0, INF)   # where reveal() last did its sums (far away at first, so the first call does)
 
 
 ## Called once, when the game starts: the whole map starts in fog (every pixel white).
@@ -30,6 +31,11 @@ func _ready() -> void:
 
 ## Clears the fog round this point of the world. Only x and z count.
 func reveal(pos: Vector3) -> void:
+	# 0. Moved less than a metre since the last time: nothing new can be in sight, skip the sums.
+	#    (The boat calls this 60 times a second; the cells are 4.8 m wide.)
+	if Vector2(pos.x - last_pos.x, pos.z - last_pos.z).length() < 1.0:
+		return
+	last_pos = pos
 	var changed := false
 	# 1. Which cells could be in sight: the ones in the square round the boat, SIGHT metres each way.
 	#    Cell (i, j) covers x from -252 + i * CELL (home, 0, is the middle of the map).

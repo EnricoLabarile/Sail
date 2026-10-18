@@ -56,18 +56,29 @@ func _process(_dt: float) -> void:
 	# First line: the game view's size (the dithered picture, in game pixels) and how many real pixels a
 	# game pixel is (game_view.gd), e.g. "360x655 x3". Second line: frames a second, milliseconds a frame,
 	# and the draw calls (the jobs sent to the graphics chip this frame: fewer is lighter).
+	# Third line: where the time goes, in milliseconds: the scripts (_process), the physics (_physics_process),
+	# and drawing the game view on the processor (cpu) and on the graphics chip (gpu; 0 if the browser won't say).
 	var top := ""
+	var render_cpu := 0.0
+	var render_gpu := 0.0
 	var game_view := get_tree().get_first_node_in_group("game_view")
 	if game_view and game_view.view:
 		top = str(game_view.view.size.x) + "x" + str(game_view.view.size.y) + "  x" + str(game_view.dot_scale)
+		var rid: RID = game_view.view.get_viewport_rid()
+		render_cpu = RenderingServer.viewport_get_measured_render_time_cpu(rid)
+		render_gpu = RenderingServer.viewport_get_measured_render_time_gpu(rid)
 	var fps := Engine.get_frames_per_second()
 	var ms := 1000.0 / maxf(fps, 1.0)
 	var draw_calls := int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
-	_fps_label.text = top + "\n" + str(int(fps)) + " fps  " + str(snappedf(ms, 0.1)) + " ms  " + str(draw_calls) + " dc"
+	var script_ms := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	var physics_ms := Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
+	_fps_label.text = top + "\n" + str(int(fps)) + " fps  " + str(snappedf(ms, 0.1)) + " ms  " + str(draw_calls) + " dc" \
+		+ "\nscript " + str(snappedf(script_ms, 0.1)) + "  phys " + str(snappedf(physics_ms, 0.1)) \
+		+ "  cpu " + str(snappedf(render_cpu, 0.1)) + "  gpu " + str(snappedf(render_gpu, 0.1))
 	# In the bottom right corner of the right page, 4 px in (the same page as _draw works out).
 	var page_w := size.x * 0.5 - CREASE * 0.5 - PAD_SIDE
 	var page_bottom_right := Vector2(size.x - PAD_SIDE, size.y - PAD_BOTTOM)
-	_fps_label.size = Vector2(minf(160.0, page_w), 26.0)
+	_fps_label.size = Vector2(minf(180.0, page_w), 38.0)
 	_fps_label.position = page_bottom_right - _fps_label.size - Vector2(4.0, 2.0)
 
 
