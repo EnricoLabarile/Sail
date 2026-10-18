@@ -25,6 +25,7 @@ uniform float cloud_height = 15.0;          // the clouds' height (clouds.gd hei
 // How far the shadow moves sideways for every metre of height it falls (the sun's slant), on x and z.
 uniform vec2 sun_shift = vec2(0.27, 0.27);
 uniform float shadow_opacity = 0.35;        // how dark under a solid cloud: 0 = no shadow, 1 = black
+uniform float max_height = 8.0;             // solid things higher than this are the clouds themselves: no shadow on them
 
 void vertex() {
 	// Stretch the rectangle (a 1 x 1 QuadMesh, corners at -0.5 and 0.5) over the whole screen.
@@ -46,6 +47,9 @@ void fragment() {
 	if (depth > 0.0) {
 		// Something solid here (land, boat): its depth tells where it is (the Compatibility renderer's way).
 		point = screen_to_world(ndc, depth * 2.0 - 1.0, INV_PROJECTION_MATRIX, INV_VIEW_MATRIX);
+		if (point.y > max_height) {
+			discard;   // a cloud (they're solid, so they're in the depth buffer too): it doesn't shade itself
+		}
 	} else {
 		// Only sea: follow the line of sight through this pixel down to the water (height 0), as the fog does.
 		vec3 a = screen_to_world(ndc, 0.0, INV_PROJECTION_MATRIX, INV_VIEW_MATRIX);

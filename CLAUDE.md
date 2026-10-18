@@ -51,14 +51,19 @@
   anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
 - **Clouds** (`Assets/Landscape/clouds/`: `clouds.tscn` + `clouds.gd`, instanced as `Clouds` in Overworld): flat image
-  planes (PlaneMesh facing up, `StandardMaterial3D` unshaded, alpha from the PNG, both faces, render_priority 2, render layer 2)
+  planes (PlaneMesh facing up), **cut out in dots** (Enrico): `cloud.gdshader` (unshaded, both faces, solid) keeps a pixel only
+  where the PNG's alpha × `opacity` beats its 4×4 Bayer threshold (`FRAGCOORD`), so the soft edge is dots, never a grey
+  mix; each cloud has a **soft copy** (the old see-through `StandardMaterial3D`) on render layer 3 (`MAP_LAYER` 4) that
+  only the cloud map's camera sees (the game camera's `cull_mask` in `boat.tscn` leaves layer 3 out), so the shadows
+  keep a smooth edge. Being solid, the clouds are in the depth buffer: the outline and the shadow effect ignore solid
+  points above `max_height` 8 m
   `height` 15 m up; `cloud_count` 12 made at start from `cloud_textures` (in turn; stand-ins `cloud_1..3.png`, soft
   white blobs, to be replaced by Enrico's; imported Lossless, no VRAM compression), random place, size
   `size_min`–`size_max` 20–40 m and turn; every frame moved downwind (`-Wind.from_vector()` × `speed` 2 m/s) and
   wrapped round the 504 m map. Static pictures for now (flipbooks later, maybe). **Shadows** (they darken sea, land and boat alike):
   a **cloud map**, a `SubViewport` (`shadow_resolution` 256², transparent background, drawn again `shadow_updates_per_second`
   10 times a second with `UPDATE_ONCE`, the camera moved over the boat at the same moment: not every frame) whose
-  orthographic camera looks straight down on the clouds alone (`cull_mask` = `CLOUD_LAYER` 2), `shadow_area` 160 m a
+  orthographic camera looks straight down on the clouds' soft copies alone (`cull_mask` = `MAP_LAYER`), `shadow_area` 160 m a
   side, kept over the boat in steps of one map pixel (`follow_boat`, so it doesn't shimmer); and a **screen effect**,
   `cloud_shadow.gdshader` on a QuadMesh stretched over the screen (render_priority 1: after the sea, before the clouds
   and the fog): per pixel the world point from the depth (solid things) or the line of sight down to the water, then
