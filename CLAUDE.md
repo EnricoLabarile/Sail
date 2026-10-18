@@ -53,7 +53,9 @@
   `height` 15 m up; `cloud_count` 12 made at start from `cloud_textures` (in turn; stand-ins `cloud_1..3.png`, soft
   white blobs, to be replaced by Enrico's; imported Lossless, no VRAM compression), random place, size
   `size_min`–`size_max` 20–40 m and turn; every frame moved downwind (`-Wind.from_vector()` × `speed` 2 m/s) and
-  wrapped round the 504 m map. Static pictures for now (flipbooks later, maybe).
+  wrapped round the 504 m map. Static pictures for now (flipbooks later, maybe). **Shadows**: each cloud has a copy
+  of its plane on the water (`shadow_height` 0.05), same picture and turn, black at `shadow_opacity` 0.35, at
+  `shadow_offset` (4, 0, 4) m from it (down-right), moved with it every frame (`place_shadow`); `shadows_on`.
 - **Fog of war** (`Fog` autoload, `Assets/Landscape/world/fog.gd`, as the prototype's): the map in cells of `CELL`
   4.8 m (105 a side); a cell is seen for good once her middle comes within `SIGHT` 22 m of it (`Fog.reveal`, called
   by `boat.gd` every physics frame). Kept in `Fog.image` (L8, 1 px a cell, white = fog), sent to `Fog.texture` only

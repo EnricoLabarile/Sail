@@ -6,6 +6,8 @@ extends Node3D
 ## they all move downwind (the way the wind blows, from the Wind autoload), and a cloud that drifts off one
 ## edge of the map comes back in from the opposite edge.
 ## How see-through each bit of a cloud is comes from the picture itself (its alpha, the PNG's transparency).
+## Each cloud also has a shadow on the sea: the same picture, dark and see-through, lying on the water
+## shadow_offset away from the cloud, so the cloud looks high up.
 ## (In Unreal: a few planes with a translucent unlit material, moved every Tick.)
 
 @export var cloud_textures: Array[Texture2D] = []   # the pictures: the clouds use them in turn
@@ -15,23 +17,37 @@ extends Node3D
 @export var height := 15.0           # metres above the sea
 @export var speed := 2.0             # metres a second they drift downwind
 
+# The shadows on the sea.
+@export var shadows_on := true                          # false = no shadows
+@export var shadow_offset := Vector3(4.0, 0.0, 4.0)     # metres from the cloud: +X = east (right), +Z = south (down)
+@export var shadow_opacity := 0.35                      # how dark: 0 = invisible, 1 = solid black
+@export var shadow_height := 0.05                       # metres above the water (just over it, so the sea doesn't hide it)
+
 const WORLD_SIZE := 504.0            # the map, a side (as Land.WORLD_SIZE): clouds wrap round inside it
 
 var clouds: Array[MeshInstance3D] = []
+var shadows: Array[MeshInstance3D] = []   # shadows[i] is the shadow of clouds[i]
 
 
 func _ready() -> void:
 	if cloud_textures.is_empty():
 		return                       # no pictures given: no clouds
 	# One material per picture (clouds with the same picture share it).
+	# And one shadow material per picture: the same picture, dark.
 	var materials: Array[StandardMaterial3D] = []
+	var shadow_materials: Array[StandardMaterial3D] = []
 	for texture in cloud_textures:
 		materials.append(make_material(texture))
-	# The clouds, using the pictures in turn.
+		shadow_materials.append(make_shadow_material(texture))
+	# The clouds, using the pictures in turn, each with its shadow.
 	for i in cloud_count:
 		var cloud := make_cloud(materials[i % materials.size()])
 		add_child(cloud)
 		clouds.append(cloud)
+		if shadows_on:
+			var shadow := make_shadow(cloud, shadow_materials[i % shadow_materials.size()])
+			add_child(shadow)
+			shadows.append(shadow)
 
 
 ## A material that shows the picture as it is: no light on it (unshaded), see-through where the PNG is
@@ -44,6 +60,30 @@ func make_material(texture: Texture2D) -> StandardMaterial3D:
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.render_priority = 1     # see-through things: drawn after the sea (0), before the fog (2)
 	return material
+
+
+## The shadow's material: the same picture, but black (albedo_color multiplies the picture's colour) and
+## only shadow_opacity as solid (it also multiplies the picture's alpha, so the shape stays the same).
+func make_shadow_material(texture: Texture2D) -> StandardMaterial3D:
+	var material := make_material(texture)
+	material.albedo_color = Color(0.0, 0.0, 0.0, shadow_opacity)
+	return material
+
+
+## A cloud's shadow: a copy of its square (same mesh, so same size), the same turn, on the water.
+func make_shadow(cloud: MeshInstance3D, material: StandardMaterial3D) -> MeshInstance3D:
+	var shadow := MeshInstance3D.new()
+	shadow.mesh = cloud.mesh
+	shadow.material_override = material
+	shadow.rotation.y = cloud.rotation.y
+	place_shadow(shadow, cloud)
+	return shadow
+
+
+## Puts a shadow under its cloud: shadow_offset away, down on the water.
+func place_shadow(shadow: MeshInstance3D, cloud: MeshInstance3D) -> void:
+	shadow.position = cloud.position + shadow_offset
+	shadow.position.y = shadow_height
 
 
 ## One cloud: a flat square lying level (a PlaneMesh faces up), at a random place, size and turn.
@@ -70,3 +110,6 @@ func _process(dt: float) -> void:
 		# wrapf keeps a number inside a range: past one edge, it comes back from the other.
 		cloud.position.x = wrapf(cloud.position.x, -half, half)
 		cloud.position.z = wrapf(cloud.position.z, -half, half)
+	# The shadows follow their clouds.
+	for i in shadows.size():
+		place_shadow(shadows[i], clouds[i])
