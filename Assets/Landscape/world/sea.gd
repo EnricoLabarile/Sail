@@ -29,7 +29,7 @@ func add_fog() -> void:
 	var fog := ShaderMaterial.new()
 	fog.shader = load("res://Assets/Landscape/world/fog.gdshader")
 	fog.set_shader_parameter("fog_tex", Fog.texture)   # the picture of what's been seen (fog.gd)
-	fog.render_priority = 2      # drawn after the sea (0) and the boat's outline (1): over everything
+	fog.render_priority = 3      # drawn after the sea (0), outline and shadows (1), clouds (2): over everything
 	var quad := QuadMesh.new()
 	quad.material = fog
 	var screen := MeshInstance3D.new()
