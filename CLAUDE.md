@@ -115,7 +115,10 @@
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
   Bayer 4×4 to paper/ink. One dot = `pixel_size` game pixels × the screen's scale (real pixels per game pixel:
   screen size / 360×800, the smaller side, rounded, ≥ 1), so a phone drawing at ~1080×2340 gets 3×3 dots like the
-  PC's 360×800 window gets 1×1 (one real pixel a dot melted into grey there).
+  PC's 360×800 window gets 1×1 (one real pixel a dot melted into grey there). `dither.gd` (on the Dither layer) sets the
+  root's 3D resolution scale (`scaling_3d_scale`, Unreal's Screen Percentage) to 1 / that scale (and again on a resize):
+  the 3D world is drawn at one pixel per game pixel (1/3 on the phone, 9× less fill for sea, shadows, outline, fog),
+  the UI at full resolution; on the PC 1, unchanged. (Enrico's phone ran ~30 fps before.)
 - **Turning** (as the prototype): `turn_rate` 2.25 rad/s (Enrico: between the old 1.5 and the doubled 3) at full rudder whatever her speed (no slower with less way);
   none at anchor. (Paddle wheels and the crank were added, then removed for now by Enrico.)
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,

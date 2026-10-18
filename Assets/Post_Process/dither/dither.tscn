@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bba4hwropmrh4"]
 
 [ext_resource type="Shader" uid="uid://c5kqsxs38t588" path="res://Assets/Post_Process/dither/dither.gdshader" id="1_dither"]
+[ext_resource type="Script" path="res://Assets/Post_Process/dither/dither.gd" id="2_script"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_dither"]
 shader = ExtResource("1_dither")
@@ -12,6 +13,7 @@ shader_parameter/contrast = 1.0
 
 [node name="Dither" type="CanvasLayer" unique_id=2123826622]
 layer = 100
+script = ExtResource("2_script")
 
 [node name="Screen" type="ColorRect" parent="." unique_id=1253390531]
 material = SubResource("ShaderMaterial_dither")
