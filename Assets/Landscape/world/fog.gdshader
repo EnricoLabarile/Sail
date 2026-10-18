@@ -16,7 +16,7 @@ uniform float world_size = 504.0;   // metres the picture covers, a side (as Fog
 uniform vec4 fog_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);   // black: ink once dithered
 // How wide the fog's soft edge is, in metres (sea.gd's fog_falloff, in the Sea node's Inspector).
 // 0 = as it comes: soft over about one cell (4.8 m). More = a wider, softer edge (a small blur).
-uniform float falloff : hint_range(0.0, 30.0) = 0.0;
+uniform float falloff : hint_range(0.0, 30.0) = 0;
 
 void vertex() {
 	// Stretch the rectangle (a 1 x 1 QuadMesh, corners at -0.5 and 0.5) over the whole screen.

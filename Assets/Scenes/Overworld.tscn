@@ -11,11 +11,9 @@
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
-[node name="Sun" type="DirectionalLight3D" parent="." unique_id=387418916]
-transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 10, 0)
-
 [node name="Sea" parent="." unique_id=1750240136 instance=ExtResource("1_sea")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11217594, 0.08686733, -0.18092918)
+fog_falloff = 3.0
 
 [node name="Coast" type="Node3D" parent="." unique_id=2108873514]
 
