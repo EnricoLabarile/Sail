@@ -21,8 +21,6 @@ uniform float tile_size = 16.0;       // metres of sea one tile of the texture c
 uniform int frames_x = 1;
 uniform int frames_y = 1;
 uniform float fps = 6.0;
-// How out of step the tiles are: 1 = each tile starts its flipbook at its own random frame, 0 = all in step.
-uniform float frame_offset : hint_range(0.0, 1.0) = 1.0;
 uniform vec2 scroll = vec2(0.0, 0.0);   // metres a second the texture slides (0, 0 = it stays put)
 // The turn that follows the wind (set every frame by sea.gd; 0 in the editor): the angle, and a shift that
 // keeps the water under the boat still while it turns.
@@ -40,12 +38,6 @@ vec2 rotate(vec2 p, float angle) {
 	return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 }
 
-// A random number 0..1 for a tile, always the same for the same tile (like a per-instance Random in Unreal).
-// tile_id is which tile: two whole numbers. The sin/fract mix just scrambles them into a "random" value.
-float tile_random(vec2 tile_id) {
-	return fract(sin(dot(tile_id, vec2(12.9898, 78.233))) * 43758.5453);
-}
-
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
@@ -56,15 +48,10 @@ void fragment() {
 	vec2 turned = rotate(world_pos.xz, -wind_angle) + wind_offset;
 	// 1. Which point of the tile this is: that position (in metres, plus the scroll), divided by the tile's
 	//    size; fract() keeps only the part after the point, 0..1 in the tile.
-	vec2 in_tiles = (turned + scroll * TIME) / tile_size;
-	vec2 in_tile = fract(in_tiles);
-	// ...and which tile it is: floor() keeps the whole part (tile 0, 1, 2… across and down).
-	vec2 tile_id = floor(in_tiles);
+	vec2 in_tile = fract((turned + scroll * TIME) / tile_size);
 	// 2. Which frame now: the time × frames a second, counted round (% = what's left after dividing).
-	//    Each tile is pushed on by its own number of frames (offset), so they don't all change together.
 	int frame_count = frames_x * frames_y;
-	int offset = int(tile_random(tile_id) * float(frame_count) * frame_offset);
-	int frame = (int(TIME * fps) + offset) % frame_count;
+	int frame = int(TIME * fps) % frame_count;
 	// 3. Where that frame sits in the image: its column and row.
 	vec2 frame_cell = vec2(float(frame % frames_x), float(frame / frames_x));
 	// 4. The point of the image: inside that frame's cell (each cell is 1/frames_x wide, 1/frames_y tall).
