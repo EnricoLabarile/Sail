@@ -153,6 +153,7 @@ func toggle_anchor() -> void:
 	anchored = not anchored
 	if anchored:
 		anchor_point = bow_point()   # let go off the bow: it stays there
+	Sfx.anchor(anchored)             # its sound: the splash going down, the chain coming up (Assets/SFX/sfx.gd)
 
 
 ## Where her bow is now, on the water.

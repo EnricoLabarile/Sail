@@ -30,6 +30,7 @@
 - **Autoloads** (project.godot): `PhoneFrame` (`Assets/Scenes/phone_frame.gd`, a phone-shaped frame on wide screens) and
   `Wind` (`Assets/Landscape/world/wind.gd`, the prototype's wind: random start, holds, shifts 30–90° over 3–5 s,
   constant strength (Enrico: only the direction changes); the boat and the wind vane read `Wind.from_deg`).
+  `Sfx` (`Assets/SFX/sfx.tscn` + `sfx.gd`, the sounds, see Sound below).
   `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` shoots a physics ray straight down (y 100 → -20,
   `intersect_ray`): anything solid hit = land; outside the 504 m map counts as land, so the map's edge is a wall.
 - **The landscape: a plain sea plane and 3D coast meshes** (Enrico, Oct 2026; the painted map, its mask and the templates
@@ -101,6 +102,16 @@
 - **The camera** (`Boat/Camera3D`, orthographic, `size` 40, `far` 200): placed by `boat.gd` `_process` from the south,
   tilted `camera_tilt_deg` 45, `camera_distance` 100 m back along the way it looks (in ortho the distance doesn't
   change the picture; at 40 the clouds low on the screen fell behind the near plane and were cut).
+- **Sound** (`Sfx` autoload, `Assets/SFX/`): `.ogg` files made from the prototype's own Web Audio code by
+  `art_src/audio/bake.py` (Playwright opens `bake.html`, which holds the prototype's `colouredNoise`, `chainLink` and
+  `anchor` verbatim and its `ambient()` written out as a timeline, renders each sound in an `OfflineAudioContext`;
+  loops are 48 s with the extra second cross-faded onto the start; one gain for all keeps the prototype's balance;
+  ffmpeg → Vorbis; `CHROMIUM=/opt/pw-browsers/chromium python art_src/audio/bake.py`). `sea.ogg` (two swells of
+  brown noise panned apart, always on), `wind.ogg` (new, the prototype had none: pink noise ~600 Hz in slow gusts,
+  always on), `rush.ogg` (water along the hull: loudness × (speed/top_speed)^1.5, pitch 0.55..1), `anchor_down.ogg`
+  / `anchor_up.ogg` (`Sfx.anchor(down)`, called by `boat.gd` `toggle_anchor`). The players are nodes in `sfx.tscn`
+  (their Volume dB = the level; the loops fade in over `fade_in_time` 2 s); nothing plays while the game is paused.
+  (Headless `--quit-after` prints "resources still in use at exit" for the playing loops: harmless.)
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
   Bayer 4×4 to paper/ink. One dot = `pixel_size` game pixels × the screen's scale (real pixels per game pixel:
   screen size / 360×800, the smaller side, rounded, ≥ 1), so a phone drawing at ~1080×2340 gets 3×3 dots like the
