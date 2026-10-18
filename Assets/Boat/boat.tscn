@@ -64,7 +64,6 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.08
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0.23171997, 0)
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1565566446]
-cull_mask = 1048571
 keep_aspect = 0
 projection = 1
 current = true

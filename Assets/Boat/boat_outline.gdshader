@@ -13,7 +13,6 @@ uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 uniform vec4 outline_color : source_color = vec4(0.106, 0.102, 0.090, 1.0);   // ink (#1b1a17)
 uniform float outline_width = 1.5;   // how thick the line is, in phone points (the 360 x 800 screen)
 uniform float water_level = 0.0;     // the sea's height: boat below it is under water and gets no outline
-uniform float max_height = 8.0;      // solid things higher than this (the clouds) get no outline either
 
 void vertex() {
 	// Stretch the rectangle (a 1 x 1 QuadMesh, corners at -0.5 and 0.5) over the whole screen,
@@ -36,7 +35,7 @@ bool boat_at(vec2 uv, mat4 inv_projection, mat4 inv_view) {
 	vec4 view = inv_projection * vec4(ndc, 1.0);
 	view.xyz /= view.w;
 	vec3 world = (inv_view * vec4(view.xyz, 1.0)).xyz;
-	return world.y > water_level && world.y < max_height;
+	return world.y > water_level;
 }
 
 void fragment() {

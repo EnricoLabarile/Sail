@@ -5,14 +5,11 @@ extends Node3D
 ## pictures in cloud_textures, at a random place on the map, a random size and a random turn. Every frame
 ## they all move downwind (the way the wind blows, from the Wind autoload), and a cloud that drifts off one
 ## edge of the map comes back in from the opposite edge.
-## How solid each bit of a cloud is comes from the picture itself (its alpha, the PNG's transparency): the
-## clouds are cut out in dots (cloud.gdshader), each pixel either cloud or sea, the soft edge made of dots.
+## How see-through each bit of a cloud is comes from the picture itself (its alpha, the PNG's transparency).
 ## The clouds cast shadows on everything under them (sea, land, boat): a small camera looks down on the
 ## clouds alone and makes a "cloud map" (a SubViewport, like a Scene Capture 2D in Unreal), and a screen
 ## effect (cloud_shadow.gdshader) darkens every point of the world that has a cloud over it on that map.
-## The cloud map sees soft copies of the clouds (the old see-through material, on a render layer of their own
-## that only its camera sees), so the shadows keep their smooth edge.
-## (In Unreal: a few planes with a masked unlit material, moved every Tick.)
+## (In Unreal: a few planes with a translucent unlit material, moved every Tick.)
 
 @export var cloud_textures: Array[Texture2D] = []   # the pictures: the clouds use them in turn
 @export var cloud_count := 64        # how many clouds over the whole map
@@ -31,16 +28,11 @@ extends Node3D
 @export var shadow_updates_per_second := 10.0           # how often the cloud map is drawn again (not every frame: the
 														# clouds move 0.2 m in a tenth of a second, less than a map pixel)
 
-@export var opacity := 1.0          # how solid the clouds are: less = fewer dots kept (cloud.gdshader)
-
-# The soft copies for the cloud map are on render layer 3 (value 4): the cloud-map camera sees only that layer,
-# and the game's camera (Boat/Camera3D, its Cull Mask) leaves it out.
-const MAP_LAYER := 4
+const CLOUD_LAYER := 2   # the clouds are on render layer 2 (value 2): the cloud-map camera sees only that layer
 
 const WORLD_SIZE := 504.0            # the map, a side (as Land.WORLD_SIZE): clouds wrap round inside it
 
 var clouds: Array[MeshInstance3D] = []
-var map_copies: Array[MeshInstance3D] = []   # map_copies[i] is the soft copy of clouds[i], for the cloud map
 var map_camera: Camera3D            # the camera looking down on the clouds (makes the cloud map)
 var map_wait := 0.0                 # seconds left before the cloud map is drawn again
 var shadow_material: ShaderMaterial # the screen effect that draws the shadows (cloud_shadow.gdshader)
@@ -50,47 +42,29 @@ func _ready() -> void:
 	set_sun_direction()
 	if cloud_textures.is_empty():
 		return                       # no pictures given: no clouds
-	# Two materials per picture (clouds with the same picture share them): the dotted one for the game, the
-	# soft see-through one for the cloud map.
-	var materials: Array[ShaderMaterial] = []
-	var soft_materials: Array[StandardMaterial3D] = []
+	# One material per picture (clouds with the same picture share it).
+	var materials: Array[StandardMaterial3D] = []
 	for texture in cloud_textures:
 		materials.append(make_material(texture))
-		soft_materials.append(make_soft_material(texture))
-	# The clouds, using the pictures in turn, each with its soft copy for the map (same mesh, same place).
+	# The clouds, using the pictures in turn.
 	for i in cloud_count:
 		var cloud := make_cloud(materials[i % materials.size()])
 		add_child(cloud)
 		clouds.append(cloud)
-		var copy := MeshInstance3D.new()
-		copy.mesh = cloud.mesh
-		copy.material_override = soft_materials[i % soft_materials.size()]
-		copy.layers = MAP_LAYER
-		copy.transform = cloud.transform
-		add_child(copy)
-		map_copies.append(copy)
 	if shadows_on:
 		add_cloud_map()
 		add_shadow_effect()
 
 
-## The game's cloud material: the picture cut out in dots (cloud.gdshader).
-func make_material(texture: Texture2D) -> ShaderMaterial:
-	var material := ShaderMaterial.new()
-	material.shader = load("res://Assets/Landscape/clouds/cloud.gdshader")
-	material.set_shader_parameter("cloud_tex", texture)
-	material.set_shader_parameter("opacity", opacity)
-	return material
-
-
-## The cloud map's material: the picture as it is, see-through where the PNG is (alpha), no light, both faces.
-## Soft, so the shadows made from it keep a smooth edge.
-func make_soft_material(texture: Texture2D) -> StandardMaterial3D:
+## A material that shows the picture as it is: no light on it (unshaded), see-through where the PNG is
+## (alpha), both faces drawn.
+func make_material(texture: Texture2D) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_texture = texture
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.render_priority = 2     # see-through things: after the sea (0) and the shadows (1), before the fog (3)
 	return material
 
 
@@ -116,7 +90,7 @@ func add_cloud_map() -> void:
 	map_camera = Camera3D.new()
 	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	map_camera.size = shadow_area                 # metres it sees, a side
-	map_camera.cull_mask = MAP_LAYER              # only the clouds' soft copies
+	map_camera.cull_mask = CLOUD_LAYER            # only the clouds
 	map_camera.rotation = Vector3(-PI / 2.0, 0.0, 0.0)   # looking straight down, north at the top
 	map_camera.position = Vector3(0.0, height + 10.0, 0.0)
 	map_camera.far = 30.0
@@ -128,7 +102,7 @@ func add_cloud_map() -> void:
 func add_shadow_effect() -> void:
 	shadow_material = ShaderMaterial.new()
 	shadow_material.shader = load("res://Assets/Landscape/clouds/cloud_shadow.gdshader")
-	shadow_material.render_priority = 1   # after the sea (0), before the fog (3) (the clouds are solid: drawn earlier)
+	shadow_material.render_priority = 1   # after the sea (0), before the clouds (2) and the fog (3)
 	shadow_material.set_shader_parameter("cloud_map", map_camera.get_viewport().get_texture())
 	shadow_material.set_shader_parameter("map_size", shadow_area)
 	shadow_material.set_shader_parameter("cloud_height", height)
@@ -157,13 +131,14 @@ func follow_boat() -> void:
 
 
 ## One cloud: a flat square lying level (a PlaneMesh faces up), at a random place, size and turn.
-func make_cloud(material: ShaderMaterial) -> MeshInstance3D:
+func make_cloud(material: StandardMaterial3D) -> MeshInstance3D:
 	var side := randf_range(size_min, size_max)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(side, side)
 	var cloud := MeshInstance3D.new()
 	cloud.mesh = plane
 	cloud.material_override = material
+	cloud.layers = CLOUD_LAYER   # on its own render layer, so the cloud-map camera sees only the clouds
 	var half := WORLD_SIZE / 2.0
 	cloud.position = Vector3(randf_range(-half, half), height, randf_range(-half, half))
 	
@@ -180,9 +155,6 @@ func _process(dt: float) -> void:
 		# wrapf keeps a number inside a range: past one edge, it comes back from the other.
 		cloud.position.x = wrapf(cloud.position.x, -half, half)
 		cloud.position.z = wrapf(cloud.position.z, -half, half)
-	# The soft copies follow their clouds.
-	for i in map_copies.size():
-		map_copies[i].position = clouds[i].position
 	# The cloud map: a few times a second it moves over the boat and is drawn once more (UPDATE_ONCE). Not every
 	# frame: it's a second picture of the world, and drawing it costs about as much as a small scene.
 	if map_camera != null:
