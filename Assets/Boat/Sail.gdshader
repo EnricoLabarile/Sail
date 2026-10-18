@@ -1,6 +1,10 @@
 // THE SAIL: the cloth ripples a little, as if the wind shook it.
 shader_type spatial;
-render_mode cull_disabled;   // both faces visible (what cull_mode did on the old material)
+// both faces visible (what cull_mode did on the old material); unshaded: no lights in the scene, the fake sun
+// below shades it instead (fake_light.gdshaderinc, the same sun as the clouds' shadows)
+render_mode cull_disabled, unshaded;
+
+#include "res://Assets/Boat/fake_light.gdshaderinc"
 
 // The knobs, shown in the Inspector (like a Material Instance's parameters).
 uniform vec4 sail_color : source_color = vec4(0.53, 0.53, 0.53, 1.0);
@@ -20,7 +24,9 @@ void vertex() {
 	VERTEX += NORMAL * wave * flutter * free;
 }
 
-// fragment() runs for every pixel: here only the colour.
+// fragment() runs for every pixel: the colour, shaded by the fake sun. The sail is seen from both sides:
+// on its back face the normal points away from us, so it's turned round (FRONT_FACING is false there).
 void fragment() {
-	ALBEDO = sail_color.rgb;
+	vec3 normal = FRONT_FACING ? NORMAL : -NORMAL;
+	ALBEDO = sail_color.rgb * fake_light(normal, INV_VIEW_MATRIX);
 }	

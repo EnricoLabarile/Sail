@@ -78,6 +78,14 @@
   (+ `Boat/Camera3D`). `Model` heels, bobs and rocks (`rock_and_roll`, the prototype's damped springs: roll pulled toward heel + lean out of a turn + the waves' roll, pitch toward the surge + the waves' pitch, `roll_stiffness` 16 / `roll_damping` 3.2, `pitch_stiffness` 22 / `pitch_damping` 4.5, clamped ±0.6 / ±0.3 rad; the lean out of a turn is the measured `turn_speed` / `turn_rate` × speed / `top_speed` × `turn_lean_deg` 22°; the surge is acceleration × `surge_pitch_deg` 3°/(m/s²), at most `surge_pitch_max_deg` 4.5°; the waves `wave_roll_deg` 3°, `wave_pitch_deg` 2°, `wave_period` 3 s and 0.8× that; everything follows), `Rig` (at the mast's foot) turns the
   boom to leeward (half the wind's angle off the bow, 8° to `boom_max_deg` 30° either side: never across her), the sail's shape keys `Inflated_Right` / `Inflated_Left` make its belly. `boat.gd` finds `Rig` and
   `sm_boat_sail` with `find_child` (by name, anywhere inside), so the hierarchy can change as long as the names stay.
+- **Fake light** (no lights in the scene, Enrico removed the `Sun`): the boat's materials are unshaded and shade
+  themselves, `Assets/Boat/fake_light.gdshaderinc` (a shared include, like a Material Function): `fake_light(NORMAL,
+  INV_VIEW_MATRIX)` = `ambient` (0.45) + (1 − ambient) × max(0, N·sun) in world space. The sun is the **global shader
+  parameter `sun_direction`** (Project Settings > Shader Globals, like a Material Parameter Collection; default
+  (-0.25, 0.94, -0.25)), set by `clouds.gd` `set_sun_direction()` from `shadow_offset` / `height`, so the boat is lit
+  from where the clouds' shadows come (north-west, high). `toon_shade.gdshader` (`base_color` × the light) is used by
+  `m_hull.tres` (hooked to `sm_boat_hull.fbx`'s `boat_hull` material in its import, `use_external`) and `m_mast.tres`;
+  `Sail.gdshader` uses the same light, its normal turned round on the back face (`FRONT_FACING`).
 - **She sits in the water; only her inside is never cut** (a stencil): `boat.gd` `add_water_mask()` puts
   `Assets/Boat/boat_mask.gdshader` (invisible, `stencil_mode write, compare_always, 1`, render_priority -1) as
   `material_overlay` only on meshes inside `Model` with `inner` in their name or their parent's (Enrico: the hull's

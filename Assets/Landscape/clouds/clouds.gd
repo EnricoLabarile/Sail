@@ -36,6 +36,7 @@ var shadow_material: ShaderMaterial # the screen effect that draws the shadows (
 
 
 func _ready() -> void:
+	set_sun_direction()
 	if cloud_textures.is_empty():
 		return                       # no pictures given: no clouds
 	# One material per picture (clouds with the same picture share it).
@@ -62,6 +63,15 @@ func make_material(texture: Texture2D) -> StandardMaterial3D:
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.render_priority = 2     # see-through things: after the sea (0) and the shadows (1), before the fog (3)
 	return material
+
+
+## The "sun" for everything that fakes its light (the boat: Assets/Boat/fake_light.gdshaderinc), so it's lit
+## from where the clouds' shadows say: a shadow falls shadow_offset sideways while dropping `height`, so the
+## sun is the other way, up. It's a global shader parameter (Project Settings > Shader Globals: sun_direction;
+## in Unreal a Material Parameter Collection), so every material can read it.
+func set_sun_direction() -> void:
+	var toward_sun := Vector3(-shadow_offset.x, height, -shadow_offset.z).normalized()
+	RenderingServer.global_shader_parameter_set("sun_direction", toward_sun)
 
 
 ## The cloud map: a SubViewport (an off-screen picture, like a Render Target in Unreal) with a camera
