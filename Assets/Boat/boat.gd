@@ -11,6 +11,10 @@ extends Node3D
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 5		    # how far she leans with the wind on the sail
 @export var camera_tilt_deg := 45 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
+# How far the camera sits from her, along the way it looks. It's orthographic (no perspective), so this
+# doesn't change the picture at all: it only has to be far enough that tall things (the clouds, 15 m up)
+# near the bottom of the screen don't end up behind the camera's near plane and get cut off.
+@export var camera_distance := 100.0
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
 @export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
 
@@ -400,5 +404,5 @@ func bump(out: Vector3, into: float) -> void:
 func _process(_dt: float) -> void:
 	# the camera: from the south, tilted, always the same way up (like a spring arm that doesn't rotate)
 	var t := deg_to_rad(camera_tilt_deg)
-	camera.global_position = global_position + Vector3(0.0, cos(t), sin(t)) * 40.0
+	camera.global_position = global_position + Vector3(0.0, cos(t), sin(t)) * camera_distance
 	camera.global_rotation = Vector3(-(PI / 2.0 - t), 0.0, 0.0)

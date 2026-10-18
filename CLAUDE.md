@@ -90,6 +90,9 @@
   0.0 = nothing), and paints ink on pixels with no boat but boat within `outline_width` (boat.gd export, 1.5 phone
   points) in 8 directions; boat pixels below `water_level` (0) don't count (their height is worked out from the depth
   with `INV_PROJECTION_MATRIX` / `INV_VIEW_MATRIX`), so the line follows the water line, not the hidden hull. Made in code so it doesn't cover the editor's view. Any future solid 3D object gets it too.
+- **The camera** (`Boat/Camera3D`, orthographic, `size` 40, `far` 200): placed by `boat.gd` `_process` from the south,
+  tilted `camera_tilt_deg` 45, `camera_distance` 100 m back along the way it looks (in ortho the distance doesn't
+  change the picture; at 40 the clouds low on the screen fell behind the near plane and were cut).
 - **Turning** (as the prototype): `turn_rate` 2.25 rad/s (Enrico: between the old 1.5 and the doubled 3) at full rudder whatever her speed (no slower with less way);
   none at anchor. (Paddle wheels and the crank were added, then removed for now by Enrico.)
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
