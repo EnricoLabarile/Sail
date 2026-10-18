@@ -38,12 +38,31 @@ var unfold := 0.0:
 
 var _grain: ImageTexture        # a small tile of the leather's dots, repeated over the cover
 var _boat_square := Vector2i(-1, -1)   # the square she's in (column 0..8 = A..I, row 0..8 = 1..9), read on opening
-var _fps_text := ""             # the frame-rate counter's text ("60 fps"), read on opening
-var _screen_text := ""          # above it: the screen's real resolution and the 3D scale (e.g. "1080x2340  3D 0.33")
+var _fps_label: Label           # the frame-rate counter, a Label of its own (see _make_fps_label)
 
 
 func _ready() -> void:
 	_grain = _make_grain_tile()
+	_fps_label = _make_fps_label()
+
+
+## Every frame, while the book is open: the frame-rate counter. Only the Label changes, so only it is
+## redrawn, not the whole book (grid, leather, stitching). Shut or hidden, it's hidden and nothing is done.
+func _process(_dt: float) -> void:
+	var open := visible and unfold > 0.99
+	_fps_label.visible = open
+	if not open:
+		return
+	# The real pixels of the window (the phone's screen in the browser) and how big the 3D is drawn
+	# (scaling_3d_scale, set by the dither: 1 = full resolution, 0.33 = a third), then the frame rate.
+	var window := get_tree().root
+	_fps_label.text = str(window.size.x) + "x" + str(window.size.y) + "  3D " + str(snappedf(window.scaling_3d_scale, 0.01)) \
+		+ "\n" + str(int(Engine.get_frames_per_second())) + " fps"
+	# In the bottom right corner of the right page, 4 px in (the same page as _draw works out).
+	var page_w := size.x * 0.5 - CREASE * 0.5 - PAD_SIDE
+	var page_bottom_right := Vector2(size.x - PAD_SIDE, size.y - PAD_BOTTOM)
+	_fps_label.size = Vector2(minf(140.0, page_w), 26.0)
+	_fps_label.position = page_bottom_right - _fps_label.size - Vector2(4.0, 2.0)
 
 
 ## Called by logbook.gd when the book is opened: reads what the pages show, once. The book isn't
@@ -57,11 +76,6 @@ func refresh() -> void:
 		var col := int(floor((boat.global_position.x / WORLD_SIZE + 0.5) * ROOMS))
 		var row := int(floor((boat.global_position.z / WORLD_SIZE + 0.5) * ROOMS))
 		_boat_square = Vector2i(clampi(col, 0, ROOMS - 1), clampi(row, 0, ROOMS - 1))
-	# The frame rate now, the real pixels of the window (the phone's screen in the browser) and how big
-	# the 3D is drawn (scaling_3d_scale, set by the dither: 1 = full resolution, 0.33 = a third).
-	_fps_text = str(int(Engine.get_frames_per_second())) + " fps"
-	var window := get_tree().root
-	_screen_text = str(window.size.x) + "x" + str(window.size.y) + "  3D " + str(snappedf(window.scaling_3d_scale, 0.01))
 	queue_redraw()
 
 
@@ -85,7 +99,6 @@ func _draw() -> void:
 	var right_page := Rect2(spine + CREASE * 0.5, PAD_TOP, page_w, page_h)
 	_draw_page(right_page, 1.0)
 	_draw_map(right_page, 1, 1.0)
-	_draw_fps(right_page)
 
 	# 3. The front cover, turning on the spine.
 	if reach > 0.0:
@@ -182,15 +195,20 @@ func _draw_page(r: Rect2, side: float) -> void:
 
 # ---- the frame-rate counter ----
 
-## A tiny, faint "60 fps" in the bottom right corner of the right page (as in the prototype), and over it
-## the screen's resolution and the 3D scale (to compare the phone with the PC). Read when the book opens.
-func _draw_fps(page: Rect2) -> void:
-	var font := get_theme_default_font()
-	var font_size := 9
-	var width := 120.0
-	var corner := page.position + page.size - Vector2(width + 4.0, 4.0)   # 4 px in from the corner
-	draw_string(font, corner, _fps_text, HORIZONTAL_ALIGNMENT_RIGHT, width, font_size, Color(INK, 0.45))
-	draw_string(font, corner - Vector2(0.0, 11.0), _screen_text, HORIZONTAL_ALIGNMENT_RIGHT, width, font_size, Color(INK, 0.45))
+## A tiny, faint counter for the bottom right corner of the right page (as in the prototype): the screen's
+## resolution and the 3D scale over "60 fps" (to compare the phone with the PC). A Label (in Unreal a
+## TextBlock), made here in code, a child of the book; _process fills it every frame while the book is open.
+func _make_fps_label() -> Label:
+	var label := Label.new()
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	label.add_theme_font_size_override("font_size", 9)
+	label.add_theme_color_override("font_color", Color(INK, 0.45))
+	label.add_theme_constant_override("line_spacing", 0)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE   # it doesn't catch taps
+	label.visible = false
+	add_child(label)
+	return label
 
 
 # ---- the map ----

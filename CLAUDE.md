@@ -151,10 +151,11 @@
   the spine while the book re-centres, 0.33 s), the reverse to close. `book.gd` (CanvasLayer 120, crisp) draws the
   leather (a 15 px tile of dots), stitching, metal corners, the pages with the edges beneath, and only spread 0 for
   now (Enrico): the 9×9 map A1..I9 across both pages (the prototype's 100-unit layout), the square she's in shaded
-  (ink 0.3; no dot any more, Enrico); a tiny faint frame-rate counter ("60 fps", `_draw_fps`) in the right page's
-  bottom right corner, over it the window's real resolution and the 3D scale ("1080x2340  3D 0.33"). **The book is
-  not redrawn every frame** (Enrico): `logbook.gd` calls `book.refresh()` on opening, which reads the square and the
-  counters once; after that it's drawn again only while the cover turns (`unfold`'s setter).
+  (ink 0.3; no dot any more, Enrico); a tiny faint frame-rate counter in the right page's bottom right corner, over it
+  the window's real resolution and the 3D scale ("1080x2340  3D 0.33" / "60 fps"): a `Label` child of the book
+  (`_make_fps_label`), filled every frame by `_process` while the book is fully open (Enrico), hidden otherwise.
+  **The book itself is not redrawn every frame** (Enrico): `logbook.gd` calls `book.refresh()` on opening, which reads
+  the square once; after that it's drawn again only while the cover turns (`unfold`'s setter).
 - **The start screen** (`Assets/UI/start_screen.tscn` + `.gd`, CanvasLayer 130, in Overworld): a card with the title, "Build
   N" and the build's start time, and "Set sail"; the game is paused until it's pressed. The numbers come from
   `Assets/UI/build_info.gd` ("local" in the repo); `web.yml` rewrites it before exporting with `github.run_number`
