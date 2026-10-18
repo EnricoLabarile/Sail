@@ -39,6 +39,7 @@ var _grain: ImageTexture        # a small tile of the leather's dots, repeated o
 var _blink_time := 0.0          # counts time, to make the boat's dot blink
 var _fps_text := ""             # the frame-rate counter's text ("60 fps"), refreshed twice a second
 var _fps_wait := 0.0            # seconds left before the counter is refreshed
+var _screen_text := ""          # above it: the screen's real resolution and the 3D scale (e.g. "1080x2340  3D 0.33")
 
 
 func _ready() -> void:
@@ -54,6 +55,10 @@ func _process(dt: float) -> void:
 		if _fps_wait <= 0.0:
 			_fps_wait = 0.5
 			_fps_text = str(int(Engine.get_frames_per_second())) + " fps"
+			# The real pixels of the window (the phone's screen in the browser) and how big the 3D is drawn
+			# (scaling_3d_scale, set by the dither: 1 = full resolution, 0.33 = a third).
+			var window := get_tree().root
+			_screen_text = str(window.size.x) + "x" + str(window.size.y) + "  3D " + str(snappedf(window.scaling_3d_scale, 0.01))
 		queue_redraw()
 
 
@@ -174,13 +179,15 @@ func _draw_page(r: Rect2, side: float) -> void:
 
 # ---- the frame-rate counter ----
 
-## A tiny, faint "60 fps" in the bottom right corner of the right page (as in the prototype).
+## A tiny, faint "60 fps" in the bottom right corner of the right page (as in the prototype), and over it
+## the screen's resolution and the 3D scale (to compare the phone with the PC).
 func _draw_fps(page: Rect2) -> void:
 	var font := get_theme_default_font()
 	var font_size := 9
-	var width := 40.0
+	var width := 120.0
 	var corner := page.position + page.size - Vector2(width + 4.0, 4.0)   # 4 px in from the corner
 	draw_string(font, corner, _fps_text, HORIZONTAL_ALIGNMENT_RIGHT, width, font_size, Color(INK, 0.45))
+	draw_string(font, corner - Vector2(0.0, 11.0), _screen_text, HORIZONTAL_ALIGNMENT_RIGHT, width, font_size, Color(INK, 0.45))
 
 
 # ---- the map ----
