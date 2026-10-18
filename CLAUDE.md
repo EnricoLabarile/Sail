@@ -126,7 +126,8 @@
   `pressed`; `logbook.gd` tweens `drop` (the shut book comes down, 0.26 s) then `book.unfold` (the cover swings open on
   the spine while the book re-centres, 0.33 s), the reverse to close. `book.gd` (CanvasLayer 120, crisp) draws the
   leather (a 15 px tile of dots), stitching, metal corners, the pages with the edges beneath, and only spread 0 for
-  now (Enrico): the 9×9 map A1..I9 across both pages (the prototype's 100-unit layout), a blinking dot for the boat.
+  now (Enrico): the 9×9 map A1..I9 across both pages (the prototype's 100-unit layout), a blinking dot for the boat;
+  a tiny faint frame-rate counter ("60 fps", `_draw_fps`, refreshed twice a second) in the right page's bottom right corner.
 - **The start screen** (`Assets/UI/start_screen.tscn` + `.gd`, CanvasLayer 130, in Overworld): a card with the title, "Build
   N" and the build's start time, and "Set sail"; the game is paused until it's pressed. The numbers come from
   `Assets/UI/build_info.gd` ("local" in the repo); `web.yml` rewrites it before exporting with `github.run_number`

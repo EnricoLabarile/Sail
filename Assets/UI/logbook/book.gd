@@ -37,6 +37,8 @@ var unfold := 0.0:
 
 var _grain: ImageTexture        # a small tile of the leather's dots, repeated over the cover
 var _blink_time := 0.0          # counts time, to make the boat's dot blink
+var _fps_text := ""             # the frame-rate counter's text ("60 fps"), refreshed twice a second
+var _fps_wait := 0.0            # seconds left before the counter is refreshed
 
 
 func _ready() -> void:
@@ -47,6 +49,11 @@ func _process(dt: float) -> void:
 	# While the book is on screen, draw it again every frame: the boat's dot moves and blinks.
 	if visible:
 		_blink_time += dt
+		# The frame-rate counter: refreshed twice a second, so the number can be read (as in the prototype).
+		_fps_wait -= dt
+		if _fps_wait <= 0.0:
+			_fps_wait = 0.5
+			_fps_text = str(int(Engine.get_frames_per_second())) + " fps"
 		queue_redraw()
 
 
@@ -70,6 +77,7 @@ func _draw() -> void:
 	var right_page := Rect2(spine + CREASE * 0.5, PAD_TOP, page_w, page_h)
 	_draw_page(right_page, 1.0)
 	_draw_map(right_page, 1, 1.0)
+	_draw_fps(right_page)
 
 	# 3. The front cover, turning on the spine.
 	if reach > 0.0:
@@ -162,6 +170,17 @@ func _draw_page(r: Rect2, side: float) -> void:
 		var off := Vector2(side * step[0], step[0])
 		draw_rect(Rect2(r.position + off, r.size), step[1])
 	draw_rect(r, PAPER)
+
+
+# ---- the frame-rate counter ----
+
+## A tiny, faint "60 fps" in the bottom right corner of the right page (as in the prototype).
+func _draw_fps(page: Rect2) -> void:
+	var font := get_theme_default_font()
+	var font_size := 9
+	var width := 40.0
+	var corner := page.position + page.size - Vector2(width + 4.0, 4.0)   # 4 px in from the corner
+	draw_string(font, corner, _fps_text, HORIZONTAL_ALIGNMENT_RIGHT, width, font_size, Color(INK, 0.45))
 
 
 # ---- the map ----
