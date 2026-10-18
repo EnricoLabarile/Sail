@@ -71,7 +71,8 @@
   `extra_cull_margin`, render_priority 3, after the sea, the outline, the cloud shadows and the clouds), stretched over the screen in the vertex
   shader; per pixel it follows the line of sight (two points unprojected with `INV_PROJECTION_MATRIX` /
   `INV_VIEW_MATRIX`) down to the water (y 0) and reads `fog_tex` there (linear: soft edge), painting `fog_color`
-  black with that alpha. Tall objects are fogged as the water just behind them. The boat is drawn under it but she's
+  black with that alpha; `falloff` (metres, `sea.gd` `fog_falloff`, 0 = as it comes, about a cell) averages 8 more
+  reads on a ring that far round, for a wider, softer edge. Tall objects are fogged as the water just behind them. The boat is drawn under it but she's
   always in seen water. Made in code, so the editor shows the whole map. Nothing is always clear yet.
 - **The boat's hierarchy** (Enrico's, Oct 2026): `Boat / Model / sm_boat_hull / sm_boat_mast / Rig / sm_boat_sail`
   (+ `Boat/Camera3D`). `Model` heels, bobs and rocks (`rock_and_roll`, the prototype's damped springs: roll pulled toward heel + lean out of a turn + the waves' roll, pitch toward the surge + the waves' pitch, `roll_stiffness` 16 / `roll_damping` 3.2, `pitch_stiffness` 22 / `pitch_damping` 4.5, clamped ±0.6 / ±0.3 rad; the lean out of a turn is the measured `turn_speed` / `turn_rate` × speed / `top_speed` × `turn_lean_deg` 22°; the surge is acceleration × `surge_pitch_deg` 3°/(m/s²), at most `surge_pitch_max_deg` 4.5°; the waves `wave_roll_deg` 3°, `wave_pitch_deg` 2°, `wave_period` 3 s and 0.8× that; everything follows), `Rig` (at the mast's foot) turns the

@@ -13,6 +13,10 @@ extends MeshInstance3D
 # the difference. That's what the 90 below does: 270 + 90 = 360 = no turn.
 @export var texture_turn_deg := 90.0  # change it only if the drawing should point another way (0 = toward the bottom)
 
+# The fog of war's soft edge (fog.gdshader's falloff): metres it shades off over. 0 = as it comes (about one cell).
+@export var fog_falloff := 0.0
+
+var fog_material: ShaderMaterial      # the fog's material (to send it the falloff)
 var texture_angle := 0.0              # where the texture is turned now (radians, clockwise from north)
 var texture_offset := Vector2.ZERO    # a shift that keeps the water under the boat still while it turns
 var sea_material: ShaderMaterial      # the sea's material (to send it the angle and the shift)
@@ -29,6 +33,8 @@ func add_fog() -> void:
 	var fog := ShaderMaterial.new()
 	fog.shader = load("res://Assets/Landscape/world/fog.gdshader")
 	fog.set_shader_parameter("fog_tex", Fog.texture)   # the picture of what's been seen (fog.gd)
+	fog.set_shader_parameter("falloff", fog_falloff)
+	fog_material = fog
 	fog.render_priority = 3      # drawn after the sea (0), outline and shadows (1), clouds (2): over everything
 	var quad := QuadMesh.new()
 	quad.material = fog
@@ -40,6 +46,8 @@ func add_fog() -> void:
 
 ## Every frame: turn the sea's texture toward the wind.
 func _process(dt: float) -> void:
+	# 0. The fog's soft edge, sent every frame so a change in the Inspector while the game runs shows at once.
+	fog_material.set_shader_parameter("falloff", fog_falloff)
 	# 1. Where the texture should face: where the wind comes from (+ the extra turn).
 	var target := deg_to_rad(Wind.from_deg + texture_turn_deg)
 	# 2. Turn toward it a bit each frame, so it gets there about follow_time seconds later.
