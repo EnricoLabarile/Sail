@@ -12,9 +12,9 @@ extends Node3D
 ## (In Unreal: a few planes with a translucent unlit material, moved every Tick.)
 
 @export var cloud_textures: Array[Texture2D] = []   # the pictures: the clouds use them in turn
-@export var cloud_count := 12        # how many clouds over the whole map
-@export var size_min := 20.0         # metres: the smallest cloud, a side…
-@export var size_max := 40.0         # …and the biggest
+@export var cloud_count := 64        # how many clouds over the whole map
+@export var size_min := 70.0         # metres: the smallest cloud, a side…
+@export var size_max := 100.0         # …and the biggest
 @export var height := 15.0           # metres above the sea
 @export var speed := 2.0             # metres a second they drift downwind
 
@@ -128,7 +128,7 @@ func make_cloud(material: StandardMaterial3D) -> MeshInstance3D:
 	cloud.layers = CLOUD_LAYER   # on its own render layer, so the cloud-map camera sees only the clouds
 	var half := WORLD_SIZE / 2.0
 	cloud.position = Vector3(randf_range(-half, half), height, randf_range(-half, half))
-	cloud.rotation.y = randf() * TAU   # turned any way, so the same picture looks different
+	
 	return cloud
 
 

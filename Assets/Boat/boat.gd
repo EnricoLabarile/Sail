@@ -54,7 +54,7 @@ extends Node3D
 
 # The current (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, and the water carries her
 # downwind whatever the sail does, so she must steer to make up for it. At anchor too: the anchor line holds her.
-@export var current_speed := 1.2    # m/s the current carries her downwind (18 px/s in the prototype)
+@export var current_speed := 1   # m/s the current carries her downwind (18 px/s in the prototype)
 @export var current_ease := 0.8     # how quickly it takes hold at the start
 
 # Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
@@ -66,7 +66,7 @@ extends Node3D
 @export var bounce_cooldown := 0.6  # s after a bump before the next one counts (one bump, not one per frame)
 
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
-const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.8], [45.0, 1.0], [180.0, 1.0]]
+const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.1], [45.0, 1.5], [180.0, 1.0]]
 
 var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0

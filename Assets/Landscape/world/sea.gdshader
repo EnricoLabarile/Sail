@@ -15,7 +15,7 @@ uniform vec4 sea_color : source_color = vec4(0.91, 0.91, 0.91, 1.0);   // the wa
 // The sea texture: one image, repeated over the water. hint_default_white: with no image it's plain white,
 // so the sea is just sea_color. filter_nearest: crisp pixels; repeat_enable: it tiles.
 uniform sampler2D sea_tex : source_color, hint_default_white, filter_nearest, repeat_enable;
-uniform float tile_size = 16.0;       // metres of sea one tile of the texture covers
+uniform float tile_size = 32;       // metres of sea one tile of the texture covers
 // The flipbook: the image can hold several frames side by side, frames_x across and frames_y down
 // (like a Flipbook in Unreal). They play in turn, fps frames a second. 1 x 1 = one still tile.
 uniform int frames_x = 1;

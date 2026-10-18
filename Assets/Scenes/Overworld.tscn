@@ -19,10 +19,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11217594, 0.08686733, -0.18
 
 [node name="Coast" type="Node3D" parent="." unique_id=2108873514]
 
-[node name="Clouds" parent="." instance=ExtResource("20_clouds")]
+[node name="Clouds" parent="." unique_id=610020452 instance=ExtResource("20_clouds")]
 
 [node name="Boat" parent="." unique_id=1762906152 instance=ExtResource("2_boat")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -34)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)
 
 [node name="Dither" parent="." unique_id=1041423395 instance=ExtResource("4_dither")]
 

@@ -5,7 +5,6 @@
 [ext_resource type="PackedScene" uid="uid://da2mslnca7e31" path="res://Assets/Boat/sm_boat_mast.fbx" id="3_ee1eo"]
 [ext_resource type="PackedScene" uid="uid://bkhrx3gsk66tq" path="res://Assets/Boat/sm_boat_sail.fbx" id="4_og2vt"]
 
-
 [sub_resource type="StandardMaterial3D" id="Mat_wake"]
 render_priority = 1
 transparency = 1
@@ -14,8 +13,6 @@ vertex_color_use_as_albedo = true
 
 [sub_resource type="CylinderMesh" id="Mesh_wake"]
 material = SubResource("Mat_wake")
-top_radius = 0.5
-bottom_radius = 0.5
 height = 0.001
 radial_segments = 8
 rings = 0
@@ -36,8 +33,6 @@ vertex_color_use_as_albedo = true
 
 [sub_resource type="CylinderMesh" id="Mesh_spray"]
 material = SubResource("Mat_spray")
-top_radius = 0.5
-bottom_radius = 0.5
 height = 0.001
 radial_segments = 8
 rings = 0
@@ -55,10 +50,10 @@ colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 script = ExtResource("1_boat")
 
 [node name="Model" type="Node3D" parent="." unique_id=1073816525]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23072204, 0)
 
 [node name="sm_boat_hull" parent="Model" unique_id=1085224572 instance=ExtResource("2_da1jx")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0.004143417, -0.2166603)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -0.217)
 
 [node name="sm_boat_mast" parent="Model/sm_boat_hull" unique_id=429624402 instance=ExtResource("3_ee1eo")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.08832236, 0.9484325, 3.860701e-09)
@@ -80,11 +75,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 1.7)
 emitting = false
 amount = 28
 lifetime = 1.2
-local_coords = false
 mesh = SubResource("Mesh_wake")
 emission_shape = 4
 emission_points = PackedVector3Array(-0.55, 0, 0, 0.55, 0, 0)
-emission_normals = PackedVector3Array(-1, 0, 0, 1, 0, 0)
 direction = Vector3(0, 0, 1)
 spread = 5.0
 gravity = Vector3(0, 0, 0)
@@ -103,11 +96,9 @@ emitting = false
 amount = 30
 lifetime = 0.45
 lifetime_randomness = 0.5
-local_coords = false
 mesh = SubResource("Mesh_spray")
 emission_shape = 4
-emission_points = PackedVector3Array(-0.25, 0, -1.85, 0.25, 0, -1.85, -0.25, 0, -1.85, 0.25, 0, -1.85, -0.45, 0, -1.45, 0.45, 0, -1.45, -0.6, 0, -1.0, 0.6, 0, -1.0)
-emission_normals = PackedVector3Array(-0.96, 0, -0.29, 0.96, 0, -0.29, -0.96, 0, -0.29, 0.96, 0, -0.29, -0.98, 0, -0.2, 0.98, 0, -0.2, -1, 0, -0.1, 1, 0, -0.1)
+emission_points = PackedVector3Array(-0.25, 0, -1.85, 0.25, 0, -1.85, -0.25, 0, -1.85, 0.25, 0, -1.85, -0.45, 0, -1.45, 0.45, 0, -1.45, -0.6, 0, -1, 0.6, 0, -1)
 direction = Vector3(0, 0, 1)
 spread = 15.0
 gravity = Vector3(0, 0, 0)
