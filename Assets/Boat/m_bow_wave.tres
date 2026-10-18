@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://Assets/Boat/bow_wave.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://Assets/Boat/bow_wave.png" id="2_tex"]
+
+[resource]
+render_priority = 1
+shader = ExtResource("1_shader")
+shader_parameter/wave_tex = ExtResource("2_tex")
+shader_parameter/frames_x = 4
+shader_parameter/frames_y = 4
+shader_parameter/frame = 0.0
+shader_parameter/strength = 1.0

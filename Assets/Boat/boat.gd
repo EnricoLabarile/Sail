@@ -51,6 +51,9 @@ extends Node3D
 # The shallows: near the coast there's less wind, so the sail gives less.
 @export var shallows_width := 6.0   # metres from the land that count as shallows
 @export var shallows_sail := 0.3    # what the sail gives there, as a share of the usual (0.3 = 30%)
+# The bow wave (boat.tscn: BowWaveRight / BowWaveLeft, bow_wave.png, a 4 x 4 flipbook).
+@export var bow_wave_fps := 12.0        # frames a second it plays at top speed (slower when slower)
+@export var bow_wave_min_size := 0.4    # its size at a crawl, as a share of full size (full at top speed)
 @export var shallows_check_time := 0.2   # seconds between looks for land nearby (it's up to 48 rays: not every frame)
 
 # The current (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, and the water carries her
@@ -71,6 +74,8 @@ const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.1], [45.0, 1.5], [180.0, 1.0]]
 
 var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0
+var bow_wave_strength := 0.0   # how solid the bow wave is now, 0..1 (eased toward her speed share)
+var bow_wave_frame := 0.0      # the bow wave's flipbook frame, counting up
 var in_shallows := false     # land within shallows_width? (looked again every shallows_check_time seconds)
 var shallows_wait := 0.0     # seconds left before the next look
 var anchored := true   # she starts at anchor: hold the wheel's hub (or press Space) to weigh it
@@ -97,7 +102,8 @@ var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she 
 @onready var rig: Node3D = find_child("Rig")   # turns round the mast: the sail (and boom) inside it swing out
 @onready var camera: Camera3D = $Camera3D
 @onready var wake: CPUParticles3D = find_child("Wake")          # the dots left behind the stern
-@onready var bow_spray: CPUParticles3D = find_child("BowSpray") # the white spray thrown off the bow
+@onready var bow_wave_right: Node3D = find_child("BowWaveRight") # the water thrown up and out at the bow (Wind
+@onready var bow_wave_left: Node3D = find_child("BowWaveLeft")   # Waker's "wings"; bow_wave.gdshader), a side each
 @onready var sail_node: Node3D = find_child("sm_boat_sail")   # the whole sail: squashed down onto the boom to furl it
 
 # The sail's mesh: the MeshInstance3D inside the imported sm_boat_sail (the FBX makes it a little scene
@@ -221,7 +227,7 @@ func _physics_process(dt: float) -> void:
 	model.position.y = model_height + sin(Time.get_ticks_msec() * 0.0013) * 0.04
 	update_sail_belly(dt, side)
 	update_furl(dt)
-	update_water_fx()
+	update_water_fx(dt)
 
 ## How she leans (roll) and how her bow rises and dips (pitch). First where she should be:
 ##   roll  = the heel from the wind + the lean out of a turn + the waves' roll
@@ -321,20 +327,43 @@ func hold_at_anchor() -> void:
 
 ## At anchor the sail is gathered up onto the boom (only a look: as in the prototype); it spreads
 ## again as the anchor comes up. Done by squashing the sail's node down (scale.y) onto the boom.
-## The wake and the bow spray (the two CPUParticles3D nodes in boat.tscn, like two small CPU Niagara
-## emitters: their look is set in the Inspector). Here only how fast they run: the slower she goes, the
-## slower they play (speed_scale), so fewer dots come out and they drift aside more slowly. That keeps the
-## dots the same distance apart on the water whatever her speed, as in the HTML prototype (a dot every
-## 0.7 m). Nothing when she's (almost) still or at anchor; the dots already out fade by themselves.
-func update_water_fx() -> void:
+## The wake (the CPUParticles3D node in boat.tscn, like a small CPU Niagara emitter: its look is set in the
+## Inspector). Here only how fast it runs: the slower she goes, the slower it plays (speed_scale), so fewer
+## dots come out and they drift aside more slowly. That keeps the dots the same distance apart on the water
+## whatever her speed, as in the HTML prototype (a dot every 0.7 m). Nothing when she's (almost) still or at
+## anchor; the dots already out fade by themselves.
+## Then the bow wave (update_bow_wave).
+func update_water_fx(dt: float) -> void:
 	var k := clampf(speed / top_speed, 0.0, 1.0)   # 0 = still, 1 = top speed
 	var on := k > 0.06 and not anchored            # the prototype's "none below 6% of top speed"
-	for fx in [wake, bow_spray]:
-		if fx == null:                              # the node was removed from boat.tscn: skip it
-			continue
-		fx.emitting = on
+	if wake:
+		wake.emitting = on
 		# never slower than 0.35, or the last dots would hang on the water for ages
-		fx.speed_scale = maxf(k, 0.35) if on else 1.0
+		wake.speed_scale = maxf(k, 0.35) if on else 1.0
+	update_bow_wave(dt, k, on)
+
+
+## The bow wave (Wind Waker's wings of water at the bow): two flat pictures, a side each, playing a flipbook
+## (bow_wave.gdshader, one material shared by both). The faster she goes, the longer and taller they are, the
+## faster the flipbook plays and the more solid they get; still or at anchor they fade away.
+func update_bow_wave(dt: float, k: float, on: bool) -> void:
+	if bow_wave_right == null or bow_wave_left == null:
+		return
+	# 1. How solid: eases toward k while she moves (0 when not), so it grows and fades smoothly.
+	var target := k if on else 0.0
+	bow_wave_strength = lerpf(bow_wave_strength, target, minf(1.0, dt * 4.0))
+	# 2. Which frame: counted up at bow_wave_fps × how fast she goes (the shader shows it counted round).
+	bow_wave_frame += dt * bow_wave_fps * maxf(k, 0.3)
+	var material: ShaderMaterial = bow_wave_right.mesh.material
+	material.set_shader_parameter("strength", bow_wave_strength)
+	material.set_shader_parameter("frame", bow_wave_frame)
+	# 3. Their size: from bow_wave_min_size at a crawl to full size at top speed (they grow from the stem,
+	#    where each picture starts). Hidden when there's nothing to see.
+	var grow := lerpf(bow_wave_min_size, 1.0, bow_wave_strength)
+	for wing in [bow_wave_right, bow_wave_left]:
+		wing.scale = Vector3(grow, grow, 1.0)
+		wing.visible = bow_wave_strength > 0.02
+
 
 func update_furl(dt: float) -> void:
 	var target := 1.0 if anchored else 0.0

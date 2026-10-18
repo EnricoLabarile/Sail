@@ -96,14 +96,19 @@
   floor of the boat (below y 0) shows. The outside of the hull, mast and sail have no mask: the sea covers what's
   below the water. Until the inner mesh exists, nothing is masked (the sea shows over her floor). How deep she sits
   is `Model`'s y in `boat.tscn` (Enrico places it; −0.4 now): `boat.gd` reads it at start (`model_height`) and bobs round it.
-- **Wake and bow spray** (as the prototype's wake dots and `bowSpray`): two `CPUParticles3D` children of `Boat` in
-  `boat.tscn` (`Wake`, `BowSpray`; their look is set in the Inspector), `local_coords` off so what they leave stays on
-  the water, flat 8-sided discs (a CylinderMesh with no height), unshaded, vertex colour + alpha, render_priority 1.
-  `Wake`: at the stern (z +1.7), two points ±0.55 m pushed outward 1.2 m/s, 28 dots, life 1.2 s (short), ink, alpha
-  0.8 → 0, growing 0.28 → 0.9 m. `BowSpray`: points along both sides of the bow, flung outward 1–3 m/s, 30 bits, life
-  0.45 s ± half, white, fading in the second half, growing. `boat.gd` `update_water_fx()`: on only above 6% of
-  `top_speed` and not at anchor; `speed_scale` = her share of top speed (at least 0.35), so slower = fewer dots, still
-  the same distance apart (CPUParticles3D has no `amount_ratio`).
+- **Wake and bow wave**: the wake (as the prototype's wake dots) is a `CPUParticles3D` child of `Boat` in `boat.tscn`
+  (`Wake`, its look set in the Inspector), `local_coords` off so what it leaves stays on the water, flat 8-sided discs
+  (a CylinderMesh with no height), unshaded, vertex colour + alpha, render_priority 1: at the stern (z +1.7), two
+  points ±0.55 m pushed outward 1.2 m/s, 28 dots, life 1.2 s, ink, alpha 0.8 → 0, growing 0.28 → 0.9 m; on only above
+  6% of `top_speed` and not at anchor; `speed_scale` = her share of top speed (at least 0.35). **The bow wave**
+  (Enrico, like Wind Waker's; it replaced the `BowSpray` particles): two flat "wings" of water, `BowWaveRight` /
+  `BowWaveLeft` (MeshInstance3D, one QuadMesh 2.6 × 0.9 m with `center_offset` so its origin is its front bottom
+  corner), at the stem at the waterline (±0.08, 0.02, −2.95), running back 50° out from her line and leaning 35°
+  outward; material `m_bow_wave.tres` (`bow_wave.gdshader`: unshaded, both faces, render_priority 1, a **4 × 4
+  flipbook** of `bow_wave.png`, frames 128 × 48, bow end on the left, crest at the top; the picture is a stand-in
+  for Enrico to redraw; uniforms `frames_x/y`, `frame`, `strength`). `boat.gd` `update_bow_wave()`: `strength` eases
+  (×4/s) to her share of top speed (0 at anchor or slow), the wings grow from `bow_wave_min_size` 0.4 to full with it
+  and hide below 0.02; the frame counts up at `bow_wave_fps` 12 × that share (at least 0.3).
 - **The outline** (`Assets/Boat/boat_outline.gdshader`, made by `boat.gd` `add_outline()`: a QuadMesh child of the
   camera, stretched over the screen in the vertex shader, render_priority 1, after the sea): reads the depth buffer
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
