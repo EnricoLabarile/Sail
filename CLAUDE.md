@@ -101,6 +101,10 @@
 - **The camera** (`Boat/Camera3D`, orthographic, `size` 40, `far` 200): placed by `boat.gd` `_process` from the south,
   tilted `camera_tilt_deg` 45, `camera_distance` 100 m back along the way it looks (in ortho the distance doesn't
   change the picture; at 40 the clouds low on the screen fell behind the near plane and were cut).
+- **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
+  Bayer 4×4 to paper/ink. One dot = `pixel_size` game pixels × the screen's scale (real pixels per game pixel:
+  screen size / 360×800, the smaller side, rounded, ≥ 1), so a phone drawing at ~1080×2340 gets 3×3 dots like the
+  PC's 360×800 window gets 1×1 (one real pixel a dot melted into grey there).
 - **Turning** (as the prototype): `turn_rate` 2.25 rad/s (Enrico: between the old 1.5 and the doubled 3) at full rudder whatever her speed (no slower with less way);
   none at anchor. (Paddle wheels and the crank were added, then removed for now by Enrico.)
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,

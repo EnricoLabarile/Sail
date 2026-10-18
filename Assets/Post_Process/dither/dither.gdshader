@@ -5,7 +5,9 @@ shader_type canvas_item;
 uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
 uniform vec4 paper_color : source_color = vec4(0.922, 0.906, 0.863, 1.0); // #ebe7dc
 uniform vec4 ink_color : source_color = vec4(0.106, 0.102, 0.090, 1.0);   // #1b1a17
-uniform float pixel_size : hint_range(1.0, 8.0, 1.0) = 1.0; // screen pixels per game pixel (the grain)
+// The grain: how many game pixels (the 360 x 800 design screen) one dot covers. 1 = a dot per game pixel.
+uniform float pixel_size : hint_range(1.0, 8.0, 1.0) = 1.0;
+const vec2 DESIGN_SIZE = vec2(360.0, 800.0);   // the game's screen size in the project settings
 uniform float brightness : hint_range(-0.5, 0.5) = 0.0;     // shifts the greys before dithering
 uniform float contrast : hint_range(0.2, 3.0) = 1.0;
 
@@ -17,9 +19,17 @@ const float BAYER[16] = float[16](
 );
 
 void fragment() {
-	// One block of pixel_size x pixel_size screen pixels = one game pixel.
-	vec2 block = floor(FRAGCOORD.xy / pixel_size);
-	vec2 uv = (block + 0.5) * pixel_size * SCREEN_PIXEL_SIZE;
+	// How many real screen pixels make one game pixel. On the PC editor window (360 x 800) it's 1; a phone
+	// draws at its full resolution (about 1080 x 2340), so 3: without this the dots would be one tiny real
+	// pixel each and melt into grey. The smaller of the two sides counts (with "expand" one side is longer),
+	// rounded to a whole number so every dot is the same size.
+	vec2 screen_size = 1.0 / SCREEN_PIXEL_SIZE;
+	vec2 ratio = screen_size / DESIGN_SIZE;
+	float scale = max(1.0, round(min(ratio.x, ratio.y)));
+	float dot_size = pixel_size * scale;   // real screen pixels per dot
+	// One block of dot_size x dot_size screen pixels = one dot.
+	vec2 block = floor(FRAGCOORD.xy / dot_size);
+	vec2 uv = (block + 0.5) * dot_size * SCREEN_PIXEL_SIZE;
 	vec3 c = texture(screen_tex, uv).rgb;
 	float grey = dot(c, vec3(0.299, 0.587, 0.114));
 	grey = clamp((grey - 0.5) * contrast + 0.5 + brightness, 0.0, 1.0);
