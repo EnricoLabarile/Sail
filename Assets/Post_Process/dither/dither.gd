@@ -15,10 +15,13 @@ func _ready() -> void:
 	get_tree().root.size_changed.connect(set_3d_scale)   # again whenever the window changes size
 
 
-## Real screen pixels per game pixel (as in dither.gdshader: the smaller side, rounded, at least 1),
-## and the 3D drawn at 1 / that.
+## Real screen pixels per game pixel (the same sum as dither.gdshader: on an upright screen the width,
+## on a wide one the smaller side; rounded, at least 1), and the 3D drawn at 1 / that.
 func set_3d_scale() -> void:
 	var window_size := Vector2(get_tree().root.size)     # the real pixels of the window (or the phone's screen)
 	var ratio := window_size / DESIGN_SIZE
-	var scale := maxf(1.0, roundf(minf(ratio.x, ratio.y)))
+	var side := ratio.x                                  # upright (a phone): the width
+	if window_size.x > window_size.y:
+		side = minf(ratio.x, ratio.y)                    # wide (a computer): the smaller side
+	var scale := maxf(1.0, roundf(side))
 	get_tree().root.scaling_3d_scale = 1.0 / scale

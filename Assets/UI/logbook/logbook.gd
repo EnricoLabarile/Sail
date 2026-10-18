@@ -41,6 +41,7 @@ func set_open(open: bool) -> void:
 	_tween = create_tween()
 	_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)   # quick at first, gentle at the end
 	if open:
+		book.refresh()                    # the pages read where she is (and the counters), once
 		book.visible = true
 		_tween.tween_property(self, "drop", 1.0, DROP_TIME)        # 1. down…
 		_tween.tween_property(book, "unfold", 1.0, UNFOLD_TIME)    # 2. …then open

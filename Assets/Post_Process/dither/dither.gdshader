@@ -20,12 +20,15 @@ const float BAYER[16] = float[16](
 
 void fragment() {
 	// How many real screen pixels make one game pixel. On the PC editor window (360 x 800) it's 1; a phone
-	// draws at its full resolution (about 1080 x 2340), so 3: without this the dots would be one tiny real
-	// pixel each and melt into grey. The smaller of the two sides counts (with "expand" one side is longer),
-	// rounded to a whole number so every dot is the same size.
+	// draws at its full resolution (about 1080 wide), so 3: without this the dots would be one tiny real
+	// pixel each and melt into grey. On an upright screen the width counts (the camera keeps the world's
+	// width, so it's always 360 dots across; the browser's bars eat the height, which would give a smaller
+	// number); on a wide screen the smaller of the two sides. Rounded, so every dot is the same size.
+	// (dither.gd does the same sum for the 3D resolution: keep the two alike.)
 	vec2 screen_size = 1.0 / SCREEN_PIXEL_SIZE;
 	vec2 ratio = screen_size / DESIGN_SIZE;
-	float scale = max(1.0, round(min(ratio.x, ratio.y)));
+	float side = screen_size.y >= screen_size.x ? ratio.x : min(ratio.x, ratio.y);
+	float scale = max(1.0, round(side));
 	float dot_size = pixel_size * scale;   // real screen pixels per dot
 	// One block of dot_size x dot_size screen pixels = one dot.
 	vec2 block = floor(FRAGCOORD.xy / dot_size);

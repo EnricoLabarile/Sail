@@ -114,7 +114,8 @@
   (Headless `--quit-after` prints "resources still in use at exit" for the playing loops: harmless.)
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
   Bayer 4×4 to paper/ink. One dot = `pixel_size` game pixels × the screen's scale (real pixels per game pixel:
-  screen size / 360×800, the smaller side, rounded, ≥ 1), so a phone drawing at ~1080×2340 gets 3×3 dots like the
+  screen size / 360×800, on an upright screen the width (the camera keeps the width; the browser's bars eat the height:
+  Enrico's phone gave 1080×1965, 2 by the smaller side), on a wide one the smaller side, rounded, ≥ 1), so a phone drawing at ~1080×2340 gets 3×3 dots like the
   PC's 360×800 window gets 1×1 (one real pixel a dot melted into grey there). `dither.gd` (on the Dither layer) sets the
   root's 3D resolution scale (`scaling_3d_scale`, Unreal's Screen Percentage) to 1 / that scale (and again on a resize):
   the 3D world is drawn at one pixel per game pixel (1/3 on the phone, 9× less fill for sea, shadows, outline, fog),
@@ -140,9 +141,11 @@
   `pressed`; `logbook.gd` tweens `drop` (the shut book comes down, 0.26 s) then `book.unfold` (the cover swings open on
   the spine while the book re-centres, 0.33 s), the reverse to close. `book.gd` (CanvasLayer 120, crisp) draws the
   leather (a 15 px tile of dots), stitching, metal corners, the pages with the edges beneath, and only spread 0 for
-  now (Enrico): the 9×9 map A1..I9 across both pages (the prototype's 100-unit layout), a blinking dot for the boat;
-  a tiny faint frame-rate counter ("60 fps", `_draw_fps`, refreshed twice a second) in the right page's bottom right corner,
-  over it the window's real resolution and the 3D scale ("1080x2340  3D 0.33").
+  now (Enrico): the 9×9 map A1..I9 across both pages (the prototype's 100-unit layout), the square she's in shaded
+  (ink 0.3; no dot any more, Enrico); a tiny faint frame-rate counter ("60 fps", `_draw_fps`) in the right page's
+  bottom right corner, over it the window's real resolution and the 3D scale ("1080x2340  3D 0.33"). **The book is
+  not redrawn every frame** (Enrico): `logbook.gd` calls `book.refresh()` on opening, which reads the square and the
+  counters once; after that it's drawn again only while the cover turns (`unfold`'s setter).
 - **The start screen** (`Assets/UI/start_screen.tscn` + `.gd`, CanvasLayer 130, in Overworld): a card with the title, "Build
   N" and the build's start time, and "Set sail"; the game is paused until it's pressed. The numbers come from
   `Assets/UI/build_info.gd` ("local" in the repo); `web.yml` rewrites it before exporting with `github.run_number`

@@ -6,7 +6,8 @@ extends Control
 ##   - the leather cover: dark, with a fine dotted grain, stitching round the edge and metal corners;
 ##   - two paper pages with the edges of the pages beneath showing at the sides;
 ##   - the map: the world cut into 9 x 9 squares (A..I from the west, 1..9 from the north, home in E5),
-##     drawn as one square across both pages, and a blinking dot where the boat is.
+##     drawn as one square across both pages, with the square she's in shaded (read when the book opens:
+##     the book isn't redrawn every frame).
 ##
 ## `unfold` (0..1) is changed by logbook.gd with a Tween:
 ##   0 = shut: only the right half shows, the front cover lying over the right page (leather up);
@@ -36,9 +37,8 @@ var unfold := 0.0:
 		queue_redraw()
 
 var _grain: ImageTexture        # a small tile of the leather's dots, repeated over the cover
-var _blink_time := 0.0          # counts time, to make the boat's dot blink
-var _fps_text := ""             # the frame-rate counter's text ("60 fps"), refreshed twice a second
-var _fps_wait := 0.0            # seconds left before the counter is refreshed
+var _boat_square := Vector2i(-1, -1)   # the square she's in (column 0..8 = A..I, row 0..8 = 1..9), read on opening
+var _fps_text := ""             # the frame-rate counter's text ("60 fps"), read on opening
 var _screen_text := ""          # above it: the screen's real resolution and the 3D scale (e.g. "1080x2340  3D 0.33")
 
 
@@ -46,20 +46,23 @@ func _ready() -> void:
 	_grain = _make_grain_tile()
 
 
-func _process(dt: float) -> void:
-	# While the book is on screen, draw it again every frame: the boat's dot moves and blinks.
-	if visible:
-		_blink_time += dt
-		# The frame-rate counter: refreshed twice a second, so the number can be read (as in the prototype).
-		_fps_wait -= dt
-		if _fps_wait <= 0.0:
-			_fps_wait = 0.5
-			_fps_text = str(int(Engine.get_frames_per_second())) + " fps"
-			# The real pixels of the window (the phone's screen in the browser) and how big the 3D is drawn
-			# (scaling_3d_scale, set by the dither: 1 = full resolution, 0.33 = a third).
-			var window := get_tree().root
-			_screen_text = str(window.size.x) + "x" + str(window.size.y) + "  3D " + str(snappedf(window.scaling_3d_scale, 0.01))
-		queue_redraw()
+## Called by logbook.gd when the book is opened: reads what the pages show, once. The book isn't
+## redrawn every frame any more (Enrico: nobody keeps it open long enough to need it); it's drawn
+## again only while its cover turns (see `unfold` above) or when this is called.
+func refresh() -> void:
+	# The square she's in: her place in the world as a share of the map (home, world 0, 0, is the middle),
+	# times the 9 squares, cut to a whole number.
+	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	if boat:
+		var col := int(floor((boat.global_position.x / WORLD_SIZE + 0.5) * ROOMS))
+		var row := int(floor((boat.global_position.z / WORLD_SIZE + 0.5) * ROOMS))
+		_boat_square = Vector2i(clampi(col, 0, ROOMS - 1), clampi(row, 0, ROOMS - 1))
+	# The frame rate now, the real pixels of the window (the phone's screen in the browser) and how big
+	# the 3D is drawn (scaling_3d_scale, set by the dither: 1 = full resolution, 0.33 = a third).
+	_fps_text = str(int(Engine.get_frames_per_second())) + " fps"
+	var window := get_tree().root
+	_screen_text = str(window.size.x) + "x" + str(window.size.y) + "  3D " + str(snappedf(window.scaling_3d_scale, 0.01))
+	queue_redraw()
 
 
 func _draw() -> void:
@@ -180,7 +183,7 @@ func _draw_page(r: Rect2, side: float) -> void:
 # ---- the frame-rate counter ----
 
 ## A tiny, faint "60 fps" in the bottom right corner of the right page (as in the prototype), and over it
-## the screen's resolution and the 3D scale (to compare the phone with the PC).
+## the screen's resolution and the 3D scale (to compare the phone with the PC). Read when the book opens.
 func _draw_fps(page: Rect2) -> void:
 	var font := get_theme_default_font()
 	var font_size := 9
@@ -237,18 +240,16 @@ func _draw_map(page: Rect2, half: int, squeeze: float) -> void:
 			var row_pos: Vector2 = to_screen.call(LABEL_MARGIN - 1.2, middle + 1.5)
 			draw_string(font, row_pos - Vector2(font_size, 0), str(i + 1), HORIZONTAL_ALIGNMENT_RIGHT, font_size, font_size, Color(INK, 0.8))
 
-	# The boat: a dot where she is, blinking (shown 0.4 s, hidden 0.4 s).
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
-	if boat and fmod(_blink_time, 0.8) < 0.4:
-		# her place in the world as a share of the map, 0..1 (home, world 0, 0, is the middle)
-		var share_x := boat.global_position.x / WORLD_SIZE + 0.5
-		var share_z := boat.global_position.z / WORLD_SIZE + 0.5
-		var u := GRID_START + share_x * ROOMS * ROOM_SIZE
-		var v := GRID_START + share_z * ROOMS * ROOM_SIZE
-		if u >= lo and u < hi:
-			var dot: Vector2 = to_screen.call(u, v)
-			draw_circle(dot, 1.6 * k + 0.6, PAPER)             # a thin paper ring, so it shows on the lines
-			draw_circle(dot, 1.6 * k, INK)
+	# The square she's in (read when the book opened): shaded in ink, the part of it on this half.
+	if _boat_square.x >= 0:
+		var u0 := GRID_START + _boat_square.x * ROOM_SIZE
+		var v0 := GRID_START + _boat_square.y * ROOM_SIZE
+		var a := clampf(u0, lo, hi)                           # the square's left and right edges, cut to this half
+		var b := clampf(u0 + ROOM_SIZE, lo, hi)
+		if b > a:
+			var corner_1: Vector2 = to_screen.call(a, v0)
+			var corner_2: Vector2 = to_screen.call(b, v0 + ROOM_SIZE)
+			draw_rect(Rect2(corner_1, corner_2 - corner_1), Color(INK, 0.3))
 
 
 ## A line of the map: the frame's edge solid, the seams between squares dotted and paler.
