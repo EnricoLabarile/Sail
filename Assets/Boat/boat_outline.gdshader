@@ -12,6 +12,7 @@ render_mode unshaded, depth_test_disabled, depth_draw_never, cull_disabled;
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 uniform vec4 outline_color : source_color = vec4(0.106, 0.102, 0.090, 1.0);   // ink (#1b1a17)
 uniform float outline_width = 1.5;   // how thick the line is, in phone points (the 360 x 800 screen)
+uniform float water_level = 0.0;     // the sea's height: boat below it is under water and gets no outline
 
 void vertex() {
 	// Stretch the rectangle (a 1 x 1 QuadMesh, corners at -0.5 and 0.5) over the whole screen,
@@ -19,15 +20,28 @@ void vertex() {
 	POSITION = vec4(VERTEX.xy * 2.0, 0.5, 1.0);
 }
 
-// Is there boat at this point of the screen?
-bool boat_at(vec2 uv) {
-	return texture(depth_tex, uv).r > 0.0;
+// Is there boat at this point of the screen, above the water?
+// The depth buffer also holds the parts of her under the water (the sea is drawn over them, but it
+// doesn't write depth). So for each boat pixel we work out its height in the world and skip the ones
+// below water_level: the outline then follows the water line instead of the hidden hull.
+bool boat_at(vec2 uv, mat4 inv_projection, mat4 inv_view) {
+	float depth = texture(depth_tex, uv).r;
+	if (depth <= 0.0) {
+		return false;   // nothing solid here
+	}
+	// From the screen point and its depth back to a point in the world (the Compatibility renderer's way):
+	// screen (0..1) -> -1..1, then undo the camera's projection and the camera's place.
+	vec3 ndc = vec3(uv, depth) * 2.0 - 1.0;
+	vec4 view = inv_projection * vec4(ndc, 1.0);
+	view.xyz /= view.w;
+	vec3 world = (inv_view * vec4(view.xyz, 1.0)).xyz;
+	return world.y > water_level;
 }
 
 void fragment() {
 	vec2 uv = SCREEN_UV;
 	// 1. On the boat itself: nothing to draw here.
-	if (boat_at(uv)) {
+	if (boat_at(uv, INV_PROJECTION_MATRIX, INV_VIEW_MATRIX)) {
 		discard;
 	}
 	// 2. How far to look, as a share of the screen: outline_width phone points, scaled to the real screen.
@@ -37,7 +51,7 @@ void fragment() {
 	bool near = false;
 	for (int i = 0; i < 8; i++) {
 		float a = float(i) * 0.785398;   // 45 degrees apart
-		if (boat_at(uv + vec2(cos(a), sin(a)) * reach)) {
+		if (boat_at(uv + vec2(cos(a), sin(a)) * reach, INV_PROJECTION_MATRIX, INV_VIEW_MATRIX)) {
 			near = true;
 		}
 	}

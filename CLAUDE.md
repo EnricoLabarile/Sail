@@ -74,7 +74,8 @@
   inside as its own object, `sm_boat_hull_inner`); `sea.gdshader` reads it (`stencil_mode read, compare_not_equal, 1`)
   and writes `ALPHA = 1.0`, which puts it in the transparent pass, drawn after the boat: it skips those pixels, so the
   floor of the boat (below y 0) shows. The outside of the hull, mast and sail have no mask: the sea covers what's
-  below the water. Until the inner mesh exists, nothing is masked (the sea shows over her floor).
+  below the water. Until the inner mesh exists, nothing is masked (the sea shows over her floor). She sits
+  `sink_depth` 0.4 m down (`Model`'s y = −sink_depth + the bob), so the water line cuts her sides.
 - **Wake and bow spray** (as the prototype's wake dots and `bowSpray`): two `CPUParticles3D` children of `Boat` in
   `boat.tscn` (`Wake`, `BowSpray`; their look is set in the Inspector), `local_coords` off so what they leave stays on
   the water, flat 8-sided discs (a CylinderMesh with no height), unshaded, vertex colour + alpha, render_priority 1.
@@ -87,7 +88,8 @@
   camera, stretched over the screen in the vertex shader, render_priority 1, after the sea): reads the depth buffer
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
   0.0 = nothing), and paints ink on pixels with no boat but boat within `outline_width` (boat.gd export, 1.5 phone
-  points) in 8 directions. Made in code so it doesn't cover the editor's view. Any future solid 3D object gets it too.
+  points) in 8 directions; boat pixels below `water_level` (0) don't count (their height is worked out from the depth
+  with `INV_PROJECTION_MATRIX` / `INV_VIEW_MATRIX`), so the line follows the water line, not the hidden hull. Made in code so it doesn't cover the editor's view. Any future solid 3D object gets it too.
 - **Turning** (as the prototype): `turn_rate` 2.25 rad/s (Enrico: between the old 1.5 and the doubled 3) at full rudder whatever her speed (no slower with less way);
   none at anchor. (Paddle wheels and the crank were added, then removed for now by Enrico.)
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
