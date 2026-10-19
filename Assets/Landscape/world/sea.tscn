@@ -12,7 +12,7 @@ shader_parameter/frames_y = 4
 
 [sub_resource type="PlaneMesh" id="Mesh_sea"]
 material = SubResource("Mat_sea")
-size = Vector2(504, 504)
+size = Vector2(1008, 1008)
 
 [node name="Sea" type="MeshInstance3D"]
 mesh = SubResource("Mesh_sea")

@@ -12,7 +12,7 @@ extends Node3D
 ## (In Unreal: a few planes with a translucent unlit material, moved every Tick.)
 
 @export var cloud_textures: Array[Texture2D] = []   # the pictures: the clouds use them in turn
-@export var cloud_count := 64        # how many clouds over the whole map
+@export var cloud_count := 256       # how many clouds over the whole map (64 when it was half as wide)
 @export var size_min := 30.0         # metres: the smallest cloud, a side…
 @export var size_max := 50.0         # …and the biggest
 @export var height := 35.0           # metres above the sea
@@ -30,7 +30,6 @@ extends Node3D
 
 const CLOUD_LAYER := 2   # the clouds are on render layer 2 (value 2): the cloud-map camera sees only that layer
 
-const WORLD_SIZE := 504.0            # the map, a side (as Land.WORLD_SIZE): clouds wrap round inside it
 
 var clouds: Array[MeshInstance3D] = []
 var map_camera: Camera3D            # the camera looking down on the clouds (makes the cloud map)
@@ -139,7 +138,7 @@ func make_cloud(material: StandardMaterial3D) -> MeshInstance3D:
 	cloud.mesh = plane
 	cloud.material_override = material
 	cloud.layers = CLOUD_LAYER   # on its own render layer, so the cloud-map camera sees only the clouds
-	var half := WORLD_SIZE / 2.0
+	var half := Land.WORLD_SIZE / 2.0
 	cloud.position = Vector3(randf_range(-half, half), height, randf_range(-half, half))
 	
 	return cloud
@@ -149,7 +148,7 @@ func make_cloud(material: StandardMaterial3D) -> MeshInstance3D:
 func _process(dt: float) -> void:
 	# Downwind: the opposite of where the wind comes from.
 	var step := -Wind.from_vector() * speed * dt
-	var half := WORLD_SIZE / 2.0
+	var half := Land.WORLD_SIZE / 2.0
 	for cloud in clouds:
 		cloud.position += step
 		# wrapf keeps a number inside a range: past one edge, it comes back from the other.

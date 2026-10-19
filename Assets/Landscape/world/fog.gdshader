@@ -10,9 +10,9 @@ shader_type spatial;
 // unshaded: no light; depth_test_disabled: drawn over everything; depth_draw_never: changes no depth.
 render_mode unshaded, depth_test_disabled, depth_draw_never, cull_disabled;
 
-// The fog picture (one pixel a cell, white = not seen yet), stretched smoothly over the 504 m map.
+// The fog picture (one pixel a cell, white = not seen yet), stretched smoothly over the whole map.
 uniform sampler2D fog_tex : filter_linear, hint_default_black;
-uniform float world_size = 504.0;   // metres the picture covers, a side (as Fog.WORLD_SIZE)
+uniform float world_size = 1008.0;  // metres the picture covers, a side (sea.gd sends Land.WORLD_SIZE)
 uniform vec4 fog_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);   // black: ink once dithered
 // How wide the fog's soft edge is, in metres (sea.gd's fog_falloff, in the Sea node's Inspector).
 // 0 = as it comes: soft over about one cell (4.8 m). More = a wider, softer edge (a small blur).

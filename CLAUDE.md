@@ -32,10 +32,13 @@
   constant strength (Enrico: only the direction changes); the boat and the wind vane read `Wind.from_deg`).
   `Sfx` (`Assets/SFX/sfx.tscn` + `sfx.gd`, the sounds, see Sound below).
   `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` shoots a physics ray straight down (y 100 → -20,
-  `intersect_ray`): anything solid hit = land; outside the 504 m map counts as land, so the map's edge is a wall.
+  `intersect_ray`): anything solid hit = land; outside the map counts as land, so the map's edge is a wall. **`Land.WORLD_SIZE`** (1008 m a side; Enrico doubled it from 504,
+  the prototype's 5040 px) is the one number for the world's size: `fog.gd`, `clouds.gd`, `book.gd` and `sea.gd` (the
+  fog shader's `world_size`) read it; only the sea plane's size in `sea.tscn` must be set to match by hand. The
+  logbook's 9×9 squares now cover 112 m each.
 - **The landscape: a plain sea plane and 3D coast meshes** (Enrico, Oct 2026; the painted map, its mask and the templates
   in `art_src/map/` are gone). `sea.tscn`: a fixed
-  504 × 504 PlaneMesh at the origin, `sea.gdshader`: Enrico's texture `sea_tex` (`sea_tex.png`, 128², a 4 × 4 test flipbook of numbers; set in `sea.tscn`'s material; `sea_color` also
+  1008 × 1008 PlaneMesh at the origin, `sea.gdshader`: Enrico's texture `sea_tex` (`sea_tex.png`, 128², a 4 × 4 test flipbook of numbers; set in `sea.tscn`'s material; `sea_color` also
   tints it; nearest, repeating) tiled in world space every `tile_size` 8 m, animated as a flipbook (`frames_x` ×
   `frames_y` cells in one image, `fps`) and/or scrolled (`scroll` m/s), turned to follow the wind (`sea.gd` `_process`: `texture_angle` eases toward `Wind.from_deg` + `texture_turn_deg` 90 with `lerp_angle` over `follow_time` 1 s; Enrico's drawing points right = the way the wind blows, so a wind blowing east (from 270°) leaves it unturned; it turns round the boat, `texture_offset` keeping the water under her still; uniforms `wind_angle`, `wind_offset`): one texture read a pixel, the cheapest (the wavelets are
   gone, Enrico); the boat's stencil. (Import the PNG Lossless, no VRAM compression.) Enrico chose the flipbook. Later (Enrico): a wave on the shore, somehow (not started). Enrico places the coasts as 3D meshes under the `Coast` node in `Overworld.tscn`; each needs
@@ -52,10 +55,10 @@
   starts at (0, 0, -34), in the sea just north of home.
 - **Clouds** (`Assets/Landscape/clouds/`: `clouds.tscn` + `clouds.gd`, instanced as `Clouds` in Overworld): flat image
   planes (PlaneMesh facing up, `StandardMaterial3D` unshaded, alpha from the PNG, both faces, render_priority 2, render layer 2)
-  `height` 35 m up (Enrico); `cloud_count` 64 made at start from `cloud_textures` (in turn; stand-ins `cloud_1..3.png`, soft
+  `height` 35 m up (Enrico); `cloud_count` 256 made at start (64 on the half-size map: same density) from `cloud_textures` (in turn; stand-ins `cloud_1..3.png`, soft
   white blobs, to be replaced by Enrico's; imported Lossless, no VRAM compression), random place, size
   `size_min`–`size_max` 30–50 m and turn; every frame moved downwind (`-Wind.from_vector()` × `speed` 2 m/s) and
-  wrapped round the 504 m map. Static pictures for now (flipbooks later, maybe). **Shadows** (they darken sea, land and boat alike):
+  wrapped round the map. Static pictures for now (flipbooks later, maybe). **Shadows** (they darken sea, land and boat alike):
   a **cloud map**, a `SubViewport` (`shadow_resolution` 256², transparent background, drawn again `shadow_updates_per_second`
   10 times a second with `UPDATE_ONCE`, the camera moved over the boat at the same moment: not every frame) whose
   orthographic camera looks straight down on the clouds alone (`cull_mask` = `CLOUD_LAYER` 2), `shadow_area` 160 m a
@@ -75,7 +78,7 @@
   ripple, `seed` per line): with `progress` 0→1 the head runs out downwind, then the tail catches up, with a quick
   fade at both ends.
 - **Fog of war** (`Fog` autoload, `Assets/Landscape/world/fog.gd`, as the prototype's): the map in cells of `CELL`
-  4.8 m (105 a side); a cell is seen for good once her middle comes within `SIGHT` 22 m of it (`Fog.reveal`, called
+  4.8 m (210 a side); a cell is seen for good once her middle comes within `SIGHT` 22 m of it (`Fog.reveal`, called
   by `boat.gd` every physics frame; it does its sums only once she has moved 1 m since the last time, `last_pos`). Kept in `Fog.image` (L8, 1 px a cell, white = fog), sent to `Fog.texture` only
   when a cell changes. Drawn as a **screen effect** (Enrico: it must cover 3D objects too):
   `Assets/Landscape/world/fog.gdshader` on a QuadMesh that `sea.gd` makes at start (child of Sea, huge

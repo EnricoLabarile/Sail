@@ -9,10 +9,13 @@ extends Node
 ## it shoots a ray straight down from high above that point, like a line trace in Unreal:
 ## if the ray hits anything solid, that point is land; if it falls through to nothing, it's sea.
 ##
-## The map is 504 x 504 metres round home (0, 0), and outside it counts as land: so the edge of the map
+## The map is WORLD_SIZE x WORLD_SIZE metres round home (0, 0), and outside it counts as land: so the edge of the map
 ## is a wall the boat bumps into, like any coast.
 
-const WORLD_SIZE := 504.0      # metres the map covers, a side (the prototype's 5040 px world)
+# Metres the map covers, a side (the prototype's 5040 px world was 504; Enrico doubled it). The ONE place to
+# change the world's size: the sea, the fog, the clouds and the logbook's map all read Land.WORLD_SIZE.
+# (The sea plane in sea.tscn must be set to the same size by hand.)
+const WORLD_SIZE := 1008.0
 const RAY_TOP := 100.0         # metres: the ray starts this high above the sea…
 const RAY_BOTTOM := -20.0      # …and goes down to this depth
 

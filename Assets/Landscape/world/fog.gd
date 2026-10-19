@@ -12,11 +12,10 @@ extends Node
 ## `texture` is that picture as a texture: the sea's shader (sea.gdshader) reads it, stretched smoothly
 ## over the whole map, and paints the fogged parts black. (In Unreal: a render target the material reads.)
 
-const WORLD_SIZE := 504.0      # metres the map covers, a side (same as Land.WORLD_SIZE)
 const CELL := 4.8              # metres a cell, a side (the prototype's 48 px)
 const SIGHT := 22.0            # metres of fog cleared round the boat (the prototype's 220 px)
 
-var cells := int(round(WORLD_SIZE / CELL))   # cells a side: 105
+var cells := int(round(Land.WORLD_SIZE / CELL))   # cells a side: 210
 var image: Image               # one pixel a cell
 var texture: ImageTexture      # the same picture, handed to the sea's shader
 var last_pos := Vector3(INF, 0.0, INF)   # where reveal() last did its sums (far away at first, so the first call does)
@@ -38,8 +37,8 @@ func reveal(pos: Vector3) -> void:
 	last_pos = pos
 	var changed := false
 	# 1. Which cells could be in sight: the ones in the square round the boat, SIGHT metres each way.
-	#    Cell (i, j) covers x from -252 + i * CELL (home, 0, is the middle of the map).
-	var half := WORLD_SIZE / 2.0
+	#    Cell (i, j) covers x from -half + i * CELL (home, 0, is the middle of the map).
+	var half := Land.WORLD_SIZE / 2.0
 	var i_min := int(floor((pos.x - SIGHT + half) / CELL))
 	var i_max := int(floor((pos.x + SIGHT + half) / CELL))
 	var j_min := int(floor((pos.z - SIGHT + half) / CELL))

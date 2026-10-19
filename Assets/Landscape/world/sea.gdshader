@@ -1,4 +1,4 @@
-// THE SEA: the big flat plane under everything (Sea, in sea.tscn), 504 x 504 metres, fixed in place with
+// THE SEA: the big flat plane under everything (Sea, in sea.tscn), Land.WORLD_SIZE metres a side (1008), fixed in place with
 // home in the middle. The coasts are separate 3D meshes on top of it. It does two things:
 //   1. it paints the sea with Enrico's texture (sea_tex), repeated over the water and animated
 //      (a flipbook of frames and/or a slow scroll), tinted by sea_color;

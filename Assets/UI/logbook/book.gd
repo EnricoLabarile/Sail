@@ -28,7 +28,6 @@ const ROOMS := 9              # 9 x 9 squares
 const LABEL_MARGIN := 6.0     # room for the letters on top and the numbers on the left
 const GRID_START := 8.0       # where the first square starts
 const ROOM_SIZE := 10.0       # one square
-const WORLD_SIZE := 504.0     # metres the whole map covers (the same world as the sea plane)
 
 ## How open the book is, 0..1. Every change redraws it (see book_icon.gd for how "set(value)" works).
 var unfold := 0.0:
@@ -90,8 +89,8 @@ func refresh() -> void:
 	# times the 9 squares, cut to a whole number.
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if boat:
-		var col := int(floor((boat.global_position.x / WORLD_SIZE + 0.5) * ROOMS))
-		var row := int(floor((boat.global_position.z / WORLD_SIZE + 0.5) * ROOMS))
+		var col := int(floor((boat.global_position.x / Land.WORLD_SIZE + 0.5) * ROOMS))
+		var row := int(floor((boat.global_position.z / Land.WORLD_SIZE + 0.5) * ROOMS))
 		_boat_square = Vector2i(clampi(col, 0, ROOMS - 1), clampi(row, 0, ROOMS - 1))
 	queue_redraw()
 
