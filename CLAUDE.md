@@ -54,7 +54,7 @@
   anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
 - **Clouds** (`Assets/Landscape/clouds/`: `clouds.tscn` + `clouds.gd`, instanced as `Clouds` in Overworld): flat image
-  planes (PlaneMesh facing up, `StandardMaterial3D` unshaded, alpha from the PNG, both faces, render_priority 2, render layer 2)
+  planes (PlaneMesh facing up, `StandardMaterial3D` unshaded, alpha from the PNG, both faces, render_priority 4: drawn over the fog of war (Enrico), render layer 2)
   `height` 35 m up (Enrico); `cloud_count` 256 made at start (64 on the half-size map: same density) from `cloud_textures` (in turn; stand-ins `cloud_1..3.png`, soft
   white blobs, to be replaced by Enrico's; imported Lossless, no VRAM compression), random place, size
   `size_min`–`size_max` 30–50 m and turn; every frame moved downwind (`-Wind.from_vector()` × `speed` 2 m/s) and
@@ -63,8 +63,8 @@
   10 times a second with `UPDATE_ONCE`, the camera moved over the boat at the same moment: not every frame) whose
   orthographic camera looks straight down on the clouds alone (`cull_mask` = `CLOUD_LAYER` 2), `shadow_area` 160 m a
   side, kept over the boat in steps of one map pixel (`follow_boat`, so it doesn't shimmer); and a **screen effect**,
-  `cloud_shadow.gdshader` on a QuadMesh stretched over the screen (render_priority 1: after the sea, before the clouds
-  and the fog): per pixel the world point from the depth (solid things) or the line of sight down to the water, then
+  `cloud_shadow.gdshader` on a QuadMesh stretched over the screen (render_priority 1: after the sea, before the fog
+  and the clouds): per pixel the world point from the depth (solid things) or the line of sight down to the water, then
   up toward the "sun" to the clouds' height (`sun_shift` = `shadow_offset` (4, 0, 4) / `height`), the map's alpha there ×
   `shadow_opacity` 0.35 in ink. `shadows_on`. (Decals don't exist in the Compatibility renderer; the scene is unshaded,
   so real light shadows wouldn't show.)
@@ -94,7 +94,7 @@
   by `boat.gd` every physics frame; it does its sums only once she has moved 1 m since the last time, `last_pos`). Kept in `Fog.image` (L8, 1 px a cell, white = fog), sent to `Fog.texture` only
   when a cell changes. Drawn as a **screen effect** (Enrico: it must cover 3D objects too):
   `Assets/Landscape/world/fog.gdshader` on a QuadMesh that `sea.gd` makes at start (child of Sea, huge
-  `extra_cull_margin`, render_priority 3, after the sea, the outline, the cloud shadows and the clouds), stretched over the screen in the vertex
+  `extra_cull_margin`, render_priority 3, after the sea, the outline, the cloud shadows, gulls and stones; the clouds (4) come after it, over it), stretched over the screen in the vertex
   shader; per pixel it follows the line of sight (two points unprojected with `INV_PROJECTION_MATRIX` /
   `INV_VIEW_MATRIX`) down to the water (y 0) and reads `fog_tex` there (linear: soft edge), painting `fog_color`
   black with that alpha; `falloff` (metres, `sea.gd` `fog_falloff`, 0 = as it comes, about a cell) averages 8 more

@@ -36,7 +36,7 @@ func add_fog() -> void:
 	fog.set_shader_parameter("falloff", fog_falloff)
 	fog.set_shader_parameter("world_size", Land.WORLD_SIZE)   # how much of the world the fog picture covers
 	fog_material = fog
-	fog.render_priority = 3      # drawn after the sea (0), outline and shadows (1), clouds (2): over everything
+	fog.render_priority = 3      # drawn after the sea (0), outline and shadows (1), gulls and stones (2): over all but the clouds (4)
 	var quad := QuadMesh.new()
 	quad.material = fog
 	var screen := MeshInstance3D.new()

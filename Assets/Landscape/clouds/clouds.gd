@@ -64,7 +64,7 @@ func make_material(texture: Texture2D) -> StandardMaterial3D:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	material.render_priority = 2     # see-through things: after the sea (0) and the shadows (1), before the fog (3)
+	material.render_priority = 4     # see-through things: last, after the sea (0), the shadows (1) and the fog (3): over it
 	return material
 
 
@@ -102,7 +102,7 @@ func add_cloud_map() -> void:
 func add_shadow_effect() -> void:
 	shadow_material = ShaderMaterial.new()
 	shadow_material.shader = load("res://Assets/Landscape/clouds/cloud_shadow.gdshader")
-	shadow_material.render_priority = 1   # after the sea (0), before the clouds (2) and the fog (3)
+	shadow_material.render_priority = 1   # after the sea (0), before the fog (3) and the clouds (4)
 	shadow_material.set_shader_parameter("cloud_map", map_camera.get_viewport().get_texture())
 	shadow_material.set_shader_parameter("map_size", shadow_area)
 	shadow_material.set_shader_parameter("cloud_height", height)
