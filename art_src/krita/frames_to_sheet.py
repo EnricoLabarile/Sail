@@ -5,6 +5,8 @@
 # - It takes FRAMES frames starting at the first frame of the timeline's range (frame 0 normally), and for
 #   each one the whole picture as you see it (all visible layers, masks and fills together).
 # - The document must be RGB/Alpha, 8-bit (Image > Properties).
+# - Transparent stays transparent: whatever is see-through in your frames is see-through in the sheet.
+#   Only what you see goes in, so keep hidden any layer that mustn't end up there (a background, a fill layer).
 # - When it's done it asks where to save the PNG and under what name (it suggests "<your file name>_sheet.png"
 #   next to your .kra file). Cancel and nothing is saved.
 
@@ -23,8 +25,12 @@ rows = (FRAMES + COLUMNS - 1) // COLUMNS
 first = doc.fullClipRangeStartTime()
 start_time = doc.currentTime()
 
-# 1. A new, empty image as big as the whole grid, with one layer.
+# 1. A new image as big as the whole grid, with one layer.
 sheet = app.createDocument(w * COLUMNS, h * rows, "sheet", "RGBA", "U8", "", doc.resolution())
+#    Krita makes every new document with a solid white background layer already in it: remove it, or the
+#    frames would sit on white and the saved sheet would have no transparency at all.
+for old_layer in sheet.rootNode().childNodes():
+    old_layer.remove()
 layer = sheet.createNode("frames", "paintlayer")
 sheet.rootNode().addChildNode(layer, None)
 
@@ -53,7 +59,12 @@ if path:
     if not path.lower().endswith(".png"):
         path += ".png"
     sheet.setBatchmode(True)
-    sheet.exportImage(path, InfoObject())
+    # The same options as Krita's own PNG export window: keep the transparency (alpha), lossless.
+    options = InfoObject()
+    options.setProperty("alpha", True)          # "Store alpha channel (transparency)"
+    options.setProperty("compression", 1)       # "Compression (Lossless)"
+    options.setProperty("forceSRGB", True)      # "Force convert to sRGB"
+    sheet.exportImage(path, options)
     print("Saved " + path + "  (" + str(COLUMNS) + " x " + str(rows) + " frames of " + str(w) + " x " + str(h) + ")")
 else:
     print("Not saved (cancelled)")
