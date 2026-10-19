@@ -1,3 +1,4 @@
+@tool
 extends Control
 ## THE SLINGSHOT (bottom right, mirroring the logbook), as in the prototype: drag its pouch down to stretch the
 ## bands; once the pull reaches fire_pull it shoots by itself, a stone flying off ahead of the bow in an arc
@@ -8,6 +9,8 @@ extends Control
 ## It is drawn with code, in greys, under the dither (its CanvasLayer is 95, like the wheel's), so it's 1-bit.
 ## The drawing is the prototype's, made in its units (a 64 x 80 box) and scaled to this Control's size.
 ## (In Unreal: a UMG widget that spawns a projectile actor.)
+## @tool: the script also runs in the editor, so the fork is drawn there too and you can see it while you
+## place and size it (like a Blueprint's construction script). In the editor it only draws: no touches, no shots.
 
 @export var sling_distance := 6.0   # metres ahead of the bow the stone lands (the prototype's 60 px)
 @export var flight_time := 0.7      # seconds the stone flies
@@ -46,6 +49,8 @@ func _k() -> float:
 # ---- touching it ----
 
 func _gui_input(e: InputEvent) -> void:
+	if Engine.is_editor_hint():
+		return                       # in the editor: only the drawing
 	if e is InputEventScreenTouch:
 		if e.pressed:
 			if drag_index == -1 and reload <= 0.0:
@@ -65,6 +70,8 @@ func _gui_input(e: InputEvent) -> void:
 
 
 func _process(dt: float) -> void:
+	if Engine.is_editor_hint():
+		return                       # in the editor: only the drawing (Godot redraws it when you resize it)
 	var boat := _boat()
 	if boat == null:
 		return

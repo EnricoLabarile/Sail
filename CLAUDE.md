@@ -135,7 +135,7 @@
   and hide below 0.02; the frame counts up at `bow_wave_fps` 12 × that share (at least 0.3).
 - **The slingshot** (Enrico, as the prototype's; infinite stones for now, no inventory): `Assets/UI/slingshot/`
   (`slingshot.tscn`: CanvasLayer 95 under the dither, in `DITHERED`; Control `Sling` bottom right, 80 × 100, mirroring
-  the logbook; `slingshot.gd`): the prototype's wooden Y drawn in greys from its SVG (64 × 80 units; bands ink over a
+  the logbook; `slingshot.gd`, `@tool` so it's drawn in the editor too, where it only draws): the prototype's wooden Y drawn in greys from its SVG (64 × 80 units; bands ink over a
   paper edge from the prongs to the pouch, the pouch mid grey, the stone in it). Drag the pouch down: `pull` 0..1
   over 48 units; at `fire_pull` 0.7 it shoots by itself (let go before: it springs back, 6/s); then the pouch is empty
   for `reload_time` 0.9 s; Enter shoots too. One stone, straight ahead (Enrico): it lands `sling_distance` 6 m ahead
