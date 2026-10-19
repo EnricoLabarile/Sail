@@ -16,9 +16,6 @@ extends Node3D
 # near the bottom of the screen don't end up behind the camera's near plane and get cut off.
 @export var camera_distance := 100.0
 # The camera follows her loosely, with a dead zone in the middle (the screen is 40 m wide).
-# Her shadow on the water (add_shadow, boat_shadow.gdshader), the same way as the clouds' shadows fall.
-@export var shadow_slant := 0.5     # metres it slides sideways per metre of height (the 6.75 m mast: about 3.4 m)
-@export var shadow_opacity := 0.6   # how dark: 0 = none, 1 = solid ink (the clouds' shadows are 0.35; at 0.35 hers hardly showed)
 @export var camera_dead_zone := 3.0     # metres she can move before the camera follows (0 = always follow)
 @export var camera_follow_speed := 3.0  # how quickly the camera catches up once she's out (higher = quicker)
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
@@ -128,7 +125,6 @@ func _ready() -> void:
 	model_height = model.position.y   # how deep she sits: wherever Model was placed in boat.tscn
 	add_water_mask()
 	add_outline()
-	add_shadow()
 
 
 ## The ink outline round the boat (Assets/Boat/boat_outline.gdshader): a rectangle in front of the
@@ -163,20 +159,6 @@ func add_water_mask() -> void:
 		var names: String = (String(mesh.name) + " " + String(mesh.get_parent().name)).to_lower()
 		if names.contains("inner"):
 			mesh.material_overlay = mask
-
-## The boat's shadow on the water (boat_shadow.gdshader): every mesh inside Model is drawn again, squashed
-## flat onto the sea toward the south-east, the way the clouds' shadows fall. Not the "inner" meshes: they
-## already carry the water mask, and they're inside the hull anyway.
-func add_shadow() -> void:
-	var shadow := ShaderMaterial.new()
-	shadow.shader = load("res://Assets/Boat/boat_shadow.gdshader")
-	shadow.render_priority = 1   # among the see-through things, after the sea (0), before the clouds and the fog
-	shadow.set_shader_parameter("shadow_slant", shadow_slant)
-	shadow.set_shader_parameter("shadow_opacity", shadow_opacity)
-	for mesh in model.find_children("*", "MeshInstance3D", true, false):
-		var names: String = (String(mesh.name) + " " + String(mesh.get_parent().name)).to_lower()
-		if not names.contains("inner"):
-			mesh.material_overlay = shadow
 
 func set_rudder(v: float) -> void:
 	rudder = clampf(v, -1.0, 1.0)

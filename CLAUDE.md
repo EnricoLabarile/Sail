@@ -108,14 +108,6 @@
   floor of the boat (below y 0) shows. The outside of the hull, mast and sail have no mask: the sea covers what's
   below the water. Until the inner mesh exists, nothing is masked (the sea shows over her floor). How deep she sits
   is `Model`'s y in `boat.tscn` (Enrico places it; −0.4 now): `boat.gd` reads it at start (`model_height`) and bobs round it.
-- **The boat's shadow** (Enrico: the same way as the clouds' shadows; `Assets/Boat/boat_shadow.gdshader`, put by
-  `boat.gd` `add_shadow()` as `material_overlay` on every mesh inside `Model` but the "inner" ones): a planar shadow,
-  each mesh drawn again squashed onto the sea (y 0.01), each point slid away from the global `sun_direction` (flat,
-  so south-east) by its height × `shadow_slant` 0.5 (Enrico chose it longer than the clouds' real slant, 4/35, which
-  hid it under the hull; the 6.75 m mast casts ~3.4 m); ink at `shadow_opacity` 0.6 (0.35 hardly showed), dithered
-  to dots; stencil `read, write, compare_not_equal, 2` so where hull, mast and sail overlap it darkens only once;
-  render_priority 1, depth-tested (the hull hides what's under it). It follows heel, boom and furl by itself. It
-  falls only on the sea plane: on land (higher) it would be hidden under the ground.
 - **Wake and bow wave**: the wake (as the prototype's wake dots) is a `CPUParticles3D` child of `Boat` in `boat.tscn`
   (`Wake`, its look set in the Inspector), `local_coords` off so what it leaves stays on the water, flat 8-sided discs
   (a CylinderMesh with no height), unshaded, vertex colour + alpha, render_priority 1: at the stern (z +1.7), two
