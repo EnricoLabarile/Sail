@@ -115,9 +115,13 @@
   0.0 = nothing), and paints ink on pixels with no boat but boat within `outline_width` (boat.gd export, 1.5 phone
   points) in 8 directions; boat pixels below `water_level` (0) don't count (their height is worked out from the depth
   with `INV_PROJECTION_MATRIX` / `INV_VIEW_MATRIX`), so the line follows the water line, not the hidden hull. Made in code so it doesn't cover the editor's view. Any future solid 3D object gets it too.
-- **The camera** (`Boat/Camera3D`, orthographic, `size` 40, `far` 200): placed by `boat.gd` `_process` from the south,
+- **The camera** (`Boat/Camera3D`, orthographic, `size` 40 = the screen's width (keep width), `far` 200): placed by `boat.gd` `_process` from the south,
   tilted `camera_tilt_deg` 45, `camera_distance` 100 m back along the way it looks (in ortho the distance doesn't
-  change the picture; at 40 the clouds low on the screen fell behind the near plane and were cut).
+  change the picture; at 40 the clouds low on the screen fell behind the near plane and were cut). It looks at `camera_focus`, which
+  trails after her with a **dead zone** (Enrico, like Unreal's follow cameras; `follow_camera`): while she's within
+  `camera_dead_zone` 3 m of the screen's middle (measured on the screen: the up-down offset × cos(tilt)) it stays
+  still; past it, it glides toward the spot that puts her back on the edge at `camera_follow_speed` 3 (a lerp, `1 −
+  exp(−speed·dt)`, the same at any frame rate).
 - **Sound** (`Sfx` autoload, `Assets/SFX/`): `.ogg` files made from the prototype's own Web Audio code by
   `art_src/audio/bake.py` (Playwright opens `bake.html`, which holds the prototype's `colouredNoise`, `chainLink` and
   `anchor` verbatim and its `ambient()` written out as a timeline, renders each sound in an `OfflineAudioContext`;
