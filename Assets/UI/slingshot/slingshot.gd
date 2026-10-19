@@ -12,11 +12,11 @@ extends Control
 ## @tool: the script also runs in the editor, so the fork is drawn there too and you can see it while you
 ## place and size it (like a Blueprint's construction script). In the editor it only draws: no touches, no shots.
 
-@export var sling_distance := 6.0   # metres ahead of the bow the stone lands (the prototype's 60 px)
+@export var sling_distance := 12   # metres ahead of the bow the stone lands (the prototype's 60 px)
 @export var flight_time := 0.7      # seconds the stone flies
-@export var arc_height := 2.9       # metres its arc rises (the prototype's 29 px)
+@export var arc_height := 4       # metres its arc rises (the prototype's 29 px)
 @export var muzzle_height := 1.0    # metres above the water it leaves the bow
-@export var fire_pull := 0.7        # pull the pouch this far (0..1) and it shoots by itself
+@export var fire_pull := 1        # pull the pouch this far (0..1) and it shoots by itself
 @export var reload_time := 0.9      # seconds before the next stone is in the pouch
 
 const STONE_SCENE := preload("res://Assets/Boat/stone/stone.tscn")

@@ -5,7 +5,7 @@ extends Node3D
 ## 1 unit = 10 px of the HTML prototype.
 
 @export var top_speed := 5        # m/s with the sail at its best (doubled by Enrico; the prototype had ~4.2)
-@export var accel := 0.9            # how quickly she gathers way (higher = quicker)
+@export var accel := 0.6            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
@@ -16,7 +16,7 @@ extends Node3D
 # near the bottom of the screen don't end up behind the camera's near plane and get cut off.
 @export var camera_distance := 100.0
 # The camera follows her loosely, with a dead zone in the middle (the screen is 40 m wide).
-@export var camera_dead_zone := 3.0     # metres she can move before the camera follows (0 = always follow)
+@export var camera_dead_zone := 6     # metres she can move before the camera follows (0 = always follow)
 @export var camera_follow_speed := 3.0  # how quickly the camera catches up once she's out (higher = quicker)
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
 @export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
