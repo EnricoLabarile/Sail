@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="7_start"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/clouds/clouds.tscn" id="20_clouds"]
 [ext_resource type="Script" path="res://Assets/Post_Process/game_view.gd" id="21_game_view"]
+[ext_resource type="PackedScene" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -19,6 +20,8 @@ fog_falloff = 3.0
 [node name="Coast" type="Node3D" parent="." unique_id=2108873514]
 
 [node name="Clouds" parent="." unique_id=610020452 instance=ExtResource("20_clouds")]
+
+[node name="WindLines" parent="." instance=ExtResource("22_wind_lines")]
 
 [node name="Boat" parent="." unique_id=1762906152 instance=ExtResource("2_boat")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)

@@ -65,6 +65,15 @@
   up toward the "sun" to the clouds' height (`sun_shift` = `shadow_offset` (4, 0, 4) / `height`), the map's alpha there ×
   `shadow_opacity` 0.35 in ink. `shadows_on`. (Decals don't exist in the Compatibility renderer; the scene is unshaded,
   so real light shadows wouldn't show.)
+- **Wind lines** (`Assets/Landscape/wind_lines/`: `wind_lines.tscn` + `wind_lines.gd`, `wind_line.gdshader`; node
+  `WindLines` in Overworld, moved into the game view like the others; as the prototype's wind streaks): a pool of
+  `line_count` 8 flat rectangles (PlaneMesh `line_length` 6 m × 0.8, each its own ShaderMaterial, render_priority 1)
+  used again and again. About `lines_per_second` 0.6 appear, `spawn_radius_min`–`spawn_radius` 4–25 m from the boat,
+  0.05 m above the water, laid along the wind (`-Wind.from_vector()`, ±0.15 rad) and drifting with it at `drift_speed`
+  1.5 m/s; each lasts `line_life` 2.2 s. The shader draws a wavy ink line (`line_width` 0.22 m, about two dots;
+  `line_alpha` 1, since under 1 the dither breaks it up; a bend of 0.15–0.3 m every 8–12 m plus a slight moving
+  ripple, `seed` per line): with `progress` 0→1 the head runs out downwind, then the tail catches up, with a quick
+  fade at both ends.
 - **Fog of war** (`Fog` autoload, `Assets/Landscape/world/fog.gd`, as the prototype's): the map in cells of `CELL`
   4.8 m (105 a side); a cell is seen for good once her middle comes within `SIGHT` 22 m of it (`Fog.reveal`, called
   by `boat.gd` every physics frame; it does its sums only once she has moved 1 m since the last time, `last_pos`). Kept in `Fog.image` (L8, 1 px a cell, white = fog), sent to `Fog.texture` only
