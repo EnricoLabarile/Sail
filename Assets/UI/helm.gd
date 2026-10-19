@@ -1,3 +1,4 @@
+@tool
 extends Control
 ## The ship's wheel (like a UMG widget that drives the pawn), drawn and behaving as in the HTML prototype.
 ##
@@ -11,6 +12,8 @@ extends Control
 ## dither (layer 95, the dither is 100), so the dither turns the greys into paper-and-ink dots.
 ## The drawing is made in the prototype's units (its wheel was 221 x 242 px, the middle at 110.5, 131)
 ## and scaled to this Control's size. It finds the boat through the group "player_boat".
+## @tool: the script also runs in the editor, so it's drawn there too and you can place and size it yourself
+## (like a Blueprint's construction script). In the editor it only draws: it doesn't react or read the game.
 
 @export var hub_hold := 0.33     # s to hold the hub for the anchor
 @export var lock_turn := PI      # how far the wheel turns for full rudder (PI = half a turn)
@@ -77,6 +80,8 @@ func _has_point(point: Vector2) -> bool:
 	return _local(point).length() < OUTER_GRIP * WHEEL_SCALE
 
 func _gui_input(e: InputEvent) -> void:
+	if Engine.is_editor_hint():
+		return                       # in the editor: only the drawing
 	if e is InputEventScreenTouch:
 		var p := _local(e.position)
 		var d := p.length()
@@ -115,6 +120,9 @@ func _gui_input(e: InputEvent) -> void:
 
 
 func _process(dt: float) -> void:
+	if Engine.is_editor_hint():
+		queue_redraw()               # in the editor: only the drawing (its pictures are ready a frame later)
+		return
 	var b := _boat()
 	var anchored := _is_anchored()
 

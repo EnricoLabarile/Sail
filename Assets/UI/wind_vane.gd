@@ -1,9 +1,12 @@
+@tool
 extends Control
 ## The wind indicator, top right: a paper dial with north at the top (the camera never turns, so the
 ## screen's up is always north). The ink arrow flies the way the wind blows, its feathered tail on
 ## the side the wind comes from; the small hollow triangle on the rim is where the bow points, so the
 ## angle between them tells you how she sails. It reads the boat's wind every frame, so it follows any
 ## change of wind (it shifts now and then, see Wind). (Like a UMG widget that reads a value from the pawn on tick.)
+## @tool: the script also runs in the editor, so it's drawn there too and you can place and size it yourself
+## (like a Blueprint's construction script). In the editor it only draws: it doesn't react or read the game.
 
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
@@ -12,6 +15,8 @@ var wind_deg := 0.0      # where the wind blows from (0 = north, 90 = east)
 var heading := Vector2.UP
 
 func _process(_dt: float) -> void:
+	if Engine.is_editor_hint():
+		return                       # in the editor: only the drawing (the wind from the north)
 	var b := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if b == null:
 		return

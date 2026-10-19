@@ -224,6 +224,13 @@
   (`_make_fps_label`), filled every frame by `_process` while the book is fully open (Enrico), hidden otherwise.
   **The book itself is not redrawn every frame** (Enrico): `logbook.gd` calls `book.refresh()` on opening, which reads
   the square once; after that it's drawn again only while the cover turns (`unfold`'s setter).
+- **The UI is drawn in the editor too** (Enrico: to place and arrange it himself): `helm.gd`, `wind_vane.gd`,
+  `book_icon.gd`, `book.gd` and `slingshot.gd` are `@tool`; in the editor (`Engine.is_editor_hint()`) `_gui_input`
+  and `_process` return at once (no touches, keys, boat, wind or sounds), so they only draw: the wheel with the
+  sailing hub (redrawn each editor frame, its pictures being ready a frame late), the vane with the wind from the
+  north, the shut logbook icon, the open book (`unfold` = 1, no counter), the sling at rest. Their places and sizes
+  are the Controls' in their .tscn (anchors and offsets), except the open book's, which `logbook.gd` works out
+  every frame (`BOOK_MAX`, `TOP_GAP`, centred).
 - **The start screen** (`Assets/UI/start_screen.tscn` + `.gd`, CanvasLayer 130, in Overworld): a card with the title, "Build
   N" and the build's start time, and "Set sail"; the game is paused until it's pressed. The numbers come from
   `Assets/UI/build_info.gd` ("local" in the repo); `web.yml` rewrites it before exporting with `github.run_number`

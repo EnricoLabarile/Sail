@@ -1,3 +1,4 @@
+@tool
 extends Control
 ## THE OPEN LOGBOOK: the leather book with its two pages and, across them, the map.
 ## (For now only pages 1–2, the map, as Enrico asked.)
@@ -12,6 +13,8 @@ extends Control
 ## `unfold` (0..1) is changed by logbook.gd with a Tween:
 ##   0 = shut: only the right half shows, the front cover lying over the right page (leather up);
 ##   1 = open flat: the front cover has swung over on the spine and its inside is the left page.
+## @tool: the script also runs in the editor, so it's drawn there too and you can place and size it yourself
+## (like a Blueprint's construction script). In the editor it only draws: it doesn't react or read the game.
 
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
@@ -42,12 +45,17 @@ var _fps_label: Label           # the frame-rate counter, a Label of its own (se
 
 func _ready() -> void:
 	_grain = _make_grain_tile()
+	if Engine.is_editor_hint():
+		unfold = 1.0                 # in the editor: drawn open, to see it (no counter)
+		return
 	_fps_label = _make_fps_label()
 
 
 ## Every frame, while the book is open: the frame-rate counter. Only the Label changes, so only it is
 ## redrawn, not the whole book (grid, leather, stitching). Shut or hidden, it's hidden and nothing is done.
 func _process(_dt: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	var open := visible and unfold > 0.99
 	_fps_label.visible = open
 	if not open:

@@ -1,6 +1,9 @@
+@tool
 extends Control
 ## THE LOGBOOK BUTTON (bottom left): a small leather book. Tapped, it says so with the signal `pressed`
 ## (logbook.gd listens and opens or shuts the book).
+## @tool: the script also runs in the editor, so it's drawn there too and you can place and size it yourself
+## (like a Blueprint's construction script). In the editor it only draws: it doesn't react or read the game.
 ##
 ## It is drawn with code, in greys, like the HTML prototype's icon: it sits on a CanvasLayer UNDER the
 ## dither (layer 95, the dither is 100), so the dither turns the greys into paper-and-ink dots.
@@ -20,6 +23,8 @@ var open_amount := 0.0:
 
 ## A tap on the icon: tell logbook.gd.
 func _gui_input(event: InputEvent) -> void:
+	if Engine.is_editor_hint():
+		return                       # in the editor: only the drawing
 	if event is InputEventScreenTouch and event.pressed:
 		pressed.emit()
 		accept_event()                     # the tap stops here (it doesn't reach what's underneath)
