@@ -11,6 +11,7 @@
   ahead as a timeline). The wind is new: the prototype had no wind sound. (Sea, wind and hull water are no longer
   used by the game, Enrico; they stay here in case they come back.)
   The ship's wheel: thunk() (the thud at full lock) is copied verbatim, the rub is its looping layer from init().
+  The slingshot: thunk() again, and splash() (verbatim) for the stone landing in the water.
 -->
 <script>
 let ac = null, master = null, noise = null;
@@ -119,6 +120,18 @@ function fresh(seconds, channels, rate){
       o.connect(og); og.connect(wheelBus);
       o.start(t); o.stop(t+0.16);
     }
+    // a stone landing in the water (the prototype's splash(); its running check left out, as for the anchor)
+    function splash(){
+      const t0 = ac.currentTime;
+      const src = ac.createBufferSource(); src.buffer = noise;
+      const bp = ac.createBiquadFilter(); bp.type='lowpass';
+      bp.frequency.setValueAtTime(1800,t0); bp.frequency.exponentialRampToValueAtTime(350,t0+0.5);
+      const g = ac.createGain();
+      g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.1,t0+0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+0.6);
+      src.connect(bp); bp.connect(g); g.connect(master);
+      src.start(t0, Math.random()*0.3, 0.65);
+    }
     function env(peak, len){
       const g = ac.createGain(), t = ac.currentTime;
       g.gain.setValueAtTime(0.0001, t);
@@ -209,6 +222,10 @@ const SOUNDS = {
   }},
   // The muted thud when the wheel hits full lock (thunk(WHEEL_VOL)); the game plays it softer when it's slow.
   wheel_thunk: { seconds: 0.3, channels: 1, rate: 44100, loop: false, build(){ makeWheelBus(); thunk(WHEEL_VOL); } },
+  // The slingshot fired (the prototype's shootStone(): thunk(0.35)).
+  sling_shot: { seconds: 0.3, channels: 1, rate: 44100, loop: false, build(){ makeWheelBus(); thunk(0.35); } },
+  // A stone landing in the water (the prototype's updateSling(): splash() and thunk(0.25)).
+  stone_splash: { seconds: 0.8, channels: 1, rate: 44100, loop: false, build(){ makeWheelBus(); splash(); thunk(0.25); } },
 };
 
 // Renders one sound and gives it back as a 32-bit float WAV, base64 (bake.py reads it).

@@ -5,6 +5,8 @@
 [ext_resource type="AudioStream" path="res://Assets/SFX/anchor_up.ogg" id="6_up"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/wheel_rub.ogg" id="7_rub"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/wheel_thunk.ogg" id="8_thunk"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/sling_shot.ogg" id="9_shot"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/stone_splash.ogg" id="10_splash"]
 
 [node name="Sfx" type="Node"]
 script = ExtResource("1_sfx")
@@ -20,3 +22,9 @@ stream = ExtResource("7_rub")
 
 [node name="WheelThunk" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("8_thunk")
+
+[node name="SlingShot" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9_shot")
+
+[node name="StoneSplash" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("10_splash")

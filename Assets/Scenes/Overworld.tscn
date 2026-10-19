@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://Assets/Post_Process/game_view.gd" id="21_game_view"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="23_gulls"]
+[ext_resource type="PackedScene" path="res://Assets/UI/slingshot/slingshot.tscn" id="24_sling"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -36,6 +37,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)
 [node name="WindVane" parent="." unique_id=1472540336 instance=ExtResource("5_vane")]
 
 [node name="Logbook" parent="." unique_id=1838272232 instance=ExtResource("6_logbook")]
+
+[node name="Slingshot" parent="." instance=ExtResource("24_sling")]
 
 [node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("7_start")]
 

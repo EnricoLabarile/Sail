@@ -133,6 +133,24 @@
   for Enrico to redraw; uniforms `frames_x/y`, `frame`, `strength`). `boat.gd` `update_bow_wave()`: `strength` eases
   (×4/s) to her share of top speed (0 at anchor or slow), the wings grow from `bow_wave_min_size` 0.4 to full with it
   and hide below 0.02; the frame counts up at `bow_wave_fps` 12 × that share (at least 0.3).
+- **The slingshot** (Enrico, as the prototype's; infinite stones for now, no inventory): `Assets/UI/slingshot/`
+  (`slingshot.tscn`: CanvasLayer 95 under the dither, in `DITHERED`; Control `Sling` bottom right, 80 × 100, mirroring
+  the logbook; `slingshot.gd`): the prototype's wooden Y drawn in greys from its SVG (64 × 80 units; bands ink over a
+  paper edge from the prongs to the pouch, the pouch mid grey, the stone in it). Drag the pouch down: `pull` 0..1
+  over 48 units; at `fire_pull` 0.7 it shoots by itself (let go before: it springs back, 6/s); then the pouch is empty
+  for `reload_time` 0.9 s; Enter shoots too. One stone, straight ahead (Enrico): it lands `sling_distance` 6 m ahead
+  of the bow plus the boat's measured velocity × `flight_time` 0.7 s (the prototype's `carry`), leaving the bow at
+  `muzzle_height` 1 m, arc `arc_height` 2.9 m. While pulling, `aim_ring.gdshader` on a 2 m PlaneMesh at the landing
+  spot: a dashed ink ring over paper and a faint ink spot, firmer as the pull nears the shot (`strength`). Sounds:
+  `Sfx.sling_shot()`. **The stone** (`Assets/Boat/stone/`: `stone.tscn` + `stone.gd`, `stone.gdshader`,
+  `stone_shadow.gdshader`, `stone.png`; added to the boat's parent, so it doesn't move with her): `Picture`, a QuadMesh
+  4 × 4 m raised by half (its origin the bottom middle) facing the camera (billboard in the shader:
+  `MODELVIEW_MATRIX` from `INV_VIEW_MATRIX`), render_priority 2, showing one `frame` of a 4 × 4 sheet; frame 0 while
+  it flies, its height `from.y × (1 − t) + arc_height × 4t(1 − t)`; `Shadow`, a 0.9 m ink disc on the water (0.35, as
+  the clouds'), slid by height × the clouds' `shadow_offset / height` (found through the group "clouds"); landing in
+  the water (not `Land.is_land`) the shadow goes, frames 1..15 play once at `splash_fps` 12 (`Sfx.stone_splash()`),
+  then it frees itself; on land it's simply gone. `stone.png` is a stand-in (frames 64 × 64; frame 0 the stone near
+  the bottom middle, then the splash rising from the bottom) for Enrico to redraw.
 - **The outline** (`Assets/Boat/boat_outline.gdshader`, made by `boat.gd` `add_outline()`: a QuadMesh child of the
   camera, stretched over the screen in the vertex shader, render_priority 1, after the sea): reads the depth buffer
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
@@ -149,20 +167,22 @@
   `art_src/audio/bake.py` (Playwright opens `bake.html`, which holds the prototype's `colouredNoise`, `chainLink`,
   `anchor` and `thunk` verbatim, renders each sound in an `OfflineAudioContext`; loops get an extra second
   cross-faded onto the start; one gain for all keeps the prototype's balance; ffmpeg → Vorbis;
-  `CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome python art_src/audio/bake.py`). **Only the anchor and
-  the wheel now** (Enrico removed the sea, the wind and the water along the hull; bake.html still has them, bake.py's
+  `CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome python art_src/audio/bake.py`). **Only the anchor, the
+  wheel and the slingshot now** (Enrico removed the sea, the wind and the water along the hull; bake.html still has them, bake.py's
   `NAMES` leaves them out): `anchor_down.ogg` / `anchor_up.ogg` (`Sfx.anchor(down)`, called by `boat.gd`
   `toggle_anchor`); `wheel_rub.ogg` (a 6 s loop of the prototype's rub: low-passed noise at 520 Hz through its wheel
   bus, × `WHEEL_VOL` 2; `Sfx.wheel(spin, dt)` every frame from `helm.gd`: loudness = min(1, spin / 7 rad/s), silent
   under 0.05, eased over 0.08 s, pitch 0.8..1 for the prototype's filter 320..520 Hz) and `wheel_thunk.ogg` (the thud at
   full lock, `thunk(WHEEL_VOL)`; `Sfx.wheel_stop(strength)` when the wheel reaches full lock turning faster than 0.3
   rad/s, strength min(1, 0.5 + spin / 10)). The spokes' knocks stay off, as in the prototype (`WHEEL_KNOCKS` false).
+  The slingshot: `sling_shot.ogg` (the prototype's `thunk(0.35)`, `Sfx.sling_shot()`) and `stone_splash.ogg`
+  (`splash()` verbatim + `thunk(0.25)`, `Sfx.stone_splash()`).
   The players are nodes in `sfx.tscn` (their Volume dB = the level); nothing plays while the game is paused.
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
   Bayer 4×4 to paper/ink, one dot per pixel of the game view (below; the shader still works out a scale from its
   screen, which is 1 there).
 - **The game view** (`Assets/Post_Process/game_view.gd`, node `GameView` in Overworld; Enrico asked for performance):
-  at start (deferred, after every node is ready) it moves `Sea`, `Coast`, `Clouds`, `WindLines`, `Gulls`, `Boat`, `Dither`, `Helm` and the
+  at start (deferred, after every node is ready) it moves `Sea`, `Coast`, `Clouds`, `WindLines`, `Gulls`, `Boat`, `Dither`, `Helm`, `Slingshot` and the
   logbook's `IconLayer` into a `SubViewport` drawn at the game's resolution, and shows its picture on a full-screen
   `TextureRect` (CanvasLayer 1, nearest filter: sharp dots). Size: real pixels of the game area
   (`get_visible_rect().size × get_final_transform().get_scale()`) / `dot_scale`, `dot_scale` = round(real width /

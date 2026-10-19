@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/UI/slingshot/slingshot.gd" id="1_sling"]
+
+[node name="Slingshot" type="CanvasLayer"]
+layer = 95
+
+[node name="Sling" type="Control" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -89.0
+offset_top = -144.0
+offset_right = -9.0
+offset_bottom = -44.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("1_sling")

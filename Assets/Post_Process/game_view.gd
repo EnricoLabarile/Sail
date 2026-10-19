@@ -14,7 +14,7 @@ extends Node
 ## Taps and drags on the picture are passed on to the SubViewport, scaled to its pixels (push_input).
 
 const DESIGN_WIDTH := 360.0   # the game's width in the project settings: the picture is about this many pixels wide
-const DITHERED := ["Sea", "Coast", "Clouds", "WindLines", "Gulls", "Boat", "Dither", "Helm"]   # nodes of Overworld moved into the view
+const DITHERED := ["Sea", "Coast", "Clouds", "WindLines", "Gulls", "Boat", "Dither", "Helm", "Slingshot"]   # nodes of Overworld moved into the view
 
 var view: SubViewport         # where the dithered part of the game is drawn
 var screen: TextureRect       # the view's picture, stretched over the screen
