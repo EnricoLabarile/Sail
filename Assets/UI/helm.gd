@@ -45,6 +45,8 @@ var hub_t := 0.0                 # how long it has been held
 var hub_start := Vector2.ZERO    # where that finger came down (in the prototype's units)
 var hub_shake := 0.0             # 1 right after the anchor goes down or comes up, fading to 0
 var shown_anchor := true         # the anchor state the hub was last drawn with
+var last_angle := 0.0            # the wheel's angle a frame ago (for its speed, for the sounds)
+var at_lock := false             # true while the wheel is hard over, at full lock
 
 
 func _boat() -> Node:
@@ -141,6 +143,16 @@ func _process(dt: float) -> void:
 		queue_redraw()
 	if b:
 		b.set_rudder(wheel_angle / lock_turn)
+
+	# 2b. Its sounds (Assets/SFX/sfx.gd), as in the prototype: a soft wooden rub while it turns, louder the
+	#     faster, and a muted thud when it reaches full lock (softer if it gets there slowly).
+	var spin := absf(wheel_angle - last_angle) / maxf(dt, 0.001)   # how fast it turns, radians a second
+	last_angle = wheel_angle
+	Sfx.wheel(spin, dt)
+	var hard_over := absf(wheel_angle) >= lock_turn - 0.0001
+	if hard_over and not at_lock and spin > 0.3:
+		Sfx.wheel_stop(minf(1.0, 0.5 + spin / 10.0))
+	at_lock = hard_over
 
 	# 3. The hub's face changes with the anchor: redraw when it does.
 	if anchored != shown_anchor:

@@ -1,26 +1,22 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://Assets/SFX/sfx.gd" id="1_sfx"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/sea.ogg" id="2_sea"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/wind.ogg" id="3_wind"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/rush.ogg" id="4_rush"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/anchor_down.ogg" id="5_down"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/anchor_up.ogg" id="6_up"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/wheel_rub.ogg" id="7_rub"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/wheel_thunk.ogg" id="8_thunk"]
 
 [node name="Sfx" type="Node"]
 script = ExtResource("1_sfx")
-
-[node name="Sea" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("2_sea")
-
-[node name="Wind" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("3_wind")
-
-[node name="Rush" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("4_rush")
 
 [node name="AnchorDown" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_down")
 
 [node name="AnchorUp" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_up")
+
+[node name="WheelRub" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_rub")
+
+[node name="WheelThunk" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8_thunk")

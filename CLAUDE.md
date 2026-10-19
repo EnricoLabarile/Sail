@@ -142,15 +142,18 @@
   `camera_dead_zone` 3 m of it the camera stays still; past it, it lerps toward the spot that puts her back on the
   edge at `camera_follow_speed` 3. Kept simple (Enrico).
 - **Sound** (`Sfx` autoload, `Assets/SFX/`): `.ogg` files made from the prototype's own Web Audio code by
-  `art_src/audio/bake.py` (Playwright opens `bake.html`, which holds the prototype's `colouredNoise`, `chainLink` and
-  `anchor` verbatim and its `ambient()` written out as a timeline, renders each sound in an `OfflineAudioContext`;
-  loops are 48 s with the extra second cross-faded onto the start; one gain for all keeps the prototype's balance;
-  ffmpeg → Vorbis; `CHROMIUM=/opt/pw-browsers/chromium python art_src/audio/bake.py`). `sea.ogg` (two swells of
-  brown noise panned apart, always on), `wind.ogg` (new, the prototype had none: pink noise ~600 Hz in slow gusts,
-  always on), `rush.ogg` (water along the hull: loudness × (speed/top_speed)^1.5, pitch 0.55..1), `anchor_down.ogg`
-  / `anchor_up.ogg` (`Sfx.anchor(down)`, called by `boat.gd` `toggle_anchor`). The players are nodes in `sfx.tscn`
-  (their Volume dB = the level; the loops fade in over `fade_in_time` 2 s); nothing plays while the game is paused.
-  (Headless `--quit-after` prints "resources still in use at exit" for the playing loops: harmless.)
+  `art_src/audio/bake.py` (Playwright opens `bake.html`, which holds the prototype's `colouredNoise`, `chainLink`,
+  `anchor` and `thunk` verbatim, renders each sound in an `OfflineAudioContext`; loops get an extra second
+  cross-faded onto the start; one gain for all keeps the prototype's balance; ffmpeg → Vorbis;
+  `CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome python art_src/audio/bake.py`). **Only the anchor and
+  the wheel now** (Enrico removed the sea, the wind and the water along the hull; bake.html still has them, bake.py's
+  `NAMES` leaves them out): `anchor_down.ogg` / `anchor_up.ogg` (`Sfx.anchor(down)`, called by `boat.gd`
+  `toggle_anchor`); `wheel_rub.ogg` (a 6 s loop of the prototype's rub: low-passed noise at 520 Hz through its wheel
+  bus, × `WHEEL_VOL` 2; `Sfx.wheel(spin, dt)` every frame from `helm.gd`: loudness = min(1, spin / 7 rad/s), silent
+  under 0.05, eased over 0.08 s, pitch 0.8..1 for the prototype's filter 320..520 Hz) and `wheel_thunk.ogg` (the thud at
+  full lock, `thunk(WHEEL_VOL)`; `Sfx.wheel_stop(strength)` when the wheel reaches full lock turning faster than 0.3
+  rad/s, strength min(1, 0.5 + spin / 10)). The spokes' knocks stay off, as in the prototype (`WHEEL_KNOCKS` false).
+  The players are nodes in `sfx.tscn` (their Volume dB = the level); nothing plays while the game is paused.
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
   Bayer 4×4 to paper/ink, one dot per pixel of the game view (below; the shader still works out a scale from its
   screen, which is 1 there).
@@ -182,8 +185,8 @@
   filter), the hub sailing and the hub at anchor; only the rim's fixed shade, the hub's shake and its hold ring are
   drawn live (draw calls ~290 → ~45: the wheel's discs of 40 triangles each were most of them). Drag to steer (half a turn = full rudder, springs back to the middle); the hub's grip is
   16.5 sailing / 21 at anchor (× 2.6): held `hub_hold` 0.33 s (a ring fills) it works the anchor and shakes; a finger
-  moving 9 off the hub turns the wheel instead; at anchor the wheel doesn't steer (drag and arrow keys). No sound or
-  buzz yet.
+  moving 9 off the hub turns the wheel instead; at anchor the wheel doesn't steer (drag and arrow keys). Its sounds:
+  see Sound (the rub and the thud at full lock). No buzz yet.
 - **The logbook** (`Assets/UI/logbook/`: `logbook.tscn` + `logbook.gd`, `book_icon.gd`, `book.gd`; in Overworld): as the
   prototype's. The button bottom left (76 px, drawn in greys on a CanvasLayer under the dither, 95, so it's 1-bit) emits
   `pressed`; `logbook.gd` tweens `drop` (the shut book comes down, 0.26 s) then `book.unfold` (the cover swings open on

@@ -8,7 +8,9 @@
   for each sound and saves the WAVs, then turns them into .ogg for Godot.
   The anchor's functions (chainLink, anchor) and the noise maker (colouredNoise) are copied VERBATIM from the
   prototype. The sea and the water along the hull follow its ambient() (the per-frame changes written out
-  ahead as a timeline). The wind is new: the prototype had no wind sound.
+  ahead as a timeline). The wind is new: the prototype had no wind sound. (Sea, wind and hull water are no longer
+  used by the game, Enrico; they stay here in case they come back.)
+  The ship's wheel: thunk() (the thud at full lock) is copied verbatim, the rub is its looping layer from init().
 -->
 <script>
 let ac = null, master = null, noise = null;
@@ -101,7 +103,35 @@ function fresh(seconds, channels, rate){
       }
     }
 
+    // the ship's wheel (the prototype's init() and thunk()): its sounds all go through wheelBus (0.6)
+    function thunk(vol){
+      // (the prototype's check that the audio is running is left out: here it renders offline)
+      const t = ac.currentTime;
+      const src = ac.createBufferSource(); src.buffer = noise;
+      const lp = ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=500;
+      const g = env(0.35*vol, 0.12);
+      src.connect(lp); lp.connect(g); g.connect(wheelBus);
+      src.start(t, Math.random()*0.8, 0.15);
+      const o = ac.createOscillator(); o.type='sine';
+      o.frequency.setValueAtTime(150, t);
+      o.frequency.exponentialRampToValueAtTime(95, t+0.1);
+      const og = env(0.2*vol, 0.14);
+      o.connect(og); og.connect(wheelBus);
+      o.start(t); o.stop(t+0.16);
+    }
+    function env(peak, len){
+      const g = ac.createGain(), t = ac.currentTime;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t+0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+len);
+      return g;
+    }
+
 // ---- end of the copied code ----
+
+const WHEEL_VOL = 2;   // the prototype's loudness of the ship's wheel (its WHEEL_VOL)
+let wheelBus = null;   // the wheel's own bus (0.6), as in the prototype's init()
+function makeWheelBus(){ wheelBus = ac.createGain(); wheelBus.gain.value = 0.6; wheelBus.connect(master); }
 
 // A looping layer as the prototype's ambient layers: noise -> filter -> gain -> (pan) -> out.
 function layer(buf, type, freq, Q, pan, offset, out){
@@ -167,6 +197,18 @@ const SOUNDS = {
   anchor_down: { seconds: 2.2, channels: 1, rate: 44100, loop: false, build(){ anchor(true); } },
   // Weighing it: the chain rattling in link by link and the last one clunking home (anchor(false)).
   anchor_up: { seconds: 1.2, channels: 1, rate: 44100, loop: false, build(){ anchor(false); } },
+  // The wheel's soft wooden rub while it turns (init()'s rub: dark low-passed noise), at full speed (k = 1: gain
+  // 0.05 × WHEEL_VOL, low-pass 320 + 200). The game turns it down and lower as the wheel slows. A short loop.
+  wheel_rub: { seconds: 6 + EXTRA, loopSeconds: 6, channels: 1, rate: 22050, loop: true, build(){
+    makeWheelBus();
+    const src = ac.createBufferSource(); src.buffer = noise; src.loop = true;
+    const lp = ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 520; lp.Q.value = 0.7;
+    const out = ac.createGain(); out.gain.value = 0.05 * WHEEL_VOL;
+    src.connect(lp); lp.connect(out); out.connect(wheelBus);
+    src.start();
+  }},
+  // The muted thud when the wheel hits full lock (thunk(WHEEL_VOL)); the game plays it softer when it's slow.
+  wheel_thunk: { seconds: 0.3, channels: 1, rate: 44100, loop: false, build(){ makeWheelBus(); thunk(WHEEL_VOL); } },
 };
 
 // Renders one sound and gives it back as a 32-bit float WAV, base64 (bake.py reads it).
@@ -176,6 +218,6 @@ async function bake(name){
   s.build();
   const buf = await ac.startRendering();
   const chans = []; for(let c = 0; c < buf.numberOfChannels; c++) chans.push(Array.from(buf.getChannelData(c)));
-  return {rate: buf.sampleRate, loop: s.loop, loopSeconds: s.loop ? LOOP : 0, chans};
+  return {rate: buf.sampleRate, loop: s.loop, loopSeconds: s.loop ? (s.loopSeconds || LOOP) : 0, chans};
 }
 </script>

@@ -19,7 +19,8 @@ from playwright.sync_api import sync_playwright
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "..", "Assets", "SFX")
-NAMES = ["sea", "rush", "wind", "anchor_down", "anchor_up"]
+# (sea, rush and wind are in bake.html too, but the game doesn't use them any more: Enrico)
+NAMES = ["anchor_down", "anchor_up", "wheel_rub", "wheel_thunk"]
 PEAK = 0.89   # the loudest sound peaks here (-1 dB), the others in proportion
 
 
