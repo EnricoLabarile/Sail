@@ -12,7 +12,7 @@ extends Control
 ## @tool: the script also runs in the editor, so the fork is drawn there too and you can see it while you
 ## place and size it (like a Blueprint's construction script). In the editor it only draws: no touches, no shots.
 
-@export var sling_distance := 12   # metres ahead of the bow the stone lands (the prototype's 60 px)
+@export var sling_distance := 12   # how far ahead of the bow the stone lands, in metres as seen on the screen (east-west)
 @export var flight_time := 0.7      # seconds the stone flies
 @export var arc_height := 4       # metres its arc rises (the prototype's 29 px)
 @export var muzzle_height := 1.0    # metres above the water it leaves the bow
@@ -32,8 +32,6 @@ var drag_index := -1               # the finger on the pouch (-1 = none)
 var drag_start_y := 0.0            # where that finger came down
 var reload := 0.0                  # seconds until the pouch has a stone again
 var enter_was_down := false        # the Enter key a frame ago (so one press is one shot)
-var boat_velocity := Vector3.ZERO  # how the boat is moving (metres a second), measured each frame
-var last_boat_pos := Vector3.ZERO
 var aim_ring: MeshInstance3D       # the dashed ring on the water (made the first time it's needed)
 
 
@@ -75,11 +73,6 @@ func _process(dt: float) -> void:
 	var boat := _boat()
 	if boat == null:
 		return
-	# 1. How the boat is moving (the stone is carried on by her way, so it doesn't seem to veer behind her).
-	if dt > 0.0:
-		boat_velocity = (boat.global_position - last_boat_pos) / dt
-	last_boat_pos = boat.global_position
-
 	# 2. The reload: the pouch is empty for a moment after a shot.
 	if reload > 0.0:
 		reload = maxf(0.0, reload - dt)
@@ -101,11 +94,18 @@ func _process(dt: float) -> void:
 	update_aim(boat)
 
 
-## Where the stone will land: sling_distance ahead of the bow, plus how far the boat moves while it flies.
+## Where the stone will land: straight ahead of the bow, sling_distance away as seen on the screen (always the
+## same, whichever way she points; it doesn't follow the boat's own way any more, Enrico: the same distance every time).
 func landing_point(boat: Node3D) -> Vector3:
 	var forward := -boat.global_transform.basis.z
 	forward.y = 0.0
-	var spot: Vector3 = boat.bow_point() + forward.normalized() * sling_distance + boat_velocity * flight_time
+	forward = forward.normalized()
+	# The camera looks down at a slant (camera_tilt_deg), so on the screen a metre north or south looks shorter
+	# than a metre east or west (× cos(tilt): 0.71 at 45°). To make every shot look the same length on the screen,
+	# whichever way she points, the stone goes that much further when she points north or south.
+	var squash := cos(deg_to_rad(boat.camera_tilt_deg))
+	var on_screen := Vector2(forward.x, forward.z * squash).length()   # how long 1 m this way looks: 0.71 .. 1
+	var spot: Vector3 = boat.bow_point() + forward * (sling_distance / on_screen)
 	spot.y = 0.0
 	return spot
 

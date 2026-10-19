@@ -138,9 +138,11 @@
   the logbook; `slingshot.gd`, `@tool` so it's drawn in the editor too, where it only draws): the prototype's wooden Y drawn in greys from its SVG (64 × 80 units; bands ink over a
   paper edge from the prongs to the pouch, the pouch mid grey, the stone in it). Drag the pouch down: `pull` 0..1
   over 48 units; at `fire_pull` 0.7 it shoots by itself (let go before: it springs back, 6/s); then the pouch is empty
-  for `reload_time` 0.9 s; Enter shoots too. One stone, straight ahead (Enrico): it lands `sling_distance` 6 m ahead
-  of the bow plus the boat's measured velocity × `flight_time` 0.7 s (the prototype's `carry`), leaving the bow at
-  `muzzle_height` 1 m, arc `arc_height` 2.9 m. While pulling, `aim_ring.gdshader` on a 2 m PlaneMesh at the landing
+  for `reload_time` 0.9 s; Enter shoots too. One stone, straight ahead (Enrico): it lands `sling_distance` (12 m,
+  Enrico) ahead of the bow **as seen on the screen**, whatever her heading (Enrico: always the same distance): the ground
+  distance is `sling_distance` / |(fwd.x, fwd.z × cos(`camera_tilt_deg`))|, so north/south shots go 1/cos 45° further;
+  no `carry` of the boat's way any more (it took in the current, so it changed with her heading); `flight_time` 0.7 s,
+  leaving the bow at `muzzle_height` 1 m, arc `arc_height` (4 m, Enrico). While pulling, `aim_ring.gdshader` on a 2 m PlaneMesh at the landing
   spot: a dashed ink ring over paper and a faint ink spot, firmer as the pull nears the shot (`strength`). Sounds:
   `Sfx.sling_shot()`. **The stone** (`Assets/Boat/stone/`: `stone.tscn` + `stone.gd`, `stone.gdshader`,
   `stone_shadow.gdshader`, `stone.png`; added to the boat's parent, so it doesn't move with her): `Picture`, a QuadMesh
