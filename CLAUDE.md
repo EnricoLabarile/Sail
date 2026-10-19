@@ -119,9 +119,8 @@
   tilted `camera_tilt_deg` 45, `camera_distance` 100 m back along the way it looks (in ortho the distance doesn't
   change the picture; at 40 the clouds low on the screen fell behind the near plane and were cut). It looks at `camera_focus`, which
   trails after her with a **dead zone** (Enrico, like Unreal's follow cameras; `follow_camera`): while she's within
-  `camera_dead_zone` 3 m of the screen's middle (measured on the screen: the up-down offset × cos(tilt)) it stays
-  still; past it, it glides toward the spot that puts her back on the edge at `camera_follow_speed` 3 (a lerp, `1 −
-  exp(−speed·dt)`, the same at any frame rate).
+  `camera_dead_zone` 3 m of it the camera stays still; past it, it lerps toward the spot that puts her back on the
+  edge at `camera_follow_speed` 3. Kept simple (Enrico).
 - **Sound** (`Sfx` autoload, `Assets/SFX/`): `.ogg` files made from the prototype's own Web Audio code by
   `art_src/audio/bake.py` (Playwright opens `bake.html`, which holds the prototype's `colouredNoise`, `chainLink` and
   `anchor` verbatim and its `ambient()` written out as a timeline, renders each sound in an `OfflineAudioContext`;

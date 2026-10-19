@@ -15,10 +15,8 @@ extends Node3D
 # doesn't change the picture at all: it only has to be far enough that tall things (the clouds, 15 m up)
 # near the bottom of the screen don't end up behind the camera's near plane and get cut off.
 @export var camera_distance := 100.0
-# The camera follows her loosely (like a dead zone on a follow camera in Unreal): while she stays inside a
-# circle in the middle of the screen the camera doesn't move; once she goes past its edge, the camera glides
-# after her until she's back on the edge. (The screen is 40 m wide, the camera's size: about 9 pixels a metre.)
-@export var camera_dead_zone := 3.0     # radius of the still circle, in metres on the screen (0 = always follow)
+# The camera follows her loosely, with a dead zone in the middle (the screen is 40 m wide).
+@export var camera_dead_zone := 3.0     # metres she can move before the camera follows (0 = always follow)
 @export var camera_follow_speed := 3.0  # how quickly the camera catches up once she's out (higher = quicker)
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
 @export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
@@ -450,29 +448,16 @@ func _process(dt: float) -> void:
 	# the camera: from the south, tilted, always the same way up (like a spring arm that doesn't rotate),
 	# looking at camera_focus, which trails after her (follow_camera)
 	var t := deg_to_rad(camera_tilt_deg)
-	follow_camera(dt, t)
+	follow_camera(dt)
 	camera.global_position = camera_focus + Vector3(0.0, cos(t), sin(t)) * camera_distance
 	camera.global_rotation = Vector3(-(PI / 2.0 - t), 0.0, 0.0)
 
 
-## Moves camera_focus (the point the camera looks at) after her, with a dead zone.
-## t is the camera's tilt in radians.
-func follow_camera(dt: float, t: float) -> void:
-	# 1. How far she is from the middle of the screen. Sideways (x) a metre on the water is a metre on the
-	#    screen; up and down (z) the tilted camera squashes it to cos(tilt), so we measure it that way: the
-	#    still zone is a real circle on the screen, not on the water.
-	var off := global_position - camera_focus
-	var squash := cos(t)
-	var on_screen := Vector2(off.x, off.z * squash)
-	var dist := on_screen.length()
-	# 2. Inside the circle: the camera stays where it is.
-	if dist <= camera_dead_zone:
-		return
-	# 3. Outside: the spot that would put her right on the circle's edge (from the middle toward her)...
-	var past_edge := on_screen * (1.0 - camera_dead_zone / dist)   # how far past the edge, on the screen
-	var goal := camera_focus + Vector3(past_edge.x, 0.0, past_edge.y / squash)   # back to metres on the water
-	# 4. ...and the camera glides toward it: each frame it covers a share of the way (a lerp, quicker the
-	#    further she is; the 1 - exp(...) keeps it the same whatever the frame rate).
-	var share := 1.0 - exp(-camera_follow_speed * dt)
-	camera_focus = camera_focus.lerp(goal, share)
-	camera_focus.y = global_position.y
+## The camera's point trails after her: inside the dead zone it stays still, outside it glides toward her
+## until she's back on the zone's edge.
+func follow_camera(dt: float) -> void:
+	var off := global_position - camera_focus   # from the camera's point to her
+	off.y = 0.0
+	if off.length() > camera_dead_zone:
+		var goal := global_position - off.normalized() * camera_dead_zone   # puts her right on the edge
+		camera_focus = camera_focus.lerp(goal, minf(1.0, camera_follow_speed * dt))
