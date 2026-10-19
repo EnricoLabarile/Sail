@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Landscape/gulls/gulls.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://Assets/Landscape/gulls/gull.png" id="2_tex"]
+
+[node name="Gulls" type="Node3D"]
+script = ExtResource("1_script")
+gull_texture = ExtResource("2_tex")

@@ -77,6 +77,18 @@
   `line_alpha` 1, since under 1 the dither breaks it up; a bend of 0.15–0.3 m every 8–12 m plus a slight moving
   ripple, `seed` per line): with `progress` 0→1 the head runs out downwind, then the tail catches up, with a quick
   fade at both ends.
+- **Gulls** (`Assets/Landscape/gulls/`: `gulls.tscn` + `gulls.gd`, `gull.gdshader`, `gull.png`; node `Gulls` in
+  Overworld, moved into the game view; the prototype's behaviour, Enrico, but flat planes with a flipbook): the
+  first flock after `first_flock_after` 6–10 s, then every `flock_every` 15–22 s, 1–3 gulls in a loose V (each
+  2.2–3.4 m further back and 1.2–2 m × its place out to one side then the other) start `spawn_distance` 70 m upwind
+  of the boat (±15 m to the side), `height` 12 m up, and fly roughly downwind (−`Wind.from_vector()` ±0.7 rad) at
+  `speed` 7.2–9.5 m/s (each ×0.95–1.05), weaving `weave` 0.6 m/s side to side (cos, 0.9 rad/s), until they've flown
+  2 × `spawn_distance` + 20 m (then freed). Each is a PlaneMesh `gull_size` 2.2 m lying level, turned so the
+  picture's top (the head) points the way it flies, with its own ShaderMaterial (render_priority 2): a 4 × 4
+  flipbook looped at `fps` 12 from its own random frame (`phase`); `gull.png` is a stand-in (frames 64 × 64, head to
+  the top) for Enrico to redraw. No sound (Enrico: only the anchor and the wheel). On the clouds' render layer (2),
+  so the clouds' shadow map sees them and they cast a shadow like the clouds (refreshed 10 times a second; it falls
+  as if they were at the clouds' height, and thin strokes vanish in the map's 0.6 m pixels).
 - **Fog of war** (`Fog` autoload, `Assets/Landscape/world/fog.gd`, as the prototype's): the map in cells of `CELL`
   4.8 m (210 a side); a cell is seen for good once her middle comes within `SIGHT` 22 m of it (`Fog.reveal`, called
   by `boat.gd` every physics frame; it does its sums only once she has moved 1 m since the last time, `last_pos`). Kept in `Fog.image` (L8, 1 px a cell, white = fog), sent to `Fog.texture` only
@@ -150,7 +162,7 @@
   Bayer 4×4 to paper/ink, one dot per pixel of the game view (below; the shader still works out a scale from its
   screen, which is 1 there).
 - **The game view** (`Assets/Post_Process/game_view.gd`, node `GameView` in Overworld; Enrico asked for performance):
-  at start (deferred, after every node is ready) it moves `Sea`, `Coast`, `Clouds`, `Boat`, `Dither`, `Helm` and the
+  at start (deferred, after every node is ready) it moves `Sea`, `Coast`, `Clouds`, `WindLines`, `Gulls`, `Boat`, `Dither`, `Helm` and the
   logbook's `IconLayer` into a `SubViewport` drawn at the game's resolution, and shows its picture on a full-screen
   `TextureRect` (CanvasLayer 1, nearest filter: sharp dots). Size: real pixels of the game area
   (`get_visible_rect().size × get_final_transform().get_scale()`) / `dot_scale`, `dot_scale` = round(real width /
