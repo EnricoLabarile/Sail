@@ -1,7 +1,7 @@
-[gd_resource type="ShaderMaterial" format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://by3505ess6hus"]
 
-[ext_resource type="Shader" path="res://Assets/Boat/bow_wave.gdshader" id="1_shader"]
-[ext_resource type="Texture2D" path="res://Assets/Boat/bow_wave.png" id="2_tex"]
+[ext_resource type="Shader" uid="uid://rg1u38qfg8ma" path="res://Assets/Boat/bow_wave.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" uid="uid://duclvylkxfu4c" path="res://Assets/Boat/bow_wave.png" id="2_tex"]
 
 [resource]
 render_priority = 1
