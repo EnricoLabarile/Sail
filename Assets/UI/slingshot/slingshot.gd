@@ -19,7 +19,7 @@ extends Control
 @export var fire_pull := 1        # pull the pouch this far (0..1) and it shoots by itself
 @export var reload_time := 0.9      # seconds before the next stone is in the pouch
 
-const STONE_SCENE := preload("res://Assets/Boat/stone/stone.tscn")
+const STONE_SCENE := preload("res://Assets/Boat/projectile/stone.tscn")
 const DRAW_W := 64.0               # the prototype's drawing box
 const DRAW_H := 80.0
 const PULL_TRAVEL := 48.0          # how far down the pouch goes at a full pull (in the drawing's units)

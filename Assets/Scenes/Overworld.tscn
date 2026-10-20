@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/wind_vane.tscn" id="5_vane"]
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="6_logbook"]
 [ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="7_start"]
-[ext_resource type="PackedScene" uid="uid://c5chp5giqddjm" path="res://Assets/Landscape/land/faraglione_01_a.tscn" id="13_w3tqx"]
+[ext_resource type="PackedScene" uid="uid://46d6jucney4i" path="res://Assets/Landscape/islands/sm_island_01_a.fbx" id="13_w3tqx"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/clouds/clouds.tscn" id="20_clouds"]
 [ext_resource type="Script" uid="uid://dte3lbhusmsjc" path="res://Assets/Post_Process/game_view.gd" id="21_game_view"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
@@ -46,5 +46,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)
 [node name="GameView" type="Node" parent="." unique_id=1016146137]
 script = ExtResource("21_game_view")
 
-[node name="Faraglione01A" parent="." unique_id=743542792 instance=ExtResource("13_w3tqx")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.895344, 0, -40.02668)
+[node name="sm_island_01_a3" parent="." unique_id=1944464174 instance=ExtResource("13_w3tqx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.79326, 3.8146973e-06, -14.490665)
+
+[node name="sm_island_01_a2" parent="." unique_id=1646994023 instance=ExtResource("13_w3tqx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36.625286, -3.8146973e-06, -16.544876)
+
+[node name="sm_island_01_a6" parent="." unique_id=2028749449 instance=ExtResource("13_w3tqx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 73.149734, -3.8146973e-06, -61.25704)
+
+[node name="sm_island_01_a4" parent="." unique_id=661290164 instance=ExtResource("13_w3tqx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -51.342182, 3.8146973e-06, -83.08045)
+
+[node name="sm_island_01_a5" parent="." unique_id=467609755 instance=ExtResource("13_w3tqx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -92.80162, 1.1444092e-05, -31.911263)
+
+[node name="sm_island_01_a" parent="." unique_id=1509807648 instance=ExtResource("13_w3tqx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.7263966, -3.8146973e-06, -99.77609)

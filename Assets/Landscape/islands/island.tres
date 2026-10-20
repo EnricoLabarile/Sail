@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cfl5fdc0jlu4t"]
+
+[ext_resource type="Shader" uid="uid://cun5pmnoonaa0" path="res://Assets/Boat/toon_shade.gdshader" id="1_vyltg"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_vyltg")
+shader_parameter/ambient = 0.6850000325375
+shader_parameter/base_color = Color(0.906, 0.906, 0.906, 1)

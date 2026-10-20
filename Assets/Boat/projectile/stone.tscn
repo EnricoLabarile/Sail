@@ -1,9 +1,10 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://Assets/Boat/stone/stone.gd" id="1_script"]
-[ext_resource type="Shader" path="res://Assets/Boat/stone/stone.gdshader" id="2_shader"]
-[ext_resource type="Texture2D" path="res://Assets/Boat/stone/stone.png" id="3_sheet"]
-[ext_resource type="Shader" path="res://Assets/Boat/stone/stone_shadow.gdshader" id="4_shadow"]
+[ext_resource type="Script" uid="uid://bcbdtincd0fe2" path="res://Assets/Boat/projectile/stone.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://dwxakh3cdbnlq" path="res://Assets/Boat/projectile/stone.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" uid="uid://db31esx7aqfv0" path="res://Assets/Boat/projectile/stone.png" id="3_sheet"]
+[ext_resource type="Shader" uid="uid://b1l0w81hl4hg0" path="res://Assets/Boat/projectile/stone_shadow.gdshader" id="4_shadow"]
+
 
 [sub_resource type="ShaderMaterial" id="Mat_stone"]
 render_priority = 2

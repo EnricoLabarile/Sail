@@ -5,7 +5,8 @@
 [resource]
 render_priority = 0
 shader = ExtResource("1_64akr")
-shader_parameter/sail_color = Color(0.53, 0.53, 0.53, 1)
+shader_parameter/ambient = 0.4550000216125
+shader_parameter/sail_color = Color(0.22670737, 0.22670752, 0.22670746, 1)
 shader_parameter/flutter = 0.05
-shader_parameter/speed = 4.0
+shader_parameter/speed = 7.715
 shader_parameter/wave_length = 2.5
