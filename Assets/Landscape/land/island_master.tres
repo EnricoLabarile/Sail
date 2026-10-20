@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://boco6c31ebj66" path="res://Assets/Landscape/land/faraglione_01_a.png" id="2_pic"]
 
 [resource]
-render_priority = 0
+render_priority = 2
 shader = ExtResource("1_shader")
 shader_parameter/picture = ExtResource("2_pic")
 shader_parameter/alpha_cut = 0.5

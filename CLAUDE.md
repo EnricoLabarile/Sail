@@ -68,9 +68,12 @@
   (270 × 200, 30 × 22 m) is a stand-in. Known: the fog is worked out on the water behind tall things, so a hill's
   top can stay fogged a little longer than its shore.
 - **Land drawings' material** (`Assets/Landscape/land/`, Enrico's faraglioni: `faraglione_01_a.tscn` + `.png`):
-  `land_unlit.gdshader` (unshaded, both faces, `picture` nearest, alpha-scissored at `alpha_cut` 0.5, `tint`;
-  like `island.gdshader`), used by `island_master.tres` (a ShaderMaterial now, same uid; a StandardMaterial3D came out
-  black: there are no lights). The PNG imported Lossless.
+  `land_unlit.gdshader` (unshaded, both faces, `picture` nearest, alpha-scissored at `alpha_cut` 0.5, `tint`),
+  used by `island_master.tres` (a ShaderMaterial now, same uid; a StandardMaterial3D came out black: there are no
+  lights). **No ink outline** (Enrico): it doesn't write depth (`depth_draw_never`) and sets `ALPHA = 1.0`, so it's
+  drawn with the see-through things after the boat (material render_priority 2: after the sea, wake and wind lines,
+  before the fog); its depth test still keeps the boat in front of it in front and hides her behind it. The PNG
+  imported Lossless. (Enrico removed `island.gdshader` and `island_test.png`: `island.tscn` still points at them.)
 - **Clouds** (`Assets/Landscape/clouds/`: `clouds.tscn` + `clouds.gd`, instanced as `Clouds` in Overworld): flat image
   planes (PlaneMesh facing up, `StandardMaterial3D` unshaded, alpha from the PNG, both faces, render_priority 4: drawn over the fog of war (Enrico), render layer 2)
   `height` 35 m up (Enrico); `cloud_count` 256 made at start (64 on the half-size map: same density) from `cloud_textures` (in turn; stand-ins `cloud_1..3.png`, soft
