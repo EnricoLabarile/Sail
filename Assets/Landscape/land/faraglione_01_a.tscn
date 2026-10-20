@@ -22,3 +22,4 @@ transform = Transform3D(1, 0, 0, 0, 0.9553941, -0.29533386, 0, 0.29533386, 0.955
 material_override = ExtResource("1_2soby")
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_flrxc")
+surface_material_override/0 = ExtResource("1_2soby")
