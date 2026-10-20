@@ -8,12 +8,10 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="6_logbook"]
 [ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="7_start"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/clouds/clouds.tscn" id="20_clouds"]
-[ext_resource type="Script" path="res://Assets/Post_Process/game_view.gd" id="21_game_view"]
+[ext_resource type="Script" uid="uid://dte3lbhusmsjc" path="res://Assets/Post_Process/game_view.gd" id="21_game_view"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="23_gulls"]
-[ext_resource type="PackedScene" path="res://Assets/UI/slingshot/slingshot.tscn" id="24_sling"]
-[ext_resource type="PackedScene" path="res://Assets/Landscape/islands/island.tscn" id="25_island"]
-[ext_resource type="Texture2D" path="res://Assets/Landscape/islands/island_test.png" id="26_island_pic"]
+[ext_resource type="PackedScene" uid="uid://c6x4x6qmghv8y" path="res://Assets/UI/slingshot/slingshot.tscn" id="24_sling"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -23,15 +21,11 @@ fog_falloff = 3.0
 
 [node name="Coast" type="Node3D" parent="." unique_id=2108873514]
 
-[node name="TestIsland" parent="Coast" instance=ExtResource("25_island")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -80)
-picture = ExtResource("26_island_pic")
-
 [node name="Clouds" parent="." unique_id=610020452 instance=ExtResource("20_clouds")]
 
-[node name="WindLines" parent="." instance=ExtResource("22_wind_lines")]
+[node name="WindLines" parent="." unique_id=651435916 instance=ExtResource("22_wind_lines")]
 
-[node name="Gulls" parent="." instance=ExtResource("23_gulls")]
+[node name="Gulls" parent="." unique_id=1826287727 instance=ExtResource("23_gulls")]
 
 [node name="Boat" parent="." unique_id=1762906152 instance=ExtResource("2_boat")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)
@@ -44,9 +38,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)
 
 [node name="Logbook" parent="." unique_id=1838272232 instance=ExtResource("6_logbook")]
 
-[node name="Slingshot" parent="." instance=ExtResource("24_sling")]
+[node name="Slingshot" parent="." unique_id=1906104851 instance=ExtResource("24_sling")]
 
 [node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("7_start")]
 
-[node name="GameView" type="Node" parent="."]
+[node name="GameView" type="Node" parent="." unique_id=1016146137]
 script = ExtResource("21_game_view")

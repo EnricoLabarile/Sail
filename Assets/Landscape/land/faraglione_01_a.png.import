@@ -2,20 +2,21 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://urhmmaa7v0w0"
-path="res://.godot/imported/island_test.png-c7b7259ba80b554fe609aa23dd76bbd3.ctex"
+uid="uid://boco6c31ebj66"
+path.s3tc="res://.godot/imported/faraglione_01_a.png-6b3f7a836ca3a76579e0be9326b29635.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
-source_file="res://Assets/Landscape/islands/island_test.png"
-dest_files=["res://.godot/imported/island_test.png-c7b7259ba80b554fe609aa23dd76bbd3.ctex"]
+source_file="res://Assets/Landscape/land/faraglione_01_a.png"
+dest_files=["res://.godot/imported/faraglione_01_a.png-6b3f7a836ca3a76579e0be9326b29635.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -23,7 +24,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
