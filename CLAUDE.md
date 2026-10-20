@@ -53,6 +53,20 @@
   downwind × `current_speed` 1.8 m/s × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; also at
   anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
+- **Islands** (Enrico: 2D drawings, not 3D models; `Assets/Landscape/islands/`: `island.tscn` + `island.gd` (`@tool`),
+  `island.gdshader`, `island_test.png`; instanced under `Coast`, for now one `TestIsland` at (6, 0, −80), north of the
+  start): the island drawn slightly from the side (3/4 view: the front shore along the bottom edge, hills rising up
+  the picture, see-through round it) on a QuadMesh `Card` that faces the camera (leaned back by 90° − `camera_tilt_deg`
+  45, so it shows on screen as drawn), its bottom edge on the water at the node's place (`center_offset`); size =
+  the picture's pixels / `pixels_per_metre` 9 (= the game's 9 px a metre, so a texture pixel is a screen pixel).
+  The shader is unshaded, nearest, alpha-scissored at `alpha_cut` 0.5 (a solid pixel or nothing): the solid pixels
+  write depth, so the boat behind the island is hidden by it (anything north of its front edge is behind the whole
+  card) and the ink outline (`boat_outline.gdshader`, from the depth) is drawn round it at no extra cost. Collision:
+  only the footprint, `Body/Footprint` (a CollisionPolygon3D lying flat, rotated −90° on x so its local +y is north,
+  `depth` 4 round the water line), which Enrico shapes in the editor, smaller than the drawing so the peaks aren't
+  solid (`Land` hits it). A point h m up the picture is h / cos(tilt) (1.41 h) m north on the water. `island_test.png`
+  (270 × 200, 30 × 22 m) is a stand-in. Known: the fog is worked out on the water behind tall things, so a hill's
+  top can stay fogged a little longer than its shore.
 - **Clouds** (`Assets/Landscape/clouds/`: `clouds.tscn` + `clouds.gd`, instanced as `Clouds` in Overworld): flat image
   planes (PlaneMesh facing up, `StandardMaterial3D` unshaded, alpha from the PNG, both faces, render_priority 4: drawn over the fog of war (Enrico), render layer 2)
   `height` 35 m up (Enrico); `cloud_count` 256 made at start (64 on the half-size map: same density) from `cloud_textures` (in turn; stand-ins `cloud_1..3.png`, soft

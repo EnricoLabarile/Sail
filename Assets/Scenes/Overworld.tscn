@@ -12,6 +12,8 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="23_gulls"]
 [ext_resource type="PackedScene" path="res://Assets/UI/slingshot/slingshot.tscn" id="24_sling"]
+[ext_resource type="PackedScene" path="res://Assets/Landscape/islands/island.tscn" id="25_island"]
+[ext_resource type="Texture2D" path="res://Assets/Landscape/islands/island_test.png" id="26_island_pic"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -20,6 +22,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11217594, 0.08686733, -0.18
 fog_falloff = 3.0
 
 [node name="Coast" type="Node3D" parent="." unique_id=2108873514]
+
+[node name="TestIsland" parent="Coast" instance=ExtResource("25_island")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -80)
+picture = ExtResource("26_island_pic")
 
 [node name="Clouds" parent="." unique_id=610020452 instance=ExtResource("20_clouds")]
 
