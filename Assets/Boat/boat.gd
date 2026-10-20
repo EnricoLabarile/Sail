@@ -16,9 +16,8 @@ extends Node3D
 # near the bottom of the screen don't end up behind the camera's near plane and get cut off.
 @export var camera_distance := 100.0
 # The camera follows her loosely, with a dead zone in the middle (the screen is 40 m wide).
-@export var camera_lead := 8.0          # metres ahead of her bow the camera looks at her top speed
-@export var camera_lead_min_speed := 1.0  # m/s she must reach before the camera starts looking ahead
-@export var camera_follow_speed := 3.0  # how quickly the camera slides to its place (higher = quicker)
+@export var camera_dead_zone := 6     # metres she can move before the camera follows (0 = always follow)
+@export var camera_follow_speed := 3.0  # how quickly the camera catches up once she's out (higher = quicker)
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
 @export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
 
@@ -96,7 +95,7 @@ var roll_velocity := 0.0
 var pitch := 0.0            # the bow's angle now (radians, + = up), and how quickly it's changing
 var pitch_velocity := 0.0
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
-var camera_focus := Vector3.ZERO   # the point on the water the camera looks at (ahead of her, more the faster she goes)
+var camera_focus := Vector3.ZERO   # the point on the water the camera looks at (it trails behind her)
 var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
 var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she starts at anchor: gathered up)
 
@@ -447,23 +446,18 @@ func bump(out: Vector3, into: float) -> void:
 
 func _process(dt: float) -> void:
 	# the camera: from the south, tilted, always the same way up (like a spring arm that doesn't rotate),
-	# looking at camera_focus, which runs ahead of her (follow_camera)
+	# looking at camera_focus, which trails after her (follow_camera)
 	var t := deg_to_rad(camera_tilt_deg)
 	follow_camera(dt)
 	camera.global_position = camera_focus + Vector3(0.0, cos(t), sin(t)) * camera_distance
 	camera.global_rotation = Vector3(-(PI / 2.0 - t), 0.0, 0.0)
 
 
-## The camera looks ahead of her (Enrico): the faster she goes, the further ahead of her bow it looks, so you
-## see what's coming. Below camera_lead_min_speed it looks right at her; from there up to her top speed the look
-## ahead grows to camera_lead metres. The camera slides there smoothly (a lerp), so it never jumps.
+## The camera's point trails after her: inside the dead zone it stays still, outside it glides toward her
+## until she's back on the zone's edge.
 func follow_camera(dt: float) -> void:
-	# 1. How far ahead: 0 below the threshold, growing to camera_lead at top speed.
-	var share := clampf((speed - camera_lead_min_speed) / (top_speed - camera_lead_min_speed), 0.0, 1.0)
-	# 2. Which way: the way she points, flat on the water.
-	var forward := -global_transform.basis.z
-	forward.y = 0.0
-	var goal := global_position + forward.normalized() * camera_lead * share
-	goal.y = global_position.y
-	# 3. The camera slides there: a share of the way each frame (quick when far, gentle when close).
-	camera_focus = camera_focus.lerp(goal, minf(1.0, camera_follow_speed * dt))
+	var off := global_position - camera_focus   # from the camera's point to her
+	off.y = 0.0
+	if off.length() > camera_dead_zone:
+		var goal := global_position - off.normalized() * camera_dead_zone   # puts her right on the edge
+		camera_focus = camera_focus.lerp(goal, minf(1.0, camera_follow_speed * dt))
