@@ -17,3 +17,6 @@ mono_crash.*.json
 
 # Exports (built by the workflow, not committed)
 build/
+
+# Backup copies left by image editors (Krita, GIMP…): "file.png~"
+*~
