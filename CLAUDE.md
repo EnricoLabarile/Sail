@@ -162,9 +162,10 @@
 - **The camera** (`Boat/Camera3D`, orthographic, `size` 40 = the screen's width (keep width), `far` 200): placed by `boat.gd` `_process` from the south,
   tilted `camera_tilt_deg` 45, `camera_distance` 100 m back along the way it looks (in ortho the distance doesn't
   change the picture; at 40 the clouds low on the screen fell behind the near plane and were cut). It looks at `camera_focus`, which
-  trails after her with a **dead zone** (Enrico, like Unreal's follow cameras; `follow_camera`): while she's within
-  `camera_dead_zone` 3 m of it the camera stays still; past it, it lerps toward the spot that puts her back on the
-  edge at `camera_follow_speed` 3. Kept simple (Enrico).
+  **runs ahead of her** (Enrico flipped the lag; `follow_camera`): while she's within `camera_dead_zone` (6 m, Enrico) of
+  it the camera stays still; once she's past it (`camera_moving`), it lerps at `camera_follow_speed` 3 toward
+  `camera_lead` 5 m ahead of her bow, the way she points, and keeps going while she moves; within 0.3 m of that spot
+  (she has stopped) it rests again, her a little behind the middle, inside the zone (keep the lead under the zone).
 - **Sound** (`Sfx` autoload, `Assets/SFX/`): `.ogg` files made from the prototype's own Web Audio code by
   `art_src/audio/bake.py` (Playwright opens `bake.html`, which holds the prototype's `colouredNoise`, `chainLink`,
   `anchor` and `thunk` verbatim, renders each sound in an `OfflineAudioContext`; loops get an extra second
