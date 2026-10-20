@@ -9,7 +9,8 @@ extends Node3D
 ##
 ## @tool: it runs in the editor too, so the card takes the picture's size and the camera's tilt there as well.
 
-## The island's drawing (3/4 view, the front shore along the bottom edge, see-through round it).
+## The island's drawing (3/4 view, the front shore along the bottom edge, see-through round it). Set it here, on the
+## Island node (not in the Card's material): the card then takes its size.
 @export var picture: Texture2D:
 	set(value):
 		picture = value
@@ -38,15 +39,21 @@ func _ready() -> void:
 ## water, h / cos(tilt) metres behind it (1.41 × h at 45°): the footprint's back edge goes about that far north.
 func fit() -> void:
 	var card := get_node_or_null("Card") as MeshInstance3D
-	if card == null or picture == null:
+	if card == null:
 		return
-	var size := Vector2(picture.get_width(), picture.get_height()) / pixels_per_metre
+	var material := card.material_override as ShaderMaterial
+	# No picture given to the island itself? Use the one in the card's material, if it has one.
+	var shown := picture
+	if shown == null and material != null:
+		shown = material.get_shader_parameter("picture")
+	if shown == null:
+		return   # nothing to show yet: the card stays empty
+	var size := Vector2(shown.get_width(), shown.get_height()) / pixels_per_metre
 	var mesh := QuadMesh.new()
 	mesh.size = size
 	mesh.center_offset = Vector3(0.0, size.y * 0.5, 0.0)   # the bottom edge at the node's place, not the middle
 	card.mesh = mesh
 	# Lean it back so it faces the camera: the camera looks down at (90 - tilt) degrees from level.
 	card.rotation = Vector3(-deg_to_rad(90.0 - camera_tilt_deg), 0.0, 0.0)
-	var material := card.material_override as ShaderMaterial
 	if material:
-		material.set_shader_parameter("picture", picture)
+		material.set_shader_parameter("picture", shown)

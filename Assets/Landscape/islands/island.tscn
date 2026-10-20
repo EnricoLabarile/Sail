@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://Assets/Landscape/islands/island.gd" id="1_script"]
 [ext_resource type="Shader" path="res://Assets/Landscape/islands/island.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" path="res://Assets/Landscape/islands/island_test.png" id="3_pic"]
 
 [sub_resource type="ShaderMaterial" id="Mat_island"]
 shader = ExtResource("2_shader")
@@ -9,6 +10,7 @@ shader_parameter/alpha_cut = 0.5
 
 [node name="Island" type="Node3D"]
 script = ExtResource("1_script")
+picture = ExtResource("3_pic")
 
 [node name="Card" type="MeshInstance3D" parent="."]
 cast_shadow = 0
