@@ -67,6 +67,10 @@
   solid (`Land` hits it). A point h m up the picture is h / cos(tilt) (1.41 h) m north on the water. `island_test.png`
   (270 × 200, 30 × 22 m) is a stand-in. Known: the fog is worked out on the water behind tall things, so a hill's
   top can stay fogged a little longer than its shore.
+- **Land drawings' material** (`Assets/Landscape/land/`, Enrico's faraglioni: `faraglione_01_a.tscn` + `.png`):
+  `land_unlit.gdshader` (unshaded, both faces, `picture` nearest, alpha-scissored at `alpha_cut` 0.5, `tint`;
+  like `island.gdshader`), used by `island_master.tres` (a ShaderMaterial now, same uid; a StandardMaterial3D came out
+  black: there are no lights). The PNG imported Lossless.
 - **Clouds** (`Assets/Landscape/clouds/`: `clouds.tscn` + `clouds.gd`, instanced as `Clouds` in Overworld): flat image
   planes (PlaneMesh facing up, `StandardMaterial3D` unshaded, alpha from the PNG, both faces, render_priority 4: drawn over the fog of war (Enrico), render layer 2)
   `height` 35 m up (Enrico); `cloud_count` 256 made at start (64 on the half-size map: same density) from `cloud_textures` (in turn; stand-ins `cloud_1..3.png`, soft

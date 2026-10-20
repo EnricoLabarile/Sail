@@ -3,20 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://boco6c31ebj66"
-path.s3tc="res://.godot/imported/faraglione_01_a.png-6b3f7a836ca3a76579e0be9326b29635.s3tc.ctex"
+path="res://.godot/imported/faraglione_01_a.png-6b3f7a836ca3a76579e0be9326b29635.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://Assets/Landscape/land/faraglione_01_a.png"
-dest_files=["res://.godot/imported/faraglione_01_a.png-6b3f7a836ca3a76579e0be9326b29635.s3tc.ctex"]
+dest_files=["res://.godot/imported/faraglione_01_a.png-6b3f7a836ca3a76579e0be9326b29635.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

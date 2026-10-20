@@ -1,11 +1,10 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://cjht0w2fcoahj"]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cjht0w2fcoahj"]
 
-[ext_resource type="Texture2D" uid="uid://boco6c31ebj66" path="res://Assets/Landscape/land/faraglione_01_a.png" id="1_ojsrb"]
+[ext_resource type="Shader" path="res://Assets/Landscape/land/land_unlit.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" uid="uid://boco6c31ebj66" path="res://Assets/Landscape/land/faraglione_01_a.png" id="2_pic"]
 
 [resource]
-transparency = 2
-alpha_scissor_threshold = 0.5
-alpha_antialiasing_mode = 0
-diffuse_mode = 3
-specular_mode = 2
-albedo_texture = ExtResource("1_ojsrb")
+shader = ExtResource("1_shader")
+shader_parameter/picture = ExtResource("2_pic")
+shader_parameter/alpha_cut = 0.5
+shader_parameter/tint = Color(1, 1, 1, 1)
