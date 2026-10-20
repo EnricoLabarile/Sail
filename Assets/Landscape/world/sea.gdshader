@@ -28,6 +28,16 @@ uniform float wind_angle = 0.0;
 uniform vec2 wind_offset = vec2(0.0, 0.0);
 // (The fog of war is a screen effect of its own: fog.gdshader, put on screen by sea.gd.)
 
+// THE GRID ON THE SEA (as the prototype's room seams): dashed lines along the borders between the squares of
+// the logbook's 9 x 9 map, so you can see on the water where one square ends and the next begins.
+uniform vec4 seam_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);   // the lines' colour (white: paper, reads on this sea)
+uniform float seam_opacity : hint_range(0.0, 1.0) = 0.8;   // how strong the lines are (0 = no grid)
+uniform float seam_width = 0.3;      // metres: how thick a line is
+uniform float seam_dash = 0.6;       // metres: one dash…
+uniform float seam_gap = 0.9;        // …and the gap after it
+uniform float cell_size = 112.0;     // metres a square, a side (sea.gd sends Land.WORLD_SIZE / 9)
+uniform float world_size = 1008.0;   // the map's side (sea.gd sends Land.WORLD_SIZE): the grid starts at its edge
+
 // world_pos: where on the sea this pixel is, in metres. vertex() works it out, fragment() reads it.
 varying vec3 world_pos;
 
@@ -36,6 +46,21 @@ vec2 rotate(vec2 p, float angle) {
 	float c = cos(angle);
 	float s = sin(angle);
 	return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+}
+
+// 1 if this point of the sea is on a dash of the grid's lines, 0 if not.
+float seam(vec2 p) {
+	// How far the point is from the nearest border, across (x) and down (z): the borders are every cell_size
+	// metres, counted from the map's edge (-world_size / 2).
+	vec2 from_edge = p + world_size * 0.5;
+	vec2 to_border = abs(from_edge - round(from_edge / cell_size) * cell_size);
+	// The dashes: along a north-south border they go by z, along an east-west border by x.
+	float period = seam_dash + seam_gap;
+	float dash_along_z = step(fract(p.y / period), seam_dash / period);
+	float dash_along_x = step(fract(p.x / period), seam_dash / period);
+	float on_ns_border = step(to_border.x, seam_width * 0.5) * dash_along_z;   // a north-south line
+	float on_ew_border = step(to_border.y, seam_width * 0.5) * dash_along_x;   // an east-west line
+	return max(on_ns_border, on_ew_border);
 }
 
 void vertex() {
@@ -58,7 +83,8 @@ void fragment() {
 	vec2 uv = (frame_cell + in_tile) / vec2(float(frames_x), float(frames_y));
 	vec3 water = texture(sea_tex, uv).rgb * sea_color.rgb;
 
-	ALBEDO = water;
+	// The grid: is this pixel on a border between squares, and on a dash rather than a gap?
+	ALBEDO = mix(water, seam_color.rgb, seam_opacity * seam(world_pos.xz));
 	// Fully solid, but writing ALPHA puts the sea among the see-through things, which Godot draws AFTER
 	// the solid ones: so the boat (and its mask) is already drawn when the sea comes, and the stencil works.
 	ALPHA = 1.0;

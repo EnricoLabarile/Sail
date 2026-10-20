@@ -53,6 +53,11 @@
   downwind × `current_speed` 1.8 m/s × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; also at
   anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
+- **The grid on the sea** (Enrico, as the prototype's room seams `drawRoomSeams`): `sea.gdshader`'s `seam()`
+  draws dashed lines along the borders between the logbook's 9 × 9 squares, every `cell_size` (Land.WORLD_SIZE / 9 =
+  112 m, sent by `sea.gd` with `world_size`) from the map's edge: `seam_width` 0.3 m, `seam_dash` 0.6 / `seam_gap`
+  0.9 m, mixed in at `seam_opacity` 0.8 of `seam_color` white (ink, as the prototype's, hardly showed on this darker
+  sea). No extra draw call: it's in the sea's own shader (so it's under the islands, the boat and the fog).
 - **Islands** (Enrico: 2D drawings, not 3D models; `Assets/Landscape/islands/`: `island.tscn` + `island.gd` (`@tool`),
   `island.gdshader`, `island_test.png`; instanced under `Coast`, for now one `TestIsland` at (6, 0, −80), north of the
   start): the island drawn slightly from the side (3/4 view: the front shore along the bottom edge, hills rising up

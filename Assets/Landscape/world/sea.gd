@@ -24,6 +24,9 @@ var sea_material: ShaderMaterial      # the sea's material (to send it the angle
 
 func _ready() -> void:
 	sea_material = mesh.material
+	# The grid of the logbook's squares on the water (sea.gdshader's seam): its size from the world's.
+	sea_material.set_shader_parameter("world_size", Land.WORLD_SIZE)
+	sea_material.set_shader_parameter("cell_size", Land.WORLD_SIZE / 9.0)   # 9 x 9 squares, as the logbook's map
 	texture_angle = deg_to_rad(Wind.from_deg + texture_turn_deg)   # start already facing the wind
 	add_fog()
 
