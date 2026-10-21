@@ -1,21 +1,18 @@
 @tool
 extends Control
-## THE OPEN LOGBOOK: the leather book with its two pages; on them, the hold (the top half) and the map (the
-## bottom half). One spread for now (Enrico): the two pages read as one sheet, with no line down the middle.
+## THE OPEN LOGBOOK: the leather book with its two pages and, across them, the map.
+## (For now only pages 1–2, the map, as Enrico asked.)
 ##
 ## Everything is drawn with code in _draw(), like the HTML prototype's book:
 ##   - the leather cover: dark, with a fine dotted grain, stitching round the edge and metal corners;
 ##   - two paper pages with the edges of the pages beneath showing at the sides;
-##   - the top half: the hold ("Cargo", the Inventory autoload): its slots in a grid of 3 across, each thing
-##     aboard drawn in its slot (its picture from Inventory.ICONS), the empty slots dashed and faint;
-##   - the bottom half: the map, the world cut into 9 x 9 squares (A..I from the west, 1..9 from the north,
-##     home in E5), with the square she's in shaded.
-## What the pages show is read when the book opens (and when the hold changes): it isn't redrawn every frame.
+##   - the map: the world cut into 9 x 9 squares (A..I from the west, 1..9 from the north, home in E5),
+##     drawn as one square across both pages, with the square she's in shaded (read when the book opens:
+##     the book isn't redrawn every frame).
 ##
 ## `unfold` (0..1) is changed by logbook.gd with a Tween:
 ##   0 = shut: only the right half shows, the front cover lying over the right page (leather up);
 ##   1 = open flat: the front cover has swung over on the spine and its inside is the left page.
-## While it turns, the left page is squeezed toward the spine, and so is what's drawn on it (see _draw_half).
 ## @tool: the script also runs in the editor, so it's drawn there too and you can place and size it yourself
 ## (like a Blueprint's construction script). In the editor it only draws: it doesn't react or read the game.
 
@@ -26,20 +23,14 @@ const INK := Color("1b1a17")
 const PAD_SIDE := 12.0        # leather left and right of the pages
 const PAD_TOP := 12.0         # leather above the pages
 const PAD_BOTTOM := 15.0      # leather below the pages
-const PAGE_PAD := 10.0        # paper margin round what's written on the pages
+const CREASE := 4.0           # the gap between the two pages (the gutter)
+const PAGE_PAD := 10.0        # paper margin inside a page (none on the crease side, so the map meets in the middle)
 
 # The map's own measurements, in "map units": the whole map is 100 x 100 units (as the prototype's SVG)
 const ROOMS := 9              # 9 x 9 squares
 const LABEL_MARGIN := 6.0     # room for the letters on top and the numbers on the left
 const GRID_START := 8.0       # where the first square starts
 const ROOM_SIZE := 10.0       # one square
-const LABEL_MIN_SIZE := 8     # the letters and numbers are never smaller than this (pixels), to stay readable
-
-# The hold's slots (as the prototype's Cargo: a grid of 3 across)
-const SLOT_COLUMNS := 3
-const SLOT_MAX := 40.0        # a slot's largest size, in pixels (smaller if the half page is short)
-const SLOT_GAP := 6.0         # the space between two slots
-const HEADING_HEIGHT := 20.0  # room above the slots for "Cargo" and the count
 
 ## How open the book is, 0..1. Every change redraws it (see book_icon.gd for how "set(value)" works).
 var unfold := 0.0:
@@ -49,26 +40,58 @@ var unfold := 0.0:
 
 var _grain: ImageTexture        # a small tile of the leather's dots, repeated over the cover
 var _boat_square := Vector2i(-1, -1)   # the square she's in (column 0..8 = A..I, row 0..8 = 1..9), read on opening
-var _slot_count := 9            # how many slots the hold has (Inventory.SLOTS, read on opening)
-var _icons: Array[Texture2D] = []      # the picture of each thing aboard, slot by slot (read on opening)
-
-# The part of the spread being drawn right now, from x = _half_from to x = _half_to (see _draw_half):
-# the helpers below (_half_line, _half_rect, _half_texture, _half_text) draw only what falls inside it.
-var _half_from := 0.0
-var _half_to := 0.0
+var _fps_label: Label           # the frame-rate counter, a Label of its own (see _make_fps_label)
 
 
 func _ready() -> void:
 	_grain = _make_grain_tile()
 	if Engine.is_editor_hint():
-		unfold = 1.0                 # in the editor: drawn open, to see it
+		unfold = 1.0                 # in the editor: drawn open, to see it (no counter)
 		return
-	Inventory.changed.connect(refresh)   # something came aboard or went out: the hold's page changes
+	_fps_label = _make_fps_label()
 
 
-## Called by logbook.gd when the book is opened (and by the Inventory when the hold changes): reads what the
-## pages show, once. The book isn't redrawn every frame (Enrico: nobody keeps it open long enough to need it);
-## it's drawn again only while its cover turns (see `unfold` above) or when this is called.
+## Every frame, while the book is open: the frame-rate counter. Only the Label changes, so only it is
+## redrawn, not the whole book (grid, leather, stitching). Shut or hidden, it's hidden and nothing is done.
+func _process(_dt: float) -> void:
+	if Engine.is_editor_hint():
+		return
+	var open := visible and unfold > 0.99
+	_fps_label.visible = open
+	if not open:
+		return
+	# First line: the game view's size (the dithered picture, in game pixels) and how many real pixels a
+	# game pixel is (game_view.gd), e.g. "360x655 x3". Second line: frames a second, milliseconds a frame,
+	# and the draw calls (the jobs sent to the graphics chip this frame: fewer is lighter).
+	# Third line: where the time goes, in milliseconds: the scripts (_process), the physics (_physics_process),
+	# and drawing the game view on the processor (cpu) and on the graphics chip (gpu; 0 if the browser won't say).
+	var top := ""
+	var render_cpu := 0.0
+	var render_gpu := 0.0
+	var game_view := get_tree().get_first_node_in_group("game_view")
+	if game_view and game_view.view:
+		top = str(game_view.view.size.x) + "x" + str(game_view.view.size.y) + "  x" + str(game_view.dot_scale)
+		var rid: RID = game_view.view.get_viewport_rid()
+		render_cpu = RenderingServer.viewport_get_measured_render_time_cpu(rid)
+		render_gpu = RenderingServer.viewport_get_measured_render_time_gpu(rid)
+	var fps := Engine.get_frames_per_second()
+	var ms := 1000.0 / maxf(fps, 1.0)
+	var draw_calls := int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
+	var script_ms := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	var physics_ms := Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
+	_fps_label.text = top + "\n" + str(int(fps)) + " fps  " + str(snappedf(ms, 0.1)) + " ms  " + str(draw_calls) + " dc" \
+		+ "\nscript " + str(snappedf(script_ms, 0.1)) + "  phys " + str(snappedf(physics_ms, 0.1)) \
+		+ "  cpu " + str(snappedf(render_cpu, 0.1)) + "  gpu " + str(snappedf(render_gpu, 0.1))
+	# In the bottom right corner of the right page, 4 px in (the same page as _draw works out).
+	var page_w := size.x * 0.5 - CREASE * 0.5 - PAD_SIDE
+	var page_bottom_right := Vector2(size.x - PAD_SIDE, size.y - PAD_BOTTOM)
+	_fps_label.size = Vector2(minf(180.0, page_w), 38.0)
+	_fps_label.position = page_bottom_right - _fps_label.size - Vector2(4.0, 2.0)
+
+
+## Called by logbook.gd when the book is opened: reads what the pages show, once. The book isn't
+## redrawn every frame any more (Enrico: nobody keeps it open long enough to need it); it's drawn
+## again only while its cover turns (see `unfold` above) or when this is called.
 func refresh() -> void:
 	# The square she's in: her place in the world as a share of the map (home, world 0, 0, is the middle),
 	# times the 9 squares, cut to a whole number.
@@ -77,11 +100,6 @@ func refresh() -> void:
 		var col := int(floor((boat.global_position.x / Land.WORLD_SIZE + 0.5) * ROOMS))
 		var row := int(floor((boat.global_position.z / Land.WORLD_SIZE + 0.5) * ROOMS))
 		_boat_square = Vector2i(clampi(col, 0, ROOMS - 1), clampi(row, 0, ROOMS - 1))
-	# The hold: how many slots, and the picture of each thing aboard (in the order it came in).
-	_slot_count = Inventory.SLOTS
-	_icons.clear()
-	for item in Inventory.items:
-		_icons.append(Inventory.ICONS.get(item))
 	queue_redraw()
 
 
@@ -89,7 +107,7 @@ func _draw() -> void:
 	var w := size.x
 	var h := size.y
 	var spine := w * 0.5                                  # the middle of the book
-	var page_w := spine - PAD_SIDE                        # one page's width
+	var page_w := spine - CREASE * 0.5 - PAD_SIDE         # one page's width
 	var page_h := h - PAD_TOP - PAD_BOTTOM                # the pages' height
 
 	# How far the front cover has turned. reach goes from -1 (shut, lying over the right page)
@@ -101,50 +119,29 @@ func _draw() -> void:
 	var leather := Rect2(left_edge, 0.0, w - left_edge, h)
 	_draw_leather(leather)
 
-	# 2. The paper: the right page, and, once the cover is more than halfway over, its inside, the left page,
-	#    squeezed while it turns. The two pages meet at the spine with no gap, so they read as one sheet.
-	_draw_page(Rect2(spine, PAD_TOP, page_w, page_h), 1.0)
+	# 2. The right page, with page 2's half of the map on it.
+	var right_page := Rect2(spine + CREASE * 0.5, PAD_TOP, page_w, page_h)
+	_draw_page(right_page, 1.0)
+	_draw_map(right_page, 1, 1.0)
+
+	# 3. The front cover, turning on the spine.
 	if reach > 0.0:
+		# Open (more than halfway): we see its inside, the left page, squeezed while it turns.
 		var left_w := page_w * reach
-		_draw_page(Rect2(spine - left_w, PAD_TOP, left_w, page_h), -1.0)
-
-	# 3. What's written on the pages: the right page's part as it is, the left page's part squeezed with it.
-	_draw_half(spine, w, 1.0)
-	if reach > 0.0:
-		_draw_half(0.0, spine, reach)
-
-	# 4. Not yet halfway: the cover's outside, leather, lying over the right page.
-	if reach <= 0.0:
+		var left_page := Rect2(spine - CREASE * 0.5 - left_w, PAD_TOP, left_w, page_h)
+		_draw_page(left_page, -1.0)
+		_draw_map(left_page, 0, reach)
+		# the crease: the gap between the pages is paper too, with a faint ink hairline down the middle
+		draw_rect(Rect2(spine - CREASE * 0.5, PAD_TOP, CREASE, page_h), PAPER)
+		draw_line(Vector2(spine, PAD_TOP), Vector2(spine, PAD_TOP + page_h), Color(INK, 0.25), 1.0)
+	else:
+		# Not yet halfway: we see its outside, leather, lying over the right page.
 		var cover_w := (page_w + PAD_SIDE) * -reach
 		_draw_leather(Rect2(spine, 0.0, cover_w, h))
 
-	# 5. Stitching round the leather and the metal corners.
+	# 4. Stitching round the leather and the metal corners.
 	_draw_stitching(leather)
 	_draw_corners(leather)
-
-
-## Draws the part of the pages' content that lies between x = from and x = to (one page), laid out as if
-## the book were open flat. squeeze (0..1) narrows it toward the spine, for the left page while it turns:
-## draw_set_transform scales everything drawn after it (like a scale on a UMG widget's render transform).
-func _draw_half(from: float, to: float, squeeze: float) -> void:
-	_half_from = from
-	_half_to = to
-	var spine := size.x * 0.5
-	if squeeze < 1.0:
-		draw_set_transform(Vector2(spine * (1.0 - squeeze), 0.0), 0.0, Vector2(squeeze, 1.0))
-
-	# The writing area of the open spread (both pages, inside the paper margin), cut in two halves:
-	# the hold on top, the map below.
-	var page_h := size.y - PAD_TOP - PAD_BOTTOM
-	var half_h := page_h * 0.5
-	var area_x := PAD_SIDE + PAGE_PAD
-	var area_w := size.x - 2.0 * area_x
-	var hold_area := Rect2(area_x, PAD_TOP + PAGE_PAD, area_w, half_h - PAGE_PAD)
-	var map_area := Rect2(area_x, PAD_TOP + half_h, area_w, half_h - PAGE_PAD)
-	_draw_hold(hold_area)
-	_draw_map(map_area)
-
-	draw_set_transform(Vector2.ZERO)   # back to normal for whatever is drawn next
 
 
 # ---- the leather ----
@@ -220,165 +217,86 @@ func _draw_page(r: Rect2, side: float) -> void:
 	draw_rect(r, PAPER)
 
 
-# ---- the hold (the top half) ----
+# ---- the frame-rate counter ----
 
-## "Cargo" and how many slots are taken ("2/9"), then the slots in a grid of SLOT_COLUMNS across, centred on
-## the spine: each thing aboard in a solid frame with its picture, the empty slots dashed and faint
-## (as the prototype's Cargo).
-func _draw_hold(area: Rect2) -> void:
-	var spine := size.x * 0.5
-	var rows := ceili(_slot_count / float(SLOT_COLUMNS))
-	var room_h := area.size.y - HEADING_HEIGHT           # the height left for the slots under the heading
-	var slot := minf(SLOT_MAX, (room_h - SLOT_GAP * (rows - 1)) / rows)
-	var grid_w := SLOT_COLUMNS * slot + (SLOT_COLUMNS - 1) * SLOT_GAP
-	var grid_h := rows * slot + (rows - 1) * SLOT_GAP
-	var left := spine - grid_w * 0.5
-	var top := area.position.y + HEADING_HEIGHT + (room_h - grid_h) * 0.5   # the grid in the middle of the room left
-
-	# The heading, just above the grid: the title on the left, the count on the right.
-	var used := _icons.size()
-	_half_text(Vector2(left, top - 7.0), "Cargo", 13, INK, HORIZONTAL_ALIGNMENT_LEFT)
-	_half_text(Vector2(left + grid_w, top - 7.0), str(used) + "/" + str(_slot_count), 10, Color(INK, 0.8), HORIZONTAL_ALIGNMENT_RIGHT)
-
-	# The slots, row by row.
-	for i in _slot_count:
-		var col := i % SLOT_COLUMNS
-		var row := floori(i / float(SLOT_COLUMNS))
-		var r := Rect2(left + col * (slot + SLOT_GAP), top + row * (slot + SLOT_GAP), slot, slot)
-		if i < used:
-			_half_frame(r, INK, 1.5, false)
-			if _icons[i]:
-				_draw_icon(_icons[i], r)
-		else:
-			_half_frame(r, Color(INK, 0.45), 1.0, true)
+## A tiny, faint counter for the bottom right corner of the right page (as in the prototype): the screen's
+## resolution and the 3D scale over "60 fps" (to compare the phone with the PC). A Label (in Unreal a
+## TextBlock), made here in code, a child of the book; _process fills it every frame while the book is open.
+func _make_fps_label() -> Label:
+	var label := Label.new()
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	label.add_theme_font_size_override("font_size", 9)
+	label.add_theme_color_override("font_color", Color(INK, 0.45))
+	label.add_theme_constant_override("line_spacing", 0)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE   # it doesn't catch taps
+	label.visible = false
+	add_child(label)
+	return label
 
 
-## A thing's picture in the middle of its slot, at its own size (so its pixels stay sharp), or smaller if it
-## doesn't fit.
-func _draw_icon(icon: Texture2D, slot: Rect2) -> void:
-	var icon_size := icon.get_size()
-	var fit := minf(1.0, (slot.size.x - 8.0) / maxf(icon_size.x, icon_size.y))
-	icon_size *= fit
-	var corner := (slot.get_center() - icon_size * 0.5).round()   # on whole pixels, so it isn't blurred
-	_half_texture(icon, Rect2(corner, icon_size))
+# ---- the map ----
 
+## Draws one half of the map on a page: half 0 (the west half) on the left page, half 1 on the right.
+## The map is a square as tall as two pages are wide, cut down the middle by the crease.
+## squeeze (0..1) narrows it sideways while the left page is still turning.
+func _draw_map(page: Rect2, half: int, squeeze: float) -> void:
+	# How big the map is: as big as fits (each half fits in a page, below the top margin).
+	var full_page_w := size.x * 0.5 - CREASE * 0.5 - PAD_SIDE
+	var half_w := minf(full_page_w - PAGE_PAD, (page.size.y - PAGE_PAD) * 0.5)
+	var k := half_w * 2.0 / 100.0                             # pixels per map unit
+	var top := page.position.y + PAGE_PAD
 
-# ---- the map (the bottom half) ----
-
-## The map: a square as big as fits in `area`, its middle on the spine (as before, across both pages).
-func _draw_map(area: Rect2) -> void:
-	var k := minf(area.size.x, area.size.y) / 100.0           # pixels per map unit
-	var map_left := size.x * 0.5 - 50.0 * k                   # the map's middle (50 units) on the spine
-	var map_top := area.position.y + (area.size.y - 100.0 * k) * 0.5
-
-	# From map units (u across, v down, 0..100) to a point on the page.
+	# From map units (u across, v down, 0..100) to a point on the screen.
+	# The left half ends at the left page's inner edge; the right half starts at the right page's.
 	var to_screen := func(u: float, v: float) -> Vector2:
-		return Vector2(map_left + u * k, map_top + v * k)
+		if half == 0:
+			return Vector2(page.end.x - (50.0 - u) * k * squeeze, top + v * k)
+		return Vector2(page.position.x + (u - 50.0) * k, top + v * k)
+	var lo := 0.0 if half == 0 else 50.0                      # the map units this half shows
+	var hi := 50.0 if half == 0 else 100.0
 
-	# The frame and the dotted seams between the squares.
+	# The frame and the dotted seams between the squares (each line cut to this half).
 	var grid_end := GRID_START + ROOMS * ROOM_SIZE
 	for i in ROOMS + 1:
 		var p := GRID_START + i * ROOM_SIZE
 		var is_edge := i == 0 or i == ROOMS
-		_map_line(to_screen.call(GRID_START, p), to_screen.call(grid_end, p), is_edge)   # across
-		_map_line(to_screen.call(p, GRID_START), to_screen.call(p, grid_end), is_edge)   # down
+		# a horizontal line, from u = GRID_START to grid_end, at v = p
+		var a := clampf(GRID_START, lo, hi)
+		var b := clampf(grid_end, lo, hi)
+		if b > a:
+			_map_line(to_screen.call(a, p), to_screen.call(b, p), is_edge)
+		# a vertical line at u = p, if it lies in this half
+		if p >= lo and p <= hi:
+			_map_line(to_screen.call(p, GRID_START), to_screen.call(p, grid_end), is_edge)
 
-	# The letters along the top (A..I) and the numbers down the left side (1..9).
-	var font_size := maxi(LABEL_MIN_SIZE, int(round(3.2 * k)))
+	# The letters along the top (A..I) and, on the left half, the numbers down the side (1..9).
+	var font := get_theme_default_font()
+	var font_size := int(round(3.2 * k))
 	for i in ROOMS:
 		var middle := GRID_START + (i + 0.5) * ROOM_SIZE
-		_half_text(to_screen.call(middle, LABEL_MARGIN - 1.4), char(65 + i), font_size, Color(INK, 0.8), HORIZONTAL_ALIGNMENT_CENTER)
-		_half_text(to_screen.call(LABEL_MARGIN - 1.2, middle + 1.5), str(i + 1), font_size, Color(INK, 0.8), HORIZONTAL_ALIGNMENT_RIGHT)
+		if middle >= lo and middle < hi:
+			var pos: Vector2 = to_screen.call(middle, LABEL_MARGIN - 1.4)
+			draw_string(font, pos - Vector2(font_size * 0.5, 0), char(65 + i), HORIZONTAL_ALIGNMENT_CENTER, font_size, font_size, Color(INK, 0.8))
+		if half == 0:
+			var row_pos: Vector2 = to_screen.call(LABEL_MARGIN - 1.2, middle + 1.5)
+			draw_string(font, row_pos - Vector2(font_size, 0), str(i + 1), HORIZONTAL_ALIGNMENT_RIGHT, font_size, font_size, Color(INK, 0.8))
 
-	# The square she's in (read when the book opened): shaded in ink.
+	# The square she's in (read when the book opened): shaded in ink, the part of it on this half.
 	if _boat_square.x >= 0:
-		var corner: Vector2 = to_screen.call(GRID_START + _boat_square.x * ROOM_SIZE, GRID_START + _boat_square.y * ROOM_SIZE)
-		_half_rect(Rect2(corner, Vector2(ROOM_SIZE, ROOM_SIZE) * k), Color(INK, 0.3))
+		var u0 := GRID_START + _boat_square.x * ROOM_SIZE
+		var v0 := GRID_START + _boat_square.y * ROOM_SIZE
+		var a := clampf(u0, lo, hi)                           # the square's left and right edges, cut to this half
+		var b := clampf(u0 + ROOM_SIZE, lo, hi)
+		if b > a:
+			var corner_1: Vector2 = to_screen.call(a, v0)
+			var corner_2: Vector2 = to_screen.call(b, v0 + ROOM_SIZE)
+			draw_rect(Rect2(corner_1, corner_2 - corner_1), Color(INK, 0.3))
 
 
 ## A line of the map: the frame's edge solid, the seams between squares dotted and paler.
 func _map_line(a: Vector2, b: Vector2, solid: bool) -> void:
 	if solid:
-		_half_line(a, b, INK, 1.5, false)
+		draw_line(a, b, INK, 1.5)
 	else:
-		_half_line(a, b, Color(INK, 0.55), 1.0, true)
-
-
-# ---- drawing only on the half being drawn (see _draw_half) ----
-
-## A line from a to b, only the part of it between _half_from and _half_to.
-func _half_line(a: Vector2, b: Vector2, color: Color, width: float, dashed: bool) -> void:
-	if a.x > b.x:
-		var swap := a                                     # make a the left end
-		a = b
-		b = swap
-	if a.x == b.x:
-		# straight down: all on this half, or none of it
-		if a.x < _half_from or a.x >= _half_to:
-			return
-	else:
-		# cut the ends that stick out of this half
-		var from_x := maxf(a.x, _half_from)
-		var to_x := minf(b.x, _half_to)
-		if to_x <= from_x:
-			return
-		var start := a.lerp(b, (from_x - a.x) / (b.x - a.x))
-		var end := a.lerp(b, (to_x - a.x) / (b.x - a.x))
-		a = start
-		b = end
-	if dashed:
-		draw_dashed_line(a, b, color, width, 1.5)
-	else:
-		draw_line(a, b, color, width)
-
-
-## A rectangle's outline (solid or dashed), only the part of it on this half.
-func _half_frame(r: Rect2, color: Color, width: float, dashed: bool) -> void:
-	var tl := r.position
-	var tr := Vector2(r.end.x, r.position.y)
-	var br := r.end
-	var bl := Vector2(r.position.x, r.end.y)
-	_half_line(tl, tr, color, width, dashed)
-	_half_line(bl, br, color, width, dashed)
-	_half_line(tl, bl, color, width, dashed)
-	_half_line(tr, br, color, width, dashed)
-
-
-## The part of a rectangle that lies on this half (its width is 0 or less if none does).
-func _half_part(r: Rect2) -> Rect2:
-	var left := maxf(r.position.x, _half_from)
-	var right := minf(r.end.x, _half_to)
-	return Rect2(left, r.position.y, right - left, r.size.y)
-
-
-## A filled rectangle, only the part of it on this half.
-func _half_rect(r: Rect2, color: Color) -> void:
-	var part := _half_part(r)
-	if part.size.x > 0.0:
-		draw_rect(part, color)
-
-
-## A picture stretched over r, only the part of it on this half (and only that part of the picture).
-func _half_texture(texture: Texture2D, r: Rect2) -> void:
-	var part := _half_part(r)
-	if part.size.x <= 0.0:
-		return
-	var picture := texture.get_size()
-	var source := Rect2((part.position.x - r.position.x) / r.size.x * picture.x, 0.0,
-		part.size.x / r.size.x * picture.x, picture.y)
-	draw_texture_rect_region(texture, part, source)
-
-
-## A word with its baseline at pos: pos is its left end, its middle or its right end (align). Words can't
-## be cut in two, so it's drawn only on the half that holds all of it (the layout keeps every word on one page).
-func _half_text(pos: Vector2, text: String, font_size: int, color: Color, align: HorizontalAlignment) -> void:
-	var font := get_theme_default_font()
-	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
-	var left := pos.x
-	if align == HORIZONTAL_ALIGNMENT_CENTER:
-		left -= width * 0.5
-	elif align == HORIZONTAL_ALIGNMENT_RIGHT:
-		left -= width
-	if left < _half_from or left + width > _half_to:
-		return
-	draw_string(font, Vector2(left, pos.y), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+		draw_dashed_line(a, b, Color(INK, 0.55), 1.0, 1.5)

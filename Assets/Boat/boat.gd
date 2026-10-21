@@ -72,15 +72,6 @@ extends Node3D
 @export var bounce_min_speed := 0.4 # m/s: slower than this into the shore, it's a nudge, not a bump
 @export var bounce_cooldown := 0.6  # s after a bump before the next one counts (one bump, not one per frame)
 
-# Her health (the prototype's hull), counted in hearts like Zelda's; the hearts top left (Assets/UI/health)
-# show it. A bump against anything solid (a shore, an island) takes hit_damage off.
-@export var max_hearts := 3         # how many hearts she has when the hull is whole (a heart container adds one)
-@export var hit_damage := 0.5       # hearts lost in a bump (0.5 = half a heart, as in the prototype)
-
-## Sent whenever her health or her number of hearts changes (the hearts top left listen, to draw again).
-## `hurt` is true when she has just lost some (the hearts flash).
-signal health_changed(hurt: bool)
-
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
 const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.1], [45.0, 1.5], [180.0, 1.0]]
 
@@ -107,7 +98,6 @@ var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set wh
 var camera_focus := Vector3.ZERO   # the point on the water the camera looks at (it trails behind her)
 var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
 var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she starts at anchor: gathered up)
-var health := 3.0           # hearts left (0.5 = half a heart); set to max_hearts at start
 
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
 # (children, children of children, and so on), so you can rearrange the hierarchy freely: only the
@@ -133,7 +123,6 @@ func _ready() -> void:
 	camera_focus = global_position   # the camera starts right over her
 	anchor_point = bow_point()   # she starts at anchor: it lies off her bow
 	model_height = model.position.y   # how deep she sits: wherever Model was placed in boat.tscn
-	health = max_hearts               # she sets out with the hull whole
 	add_water_mask()
 	add_outline()
 
@@ -178,24 +167,7 @@ func toggle_anchor() -> void:
 	anchored = not anchored
 	if anchored:
 		anchor_point = bow_point()   # let go off the bow: it stays there
-		# Did it go down by a fishing spot? Each spot checks if the anchor is within its reach and, if it is,
-		# starts fishing (Assets/Landscape/fishing_spots/fishing_spot.gd).
-		for spot in get_tree().get_nodes_in_group("fishing_spots"):
-			spot.try_fishing(self)
 	Sfx.anchor(anchored)             # its sound: the splash going down, the chain coming up (Assets/SFX/sfx.gd)
-
-
-## Takes `hearts` off her health (never below 0) and tells the hearts top left.
-func take_damage(hearts: float) -> void:
-	health = maxf(0.0, health - hearts)
-	health_changed.emit(true)
-
-
-## A heart container (Zelda's): one more heart, and the hull mended whole.
-func add_heart_container() -> void:
-	max_hearts += 1
-	health = max_hearts
-	health_changed.emit(false)
 
 
 ## Where her bow is now, on the water.
@@ -452,14 +424,12 @@ func update_current(dt: float, wind_from: Vector3) -> void:
 
 
 ## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).
-## As in the HTML prototype: a push back out, much less speed, the bow swung off a little, and the hull
-## takes hit_damage (half a heart).
+## As in the HTML prototype: a push back out, much less speed, the bow swung off a little.
 func bump(out: Vector3, into: float) -> void:
 	speed *= bounce_slowdown                             # she loses most of her way
 	if bump_wait > 0.0 or into < bounce_min_speed:
 		return                                           # just a nudge, or the same bump as a moment ago
 	bump_wait = bounce_cooldown
-	take_damage(hit_damage)                              # the same whatever her speed (as in the prototype)
 
 	# 1. The push away from the shore: a bit more the harder she hit.
 	knock += out * (bounce_kick + into * bounce_extra)
