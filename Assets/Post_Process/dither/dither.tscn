@@ -9,6 +9,9 @@ shader_parameter/ink_color = Color(0.106, 0.102, 0.09, 1)
 shader_parameter/pixel_size = 1.0
 shader_parameter/brightness = 0.0
 shader_parameter/contrast = 1.0
+shader_parameter/black_point = 0.0
+shader_parameter/white_point = 1.0
+shader_parameter/gamma = 1.0
 
 [node name="Dither" type="CanvasLayer" unique_id=2123826622]
 layer = 100

@@ -13,7 +13,14 @@ extends Node
 ## button layer) are moved into the SubViewport. In the editor the scene looks as always.
 ## Taps and drags on the picture are passed on to the SubViewport, scaled to its pixels (push_input).
 
-const DESIGN_WIDTH := 360.0   # the game's width in the project settings: the picture is about this many pixels wide
+const DESIGN_WIDTH := 360.0   # the game's width in the project settings: the controls are laid out for this width
+
+## How many dots across the screen: the game view is drawn about this many pixels wide, one dither dot a pixel.
+## 360 = a dot is 3 x 3 real pixels on a phone 1080 wide; 540 = 2 x 2 (a finer grain, about 2.25 times the
+## work); 1080 = 1 x 1 (the finest, 9 times the work). The controls (wheel, sling, logbook button) keep their
+## size on the screen whatever this is: only the grain changes. (On a narrower screen it can't go finer than
+## a dot per real pixel.)
+@export var dots_across := 360
 const DITHERED := ["Sea", "Coast", "Clouds", "WindLines", "Gulls", "Boat", "Dither", "Helm", "Slingshot"]   # nodes of Overworld moved into the view
 
 var view: SubViewport         # where the dithered part of the game is drawn
@@ -60,12 +67,18 @@ func _build() -> void:
 
 
 ## The view's size: the screen's real pixels divided by the dot scale. The dot scale: real pixels across the
-## screen / 360, rounded (so on an upright phone the world is always about 360 dots wide, as on the PC).
+## screen / dots_across, rounded (whole real pixels a dot, so every dot is the same size).
+## The controls inside the view are laid out as if it were DESIGN_WIDTH (360) wide (size_2d_override, like
+## a DPI scale in Unreal's UMG), and stretched to the view's real pixels: so they keep their size on the screen.
 func _fit() -> void:
 	var window := get_tree().root
 	var real_size := window.get_visible_rect().size * window.get_final_transform().get_scale()   # real pixels
-	dot_scale = maxi(1, roundi(real_size.x / DESIGN_WIDTH))
+	dot_scale = maxi(1, roundi(real_size.x / dots_across))
 	view.size = Vector2i(maxi(1, int(real_size.x / dot_scale)), maxi(1, int(real_size.y / dot_scale)))
+	# The controls' own size: the real pixels divided by the scale they'd have at 360 dots across.
+	var ui_scale := maxi(1, roundi(real_size.x / DESIGN_WIDTH))
+	view.size_2d_override = Vector2i(maxi(1, int(real_size.x / ui_scale)), maxi(1, int(real_size.y / ui_scale)))
+	view.size_2d_override_stretch = true
 
 
 ## A tap or a drag on the picture: passed on to the SubViewport, its position turned into the view's pixels.

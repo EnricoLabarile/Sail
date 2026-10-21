@@ -207,14 +207,18 @@
   (`splash()` verbatim + `thunk(0.25)`, `Sfx.stone_splash()`).
   The players are nodes in `sfx.tscn` (their Volume dB = the level); nothing plays while the game is paused.
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
-  Bayer 4×4 to paper/ink, one dot per pixel of the game view (below; the shader still works out a scale from its
-  screen, which is 1 there).
+  Bayer 4×4 to paper/ink, one dot per pixel of the game view (below; `pixel_size` > 1 only makes the grain coarser).
+  Its handles (the ColorRect's material in `dither.tscn`): `brightness`, `contrast`, then **levels** (Enrico):
+  `black_point` (greys at or below → solid ink), `white_point` (at or above → solid paper), `gamma` (the middle greys:
+  > 1 lighter); `paper_color`, `ink_color`. Tone is set here, not with a WorldEnvironment (that would touch only the 3D).
 - **The game view** (`Assets/Post_Process/game_view.gd`, node `GameView` in Overworld; Enrico asked for performance):
   at start (deferred, after every node is ready) it moves `Sea`, `Coast`, `Clouds`, `WindLines`, `Gulls`, `Boat`, `Dither`, `Helm`, `Slingshot` and the
   logbook's `IconLayer` into a `SubViewport` drawn at the game's resolution, and shows its picture on a full-screen
   `TextureRect` (CanvasLayer 1, nearest filter: sharp dots). Size: real pixels of the game area
   (`get_visible_rect().size × get_final_transform().get_scale()`) / `dot_scale`, `dot_scale` = round(real width /
-  360), ≥ 1 (phone 1080 wide → 360×655, ×3; the PC's 360×800 window → ×1; a wide PC screen in the phone frame
+  `dots_across`), ≥ 1 (**`dots_across`**, an export on `GameView`, 360 = the grain as it was; 540 = 2 × 2 real pixels a
+  dot on a 1080 phone, ~2.25× the work; 1080 = 1 × 1, 9×). The controls inside keep their size whatever it is:
+  `size_2d_override` = real pixels / round(real width / 360), `size_2d_override_stretch` on. With 360: (phone 1080 wide → 360×655, ×3; the PC's 360×800 window → ×1; a wide PC screen in the phone frame
   405×900 → ×1). So the world, the shadows, the dither and the wheel are drawn ~9× smaller on the phone; what stays
   crisp at full resolution on top: the wind vane (110), the open book (120), the start screen (130). Taps and drags
   on the picture are passed into the view (`_pass_input`: `push_input`, scaled to its pixels). In the editor the
