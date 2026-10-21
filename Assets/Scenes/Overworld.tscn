@@ -27,6 +27,9 @@ fog_falloff = 3.0
 [node name="Coast" type="Node3D" parent="." unique_id=2108873514]
 
 [node name="Clouds" parent="." unique_id=610020452 instance=ExtResource("20_clouds")]
+cloud_count = 128
+size_min = 20.0
+size_max = 40.0
 
 [node name="WindLines" parent="." unique_id=651435916 instance=ExtResource("22_wind_lines")]
 
@@ -46,14 +49,14 @@ camera_tilt_deg = 15
 
 [node name="Slingshot" parent="." unique_id=1906104851 instance=ExtResource("24_sling")]
 
-[node name="Health" parent="." instance=ExtResource("25_health")]
+[node name="Health" parent="." unique_id=914720043 instance=ExtResource("25_health")]
 
-[node name="FishingSpots" type="Node3D" parent="."]
+[node name="FishingSpots" type="Node3D" parent="." unique_id=1422904514]
 
-[node name="FishSpot" parent="FishingSpots" instance=ExtResource("26_fishing_spot")]
+[node name="FishSpot" parent="FishingSpots" unique_id=2122243808 instance=ExtResource("26_fishing_spot")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, -50)
 
-[node name="HeartSpot" parent="FishingSpots" instance=ExtResource("26_fishing_spot")]
+[node name="HeartSpot" parent="FishingSpots" unique_id=1191537044 instance=ExtResource("26_fishing_spot")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -62)
 loot = 1
 
@@ -65,7 +68,7 @@ radius = 22.0
 
 [node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("7_start")]
 
-[node name="GameOver" parent="." instance=ExtResource("27_game_over")]
+[node name="GameOver" parent="." unique_id=633694080 instance=ExtResource("27_game_over")]
 
 [node name="GameView" type="Node" parent="." unique_id=1016146137]
 script = ExtResource("21_game_view")
