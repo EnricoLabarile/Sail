@@ -81,6 +81,14 @@ extends Node3D
 ## `hurt` is true when she has just lost some (the hearts flash).
 signal health_changed(hurt: bool)
 
+# Sinking: at 0 hearts she goes down; then the game over card (Assets/UI/game_over) and back home, whole.
+@export var sink_time := 2.0        # seconds she takes to go under
+@export var sink_depth := 2.5       # metres she goes down
+@export var sink_lean_deg := 25.0   # how far she rolls over as she goes
+
+## Sent once she's gone under (the game over card listens).
+signal sank
+
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
 const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.1], [45.0, 1.5], [180.0, 1.0]]
 
@@ -108,6 +116,12 @@ var camera_focus := Vector3.ZERO   # the point on the water the camera looks at 
 var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
 var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she starts at anchor: gathered up)
 var health := 3.0           # hearts left (0.5 = half a heart); set to max_hearts at start
+var sinking := false        # true from 0 hearts until she's back home (no sailing, no anchor)
+var sunk_for := 0.0         # seconds since she started sinking
+var home_position := Vector3.ZERO   # where she starts (home): read at start, she comes back here after sinking
+var home_turn := 0.0                # and which way she faced there (rotation.y)
+var water_mask: ShaderMaterial      # the mask on her inside (see add_water_mask)
+var masked_meshes: Array[MeshInstance3D] = []   # the meshes that wear it
 
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
 # (children, children of children, and so on), so you can rearrange the hierarchy freely: only the
@@ -134,6 +148,8 @@ func _ready() -> void:
 	anchor_point = bow_point()   # she starts at anchor: it lies off her bow
 	model_height = model.position.y   # how deep she sits: wherever Model was placed in boat.tscn
 	health = max_hearts               # she sets out with the hull whole
+	home_position = global_position   # home: where she was placed in Overworld
+	home_turn = rotation.y
 	add_water_mask()
 	add_outline()
 
@@ -163,18 +179,28 @@ func add_outline() -> void:
 ## made in Blender as an object of its own): the floor of the boat lies below the water line, and
 ## without the mask the sea would cover it.
 func add_water_mask() -> void:
-	var mask := ShaderMaterial.new()
-	mask.shader = load("res://Assets/Boat/boat_mask.gdshader")
-	mask.render_priority = -1    # among the see-through things, drawn before the sea (which has 0)
+	water_mask = ShaderMaterial.new()
+	water_mask.shader = load("res://Assets/Boat/boat_mask.gdshader")
+	water_mask.render_priority = -1    # among the see-through things, drawn before the sea (which has 0)
 	for mesh in model.find_children("*", "MeshInstance3D", true, false):
 		var names: String = (String(mesh.name) + " " + String(mesh.get_parent().name)).to_lower()
 		if names.contains("inner"):
-			mesh.material_overlay = mask
+			masked_meshes.append(mesh)
+	set_water_mask(true)
+
+
+## Puts the mask on her inside (on = true) or takes it off: while she sinks it's off, so the sea covers
+## her inside too and she really goes under.
+func set_water_mask(on: bool) -> void:
+	for mesh in masked_meshes:
+		mesh.material_overlay = water_mask if on else null
 
 func set_rudder(v: float) -> void:
 	rudder = clampf(v, -1.0, 1.0)
 
 func toggle_anchor() -> void:
+	if sinking:
+		return                       # going down: nothing to work
 	anchored = not anchored
 	if anchored:
 		anchor_point = bow_point()   # let go off the bow: it stays there
@@ -185,10 +211,64 @@ func toggle_anchor() -> void:
 	Sfx.anchor(anchored)             # its sound: the splash going down, the chain coming up (Assets/SFX/sfx.gd)
 
 
-## Takes `hearts` off her health (never below 0) and tells the hearts top left.
+## Takes `hearts` off her health (never below 0) and tells the hearts top left. At 0 she starts to sink.
 func take_damage(hearts: float) -> void:
+	if sinking:
+		return
 	health = maxf(0.0, health - hearts)
 	health_changed.emit(true)
+	if health <= 0.0:
+		start_sinking()
+
+
+## 0 hearts: she stops where she is and goes down (update_sinking does it, frame by frame).
+func start_sinking() -> void:
+	sinking = true
+	sunk_for = 0.0
+	speed = 0.0
+	knock = Vector3.ZERO
+	set_water_mask(false)            # the sea may cover her inside now
+	if wake:
+		wake.emitting = false        # no wake behind a wreck
+	for wing in [bow_wave_right, bow_wave_left]:
+		if wing:
+			wing.visible = false
+
+
+## Each frame while she sinks: down by sink_depth and over by sink_lean_deg in sink_time seconds, slowly at
+## first and quicker at the end (share × share). Once she's under, `sank` is sent, once.
+func update_sinking(dt: float) -> void:
+	var was_under := sunk_for >= sink_time
+	sunk_for += dt
+	var share := minf(1.0, sunk_for / sink_time)     # 0 = just started, 1 = under
+	model.position.y = model_height - sink_depth * share * share
+	model.rotation.z = roll + deg_to_rad(sink_lean_deg) * share
+	if share >= 1.0 and not was_under:
+		sank.emit()
+
+
+## Back home with the hull whole (the game over card calls it): at anchor where she started, everything
+## that was moving her stopped. What's in the hold and her heart containers stay.
+func respawn() -> void:
+	sinking = false
+	global_position = home_position
+	rotation.y = home_turn
+	health = max_hearts
+	speed = 0.0
+	knock = Vector3.ZERO
+	rudder = 0.0
+	anchored = true
+	anchor_point = bow_point()
+	furl = 1.0
+	roll = 0.0
+	roll_velocity = 0.0
+	pitch = 0.0
+	pitch_velocity = 0.0
+	model.position.y = model_height
+	model.rotation = Vector3.ZERO
+	camera_focus = global_position   # the camera jumps there too, no glide across the map
+	set_water_mask(true)
+	health_changed.emit(false)
 
 
 ## A heart container (Zelda's): one more heart, and the hull mended whole.
@@ -212,6 +292,10 @@ func polar(off_deg: float) -> float:
 	return POLAR[-1][1]
 
 func _physics_process(dt: float) -> void:
+	# Sinking: only that, no sailing, no anchor, no bumps.
+	if sinking:
+		update_sinking(dt)
+		return
 	# the keyboard: Space / Enter works the anchor (the arrows turn the wheel, in ui/helm)
 	if Input.is_action_just_pressed("ui_accept"):
 		toggle_anchor()
