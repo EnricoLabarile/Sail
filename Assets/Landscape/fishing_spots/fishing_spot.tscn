@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Landscape/fishing_spots/fishing_spot.gd" id="1_script"]
+[ext_resource type="Shader" path="res://Assets/Landscape/fishing_spots/fishing_spot.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" path="res://Assets/Landscape/fishing_spots/fishing_spot.png" id="3_tex"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_spot"]
+size = Vector2(1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_spot"]
+resource_local_to_scene = true
+render_priority = 1
+shader = ExtResource("2_shader")
+shader_parameter/spot_tex = ExtResource("3_tex")
+
+[node name="FishingSpot" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Picture" type="MeshInstance3D" parent="."]
+transform = Transform3D(6.6, 0, 0, 0, 1, 0, 0, 0, 6.6, 0, 0.05, 0)
+cast_shadow = 0
+mesh = SubResource("PlaneMesh_spot")
+material_override = SubResource("ShaderMaterial_spot")

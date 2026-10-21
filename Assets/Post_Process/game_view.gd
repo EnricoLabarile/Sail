@@ -22,7 +22,6 @@ var dot_scale := 1            # real pixels per game pixel (3 on a phone about 1
 
 
 func _ready() -> void:
-	add_to_group("game_view")   # so the logbook's counter can find it
 	_build.call_deferred()        # after every node of the scene is ready
 
 
@@ -31,8 +30,6 @@ func _build() -> void:
 	view = SubViewport.new()
 	view.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(view)
-	# Time how long drawing it takes (on the processor and on the graphics chip), for the logbook's counter.
-	RenderingServer.viewport_set_measure_render_time(view.get_viewport_rid(), true)
 
 	# 2. Move the dithered nodes into it: the world, the dither and the controls under it.
 	var scene := get_parent()

@@ -13,6 +13,8 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="23_gulls"]
 [ext_resource type="PackedScene" uid="uid://c6x4x6qmghv8y" path="res://Assets/UI/slingshot/slingshot.tscn" id="24_sling"]
+[ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="25_health"]
+[ext_resource type="PackedScene" path="res://Assets/Landscape/fishing_spots/fishing_spot.tscn" id="26_fishing_spot"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -30,6 +32,7 @@ fog_falloff = 3.0
 
 [node name="Boat" parent="." unique_id=1762906152 instance=ExtResource("2_boat")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)
+camera_tilt_deg = 15
 
 [node name="Dither" parent="." unique_id=1041423395 instance=ExtResource("4_dither")]
 
@@ -40,6 +43,17 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)
 [node name="Logbook" parent="." unique_id=1838272232 instance=ExtResource("6_logbook")]
 
 [node name="Slingshot" parent="." unique_id=1906104851 instance=ExtResource("24_sling")]
+
+[node name="Health" parent="." instance=ExtResource("25_health")]
+
+[node name="FishingSpots" type="Node3D" parent="."]
+
+[node name="FishSpot" parent="FishingSpots" instance=ExtResource("26_fishing_spot")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, -50)
+
+[node name="HeartSpot" parent="FishingSpots" instance=ExtResource("26_fishing_spot")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -62)
+loot = 1
 
 [node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("7_start")]
 

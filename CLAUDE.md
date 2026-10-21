@@ -30,7 +30,7 @@
 - **Autoloads** (project.godot): `PhoneFrame` (`Assets/Scenes/phone_frame.gd`, a phone-shaped frame on wide screens) and
   `Wind` (`Assets/Landscape/world/wind.gd`, the prototype's wind: random start, holds, shifts 30–90° over 3–5 s,
   constant strength (Enrico: only the direction changes); the boat and the wind vane read `Wind.from_deg`).
-  `Sfx` (`Assets/SFX/sfx.tscn` + `sfx.gd`, the sounds, see Sound below).
+  `Sfx` (`Assets/SFX/sfx.tscn` + `sfx.gd`, the sounds, see Sound below). `Inventory` (`Assets/Inventory/inventory.gd`, the hold, see The inventory).
   `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` shoots a physics ray straight down (y 100 → -20,
   `intersect_ray`): anything solid hit = land; outside the map counts as land, so the map's edge is a wall. **`Land.WORLD_SIZE`** (1008 m a side; Enrico doubled it from 504,
   the prototype's 5040 px) is the one number for the world's size: `fog.gd`, `clouds.gd`, `book.gd` and `sea.gd` (the
@@ -46,7 +46,7 @@
   Static Body, or name it with the `-col` suffix in Blender), which is what `Land` hits. When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
   `impact()`, in `boat.gd`: `move_and_bounce`, `bump`; knobs `bounce_*`): only moving into the shore at ≥ 0.4 m/s,
   0.6 s cooldown; a push `knock` along `Land.way_to_sea()` of 2 + 0.9 × the hit speed, fading at 3.5/s; speed × 0.25;
-  the bow swung off up to 0.3 rad toward the open side. No wobble (Enrico removed it), no damage, sound or buzz yet. In the **shallows** (land within
+  the bow swung off up to 0.3 rad toward the open side; the hull loses `hit_damage` (half a heart, see Health). No wobble (Enrico removed it), no sound or buzz yet. In the **shallows** (land within
   `shallows_width` 6 m of her middle, `Land.is_near_land`: 3 rings × 16 rays, looked again only every `shallows_check_time`
   0.2 s, `in_shallows`) the sail's drive is ×
   `shallows_sail` 0.3 (Enrico: less wind by the coast). **The current** (prototype's `CURRENT_DRIFT`): `drift` =
@@ -244,19 +244,43 @@
   `pressed`; `logbook.gd` tweens `drop` (the shut book comes down, 0.26 s) then `book.unfold` (the cover swings open on
   the spine while the book re-centres, 0.33 s), the reverse to close. `book.gd` (CanvasLayer 120, crisp) draws the
   leather (a 15 px tile of dots), stitching, metal corners, the pages with the edges beneath, and only spread 0 for
-  now (Enrico): the 9×9 map A1..I9 across both pages (the prototype's 100-unit layout), the square she's in shaded
-  (ink 0.3; no dot any more, Enrico); a tiny faint frame-rate counter in the right page's bottom right corner, over it
-  the game view's size and dot scale, then fps, ms a frame and draw calls ("360x655  x3" / "60 fps  16.7 ms  45 dc" / "script · phys · cpu · gpu" ms: `Performance.TIME_PROCESS`,
-  `TIME_PHYSICS_PROCESS`, and the game view's measured render time, `viewport_set_measure_render_time` switched on by
-  `game_view.gd`; gpu 0 where the browser won't time it): a `Label` child of the book
-  (`_make_fps_label`), filled every frame by `_process` while the book is fully open (Enrico), hidden otherwise.
+  now (Enrico): the two pages meet with no gap and no line down the middle (one sheet: no more pages for now). Top half:
+  the hold (see The inventory), "Cargo" and "n/9" over a 3-across grid of slots (`SLOT_MAX` 40 px), each thing in a solid
+  frame with its icon at its own pixel size, empty slots dashed and faint. Bottom half: the 9×9 map A1..I9 (the
+  prototype's 100-unit layout), a square as big as fits, its middle on the spine, labels at least `LABEL_MIN_SIZE` 8 px,
+  the square she's in shaded (ink 0.3). Everything on the pages is laid out flat and drawn twice by `_draw_half`, the
+  right page as it is and the left squeezed toward the spine with `draw_set_transform` while the cover turns; the
+  `_half_*` helpers cut lines, rects and pictures at the spine (words are drawn only on a page that holds all of them).
+  (The frame-rate counter is gone, Enrico.) It refreshes on opening and on `Inventory.changed`.
   **The book itself is not redrawn every frame** (Enrico): `logbook.gd` calls `book.refresh()` on opening, which reads
   the square once; after that it's drawn again only while the cover turns (`unfold`'s setter).
+- **The inventory** (`Inventory` autoload, `Assets/Inventory/inventory.gd`; icons in `Assets/Inventory/icons/`): the prototype's hold,
+  `SLOTS` 9, one thing a slot, an item is its name (`"fish"`), `items` in the order they came in; `add(item, count)` puts
+  in as many as fit and gives back how many, `remove`, `count`, `is_full`; signal `changed`. `ICONS` maps a name to its
+  picture for the logbook (`fish.png`, 32 × 18, the prototype's sardine as pixel art: a stand-in for Enrico to redraw).
+- **Health** (Enrico, the prototype's hull as Zelda's hearts): on the boat (`boat.gd`): `max_hearts` 3, `health` in hearts
+  (0.5 = half), `hit_damage` 0.5 a bump (in `bump()`, after its cooldown and minimum speed), `take_damage(hearts)`,
+  `add_heart_container()` (one more heart and the hull whole), signal `health_changed(hurt)`. Nothing happens at 0 yet.
+  Shown top left by `Assets/UI/health/` (`health.tscn`: CanvasLayer 110, crisp; Control `Hearts` 12, 12; `health.gd`,
+  `@tool`): a paper panel, 2 px ink border, a hard 3 px ink shadow, "Hull" and a 17 px heart a heart (the prototype's SVG
+  path as Béziers), full, half (its left half) or empty; drawn again only on `health_changed`; hurt, the panel is ink
+  for `HURT_FLASH` 0.35 s.
+- **Fishing spots** (Enrico; `Assets/Landscape/fishing_spots/`: `fishing_spot.tscn` + `fishing_spot.gd` (`@tool`),
+  `fishing_spot.gdshader`, `fishing_spot.png`; instanced by hand under `FishingSpots` in Overworld, for now `FishSpot`
+  (−12, 0, −50) and `HeartSpot` (20, 0, −62)): the prototype's drawSpot (a dark soft patch, rings welling up), a
+  4 × 4 flipbook (frames 64², a stand-in for Enrico to redraw) on a 1 m PlaneMesh `Picture` 0.05 m up, scaled to
+  `radius` 3.3 m × 2 (scaled, as the mesh is shared); unshaded, render_priority 1, the sea's stencil read (not over the
+  boat's inside), material local to scene (`phase` random, `fade`). Inspector: `loot` (FISH or HEART_CONTAINER),
+  `fish_count`, `reach` 4.5 m (the anchor must fall that close to the middle: a bit more than the patch), `fishing_time`
+  3 s, `fade_time` 1.8 s. `boat.gd` `toggle_anchor` calls `try_fishing(boat)` on every spot (group `fishing_spots`) when
+  the anchor goes down; still at anchor after `fishing_time`, the haul: fish into the Inventory (hold full: nothing, the
+  spot stays) or `add_heart_container()`; then it fades and is freed. Weighed before: nothing, it stays. No net,
+  popup or sound yet.
 - **The UI is drawn in the editor too** (Enrico: to place and arrange it himself): `helm.gd`, `wind_vane.gd`,
-  `book_icon.gd`, `book.gd` and `slingshot.gd` are `@tool`; in the editor (`Engine.is_editor_hint()`) `_gui_input`
+  `book_icon.gd`, `book.gd`, `health.gd` and `slingshot.gd` are `@tool`; in the editor (`Engine.is_editor_hint()`) `_gui_input`
   and `_process` return at once (no touches, keys, boat, wind or sounds), so they only draw: the wheel with the
   sailing hub (redrawn each editor frame, its pictures being ready a frame late), the vane with the wind from the
-  north, the shut logbook icon, the open book (`unfold` = 1, no counter), the sling at rest. Their places and sizes
+  north, the shut logbook icon, the open book (`unfold` = 1, the hold empty), three full hearts, the sling at rest. Their places and sizes
   are the Controls' in their .tscn (anchors and offsets), except the open book's, which `logbook.gd` works out
   every frame (`BOOK_MAX`, `TOP_GAP`, centred).
 - **The start screen** (`Assets/UI/start_screen.tscn` + `.gd`, CanvasLayer 130, in Overworld): a card with the title, "Build
