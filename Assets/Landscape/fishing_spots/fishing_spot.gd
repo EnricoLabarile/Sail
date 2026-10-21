@@ -75,8 +75,8 @@ func _process(dt: float) -> void:
 		return
 	if _fishing_left < 0.0:
 		return                                    # nobody fishing here
-	# She weighed anchor before the haul: the nets come back empty.
-	if not _boat.anchored:
+	# She weighed anchor (or sank) before the haul: the nets come back empty.
+	if not _boat.anchored or _boat.sinking:
 		_fishing_left = -1.0
 		return
 	_fishing_left -= dt

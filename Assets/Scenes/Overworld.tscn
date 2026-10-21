@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://c6x4x6qmghv8y" path="res://Assets/UI/slingshot/slingshot.tscn" id="24_sling"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="25_health"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/fishing_spots/fishing_spot.tscn" id="26_fishing_spot"]
+[ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="27_game_over"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -56,6 +57,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -62)
 loot = 1
 
 [node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("7_start")]
+
+[node name="GameOver" parent="." instance=ExtResource("27_game_over")]
 
 [node name="GameView" type="Node" parent="." unique_id=1016146137]
 script = ExtResource("21_game_view")
