@@ -73,7 +73,10 @@ func place(t: float) -> void:
 
 
 ## Landed: in the water a splash (its sound and its frames); on land it's simply gone.
+## Either way every sea imp's zone is told where it fell, so an imp that's up there is hit (sea_imp_zone.gd).
 func land() -> void:
+	for zone in get_tree().get_nodes_in_group("sea_imps"):
+		zone.stone_landed(to)
 	if Land.is_land(to):
 		queue_free()
 		return

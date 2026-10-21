@@ -276,6 +276,23 @@
   the anchor goes down; still at anchor after `fishing_time`, the haul: fish into the Inventory (hold full: nothing, the
   spot stays) or `add_heart_container()`; then it fades and is freed. Weighed before: nothing, it stays. No net,
   popup or sound yet.
+- **Sea imps** (Enrico, a danger as the prototype's sea imp; `Assets/Dangers/sea_imp/`: `sea_imp_zone.tscn` + `.gd`
+  (`@tool`), `sea_imp.gdshader`, `sea_imp.png`, `fireball.tscn` + `.gd`, `fireball.png`; zones placed by Enrico under
+  `SeaImps` in Overworld, for now one `SeaImpZone` at (−15, 0, −80), `radius` 22): a zone is a circle (`radius`; in the
+  editor a see-through red disc, made in code with no owner, and the imp standing in its middle). While the boat is in
+  it (and not sinking) the imp, `Imp` (a 4 m camera-facing picture, its bottom middle on the water; `sea_imp.gdshader`
+  discards whatever is below `water_level` 0, so it rises out of the water and sinks into it; alpha-scissored, nearest,
+  render_priority 2; `frames_x/y`, `frame` ready for Enrico's animation sheet, 1 × 1 now; the picture is a stand-in),
+  runs `State` WAITING → UNDER (`under_time_min/max` 1.2–2.4 s) → RISING (`rise_time` 0.5 s, from `depth` 4.2 m down,
+  at a water spot `spawn_distance_min/max` 8–15 m from her inside the zone) → UP (spits after `spit_after` 0.75 s, sinks
+  at `up_time` 1.15 s) → SINKING (`sink_time` 0.5 s) → UNDER again. **The fireball** (`fireball.gd`): from `spit_height`
+  1.5 m, level, toward where she'll be in `aim_ahead` 0.5 s, `fireball_speed` 7.5 m/s; within `fireball_hit_radius`
+  1.3 m of her middle `boat.take_damage(fireball_damage)` (1 heart, the prototype's), gone on land or after
+  `fireball_life` 3 s; `stone.gdshader`'s billboard flipbook, 4 × 4 frames of 32² looped at 12 fps (a stand-in). **Stones**:
+  `stone.gd` `land()` calls `stone_landed(point)` on every zone (group `sea_imps`); within `stone_hit_radius` 2 m of the imp
+  while it's RISING or UP: one of `max_hits` 3 off and it sinks at once; at 0, once under, DEAD for good. She sails out of
+  the zone (or sinks): it sinks and waits (WAITING), with all its hits back when she comes in again. No ripples, sounds,
+  popups or buzz (not asked).
 - **The UI is drawn in the editor too** (Enrico: to place and arrange it himself): `helm.gd`, `wind_vane.gd`,
   `book_icon.gd`, `book.gd`, `health.gd` and `slingshot.gd` are `@tool`; in the editor (`Engine.is_editor_hint()`) `_gui_input`
   and `_process` return at once (no touches, keys, boat, wind or sounds), so they only draw: the wheel with the

@@ -1,0 +1,25 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Dangers/sea_imp/sea_imp_zone.gd" id="1_script"]
+[ext_resource type="Shader" path="res://Assets/Dangers/sea_imp/sea_imp.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" path="res://Assets/Dangers/sea_imp/sea_imp.png" id="3_picture"]
+
+[sub_resource type="ShaderMaterial" id="Mat_imp"]
+render_priority = 2
+shader = ExtResource("2_shader")
+shader_parameter/sheet = ExtResource("3_picture")
+shader_parameter/frames_x = 1
+shader_parameter/frames_y = 1
+shader_parameter/frame = 0
+
+[sub_resource type="QuadMesh" id="Mesh_imp"]
+size = Vector2(4, 4)
+center_offset = Vector3(0, 2, 0)
+
+[node name="SeaImpZone" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Imp" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("Mesh_imp")
+material_override = SubResource("Mat_imp")
