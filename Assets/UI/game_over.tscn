@@ -28,6 +28,7 @@ content_margin_bottom = 8.0
 [node name="GameOver" type="CanvasLayer"]
 process_mode = 3
 layer = 130
+visible = false
 script = ExtResource("1_game_over")
 
 [node name="Card" type="PanelContainer" parent="."]
