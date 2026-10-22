@@ -63,6 +63,19 @@ func try_fishing(boat: Node3D) -> void:
 	_fishing_left = fishing_time
 
 
+## Is the boat here? True while her middle is within `reach` of the spot's middle (or while she's fishing
+## here), as long as there's still something to haul. The wheel's hub (helm.gd) asks this to show a question
+## mark instead of the anchor.
+func has_boat(boat: Node3D) -> bool:
+	if _fished_out:
+		return false
+	if _fishing_left >= 0.0:
+		return true                               # fishing here: until the haul comes in
+	var off: Vector3 = boat.global_position - global_position
+	off.y = 0.0                                   # only the distance across the water
+	return off.length() <= reach
+
+
 func _process(dt: float) -> void:
 	if Engine.is_editor_hint():
 		return

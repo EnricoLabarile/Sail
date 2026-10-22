@@ -48,6 +48,7 @@ var hub_t := 0.0                 # how long it has been held
 var hub_start := Vector2.ZERO    # where that finger came down (in the prototype's units)
 var hub_shake := 0.0             # 1 right after the anchor goes down or comes up, fading to 0
 var shown_anchor := true         # the anchor state the hub was last drawn with
+var over_spot := false           # is the boat over a fishing spot? (then the hub shows a question mark)
 var last_angle := 0.0            # the wheel's angle a frame ago (for its speed, for the sounds)
 var at_lock := false             # true while the wheel is hard over, at full lock
 
@@ -162,10 +163,26 @@ func _process(dt: float) -> void:
 		Sfx.wheel_stop(minf(1.0, 0.5 + spin / 10.0))
 	at_lock = hard_over
 
-	# 3. The hub's face changes with the anchor: redraw when it does.
+	# 3. The hub's face changes with the anchor, and with a fishing spot under her: redraw when one does.
 	if anchored != shown_anchor:
 		shown_anchor = anchored
 		queue_redraw()
+	var spot_here := _is_over_fishing_spot()
+	if spot_here != over_spot:
+		over_spot = spot_here
+		queue_redraw()
+
+
+## Is the boat over a fishing spot (and is there still something to haul there)? Every spot is asked
+## (fishing_spot.gd has_boat); one is enough.
+func _is_over_fishing_spot() -> bool:
+	var b := _boat()
+	if b == null:
+		return false
+	for spot in get_tree().get_nodes_in_group("fishing_spots"):
+		if spot.has_boat(b):
+			return true
+	return false
 
 
 # ---- little drawing helpers ----
@@ -252,13 +269,17 @@ const HUB_REACH := 18.0     # the same for the hub (its light rim at anchor)
 var _wheel_picture: SubViewport
 var _hub_picture_sailing: SubViewport
 var _hub_picture_anchored: SubViewport
+var _hub_picture_sailing_spot: SubViewport    # the same two, with a question mark instead of the anchor
+var _hub_picture_anchored_spot: SubViewport
 
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR    # the turned picture stays smooth (the dither makes it dots)
 	_wheel_picture = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_wheel(c, middle, k))
-	_hub_picture_sailing = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, false))
-	_hub_picture_anchored = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, true))
+	_hub_picture_sailing = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, false, false))
+	_hub_picture_anchored = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, true, false))
+	_hub_picture_sailing_spot = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, false, true))
+	_hub_picture_anchored_spot = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, true, true))
 	resized.connect(_redraw_pictures)
 	_redraw_pictures()
 
@@ -277,12 +298,14 @@ func _make_picture(paint: Callable) -> SubViewport:
 	return picture
 
 
-## Draws the three pictures again, at the helm's current size (on start and if the helm is resized).
+## Draws the pictures again, at the helm's current size (on start and if the helm is resized).
 func _redraw_pictures() -> void:
 	var k := _k()
 	_set_picture_size(_wheel_picture, WHEEL_REACH * WHEEL_SCALE * k)
 	_set_picture_size(_hub_picture_sailing, HUB_REACH * WHEEL_SCALE * HUB_SCALE * k)
 	_set_picture_size(_hub_picture_anchored, HUB_REACH * WHEEL_SCALE * HUB_SCALE * k)
+	_set_picture_size(_hub_picture_sailing_spot, HUB_REACH * WHEEL_SCALE * HUB_SCALE * k)
+	_set_picture_size(_hub_picture_anchored_spot, HUB_REACH * WHEEL_SCALE * HUB_SCALE * k)
 	queue_redraw()
 
 
@@ -313,7 +336,7 @@ func _draw() -> void:
 	# 3. The hub's picture (sailing or at anchor), with its little shake after a press.
 	var shake_x := sin(Time.get_ticks_msec() * 0.09) * 2.2 * hub_shake
 	var hub_middle := middle + Vector2(shake_x * s, 0.0)
-	var hub := (_hub_picture_anchored if _is_anchored() else _hub_picture_sailing).get_texture()
+	var hub := _hub_picture().get_texture()
 	draw_set_transform(hub_middle, 0.0, Vector2.ONE)
 	draw_texture(hub, -Vector2(hub.get_size()) * 0.5)
 	# 4. Holding the hub: a ring fills round it (ink, with a paper edge so it reads anywhere).
@@ -325,6 +348,14 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, 16.5, -PI / 2.0, end, 32, grey(255), 4.8)
 		draw_arc(Vector2.ZERO, 16.5, -PI / 2.0, end, 32, grey(0), 2.8)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)    # back to normal
+
+
+## Which of the four hub pictures to show: sailing or at anchor, with the anchor or (over a fishing spot)
+## with a question mark.
+func _hub_picture() -> SubViewport:
+	if over_spot:
+		return _hub_picture_anchored_spot if _is_anchored() else _hub_picture_sailing_spot
+	return _hub_picture_anchored if _is_anchored() else _hub_picture_sailing
 
 
 ## The wheel (drawn once into its picture, not turned): a dark backing, eight spokes with turned handles,
@@ -392,7 +423,8 @@ func _draw_wheel(c: CanvasItem, middle: Vector2, k: float) -> void:
 ## The hub, the anchor button, drawn big over the middle of the wheel (it doesn't turn with it), once
 ## for each look: a brass bezel lit from the top left with four rivets, a shaded face with a glint of glass,
 ## and an anchor. Sailing: a light face with an ink anchor. At anchor: a dark face, one light rim, a paper anchor.
-func _draw_hub(c: CanvasItem, middle: Vector2, k: float, anchored: bool) -> void:
+## `question`: a question mark instead of the anchor (the boat is over a fishing spot: something down there).
+func _draw_hub(c: CanvasItem, middle: Vector2, k: float, anchored: bool, question: bool) -> void:
 	var ink := grey(0)
 	var paper := grey(255)
 	var s := k * WHEEL_SCALE * HUB_SCALE
@@ -419,12 +451,30 @@ func _draw_hub(c: CanvasItem, middle: Vector2, k: float, anchored: bool) -> void
 	if anchored:
 		c.draw_arc(Vector2.ZERO, hub_r + 1.4, 0.0, TAU, 48, paper, 1.3)           # a light rim: reads on dark water
 
-	# 3. The anchor: ink on the light face, paper on the dark one.
+	# 3. The anchor (or the question mark): ink on the light face, paper on the dark one.
 	var mark := paper if anchored else ink
 	var w := 1.7 if anchored else 1.75
 	c.draw_set_transform(middle, 0.0, Vector2(s, s) * 1.2)
+	if question:
+		_draw_question_mark(c, mark)
+		return
 	c.draw_arc(Vector2(0.0, -7.0), 1.9, 0.0, TAU, 16, mark, w)                     # the ring at the top
 	c.draw_line(Vector2(0.0, -5.0), Vector2(0.0, 7.5), mark, w)                     # the shank
 	c.draw_line(Vector2(-4.5, -2.2), Vector2(4.5, -2.2), mark, w)                   # the stock
 	c.draw_polyline(curve(Vector2(-6.5, 2.5), Vector2(-5.0, 7.5), Vector2(0.0, 7.5)), mark, w)   # the arms
 	c.draw_polyline(curve(Vector2(0.0, 7.5), Vector2(5.0, 7.5), Vector2(6.5, 2.5)), mark, w)
+
+
+## A question mark, as the prototype's: the hook (an arc round its top, then a curve down to the middle) and the dot.
+func _draw_question_mark(c: CanvasItem, mark: Color) -> void:
+	var hook := PackedVector2Array()
+	# The arc: from the left, over the top, round to the lower right (as the prototype's arc 1.05 π → 0.45 π).
+	var start := PI * 1.05
+	var end := PI * 2.45
+	for i in 17:
+		var a := lerpf(start, end, i / 16.0)
+		hook.append(Vector2(0.0, -3.2) + Vector2(cos(a), sin(a)) * 4.2)
+	# Then a curve from there down to the middle, ending just above the dot.
+	hook.append_array(curve(hook[hook.size() - 1], Vector2(0.0, 0.8), Vector2(0.0, 3.0)))
+	c.draw_polyline(hook, mark, 2.4)
+	c.draw_circle(Vector2(0.0, 7.0), 1.5, mark)

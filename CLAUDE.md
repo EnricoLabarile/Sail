@@ -279,7 +279,10 @@
   3 s, `fade_time` 1.8 s. `boat.gd` `toggle_anchor` calls `try_fishing(boat)` on every spot (group `fishing_spots`) when
   the anchor goes down; still at anchor after `fishing_time`, the haul: fish into the Inventory (hold full: nothing, the
   spot stays) or `add_heart_container()`; then it fades and is freed. Weighed before: nothing, it stays. No net,
-  popup or sound yet.
+  popup or sound yet. **The wheel's hub shows a question mark** (Enrico, the prototype's `bankHint` glyph) instead of the anchor
+  while she's over a spot: `has_boat(boat)` = her middle within `reach`, or fishing there, and not fished out; `helm.gd`
+  `_is_over_fishing_spot()` asks every spot each frame, redraws only when it changes; two more hub pictures
+  (`_hub_picture_sailing_spot` / `_anchored_spot`, `_draw_hub(..., question)`, `_draw_question_mark`). After the haul, the anchor again.
 - **Sea imps** (Enrico, a danger as the prototype's sea imp; `Assets/Dangers/sea_imp/`: `sea_imp_zone.tscn` + `.gd`
   (`@tool`), `sea_imp.gdshader`, `sea_imp.png`, `fireball.tscn` + `.gd`, `fireball.png`; zones placed by Enrico under
   `SeaImps` in Overworld, for now one `SeaImpZone` at (−15, 0, −80), `radius` 22): a zone is a circle (`radius`; in the
