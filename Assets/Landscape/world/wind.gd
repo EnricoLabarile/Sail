@@ -6,9 +6,11 @@ extends Node
 ## (In Unreal it would be a World Subsystem.)
 ##
 ## What it does, as in the HTML prototype:
-##   1. at the start the wind comes from a random direction;
+##   1. at the start the wind comes from one of the 8 directions of the compass (N, NE, E, SE, S, SW, W, NW),
+##      picked at random;
 ##   2. it HOLDS steady for a while;
-##   3. then it SHIFTS: it turns 30–90°, left or right at random, smoothly, over a few seconds;
+##   3. then it SHIFTS to another of the 8: one or two steps round (45° or 90°), left or right at random,
+##      turning smoothly over a few seconds;
 ##   4. then it holds again, and so on.
 ## The wind's strength never changes: only its direction does.
 
@@ -19,7 +21,8 @@ extends Node
 
 const FIRST_HOLD := Vector2(28.0, 36.0)   # seconds the wind holds still at the start of the game
 const HOLD := Vector2(12.0, 22.0)         # seconds it holds still between one shift and the next
-const SHIFT_DEG := Vector2(30.0, 90.0)    # how many degrees a shift turns it
+const DIRECTIONS := 8                     # how many directions the wind can come from (8 = every 45°)
+const SHIFT_STEPS := Vector2i(1, 2)       # how many steps round a shift turns it (1 = 45°, 2 = 90°)
 const SHIFT_TIME := Vector2(3.0, 5.0)     # how many seconds a shift takes
 
 
@@ -27,7 +30,8 @@ const SHIFT_TIME := Vector2(3.0, 5.0)     # how many seconds a shift takes
 
 ## Where the wind blows FROM, in degrees: 0 = from the north (top of the screen), 90 = from the east,
 ## 180 = from the south, 270 = from the west.
-var from_deg := randf() * 360.0           # randf() gives a random number between 0 and 1
+## It starts on one of the 8 directions, picked at random (randi() % 8 gives a whole number from 0 to 7).
+var from_deg := (randi() % DIRECTIONS) * step_deg()
 
 
 # ---- Internal state (the "_" in front of a name means: only this script uses it) ----
@@ -58,7 +62,8 @@ func _update_hold(dt: float) -> void:
 	# Time's up: get a new shift ready.
 	_shifting = true
 	_shift_start_deg = from_deg
-	_shift_amount = randf_range(SHIFT_DEG.x, SHIFT_DEG.y)
+	# A whole number of steps (1 or 2), each step 45°: so it always ends on one of the 8 directions.
+	_shift_amount = randi_range(SHIFT_STEPS.x, SHIFT_STEPS.y) * step_deg()
 	if randf() < 0.5:                     # half the time it turns the other way
 		_shift_amount = -_shift_amount
 	_shift_elapsed = 0.0
@@ -82,7 +87,14 @@ func _update_shift(dt: float) -> void:
 
 	if progress >= 1.0:                   # the shift is over: hold still again for a while
 		_shifting = false
+		# Land exactly on the direction (no tiny leftover like 44.9999° from the sums).
+		from_deg = fposmod(round(from_deg / step_deg()) * step_deg(), 360.0)
 		_hold_left = randf_range(HOLD.x, HOLD.y)
+
+
+## The angle between two neighbouring directions: 360 / 8 = 45°.
+func step_deg() -> float:
+	return 360.0 / DIRECTIONS
 
 
 ## The direction the wind comes from as an arrow lying on the sea (a Vector3 of length 1).

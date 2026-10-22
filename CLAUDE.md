@@ -28,7 +28,7 @@
   replaces the lower-case `boat/ world/ ui/ shared/` plan below (the other rules still hold, and since the folders now
   have capitals, spell every `res://` path exactly as on disk: the web export is case-sensitive).
 - **Autoloads** (project.godot): `PhoneFrame` (`Assets/Scenes/phone_frame.gd`, a phone-shaped frame on wide screens) and
-  `Wind` (`Assets/Landscape/world/wind.gd`, the prototype's wind: random start, holds, shifts 30–90° over 3–5 s,
+  `Wind` (`Assets/Landscape/world/wind.gd`, the prototype's wind, but on **8 fixed directions** (Enrico: N, NE, E, SE, S, SW, W, NW, `DIRECTIONS` 8): a random one at the start, holds, then shifts 1–2 steps (`SHIFT_STEPS`, 45° or 90°) left or right, smoothly over 3–5 s, landing exactly on a direction,
   constant strength (Enrico: only the direction changes); the boat and the wind vane read `Wind.from_deg`).
   `Sfx` (`Assets/SFX/sfx.tscn` + `sfx.gd`, the sounds, see Sound below). `Inventory` (`Assets/Inventory/inventory.gd`, the hold, see The inventory).
   `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` shoots a physics ray straight down (y 100 → -20,
