@@ -4,8 +4,8 @@ extends Node3D
 ## her rudder; Space works the anchor. Her camera follows her without turning.
 ## 1 unit = 10 px of the HTML prototype.
 
-@export var top_speed := 5        # m/s with the sail at its best (doubled by Enrico; the prototype had ~4.2)
-@export var accel := 0.6            # how quickly she gathers way (higher = quicker)
+@export var top_speed := 7        # m/s with the sail at its best (doubled by Enrico; the prototype had ~4.2)
+@export var accel := 0.5            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
@@ -27,7 +27,7 @@ extends Node3D
 
 # Speed lifts the bow (Enrico, like a motorboat): the faster she goes, the higher the bow, and it STAYS up as long
 # as she keeps that speed; it comes down again as she slows.
-@export var bow_lift_deg := 8.0       # degrees the bow is lifted at top_speed
+@export var bow_lift_deg := 15       # degrees the bow is lifted at top_speed
 @export var bow_lift_curve := 2.0     # how the lift grows with speed: 1 = evenly; 2 = little when slow, most near top speed
 
 # How she leans and pitches: not straight to where she should be, but like a weight on a spring, so she
@@ -62,7 +62,7 @@ extends Node3D
 
 # The current (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, and the water carries her
 # downwind whatever the sail does, so she must steer to make up for it. At anchor too: the anchor line holds her.
-@export var current_speed := 1   # m/s the current carries her downwind (18 px/s in the prototype)
+@export var current_speed := 1.5   # m/s the current carries her downwind (18 px/s in the prototype)
 @export var current_ease := 0.8     # how quickly it takes hold at the start
 
 # Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
