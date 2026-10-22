@@ -25,7 +25,7 @@ enum Loot { FISH, HEART_CONTAINER }
 		radius = value
 		_fit_picture()
 ## Metres from the middle the anchor may fall to fish here (a bit more than radius); the sensor is this big too.
-@export var reach := 4.5:
+@export var reach := 11:
 	set(value):
 		reach = value
 		_fit_sensor()

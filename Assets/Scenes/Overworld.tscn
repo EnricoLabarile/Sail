@@ -14,7 +14,7 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="23_gulls"]
 [ext_resource type="PackedScene" uid="uid://c6x4x6qmghv8y" path="res://Assets/UI/slingshot/slingshot.tscn" id="24_sling"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="25_health"]
-[ext_resource type="PackedScene" path="res://Assets/Landscape/fishing_spots/fishing_spot.tscn" id="26_fishing_spot"]
+[ext_resource type="PackedScene" uid="uid://c83avpy373bev" path="res://Assets/Landscape/fishing_spots/fishing_spot.tscn" id="26_fishing_spot"]
 [ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="27_game_over"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/sea_imp/sea_imp_zone.tscn" id="28_sea_imp_zone"]
 
@@ -55,15 +55,18 @@ camera_tilt_deg = 15
 
 [node name="FishSpot" parent="FishingSpots" unique_id=2122243808 instance=ExtResource("26_fishing_spot")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, -50)
+reach = 4
 
 [node name="HeartSpot" parent="FishingSpots" unique_id=1191537044 instance=ExtResource("26_fishing_spot")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -62)
 loot = 1
+reach = 4
 
-[node name="SeaImps" type="Node3D" parent="."]
+[node name="SeaImps" type="Node3D" parent="." unique_id=690468872]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1220932, -3.8146973e-06, -0.06600571)
 
-[node name="SeaImpZone" parent="SeaImps" instance=ExtResource("28_sea_imp_zone")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -80)
+[node name="SeaImpZone" parent="SeaImps" unique_id=1040785233 instance=ExtResource("28_sea_imp_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -156.08926, 0, -90.87308)
 radius = 22.0
 
 [node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("7_start")]

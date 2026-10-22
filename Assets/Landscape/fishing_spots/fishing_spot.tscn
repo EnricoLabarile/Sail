@@ -25,17 +25,18 @@ radius = 4.5
 
 [node name="FishingSpot" type="Node3D" unique_id=789488759]
 script = ExtResource("1_script")
+radius = 10.0
 
 [node name="Picture" type="MeshInstance3D" parent="." unique_id=1593705989]
-transform = Transform3D(8, 0, 0, 0, 1.212, 0, 0, 0, 8, 0, 0.05, 0)
+transform = Transform3D(20, 0, 0, 0, 1, 0, 0, 0, 20, 0, 0.05, 0)
 material_override = SubResource("ShaderMaterial_spot")
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_spot")
 
-[node name="Sensor" type="Area3D" parent="."]
+[node name="Sensor" type="Area3D" parent="." unique_id=1934835450]
 collision_layer = 0
 collision_mask = 8
 monitorable = false
 
-[node name="Shape" type="CollisionShape3D" parent="Sensor"]
+[node name="Shape" type="CollisionShape3D" parent="Sensor" unique_id=411555117]
 shape = SubResource("Shape_sensor")
