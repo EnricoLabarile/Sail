@@ -18,6 +18,11 @@ shader_parameter/fade = 1.0
 [sub_resource type="PlaneMesh" id="PlaneMesh_spot"]
 size = Vector2(1, 1)
 
+[sub_resource type="CylinderShape3D" id="Shape_sensor"]
+resource_local_to_scene = true
+height = 4.0
+radius = 4.5
+
 [node name="FishingSpot" type="Node3D" unique_id=789488759]
 script = ExtResource("1_script")
 
@@ -26,3 +31,11 @@ transform = Transform3D(8, 0, 0, 0, 1.212, 0, 0, 0, 8, 0, 0.05, 0)
 material_override = SubResource("ShaderMaterial_spot")
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_spot")
+
+[node name="Sensor" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+
+[node name="Shape" type="CollisionShape3D" parent="Sensor"]
+shape = SubResource("Shape_sensor")

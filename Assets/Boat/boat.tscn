@@ -31,6 +31,9 @@ material = ExtResource("5_bow_wave")
 size = Vector2(2, 2)
 center_offset = Vector3(0.965, 0.45, 0)
 
+[sub_resource type="SphereShape3D" id="Shape_spot_sensor"]
+radius = 0.3
+
 [node name="Boat" type="Node3D" unique_id=1479473515]
 script = ExtResource("1_boat")
 
@@ -84,3 +87,11 @@ mesh = SubResource("Mesh_bow_wave")
 transform = Transform3D(-0.86600274, -0.50002515, -5.3853974e-08, 8.742048e-08, -4.3713587e-08, -0.9999877, 0.49998692, -0.86606896, 8.156555e-08, -0.08, 0.02, -2.95)
 cast_shadow = 0
 mesh = SubResource("Mesh_bow_wave")
+
+[node name="SpotSensor" type="Area3D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+
+[node name="Shape" type="CollisionShape3D" parent="SpotSensor"]
+shape = SubResource("Shape_spot_sensor")

@@ -89,6 +89,10 @@ signal health_changed(hurt: bool)
 ## Sent once she's gone under (the game over card listens).
 signal sank
 
+## Sent when she comes over a fishing spot (over = true) or leaves the last one she was over (false).
+## The wheel listens, to show a question mark instead of the anchor. The spots tell her (set_over_fishing_spot).
+signal over_fishing_spot_changed(over: bool)
+
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
 const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.1], [45.0, 1.5], [180.0, 1.0]]
 
@@ -122,6 +126,7 @@ var home_position := Vector3.ZERO   # where she starts (home): read at start, sh
 var home_turn := 0.0                # and which way she faced there (rotation.y)
 var water_mask: ShaderMaterial      # the mask on her inside (see add_water_mask)
 var masked_meshes: Array[MeshInstance3D] = []   # the meshes that wear it
+var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over now (usually none or one)
 
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
 # (children, children of children, and so on), so you can rearrange the hierarchy freely: only the
@@ -276,6 +281,19 @@ func add_heart_container() -> void:
 	max_hearts += 1
 	health = max_hearts
 	health_changed.emit(false)
+
+
+## A fishing spot tells her she's over it (here = true) or not any more (false). When that makes the difference
+## between "over a spot" and "over none", she sends over_fishing_spot_changed (the wheel listens).
+func set_over_fishing_spot(spot: Node3D, here: bool) -> void:
+	var was_over := not fishing_spots_under.is_empty()
+	if here and not fishing_spots_under.has(spot):
+		fishing_spots_under.append(spot)
+	if not here:
+		fishing_spots_under.erase(spot)
+	var is_over := not fishing_spots_under.is_empty()
+	if is_over != was_over:
+		over_fishing_spot_changed.emit(is_over)
 
 
 ## Where her bow is now, on the water.

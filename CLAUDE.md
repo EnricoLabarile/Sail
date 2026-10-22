@@ -280,9 +280,14 @@
   the anchor goes down; still at anchor after `fishing_time`, the haul: fish into the Inventory (hold full: nothing, the
   spot stays) or `add_heart_container()`; then it fades and is freed. Weighed before: nothing, it stays. No net,
   popup or sound yet. **The wheel's hub shows a question mark** (Enrico, the prototype's `bankHint` glyph) instead of the anchor
-  while she's over a spot: `has_boat(boat)` = her middle within `reach`, or fishing there, and not fished out; `helm.gd`
-  `_is_over_fishing_spot()` asks every spot each frame, redraws only when it changes; two more hub pictures
-  (`_hub_picture_sailing_spot` / `_anchored_spot`, `_draw_hub(..., question)`, `_draw_question_mark`). After the haul, the anchor again.
+  while she's over a spot, **event-driven** (Enrico: no checks every frame): each spot has `Sensor` (Area3D, a
+  `CylinderShape3D` of radius `reach`, local to scene, height 4; mask = physics layer 4 "sensors", not monitorable) and
+  the boat `SpotSensor` (Area3D, a 0.3 m sphere on layer 4, not monitoring); `area_entered` / `area_exited` →
+  `_update_boat_here()`: over = not fished out and (inside or fishing there), told only when it changes through
+  `boat.set_over_fishing_spot(spot, here)`; the boat keeps `fishing_spots_under` and emits
+  `over_fishing_spot_changed(over)` when it goes empty/non-empty; `helm.gd` connects to it once (`_listen_to_boat`,
+  deferred) and swaps the hub picture (`over_spot`; `_hub_picture_sailing_spot` / `_anchored_spot`, `_draw_hub(...,
+  question)`, `_draw_question_mark`). After the haul, the anchor again. (Land's rays don't hit areas.)
 - **Sea imps** (Enrico, a danger as the prototype's sea imp; `Assets/Dangers/sea_imp/`: `sea_imp_zone.tscn` + `.gd`
   (`@tool`), `sea_imp.gdshader`, `sea_imp.png`, `fireball.tscn` + `.gd`, `fireball.png`; zones placed by Enrico under
   `SeaImps` in Overworld, for now one `SeaImpZone` at (−15, 0, −80), `radius` 22): a zone is a circle (`radius`; in the

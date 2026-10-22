@@ -163,26 +163,24 @@ func _process(dt: float) -> void:
 		Sfx.wheel_stop(minf(1.0, 0.5 + spin / 10.0))
 	at_lock = hard_over
 
-	# 3. The hub's face changes with the anchor, and with a fishing spot under her: redraw when one does.
+	# 3. The hub's face changes with the anchor: redraw when it does.
 	if anchored != shown_anchor:
 		shown_anchor = anchored
 		queue_redraw()
-	var spot_here := _is_over_fishing_spot()
-	if spot_here != over_spot:
-		over_spot = spot_here
-		queue_redraw()
 
 
-## Is the boat over a fishing spot (and is there still something to haul there)? Every spot is asked
-## (fishing_spot.gd has_boat); one is enough.
-func _is_over_fishing_spot() -> bool:
+## Listens to the boat: she says when she comes over a fishing spot or leaves it (boat.gd,
+## over_fishing_spot_changed; like binding to an Event Dispatcher in Unreal). Done once, after every node is ready.
+func _listen_to_boat() -> void:
 	var b := _boat()
-	if b == null:
-		return false
-	for spot in get_tree().get_nodes_in_group("fishing_spots"):
-		if spot.has_boat(b):
-			return true
-	return false
+	if b:
+		b.over_fishing_spot_changed.connect(_on_over_fishing_spot)
+
+
+## The boat came over a fishing spot (over = true) or left it: show the question mark or the anchor.
+func _on_over_fishing_spot(over: bool) -> void:
+	over_spot = over
+	queue_redraw()
 
 
 # ---- little drawing helpers ----
@@ -282,6 +280,8 @@ func _ready() -> void:
 	_hub_picture_anchored_spot = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, true, true))
 	resized.connect(_redraw_pictures)
 	_redraw_pictures()
+	if not Engine.is_editor_hint():
+		_listen_to_boat.call_deferred()
 
 
 ## A picture: a SubViewport (see-through background) with a painter in it. `paint` is called with the

@@ -38,6 +38,10 @@ window/handheld/orientation=1
 
 pointing/emulate_touch_from_mouse=true
 
+[layer_names]
+
+3d_physics/layer_4="sensors"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
