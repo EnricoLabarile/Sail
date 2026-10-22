@@ -25,9 +25,10 @@ extends Node3D
 # and the faster she goes.
 @export var turn_lean_deg := 15   # how far she leans turning at turn_rate at top_speed, in degrees (the prototype's)
 
-# Speeding up and slowing down: the bow lifts as she gathers way and dips as she slows (as in the prototype).
-@export var surge_pitch_deg := 2      # degrees the bow lifts for every m/s² she speeds up (dips the same slowing down)
-@export var surge_pitch_max_deg := 45  # never more than this, either way
+# Speed lifts the bow (Enrico, like a motorboat): the faster she goes, the higher the bow, and it STAYS up as long
+# as she keeps that speed; it comes down again as she slows.
+@export var bow_lift_deg := 8.0       # degrees the bow is lifted at top_speed
+@export var bow_lift_curve := 2.0     # how the lift grows with speed: 1 = evenly; 2 = little when slow, most near top speed
 
 # How she leans and pitches: not straight to where she should be, but like a weight on a spring, so she
 # swings a little past it and settles (the prototype's damped springs). This is what makes her feel alive.
@@ -109,7 +110,6 @@ var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her m
 var drift_amount := 0.0     # 0..1: how much the current has her (eases in and out, see current_ease)
 var bump_wait := 0.0        # seconds left before another bump can count
 var heel := 0.0             # how far she leans with the wind (radians), without the waves' roll
-var last_speed := 0.0       # her speed a frame ago (to work out how quickly it changes)
 var turn_speed := 0.0       # how quickly she is turning now, in rad/s (+ = to the left), measured each frame
 var roll := 0.0             # her lean now (radians, + = to port), and how quickly it's changing (the spring)
 var roll_velocity := 0.0
@@ -366,7 +366,7 @@ func _physics_process(dt: float) -> void:
 
 ## How she leans (roll) and how her bow rises and dips (pitch). First where she should be:
 ##   roll  = the heel from the wind + the lean out of a turn + the waves' roll
-##   pitch = the bow lifting as she speeds up (dipping as she slows) + the waves' pitch
+##   pitch = the bow lifted by her speed (more the faster she goes) + the waves' pitch
 ## Then, instead of jumping there, she is pulled there like a weight on a spring (a damped spring):
 ## she swings a little past it and settles. That swing is what makes the boat feel alive when you turn.
 func rock_and_roll(dt: float) -> void:
@@ -376,12 +376,11 @@ func rock_and_roll(dt: float) -> void:
 	var speed_share := speed / top_speed               # 1 = at top speed
 	var turn_lean := turn_share * speed_share * deg_to_rad(turn_lean_deg)
 
-	# 2. The bow and her speed: how quickly her speed changes (m/s every second), in degrees, kept within
-	#    surge_pitch_max_deg either way.
-	var acceleration := (speed - last_speed) / dt
-	last_speed = speed
-	var max_surge := deg_to_rad(surge_pitch_max_deg)
-	var surge := clampf(acceleration * deg_to_rad(surge_pitch_deg), -max_surge, max_surge)
+	# 2. The bow and her speed: her share of top speed (0..1), raised to bow_lift_curve, times bow_lift_deg.
+	#    With the curve at 2: at half speed a quarter of the lift, at top speed all of it.
+	#    (pow(a, b) is a to the power b.) The spring below makes it rise and settle smoothly, not jump.
+	var lift_share := pow(clampf(speed / top_speed, 0.0, 1.0), bow_lift_curve)
+	var bow_lift := lift_share * deg_to_rad(bow_lift_deg)
 
 	# 3. The waves: two slow sine waves (pitch a little quicker than roll, so they don't move in step).
 	#    TAU (2 x pi) / period makes one full swing take `period` seconds.
@@ -391,7 +390,7 @@ func rock_and_roll(dt: float) -> void:
 
 	# 4. Where she should be.
 	var roll_target := heel + turn_lean + wave_roll
-	var pitch_target := surge + wave_pitch
+	var pitch_target := bow_lift + wave_pitch
 
 	# 5. The springs: the further she is from the target, the harder she's pulled toward it (stiffness);
 	#    the faster she's moving, the more that's held back (damping). velocity changes the angle.
@@ -399,9 +398,9 @@ func rock_and_roll(dt: float) -> void:
 	roll += roll_velocity * dt
 	pitch_velocity += (pitch_stiffness * (pitch_target - pitch) - pitch_damping * pitch_velocity) * dt
 	pitch += pitch_velocity * dt
-	# never further than the prototype allowed: about 34 degrees of roll, 17 of pitch
+	# never further than the prototype allowed: about 34 degrees of roll, 17 of pitch (more up, if bow_lift_deg asks)
 	roll = clampf(roll, -0.6, 0.6)
-	pitch = clampf(pitch, -0.3, 0.3)
+	pitch = clampf(pitch, -0.3, maxf(0.3, deg_to_rad(bow_lift_deg + wave_pitch_deg)))
 
 	model.rotation.z = roll    # z: round her length, so she leans left (+) and right (-)
 	model.rotation.x = pitch   # x: across her, so the bow goes up (+) and down (-)
