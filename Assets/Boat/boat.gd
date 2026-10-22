@@ -10,7 +10,7 @@ extends Node3D
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 5		    # how far she leans with the wind on the sail
-@export var camera_tilt_deg := 30 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
+@export var camera_tilt_deg := 45 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 # How far the camera sits from her, along the way it looks. It's orthographic (no perspective), so this
 # doesn't change the picture at all: it only has to be far enough that tall things (the clouds, 15 m up)
 # near the bottom of the screen don't end up behind the camera's near plane and get cut off.
@@ -23,11 +23,11 @@ extends Node3D
 
 # Turning: she leans out of the turn (the prototype's "lean out of a turn"), more the quicker she turns
 # and the faster she goes.
-@export var turn_lean_deg := 5.0   # how far she leans turning at turn_rate at top_speed, in degrees (the prototype's)
+@export var turn_lean_deg := 15   # how far she leans turning at turn_rate at top_speed, in degrees (the prototype's)
 
 # Speeding up and slowing down: the bow lifts as she gathers way and dips as she slows (as in the prototype).
-@export var surge_pitch_deg := 5      # degrees the bow lifts for every m/s² she speeds up (dips the same slowing down)
-@export var surge_pitch_max_deg := 4.5  # never more than this, either way
+@export var surge_pitch_deg := 2      # degrees the bow lifts for every m/s² she speeds up (dips the same slowing down)
+@export var surge_pitch_max_deg := 45  # never more than this, either way
 
 # How she leans and pitches: not straight to where she should be, but like a weight on a spring, so she
 # swings a little past it and settles (the prototype's damped springs). This is what makes her feel alive.

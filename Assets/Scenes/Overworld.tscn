@@ -37,7 +37,6 @@ size_max = 40.0
 
 [node name="Boat" parent="." unique_id=1762906152 instance=ExtResource("2_boat")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)
-camera_tilt_deg = 15
 
 [node name="Dither" parent="." unique_id=1041423395 instance=ExtResource("4_dither")]
 
