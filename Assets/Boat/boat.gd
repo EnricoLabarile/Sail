@@ -30,6 +30,11 @@ extends Node3D
 @export var bow_lift_deg := 15       # degrees the bow is lifted at top_speed
 @export var bow_lift_curve := 2.0     # how the lift grows with speed: 1 = evenly; 2 = little when slow, most near top speed
 
+# The sail's trail (Enrico): in a tight, fast turn the boom's end skims the water and leaves a trail of dots
+# (SailTrail, particles like the wake, dropped where SailTip is). How hard she's turning = her share of turn_rate
+# × her share of top_speed (0..1); over the threshold, the trail is on.
+@export var sail_trail_threshold := 0.4   # 0..1: 0.4 = e.g. full rudder at 40% of top speed, or half rudder at 80%
+
 # How she leans and pitches: not straight to where she should be, but like a weight on a spring, so she
 # swings a little past it and settles (the prototype's damped springs). This is what makes her feel alive.
 @export var roll_stiffness := 16.0      # how strongly the roll is pulled to where it should be (higher = snappier)
@@ -136,6 +141,8 @@ var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over n
 @onready var camera: Camera3D = $Camera3D
 @onready var wake: CPUParticles3D = find_child("Wake")          # the dots left behind the stern
 @onready var bow_wave_right: Node3D = find_child("BowWaveRight") # the water thrown up and out at the bow (Wind
+@onready var sail_tip: Node3D = find_child("SailTip")              # the boom's end (a Marker3D inside Rig, like a Socket)
+@onready var sail_trail: CPUParticles3D = find_child("SailTrail")  # the dots it leaves on the water
 @onready var bow_wave_left: Node3D = find_child("BowWaveLeft")   # Waker's "wings"; bow_wave.gdshader), a side each
 @onready var sail_node: Node3D = find_child("sm_boat_sail")   # the whole sail: squashed down onto the boom to furl it
 
@@ -235,6 +242,8 @@ func start_sinking() -> void:
 	set_water_mask(false)            # the sea may cover her inside now
 	if wake:
 		wake.emitting = false        # no wake behind a wreck
+	if sail_trail:
+		sail_trail.emitting = false
 	for wing in [bow_wave_right, bow_wave_left]:
 		if wing:
 			wing.visible = false
@@ -475,6 +484,21 @@ func update_water_fx(dt: float) -> void:
 		# never slower than 0.35, or the last dots would hang on the water for ages
 		wake.speed_scale = maxf(k, 0.35) if on else 1.0
 	update_bow_wave(dt, k, on)
+	update_sail_trail()
+
+
+## The sail's trail: the emitter follows the boom's end, but down on the water (the dots lie on the sea, and
+## with local_coords off they stay where they were dropped, so they make a line behind her). It's on only
+## while she turns hard enough at speed (see sail_trail_threshold).
+func update_sail_trail() -> void:
+	if sail_trail == null or sail_tip == null:
+		return
+	var tip := sail_tip.global_position
+	sail_trail.global_position = Vector3(tip.x, 0.05, tip.z)
+	var turn_share := absf(turn_speed) / turn_rate        # 1 = turning as fast as she can
+	var speed_share := clampf(speed / top_speed, 0.0, 1.0)
+	var turning_hard := turn_share * speed_share
+	sail_trail.emitting = turning_hard > sail_trail_threshold and not anchored and not sinking
 
 
 ## The bow wave (Wind Waker's wings of water at the bow): two flat pictures, a side each, playing a flipbook

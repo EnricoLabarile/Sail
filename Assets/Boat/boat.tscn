@@ -35,6 +35,10 @@ center_offset = Vector3(0.965, 0.45, 0)
 [sub_resource type="SphereShape3D" id="Shape_spot_sensor"]
 radius = 0.3
 
+[sub_resource type="Curve" id="Curve_sail_trail_size"]
+_data = [Vector2(0, 0.4), 0.0, 0.6, 0, 1, Vector2(1, 1), 0.6, 0.0, 1, 0]
+point_count = 2
+
 [node name="Boat" type="Node3D" unique_id=1479473515]
 script = ExtResource("1_boat")
 
@@ -98,3 +102,20 @@ monitoring = false
 
 [node name="Shape" type="CollisionShape3D" parent="SpotSensor" unique_id=358062216]
 shape = SubResource("Shape_spot_sensor")
+
+[node name="SailTip" type="Marker3D" parent="Model/sm_boat_hull/sm_boat_mast/Rig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 4.7)
+
+[node name="SailTrail" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 24
+lifetime = 1.0
+local_coords = false
+mesh = SubResource("Mesh_wake")
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 0.0
+initial_velocity_max = 0.0
+scale_amount_min = 0.7
+scale_amount_max = 0.7
+scale_amount_curve = SubResource("Curve_sail_trail_size")
+color_ramp = SubResource("Grad_wake")

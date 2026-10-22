@@ -159,6 +159,11 @@
   for Enrico to redraw; uniforms `frames_x/y`, `frame`, `strength`). `boat.gd` `update_bow_wave()`: `strength` eases
   (×4/s) to her share of top speed (0 at anchor or slow), the wings grow from `bow_wave_min_size` 0.4 to full with it
   and hide below 0.02; the frame counts up at `bow_wave_fps` 12 × that share (at least 0.3).
+  **The sail's trail** (Enrico: the boom's end skimming the water in a hard turn): `SailTip` (a Marker3D in `Rig` at
+  the boom's end, (0, 0.12, 4.7); move it in boat.tscn) and `SailTrail` (CPUParticles3D, child of Boat, the wake's disc
+  mesh and colour ramp, 24 dots, life 1 s, no velocity, local_coords off, size curve 0.4 → 1 × 0.7); `update_sail_trail()`
+  (from `update_water_fx`) puts the emitter at the tip's x/z at y 0.05 and turns it on while |`turn_speed`| / `turn_rate` ×
+  speed / `top_speed` > `sail_trail_threshold` (0.4), not at anchor or sinking (a condition, not real contact).
 - **The slingshot** (Enrico, as the prototype's; infinite stones for now, no inventory): `Assets/UI/slingshot/`
   (`slingshot.tscn`: CanvasLayer 95 under the dither, in `DITHERED`; Control `Sling` bottom right, 80 × 100, mirroring
   the logbook; `slingshot.gd`, `@tool` so it's drawn in the editor too, where it only draws): the prototype's wooden Y drawn in greys from its SVG (64 × 80 units; bands ink over a
