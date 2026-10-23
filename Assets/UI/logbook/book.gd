@@ -49,6 +49,7 @@ var unfold := 0.0:
 
 var _grain: ImageTexture        # a small tile of the leather's dots, repeated over the cover
 var _boat_square := Vector2i(-1, -1)   # the square she's in (column 0..8 = A..I, row 0..8 = 1..9), read on opening
+var _marked_squares: Array[Vector2i] = []   # the squares with an X: those of the active map markers, read on opening
 var _slot_count := 9            # how many slots the hold has (Inventory.SLOTS, read on opening)
 var _icons: Array[Texture2D] = []      # the picture of each thing aboard, slot by slot (read on opening)
 
@@ -77,6 +78,11 @@ func refresh() -> void:
 		var col := int(floor((boat.global_position.x / Land.WORLD_SIZE + 0.5) * ROOMS))
 		var row := int(floor((boat.global_position.z / Land.WORLD_SIZE + 0.5) * ROOMS))
 		_boat_square = Vector2i(clampi(col, 0, ROOMS - 1), clampi(row, 0, ROOMS - 1))
+	# The squares marked with an X: every active map marker (Assets/Quests/map_marker) says which square it's in.
+	_marked_squares.clear()
+	for marker in get_tree().get_nodes_in_group("map_markers"):
+		if marker.active and not _marked_squares.has(marker.square()):
+			_marked_squares.append(marker.square())
 	# The hold: how many slots, and the picture of each thing aboard (in the order it came in).
 	_slot_count = Inventory.SLOTS
 	_icons.clear()
@@ -294,6 +300,13 @@ func _draw_map(area: Rect2) -> void:
 	if _boat_square.x >= 0:
 		var corner: Vector2 = to_screen.call(GRID_START + _boat_square.x * ROOM_SIZE, GRID_START + _boat_square.y * ROOM_SIZE)
 		_half_rect(Rect2(corner, Vector2(ROOM_SIZE, ROOM_SIZE) * k), Color(INK, 0.3))
+
+	# An X in the middle of each marked square (the map markers), its arms 0.3 of a square from the middle.
+	for marked in _marked_squares:
+		var middle: Vector2 = to_screen.call(GRID_START + (marked.x + 0.5) * ROOM_SIZE, GRID_START + (marked.y + 0.5) * ROOM_SIZE)
+		var arm := ROOM_SIZE * 0.3 * k
+		_half_line(middle + Vector2(-arm, -arm), middle + Vector2(arm, arm), INK, 2.0, false)
+		_half_line(middle + Vector2(arm, -arm), middle + Vector2(-arm, arm), INK, 2.0, false)
 
 
 ## A line of the map: the frame's edge solid, the seams between squares dotted and paler.

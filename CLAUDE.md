@@ -310,6 +310,13 @@
   while it's RISING or UP: one of `max_hits` 3 off and it sinks at once; at 0, once under, DEAD for good. She sails out of
   the zone (or sinks): it sinks and waits (WAITING), with all its hits back when she comes in again. No ripples, sounds,
   popups or buzz (not asked).
+- **Map markers** (Enrico; `Assets/Quests/map_marker/`: `map_marker.tscn` + `map_marker.gd` (`@tool`, `@icon`),
+  `map_marker_icon.svg`; instanced under `MapMarkers` in Overworld, for now one at (60, 0, −150), F4, `active` on to
+  try it): an invisible Node3D; in the editor a red X in a circle (the scene-tree icon, and in the 3D view a Sprite3D
+  billboard, `fixed_size`, `no_depth_test`, made in code with no owner, so not in the game). `active` (export),
+  `activate()` / `deactivate()` (for future quests: an NPC will call them), `square()` = its 9 × 9 square (as the
+  boat's). Group `map_markers`: `book.gd` `refresh()` (on opening) reads the squares of the active ones into
+  `_marked_squares`; `_draw_map` draws an ink X (arms 0.3 of a square, width 2) in the middle of each.
 - **The UI is drawn in the editor too** (Enrico: to place and arrange it himself): `helm.gd`, `wind_vane.gd`,
   `book_icon.gd`, `book.gd`, `health.gd` and `slingshot.gd` are `@tool`; in the editor (`Engine.is_editor_hint()`) `_gui_input`
   and `_process` return at once (no touches, keys, boat, wind or sounds), so they only draw: the wheel with the
