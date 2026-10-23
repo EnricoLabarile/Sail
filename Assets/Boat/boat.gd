@@ -80,7 +80,6 @@ extends Node3D
 
 # Her health (the prototype's hull), counted in hearts like Zelda's; the hearts top left (Assets/UI/health)
 # show it. A bump against anything solid (a shore, an island) takes hit_damage off.
-@export var silhouette_color := Color.BLACK   # her shape seen through an island in front of her (black = ink)
 @export var max_hearts := 3         # how many hearts she has when the hull is whole (a heart container adds one)
 @export var hit_damage := 0.5       # hearts lost in a bump (0.5 = half a heart, as in the prototype)
 
@@ -165,7 +164,6 @@ func _ready() -> void:
 	home_turn = rotation.y
 	add_water_mask()
 	add_outline()
-	add_silhouette()
 
 
 ## The ink outline round the boat (Assets/Boat/boat_outline.gdshader): a rectangle in front of the
@@ -201,21 +199,6 @@ func add_water_mask() -> void:
 		if names.contains("inner"):
 			masked_meshes.append(mesh)
 	set_water_mask(true)
-
-
-## Her silhouette behind the islands (boat_silhouette.gdshader): an extra coat on every mesh of the boat, drawn
-## only where an island is in front of her. Each mesh gets it as its material_overlay (a layer on top of its own
-## materials); the inside of the hull already wears the water mask there, so on those it's chained after the mask
-## (next_pass: "then draw this too"). Its colour: silhouette_color (the Inspector of Boat).
-func add_silhouette() -> void:
-	var silhouette := ShaderMaterial.new()
-	silhouette.shader = load("res://Assets/Boat/boat_silhouette.gdshader")
-	silhouette.render_priority = 3      # after the islands' mark (-1), the sea and the land drawings (0..2)
-	silhouette.set_shader_parameter("silhouette_color", silhouette_color)
-	water_mask.next_pass = silhouette   # the inside of the hull: after its mask
-	for mesh in model.find_children("*", "MeshInstance3D", true, false):
-		if not masked_meshes.has(mesh):
-			mesh.material_overlay = silhouette
 
 
 ## Puts the mask on her inside (on = true) or takes it off: while she sinks it's off, so the sea covers

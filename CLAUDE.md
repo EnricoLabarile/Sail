@@ -146,14 +146,6 @@
   floor of the boat (below y 0) shows. The outside of the hull, mast and sail have no mask: the sea covers what's
   below the water. Until the inner mesh exists, nothing is masked (the sea shows over her floor). How deep she sits
   is `Model`'s y in `boat.tscn` (Enrico places it; −0.4 now): `boat.gd` reads it at start (`model_height`) and bobs round it.
-- **Her silhouette behind the islands** (Enrico): the islands' material `Assets/Landscape/islands/island.tres` (toon_shade)
-  has a `next_pass`, `island_mark.gdshader` (invisible, render_priority −1, `stencil_mode write, compare_always, 2`):
-  it marks with a 2 the pixels where the island is visible (where the boat is in front, the depth test leaves them
-  unmarked). `boat.gd` `add_silhouette()` puts `boat_silhouette.gdshader` (unshaded, both faces, `depth_test_disabled`,
-  `stencil_mode read, compare_equal, 2`, render_priority 3) as `material_overlay` on every mesh in `Model` (on the
-  masked inner meshes as the water mask's `next_pass`): her shape, flat in `silhouette_color` (Boat export, black =
-  ink), only where an island hides her. Stencil values: 1 = the boat's inside (water mask), 2 = islands. The
-  faraglioni (`land_unlit`) don't mark yet.
 - **Wake and bow wave**: the wake (as the prototype's wake dots) is a `CPUParticles3D` child of `Boat` in `boat.tscn`
   (`Wake`, its look set in the Inspector), `local_coords` off so what it leaves stays on the water, flat 8-sided discs
   (a CylinderMesh with no height), unshaded, vertex colour + alpha, render_priority 1: at the stern (z +1.7), two
