@@ -35,6 +35,9 @@ extends Node3D
 # × her share of top_speed (0..1); over the threshold, the trail is on.
 @export var sail_trail_threshold := 0.4   # 0..1: 0.4 = e.g. full rudder at 40% of top speed, or half rudder at 80%
 
+# Tying up at a pier (Assets/Landscape/pier): she glides to the pier's berth and turns to its heading.
+@export var dock_speed := 3.0   # how quickly she glides into place (higher = quicker; about 1/3 s to get most of the way)
+
 # How she leans and pitches: not straight to where she should be, but like a weight on a spring, so she
 # swings a little past it and settles (the prototype's damped springs). This is what makes her feel alive.
 @export var roll_stiffness := 16.0      # how strongly the roll is pulled to where it should be (higher = snappier)
@@ -120,6 +123,7 @@ var roll := 0.0             # her lean now (radians, + = to port), and how quick
 var roll_velocity := 0.0
 var pitch := 0.0            # the bow's angle now (radians, + = up), and how quickly it's changing
 var pitch_velocity := 0.0
+var berth: Node3D = null     # the pier's berth she's tied up at (null = not tied up)
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
 var camera_focus := Vector3.ZERO   # the point on the water the camera looks at (it trails behind her)
 var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
@@ -213,6 +217,9 @@ func set_rudder(v: float) -> void:
 func toggle_anchor() -> void:
 	if sinking:
 		return                       # going down: nothing to work
+	if berth != null:
+		cast_off()                   # tied up at a pier: the anchor button casts off
+		return
 	anchored = not anchored
 	if anchored:
 		anchor_point = bow_point()   # let go off the bow: it stays there
@@ -221,6 +228,34 @@ func toggle_anchor() -> void:
 		for spot in get_tree().get_nodes_in_group("fishing_spots"):
 			spot.try_fishing(self)
 	Sfx.anchor(anchored)             # its sound: the splash going down, the chain coming up (Assets/SFX/sfx.gd)
+
+
+## A pier's berth (pier.gd) tells her to tie up there: she stops, gathers the sail (as at anchor, so the wheel
+## doesn't steer and the hub shows the anchor), and glides into place (glide_to_berth, every physics frame).
+func dock_at(spot: Node3D) -> void:
+	if sinking or berth != null:
+		return
+	berth = spot
+	anchored = true
+	speed = 0.0
+	knock = Vector3.ZERO
+
+
+## Leaves the pier (the anchor button): free to sail, already facing out to sea.
+func cast_off() -> void:
+	berth = null
+	anchored = false
+
+
+## Every physics frame while tied up: a little closer to the berth and a little more turned to its heading,
+## each time the same share of what's left (so she slows down as she arrives, with no bump at the end).
+## The berth's -Z is the way her bow points (as hers: Godot's forward is -Z).
+func glide_to_berth(dt: float) -> void:
+	var share := 1.0 - exp(-dock_speed * dt)     # the share of the way to go this frame
+	var target := berth.global_position
+	global_position.x = lerpf(global_position.x, target.x, share)
+	global_position.z = lerpf(global_position.z, target.z, share)
+	rotation.y = lerp_angle(rotation.y, berth.global_rotation.y, share)   # lerp_angle: the short way round
 
 
 ## Takes `hearts` off her health (never below 0) and tells the hearts top left. At 0 she starts to sink.
@@ -265,6 +300,7 @@ func update_sinking(dt: float) -> void:
 ## that was moving her stopped. What's in the hold and her heart containers stay.
 func respawn() -> void:
 	sinking = false
+	berth = null
 	global_position = home_position
 	rotation.y = home_turn
 	health = max_hearts
@@ -346,11 +382,14 @@ func _physics_process(dt: float) -> void:
 
 	# She turns at the same rate whatever her speed, as in the prototype; not at anchor.
 	var yaw_before := rotation.y
-	if not anchored:
-		rotate_y(-rudder * turn_rate * dt)
-	update_current(dt, wind_from)
-	move_and_bounce(dt)
-	hold_at_anchor()
+	if berth != null:
+		glide_to_berth(dt)           # tied up at a pier: only gliding into place, nothing else moves her
+	else:
+		if not anchored:
+			rotate_y(-rudder * turn_rate * dt)
+		update_current(dt, wind_from)
+		move_and_bounce(dt)
+		hold_at_anchor()
 	# How quickly she really turned this frame (the rudder, a bump, the anchor line swinging her):
 	# wrapf keeps the difference between -PI and PI when the angle goes round past 180 degrees.
 	turn_speed = wrapf(rotation.y - yaw_before, -PI, PI) / dt

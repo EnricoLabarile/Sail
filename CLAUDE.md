@@ -310,6 +310,16 @@
   while it's RISING or UP: one of `max_hits` 3 off and it sinks at once; at 0, once under, DEAD for good. She sails out of
   the zone (or sinks): it sinks and waits (WAITING), with all its hits back when she comes in again. No ripples, sounds,
   popups or buzz (not asked).
+- **Piers** (Enrico; `Assets/Landscape/pier/`: `pier.tscn` + `pier.gd` (`@tool`); instanced under `Piers` in Overworld,
+  for now one at (−10, 0, −20), a test): `Mesh` (a placeholder wooden BoxMesh 2 × 0.6 × 10 m, toon_shade; not solid),
+  `Berth` (Node3D, the boat's parking spot: her bow points along its −Z) with `Sensor` (Area3D, a `CylinderShape3D`
+  of radius `dock_radius` 8, local to scene; mask layer 4 "sensors", the boat's `SpotSensor`). In the editor a blue
+  disc (the radius) and an arrow on the berth (her heading), made in code with no owner. `area_entered` with the boat
+  not at anchor → `boat.dock_at(berth)`: `berth` set, `anchored` true (sail gathered, no steering, hub dark), speed 0;
+  every physics frame `glide_to_berth` (instead of steering / current / bumps / the anchor line) moves her x/z and
+  `rotation.y` (`lerp_angle`) toward the berth by 1 − exp(−`dock_speed` 3 × dt). The anchor button (`toggle_anchor`)
+  while tied up → `cast_off()`: `berth` null, `anchored` false (no sound). She ties up again only after leaving the
+  sensor and coming back (it's `area_entered`). `respawn()` clears `berth`.
 - **Map markers** (Enrico; `Assets/Quests/map_marker/`: `map_marker.tscn` + `map_marker.gd` (`@tool`, `@icon`),
   `map_marker_icon.svg`; instanced under `MapMarkers` in Overworld, for now one at (60, 0, −150), F4, `active` on to
   try it): an invisible Node3D; in the editor a red X in a circle (the scene-tree icon, and in the 3D view a Sprite3D

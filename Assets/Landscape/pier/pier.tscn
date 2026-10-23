@@ -1,0 +1,36 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Landscape/pier/pier.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://cun5pmnoonaa0" path="res://Assets/Boat/toon_shade.gdshader" id="2_toon"]
+
+[sub_resource type="ShaderMaterial" id="Mat_wood"]
+shader = ExtResource("2_toon")
+shader_parameter/base_color = Color(0.55, 0.45, 0.35, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_pier"]
+material = SubResource("Mat_wood")
+size = Vector3(2, 0.6, 10)
+
+[sub_resource type="CylinderShape3D" id="Shape_sensor"]
+resource_local_to_scene = true
+height = 4.0
+radius = 8.0
+
+[node name="Pier" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_pier")
+
+[node name="Berth" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0, 0)
+
+[node name="Sensor" type="Area3D" parent="Berth"]
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+
+[node name="Shape" type="CollisionShape3D" parent="Berth/Sensor"]
+shape = SubResource("Shape_sensor")

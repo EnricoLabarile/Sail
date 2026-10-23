@@ -22,6 +22,8 @@
 
 [ext_resource type="PackedScene" path="res://Assets/Quests/map_marker/map_marker.tscn" id="29_map_marker"]
 
+[ext_resource type="PackedScene" path="res://Assets/Landscape/pier/pier.tscn" id="30_pier"]
+
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
 [node name="Sea" parent="." unique_id=1750240136 instance=ExtResource("1_sea")]
@@ -77,6 +79,11 @@ radius = 22.0
 [node name="MapMarker" parent="MapMarkers" instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0, -150)
 active = true
+
+[node name="Piers" type="Node3D" parent="."]
+
+[node name="Pier" parent="Piers" instance=ExtResource("30_pier")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -20)
 
 [node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("7_start")]
 
