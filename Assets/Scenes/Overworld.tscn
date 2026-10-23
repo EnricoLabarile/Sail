@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://boiuwov1823vx" path="res://Assets/Landscape/islands/sm_island_03_a.fbx" id="19_gl5xi"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/clouds/clouds.tscn" id="20_clouds"]
 [ext_resource type="Script" uid="uid://dte3lbhusmsjc" path="res://Assets/Post_Process/game_view.gd" id="21_game_view"]
+[ext_resource type="PackedScene" uid="uid://daikh4dkdrv5s" path="res://Assets/Landscape/islands/sm_rocks_01_a.fbx" id="21_ux1kc"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="23_gulls"]
 [ext_resource type="PackedScene" uid="uid://c6x4x6qmghv8y" path="res://Assets/UI/slingshot/slingshot.tscn" id="24_sling"]
@@ -19,9 +20,7 @@
 [ext_resource type="PackedScene" uid="uid://c83avpy373bev" path="res://Assets/Landscape/fishing_spots/fishing_spot.tscn" id="26_fishing_spot"]
 [ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="27_game_over"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/sea_imp/sea_imp_zone.tscn" id="28_sea_imp_zone"]
-
 [ext_resource type="PackedScene" path="res://Assets/Quests/map_marker/map_marker.tscn" id="29_map_marker"]
-
 [ext_resource type="PackedScene" path="res://Assets/Landscape/pier/pier.tscn" id="30_pier"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
@@ -34,7 +33,6 @@ fog_falloff = 3.0
 
 [node name="Clouds" parent="." unique_id=610020452 instance=ExtResource("20_clouds")]
 cloud_count = 128
-size_min = 20.0
 size_max = 40.0
 
 [node name="WindLines" parent="." unique_id=651435916 instance=ExtResource("22_wind_lines")]
@@ -74,16 +72,16 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1220932, -3.8146973e-06, -0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -156.08926, 0, -90.87308)
 radius = 22.0
 
-[node name="MapMarkers" type="Node3D" parent="."]
+[node name="MapMarkers" type="Node3D" parent="." unique_id=161406149]
 
-[node name="MapMarker" parent="MapMarkers" instance=ExtResource("29_map_marker")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0, -150)
+[node name="MapMarker" parent="MapMarkers" unique_id=499004719 instance=ExtResource("29_map_marker")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 109.13339, 0, -113.19586)
 active = true
 
-[node name="Piers" type="Node3D" parent="."]
+[node name="Piers" type="Node3D" parent="." unique_id=788276141]
 
-[node name="Pier" parent="Piers" instance=ExtResource("30_pier")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -20)
+[node name="Pier" parent="Piers" unique_id=1711215043 instance=ExtResource("30_pier")]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 7.6494904, 0, -78.6269)
 
 [node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("7_start")]
 
@@ -127,6 +125,9 @@ transform = Transform3D(0.5302242, 0, -0.8478575, 0, 1, 0, 0.8478575, 0, 0.53022
 [node name="sm_island_02_a3" parent="Islands" unique_id=1792022982 instance=ExtResource("18_lvl7n")]
 transform = Transform3D(0.84610367, 0, 0.53301847, 0, 1, 0, -0.53301847, 0, 0.84610367, -168.39558, 0, -167.52974)
 
+[node name="sm_island_02_a6" parent="Islands" unique_id=2033921 instance=ExtResource("18_lvl7n")]
+transform = Transform3D(0.6658927, 0, 0.7460476, 0, 1, 0, -0.7460476, 0, 0.6658927, 134.38943, 0, -137.67863)
+
 [node name="sm_island_02_a4" parent="Islands" unique_id=934879441 instance=ExtResource("18_lvl7n")]
 transform = Transform3D(-0.7805029, 0, 0.62515223, 0, 1, 0, -0.62515223, 0, -0.7805029, -218.99966, 0, -192.87003)
 
@@ -134,4 +135,28 @@ transform = Transform3D(-0.7805029, 0, 0.62515223, 0, 1, 0, -0.62515223, 0, -0.7
 transform = Transform3D(-0.49831393, 0, -0.86699677, 0, 1, 0, 0.86699677, 0, -0.49831393, -263.43698, 0, -143.64108)
 
 [node name="sm_island_03_a" parent="Islands" unique_id=1753392735 instance=ExtResource("19_gl5xi")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -85.98, 0, -178.077)
+transform = Transform3D(0.8726576, 0, 0.48833257, 0, 1, 0, -0.48833257, 0, 0.8726576, 61.742035, 0, -150.92355)
+
+[node name="sm_rocks_01_a" parent="." unique_id=1462368174 instance=ExtResource("21_ux1kc")]
+transform = Transform3D(0.65430313, 0, 0.7562324, 0, 1, 0, -0.7562324, 0, 0.65430313, 15.360878, 0, -27.689148)
+
+[node name="sm_rocks_01_a5" parent="." unique_id=1366652030 instance=ExtResource("21_ux1kc")]
+transform = Transform3D(0.6254343, 0, -0.78027683, 0, 1, 0, 0.78027683, 0, 0.6254343, -14.117521, 0, -24.55454)
+
+[node name="sm_rocks_01_a2" parent="." unique_id=2121286234 instance=ExtResource("21_ux1kc")]
+transform = Transform3D(-0.59436804, 0, -0.80419314, 0, 1, 0, 0.80419314, 0, -0.59436804, -41.896416, -7.6293945e-06, -59.48378)
+
+[node name="sm_rocks_01_a6" parent="." unique_id=918228295 instance=ExtResource("21_ux1kc")]
+transform = Transform3D(-0.59436804, 0, -0.80419314, 0, 1, 0, 0.80419314, 0, -0.59436804, 23.873672, -7.6293945e-06, -80.23782)
+
+[node name="sm_rocks_01_a8" parent="." unique_id=196267351 instance=ExtResource("21_ux1kc")]
+transform = Transform3D(0.93939656, 0, 0.3428325, 0, 1, 0, -0.3428325, 0, 0.93939656, -27.220127, -7.6293945e-06, -86.581184)
+
+[node name="sm_rocks_01_a7" parent="." unique_id=871224464 instance=ExtResource("21_ux1kc")]
+transform = Transform3D(0.99333715, 0, -0.11524436, 0, 1, 0, 0.11524436, 0, 0.99333715, 39.484016, -7.6293945e-06, -38.906773)
+
+[node name="sm_rocks_01_a3" parent="." unique_id=1825259942 instance=ExtResource("21_ux1kc")]
+transform = Transform3D(0.999978, 0, 0.006627202, 0, 1, 0, -0.006627202, 0, 0.999978, -37.275078, -7.6293945e-06, -36.97514)
+
+[node name="sm_rocks_01_a4" parent="." unique_id=168278788 instance=ExtResource("21_ux1kc")]
+transform = Transform3D(-0.39833888, 0, 0.9172383, 0, 1, 0, -0.9172383, 0, -0.39833888, -45.301426, -7.6293945e-06, -47.22735)

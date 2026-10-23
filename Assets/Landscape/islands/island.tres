@@ -5,5 +5,5 @@
 [resource]
 render_priority = 0
 shader = ExtResource("1_vyltg")
-shader_parameter/ambient = 0.6850000325375
-shader_parameter/base_color = Color(0.906, 0.906, 0.906, 1)
+shader_parameter/ambient = 0.3600000171
+shader_parameter/base_color = Color(0.6624523, 0.66245246, 0.6624518, 1)
