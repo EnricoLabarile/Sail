@@ -10,7 +10,7 @@ extends Node3D
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 5		    # how far she leans with the wind on the sail
-@export var camera_tilt_deg := 45 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
+@export var camera_tilt_deg := 20 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 # How far the camera sits from her, along the way it looks. It's orthographic (no perspective), so this
 # doesn't change the picture at all: it only has to be far enough that tall things (the clouds, 15 m up)
 # near the bottom of the screen don't end up behind the camera's near plane and get cut off.

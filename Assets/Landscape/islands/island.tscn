@@ -1,9 +1,0 @@
-[gd_scene format=3 uid="uid://ctngcwtp3nhvy"]
-
-[ext_resource type="Script" uid="uid://b4h36y0en11lx" path="res://Assets/Landscape/islands/island.gd" id="1_script"]
-[ext_resource type="PackedScene" uid="uid://46d6jucney4i" path="res://Assets/Landscape/islands/sm_island_01_a.fbx" id="2_yyxro"]
-
-[node name="Island" type="Node3D" unique_id=939147837]
-script = ExtResource("1_script")
-
-[node name="sm_island_01_a" parent="." unique_id=1944464174 instance=ExtResource("2_yyxro")]

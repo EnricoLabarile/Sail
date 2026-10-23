@@ -41,10 +41,16 @@ materials/extract_format=0
 materials/extract_path=""
 _subresources={
 "materials": {
-"Material": {
+"Island": {
 "use_external/enabled": true,
 "use_external/fallback_path": "res://Assets/Landscape/islands/island.tres",
 "use_external/path": "uid://cfl5fdc0jlu4t"
+}
+},
+"nodes": {
+"PATH:sm_island_01_a": {
+"generate/physics": true,
+"physics/shape_type": 2
 }
 }
 }
