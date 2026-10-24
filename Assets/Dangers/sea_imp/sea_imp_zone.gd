@@ -83,7 +83,7 @@ func _process(dt: float) -> void:
 	if state == State.DEFEATED:
 		# Beaten: black (update_flash), afloat and harmless, carried by the current (drift_with_current).
 		# The boat sailing over it takes it aboard (if there's room).
-		drift_with_current(boat, dt)
+		drift_with_current(dt)
 		if boat != null and not boat.sinking and distance_to(boat, imp.global_position) <= collect_radius:
 			if Inventory.add("imp") == 1:
 				imp.visible = false
@@ -238,12 +238,10 @@ func update_flash() -> void:
 	imp.material_override.set_shader_parameter("flash", black)
 
 
-## Dead, it floats: the same current that carries the boat (boat.gd `drift`, downwind) carries it too. It stops
-## where the next step would be on land, so it washes up against the shore instead of going through it.
-func drift_with_current(boat: Node3D, dt: float) -> void:
-	if boat == null:
-		return
-	var next_place: Vector3 = imp.global_position + boat.drift * dt
+## Dead, it floats: the current (the Wind autoload's, Wind.current(), downwind) carries it, as it does the boat.
+## It stops where the next step would be on land, so it washes up against the shore instead of going through it.
+func drift_with_current(dt: float) -> void:
+	var next_place: Vector3 = imp.global_position + Wind.current() * dt
 	next_place.y = 0.0
 	if not Land.is_land(next_place):
 		imp.global_position = next_place

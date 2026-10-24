@@ -57,14 +57,11 @@ func pulse() -> void:
 	picture.scale = picture_scale * (1.0 + pulse_amount * cycle)
 
 
-## While the fuse burns it floats: the same current that carries the boat (boat.gd `drift`, downwind) carries it
-## too, as it does a dead imp. It stops where the next step would be on land, so it washes up against the shore.
+## While the fuse burns it floats: the current (the Wind autoload's, Wind.current(), downwind) carries it, as it
+## does the boat and a dead imp. It stops where the next step would be on land, so it washes up against the shore.
 ## (Once it has blown up it stays put: the blast is where it went off.)
 func drift_with_current(dt: float) -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
-	if boat == null:
-		return
-	var next_place: Vector3 = global_position + boat.drift * dt
+	var next_place: Vector3 = global_position + Wind.current() * dt
 	next_place.y = global_position.y
 	if not Land.is_land(next_place):
 		global_position = next_place
