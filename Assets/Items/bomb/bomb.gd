@@ -13,6 +13,8 @@ extends Node3D
 @export var shake_time := 0.6        # seconds that shake lasts, dying away
 @export var pulse_time := 1.0        # seconds for one pulse: it shrinks and swells back once (Enrico: one a second)
 @export var pulse_amount := 0.15     # how much it grows and shrinks: 0.15 = from 15% smaller to 15% bigger
+@export var current_amount := 3    # how much the current carries it: 0 = not at all, 1 = like the boat
+
 
 @onready var picture: MeshInstance3D = $Picture   # the bomb, facing the camera (a 2-frame sheet: dark, fuse lit)
 @onready var blast: MeshInstance3D = $Blast       # the flash on the water when it goes off
@@ -61,8 +63,8 @@ func pulse() -> void:
 ## does the boat and a dead imp. It stops where the next step would be on land, so it washes up against the shore.
 ## (Once it has blown up it stays put: the blast is where it went off.)
 func drift_with_current(dt: float) -> void:
-	var next_place: Vector3 = global_position + Wind.current() * dt
-	next_place.y = global_position.y
+	var next_place: Vector3 = global_position + Wind.current() * current_amount * dt
+	next_place.y = global_position.y	
 	if not Land.is_land(next_place):
 		global_position = next_place
 

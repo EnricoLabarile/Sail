@@ -13,7 +13,7 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/clouds/clouds.tscn" id="20_clouds"]
 [ext_resource type="Script" uid="uid://dte3lbhusmsjc" path="res://Assets/Post_Process/game_view.gd" id="21_game_view"]
 [ext_resource type="PackedScene" uid="uid://daikh4dkdrv5s" path="res://Assets/Landscape/islands/sm_rocks_01_a.fbx" id="21_ux1kc"]
-[ext_resource type="PackedScene" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
+[ext_resource type="PackedScene" uid="uid://duxq1bjfe0iib" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="23_gulls"]
 [ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="24_bomb_button"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="25_health"]
@@ -72,10 +72,17 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1220932, -3.8146973e-06, -0
 [node name="SeaImpZone" parent="SeaImps" unique_id=1040785233 instance=ExtResource("28_sea_imp_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -156.08926, 0, -90.87308)
 
+[node name="SeaImpZone2" parent="SeaImps" unique_id=1741884461 instance=ExtResource("28_sea_imp_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 96.62009, 1.5258789e-05, -109.37146)
+
 [node name="MapMarkers" type="Node3D" parent="." unique_id=161406149]
 
 [node name="MapMarker" parent="MapMarkers" unique_id=499004719 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -156.14967, 0, -90.93315)
+active = true
+
+[node name="MapMarker2" parent="MapMarkers" unique_id=1657906072 instance=ExtResource("29_map_marker")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.41281, 0, -108.172035)
 active = true
 
 [node name="Piers" type="Node3D" parent="." unique_id=788276141]
