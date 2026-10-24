@@ -11,7 +11,7 @@ extends Node3D
 ## It goes back to lurking at its own place when the boat is more than `radius` from it (she got away), or sinks.
 ##
 ## It has `max_hearts` 3: a bomb's blast or a trap (bomb.gd, trap.gd → hit_imp_at) takes one while it's emerging
-## or up; if it has some left it vanishes under at once (and the cycle goes on). At 0 it's DEFEATED: it stays up,
+## or up, and blinks black (HURT, `hurt_time`); if it has some left it then goes under (and the cycle goes on). At 0 it's DEFEATED: it stays up,
 ## harmless, where it was; the boat sailing over it (within `collect_radius`) takes it into the hold ("imp").
 ## Lost hearts stay lost.
 ##
@@ -47,8 +47,10 @@ const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 @export var fireball_life := 3.0           # seconds a fireball flies before it's gone
 @export var aim_ahead := 0.5               # it aims where the boat will be this many seconds later
 @export var spit_height := 1.5             # metres above the water the fireball leaves its mouth
+@export var hurt_time := 0.5               # seconds it stays up blinking black when hit, before it goes under
+@export var hurt_blinks_per_second := 12.0 # how fast it blinks black while hurt
 
-enum State { LURKING, EMERGING, UP, UNDER, DEFEATED, CAPTURED }
+enum State { LURKING, EMERGING, UP, HURT, UNDER, DEFEATED, CAPTURED }
 
 var state := State.LURKING
 var time := 0.0            # seconds in the current state
@@ -65,6 +67,7 @@ func _ready() -> void:
 		_make_editor_disc()
 		return
 	add_to_group("sea_imps")    # so bombs and traps find it (bomb.gd, trap.gd: hit_imp_at)
+	imp.material_override = imp.material_override.duplicate()   # its own copy, so only this imp blinks
 	hearts = max_hearts
 	lurk()
 
@@ -76,6 +79,7 @@ func _process(dt: float) -> void:
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if state == State.CAPTURED:
 		return
+	update_flash()
 	if state == State.DEFEATED:
 		# Up and harmless where it was beaten. The boat sailing over it takes it aboard (if there's room).
 		if boat != null and not boat.sinking and distance_to(boat, imp.global_position) <= collect_radius:
@@ -102,6 +106,9 @@ func _process(dt: float) -> void:
 				spit(boat)
 			elif has_spat and time >= idle_before_spit + idle_after_spit:
 				go_under()
+		State.HURT:
+			if time >= hurt_time:
+				go_under()                                 # done blinking: it vanishes under
 		State.UNDER:
 			if time >= under_time:
 				var spot = find_spot_in_view(boat)
@@ -147,6 +154,15 @@ func go_under() -> void:
 	patch.visible = false
 
 
+## Hit (with hearts left): it stays up, harmless, blinking black for hurt_time seconds, then goes under.
+## Hit while still emerging, it shows itself at once, so the player sees it was hurt.
+func get_hurt() -> void:
+	state = State.HURT
+	time = 0.0
+	patch.visible = false
+	imp.visible = true
+
+
 ## 0 hearts: it stays where it is, up on the water and harmless, waiting to be picked up.
 func defeat() -> void:
 	state = State.DEFEATED
@@ -190,8 +206,8 @@ func find_spot_in_view(boat: Node3D) -> Variant:
 
 
 ## A bomb's blast or a trap at `point`, reaching `reach` metres (bomb.gd, trap.gd call this on every imp).
-## Only while it's emerging or up and that close: it loses `damage` hearts; at 0 it's defeated, otherwise it
-## vanishes under at once. Gives back true if it was hit.
+## Only while it's emerging or up and that close: it loses `damage` hearts and blinks black; at 0 it's defeated,
+## otherwise it goes under once it's done blinking (HURT). Gives back true if it was hit.
 func hit_imp_at(point: Vector3, reach: float, damage: float) -> bool:
 	if state != State.EMERGING and state != State.UP:
 		return false
@@ -201,10 +217,20 @@ func hit_imp_at(point: Vector3, reach: float, damage: float) -> bool:
 		return false
 	hearts = maxf(0.0, hearts - damage)
 	if hearts <= 0.0:
-		defeat()
+		defeat()          # it blinks black too (update_flash), then stays up
 	else:
-		go_under()
+		get_hurt()        # it blinks black, then goes under
 	return true
+
+
+## The black flash when it's hurt: for hurt_time seconds after a hit (HURT, or just DEFEATED) the picture
+## blinks between black and its own colours (the shader's `flash`: 1 = black, 0 = as drawn).
+func update_flash() -> void:
+	var flashing := (state == State.HURT or state == State.DEFEATED) and time < hurt_time
+	var black := 0.0
+	if flashing and int(time * hurt_blinks_per_second) % 2 == 0:
+		black = 1.0
+	imp.material_override.set_shader_parameter("flash", black)
 
 
 ## The distance across the water (not the height) from the boat to a point.

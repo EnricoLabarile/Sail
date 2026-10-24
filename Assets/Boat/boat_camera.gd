@@ -25,6 +25,8 @@ extends Camera3D
 
 var focus := Vector3.ZERO            # the point on the water it looks at (it trails behind her)
 var shake_left := 0.0                # seconds of shake left
+var shake_now_strength := 0.5        # how strong the shake going on now started (shake() or shake_hard())
+var shake_now_time := 0.3            # how long the shake going on now lasts
 
 @onready var boat: Node3D = get_parent()   # the boat this camera belongs to (Camera3D is a child of Boat)
 
@@ -46,9 +48,22 @@ func _process(dt: float) -> void:
 
 # ---- what the boat calls ----
 
-## She took damage: the screen shakes for shake_time seconds.
+## She took damage: the screen shakes for shake_time seconds, shake_strength strong.
 func shake() -> void:
-	shake_left = shake_time
+	shake_hard(shake_strength, shake_time)
+
+
+## A shake of any strength and length (a bomb going off: bomb.gd). A weaker shake never cuts a stronger one
+## short: if one is going on that's still stronger than this, it's left alone.
+func shake_hard(strength: float, time: float) -> void:
+	var strength_left_now := 0.0
+	if shake_left > 0.0:
+		strength_left_now = shake_now_strength * shake_left / shake_now_time
+	if strength_left_now > strength:
+		return
+	shake_now_strength = strength
+	shake_now_time = time
+	shake_left = time
 
 
 ## She was put somewhere else at once (back home): the camera jumps there too, no glide across the map.
@@ -75,7 +90,7 @@ func update_shake(dt: float) -> void:
 		v_offset = 0.0
 		return
 	shake_left = maxf(0.0, shake_left - dt)
-	var amount := shake_strength * shake_left / shake_time
+	var amount := shake_now_strength * shake_left / shake_now_time
 	h_offset = randf_range(-amount, amount)
 	v_offset = randf_range(-amount, amount)
 

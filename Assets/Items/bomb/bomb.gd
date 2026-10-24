@@ -1,7 +1,7 @@
 extends Node3D
-## ONE BOMB, dropped off the boat's stern (the bomb button, Assets/UI/bomb_button). It floats where it fell, its
+## ONE BOMB, dropped off the boat's bow (the bomb button, Assets/UI/bomb_button). It floats where it fell, its
 ## fuse burning (the picture blinks, quicker and quicker), and after `fuse_time` seconds it blows up: everything
-## within `blast_radius` loses `damage` hearts. The sea imps (sea_imp_zone.gd hit_imp_at, only while they're out
+## within `blast_radius` loses `damage` hearts, and the screen shakes hard. The sea imps (sea_imp_zone.gd hit_imp_at, only while they're out
 ## of the water) and the boat too, if she's still that close: drop it ahead of an enemy's path, then get away.
 ## (In Unreal: a small actor with a timer that does a radial damage, then destroys itself.)
 
@@ -9,6 +9,8 @@ extends Node3D
 @export var blast_radius := 8      # metres the blast reaches
 @export var damage := 1.0            # hearts it takes off whatever is in reach
 @export var blast_time := 0.4        # seconds the blast's flash lasts (it grows and fades)
+@export var shake_strength := 1.5    # metres the view jumps about when it goes off (being hurt shakes 0.5)
+@export var shake_time := 0.6        # seconds that shake lasts, dying away
 
 @onready var picture: MeshInstance3D = $Picture   # the bomb, facing the camera (a 2-frame sheet: dark, fuse lit)
 @onready var blast: MeshInstance3D = $Blast       # the flash on the water when it goes off
@@ -57,3 +59,5 @@ func explode() -> void:
 		off.y = 0.0
 		if off.length() <= blast_radius:
 			boat.take_damage(damage)
+		# A powerful screen shake, wherever she is (the camera is the boat's: boat_camera.gd).
+		boat.camera.shake_hard(shake_strength, shake_time)

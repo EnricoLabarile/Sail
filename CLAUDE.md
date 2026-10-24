@@ -44,7 +44,7 @@ monster** that plagues the area: it can't be beaten, only lured into the trap; b
 than the upgrade costs, so the player explores for fishing spots. Meanwhile townsfolk hint where the **kraken** is, the
 terror of the local seas: met before the upgrade it can't be beaten. It shows as pieces breaking the water (head,
 tentacles): dodge the lashing tentacles, place traps tactically to hurt it and make it vulnerable, then ram it at full
-speed. (Alternative to ram and traps: a **bomb**, dropped astern with its own button, timed to blow up on the enemy.)
+speed. (Alternative to ram and traps: a **bomb**, dropped (now off the bow) with its own button, timed to blow up on the enemy.)
 For now (Enrico): bombs AND traps both in, to see which plays better; **the slingshot is gone**.
 
 ## Keeping the project folder clean (Enrico's rules)
@@ -325,8 +325,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `fireball_speed` 7.5 m/s; within `fireball_hit_radius` 1.3 m of her middle `boat.take_damage(fireball_damage)` (1
   heart, Enrico); gone on land or after `fireball_life` 3 s; `stone.gdshader`'s billboard flipbook (a stand-in).
   **Health**: `max_hearts` 3; bombs and traps call `hit_imp_at(point, reach, damage)` on every imp (group `sea_imps`):
-  only while EMERGING or UP and within `reach`: −`damage` hearts; left > 0 → UNDER at once; 0 → **DEFEATED** (up,
-  harmless, stays put); the boat's middle within `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) →
+  only while EMERGING or UP and within `reach`: −`damage` hearts and **it blinks black** (Enrico: feedback; `hurt_time`
+  0.5 s at `hurt_blinks_per_second` 12, `update_flash` sets `sea_imp.gdshader`'s `flash`, its material duplicated per
+  imp); left > 0 → **HURT** (up, harmless, blinking; hit while emerging it shows itself) then UNDER; 0 → **DEFEATED** (up,
+  harmless, stays put, after the same blinking); the boat's middle within `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) →
   CAPTURED, gone for good. Lost hearts stay lost. In the editor a red disc shows `radius`. No ripples, sounds, popups
   or buzz (not asked).
 - **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
@@ -365,7 +367,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   world. The bomb: a 1.6 m camera-facing picture (`stone.gdshader`, render_priority 2) whose spark blinks quicker and
   quicker (2 → 8 a second); after `fuse_time` 2 s it blows: `Blast`, a flat disc growing to `blast_radius` 4 m and fading
   over `blast_time` 0.4 s; every zone's `hit_imp_at(pos, blast_radius, damage 1)`, and the boat too
-  (`take_damage(1)`) if her middle is within the radius. No sound (not asked).
+  (`take_damage(1)`) if her middle is within the radius; then a **powerful screen shake** wherever she is (Enrico:
+  `boat.camera.shake_hard(shake_strength 1.5, shake_time 0.6)`, the bomb's exports; `boat_camera.gd` `shake_hard`: a
+  weaker shake never cuts a stronger one short; `shake()` = `shake_hard(shake_strength 0.5, shake_time 0.3)`). No sound (not asked).
 - **Traps** (Enrico; `Assets/Items/trap/`: `trap.tscn` + `trap.gd`, `trap.png` (a stand-in, seen from above),
   `trap_setter.gd` on `Boat/TrapSetter` in boat.tscn): boat.gd sends `anchor_dropped` when the anchor goes down
   (`toggle_anchor`, not at a pier); with a trap equipped (and one aboard) TrapSetter lays one where she is (a 2.4 m

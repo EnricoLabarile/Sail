@@ -13,6 +13,7 @@ uniform int frames_y = 1;          // …and down
 uniform int frame = 0;             // the frame to show
 uniform float alpha_cut = 0.5;     // a pixel is drawn solid or not at all (sharp edges, as the dither wants)
 uniform float water_level = 0.0;   // the sea's height: nothing below it is drawn
+uniform float flash = 0.0;         // 1 = the whole picture solid black (it's hurt; sea_imp_zone.gd blinks it)
 
 varying float world_height;        // how high this point of the picture is in the world (for the water line)
 
@@ -32,6 +33,6 @@ void fragment() {
 	if (picture.a < alpha_cut) {
 		discard;
 	}
-	ALBEDO = picture.rgb;
+	ALBEDO = mix(picture.rgb, vec3(0.0), flash);   // hurt: black instead of its colours, same outline
 	ALPHA = 1.0;
 }
