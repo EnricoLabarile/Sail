@@ -7,7 +7,9 @@ extends Control
 ##   - the leather cover: dark, with a fine dotted grain, stitching round the edge and metal corners;
 ##   - two paper pages with the edges of the pages beneath showing at the sides;
 ##   - the top half: the hold ("Cargo", the Inventory autoload): its slots in a grid of 3 across, each thing
-##     aboard drawn in its slot (its picture from Inventory.ICONS), the empty slots dashed and faint;
+##     aboard drawn in its slot (its picture from Inventory.ICONS; a pile of bombs or traps with its number in
+##     the corner), the empty slots dashed and faint. Tapping a bomb's or a trap's slot equips it (or unequips
+##     it): the equipped slot has a thick double frame (Inventory.toggle_equip);
 ##   - the bottom half: the map, the world cut into 9 x 9 squares (A..I from the west, 1..9 from the north,
 ##     home in E5), with the square she's in shaded.
 ## What the pages show is read when the book opens (and when the hold changes): it isn't redrawn every frame.
@@ -51,7 +53,9 @@ var _grain: ImageTexture        # a small tile of the leather's dots, repeated o
 var _boat_square := Vector2i(-1, -1)   # the square she's in (column 0..8 = A..I, row 0..8 = 1..9), read on opening
 var _marked_squares: Array[Vector2i] = []   # the squares with an X: those of the active map markers, read on opening
 var _slot_count := 9            # how many slots the hold has (Inventory.SLOTS, read on opening)
-var _icons: Array[Texture2D] = []      # the picture of each thing aboard, slot by slot (read on opening)
+var _slots: Array = []          # the hold's slots as Inventory.slots() gives them ({item, count}), read on opening
+var _equipped := ""             # what's equipped (Inventory.equipped), read on opening
+var _slot_rects: Array[Rect2] = []   # where each slot is drawn on the book (worked out in _draw_hold), for taps
 
 # The part of the spread being drawn right now, from x = _half_from to x = _half_to (see _draw_half):
 # the helpers below (_half_line, _half_rect, _half_texture, _half_text) draw only what falls inside it.
@@ -65,6 +69,7 @@ func _ready() -> void:
 		unfold = 1.0                 # in the editor: drawn open, to see it
 		return
 	Inventory.changed.connect(refresh)   # something came aboard or went out: the hold's page changes
+	Inventory.equipped_changed.connect(refresh)   # something was equipped or unequipped
 
 
 ## Called by logbook.gd when the book is opened (and by the Inventory when the hold changes): reads what the
@@ -85,9 +90,8 @@ func refresh() -> void:
 			_marked_squares.append(marker.square())
 	# The hold: how many slots, and the picture of each thing aboard (in the order it came in).
 	_slot_count = Inventory.SLOTS
-	_icons.clear()
-	for item in Inventory.items:
-		_icons.append(Inventory.ICONS.get(item))
+	_slots = Inventory.slots()
+	_equipped = Inventory.equipped
 	queue_redraw()
 
 
@@ -151,6 +155,23 @@ func _draw_half(from: float, to: float, squeeze: float) -> void:
 	_draw_map(map_area)
 
 	draw_set_transform(Vector2.ZERO)   # back to normal for whatever is drawn next
+
+
+# ---- taps ----
+
+## A finger on the open book: on a slot holding a bomb or a trap, it's equipped (or unequipped, if it already
+## was: Inventory.toggle_equip). Only while the book is fully open. The pages are drawn again by `refresh`,
+## which the Inventory's signal calls.
+func _gui_input(event: InputEvent) -> void:
+	if Engine.is_editor_hint() or unfold < 1.0:
+		return
+	if not (event is InputEventScreenTouch and event.pressed):
+		return
+	for i in _slot_rects.size():
+		if i < _slots.size() and _slot_rects[i].has_point(event.position):
+			Inventory.toggle_equip(_slots[i]["item"])
+			accept_event()
+			return
 
 
 # ---- the leather ----
@@ -242,19 +263,29 @@ func _draw_hold(area: Rect2) -> void:
 	var top := area.position.y + HEADING_HEIGHT + (room_h - grid_h) * 0.5   # the grid in the middle of the room left
 
 	# The heading, just above the grid: the title on the left, the count on the right.
-	var used := _icons.size()
+	var used := _slots.size()
 	_half_text(Vector2(left, top - 7.0), "Cargo", 13, INK, HORIZONTAL_ALIGNMENT_LEFT)
 	_half_text(Vector2(left + grid_w, top - 7.0), str(used) + "/" + str(_slot_count), 10, Color(INK, 0.8), HORIZONTAL_ALIGNMENT_RIGHT)
 
-	# The slots, row by row.
+	# The slots, row by row. Their places are kept in _slot_rects, for the taps (_gui_input).
+	_slot_rects.clear()
 	for i in _slot_count:
 		var col := i % SLOT_COLUMNS
 		var row := floori(i / float(SLOT_COLUMNS))
 		var r := Rect2(left + col * (slot + SLOT_GAP), top + row * (slot + SLOT_GAP), slot, slot)
+		_slot_rects.append(r)
 		if i < used:
+			var item: String = _slots[i]["item"]
+			var amount: int = _slots[i]["count"]
 			_half_frame(r, INK, 1.5, false)
-			if _icons[i]:
-				_draw_icon(_icons[i], r)
+			if item == _equipped:
+				_half_frame(r.grow(-3.0), INK, 2.0, false)      # equipped: a second, thick frame inside
+			var icon: Texture2D = Inventory.ICONS.get(item)
+			if icon:
+				_draw_icon(icon, r)
+			if Inventory.STACKABLE.has(item):
+				# the pile's number, small, in the bottom right corner
+				_half_text(r.end - Vector2(4.0, 4.0), str(amount), 10, INK, HORIZONTAL_ALIGNMENT_RIGHT)
 		else:
 			_half_frame(r, Color(INK, 0.45), 1.0, true)
 

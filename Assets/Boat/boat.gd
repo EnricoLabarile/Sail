@@ -98,6 +98,10 @@ signal sank
 ## The wheel listens, to show a question mark instead of the anchor. The spots tell her (set_over_fishing_spot).
 signal over_fishing_spot_changed(over: bool)
 
+## Sent when the anchor goes down (not when she ties up at a pier). The trap setter listens (TrapSetter in
+## boat.tscn, Assets/Items/trap/trap_setter.gd): with a trap equipped, it lays one.
+signal anchor_dropped
+
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
 const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.1], [45.0, 1.5], [180.0, 1.0]]
 
@@ -203,6 +207,7 @@ func toggle_anchor() -> void:
 		# starts fishing (Assets/Landscape/fishing_spots/fishing_spot.gd).
 		for spot in get_tree().get_nodes_in_group("fishing_spots"):
 			spot.try_fishing(self)
+		anchor_dropped.emit()
 	Sfx.anchor(anchored)             # its sound: the splash going down, the chain coming up (Assets/SFX/sfx.gd)
 
 

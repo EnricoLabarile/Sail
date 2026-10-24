@@ -5,8 +5,11 @@ extends Node3D
 ## again somewhere else, over and over. It stops when:
 ##   - the boat sails out of the zone (she ran away): the imp sinks and waits, and starts again if she comes back;
 ##   - the boat sinks (0 hearts): the same;
-##   - the imp is killed: `max_hits` slingshot stones while it's up. Then it's gone for good.
-## A stone that hits it while it's up also makes it duck under at once (and come up elsewhere).
+##   - the imp is DEFEATED: it has `max_hearts` hearts (3), and a bomb's blast or a trap takes one each
+##     (bomb.gd, trap.gd call hit_imp_at). A hit while it still has some makes it duck under at once (and come
+##     up elsewhere). At 0 it stays where it is, up and harmless; when the boat sails over it (within
+##     `collect_radius`), it goes into the hold ("imp", Inventory) and is gone for good.
+## Its lost hearts stay lost: sailing out of the zone and back doesn't heal it.
 ##
 ## To place one: instance sea_imp_zone.tscn under SeaImps in Overworld (like placing a Blueprint), move it where
 ## you want it on the sea and set `radius` in the Inspector. In the editor the zone is drawn as a red disc on the
@@ -23,7 +26,8 @@ const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 	set(value):
 		radius = value
 		_fit_editor_disc()
-@export var max_hits := 3                  # stones it takes to kill it
+@export var max_hearts := 3.0              # its health, in hearts (a bomb or a trap takes one)
+@export var collect_radius := 2.5          # metres: defeated, it goes into the hold when the boat's middle comes this close
 @export var spawn_distance_min := 8.0      # metres from the boat it comes up (nearest…
 @export var spawn_distance_max := 15.0     # …and furthest), always inside the zone and on water
 @export var under_time_min := 1.2          # seconds it stays under before coming up again (shortest…
@@ -39,14 +43,13 @@ const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 @export var fireball_life := 3.0           # seconds a fireball flies before it's gone
 @export var aim_ahead := 0.5               # it aims where the boat will be this many seconds later
 @export var spit_height := 1.5             # metres above the water the fireball leaves its mouth
-@export var stone_hit_radius := 2.0        # metres from the imp a stone must land to hit it
 
-enum State { WAITING, UNDER, RISING, UP, SINKING, DEAD }
+enum State { WAITING, UNDER, RISING, UP, SINKING, DEFEATED, CAPTURED }
 
 var state := State.WAITING
 var time := 0.0            # seconds in the current state
 var under_for := 0.0       # how long it stays under this time (picked at random)
-var hits_left := 3         # stones it can still take
+var hearts := 3.0          # hearts it has left
 var has_spat := false      # has it spat its fireball since it came up?
 
 @onready var imp: MeshInstance3D = $Imp
@@ -56,8 +59,8 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		_make_editor_disc()
 		return
-	add_to_group("sea_imps")    # so the slingshot's stones find it when they land (stone.gd)
-	hits_left = max_hits
+	add_to_group("sea_imps")    # so bombs and traps find it (bomb.gd, trap.gd: hit_imp_at)
+	hearts = max_hearts
 	imp.visible = false
 
 
@@ -71,7 +74,6 @@ func _process(dt: float) -> void:
 		State.WAITING:
 			# Hidden, waiting for her to come into the zone.
 			if boat_here:
-				hits_left = max_hits     # a fresh start each time she comes in
 				go_under()
 		State.UNDER:
 			# Under water, swimming to its next spot.
@@ -98,16 +100,19 @@ func _process(dt: float) -> void:
 			elif time >= up_time:
 				start_sinking()
 		State.SINKING:
-			# Going back under. Then: gone for good (killed), or under and up again elsewhere.
+			# Going back under, then under and up again elsewhere.
 			set_height(lerpf(0.0, -depth, minf(time / sink_time, 1.0)))
 			if time >= sink_time:
 				imp.visible = false
-				if hits_left <= 0:
-					state = State.DEAD
-				else:
-					go_under()
-		State.DEAD:
-			pass
+				go_under()
+		State.DEFEATED:
+			# Up and harmless, where it was beaten. The boat sailing over it takes it aboard (if there's room).
+			if boat != null and not boat.sinking and is_near_boat(boat):
+				if Inventory.add("imp") == 1:
+					imp.visible = false
+					state = State.CAPTURED
+		State.CAPTURED:
+			pass                       # in the hold: gone for good
 
 
 ## Is this point of the sea inside the zone? (Only the distance across the water counts, not the height.)
@@ -163,17 +168,37 @@ func spit(boat: Node3D) -> void:
 	ball.launch(start, target, fireball_speed, fireball_damage, fireball_hit_radius, fireball_life)
 
 
-## A slingshot stone has landed at `point` (stone.gd calls this on every zone). If the imp is up (or coming up)
-## and the stone fell close enough, it's hit: one hit less; it ducks under at once. At 0 it's dead.
-func stone_landed(point: Vector3) -> void:
-	if state != State.RISING and state != State.UP:
-		return
+## A bomb's blast or a trap at `point`, reaching `reach` metres (bomb.gd, trap.gd call this on every zone).
+## If the imp is out of the water (coming up, up or going under) and that close, it loses `damage` hearts:
+## at 0 it's defeated; otherwise it ducks under at once. Gives back true if it was hit.
+func hit_imp_at(point: Vector3, reach: float, damage: float) -> bool:
+	if state != State.RISING and state != State.UP and state != State.SINKING:
+		return false
 	var off := point - imp.global_position
 	off.y = 0.0
-	if off.length() > stone_hit_radius:
-		return
-	hits_left -= 1
-	start_sinking()
+	if off.length() > reach:
+		return false
+	hearts = maxf(0.0, hearts - damage)
+	if hearts <= 0.0:
+		defeat()
+	else:
+		start_sinking()
+	return true
+
+
+## 0 hearts: it stays where it is, up on the water and harmless, waiting to be picked up.
+func defeat() -> void:
+	state = State.DEFEATED
+	time = 0.0
+	set_height(0.0)
+	imp.visible = true
+
+
+## Is the boat's middle within collect_radius of the imp? (Only the distance across the water.)
+func is_near_boat(boat: Node3D) -> bool:
+	var off := boat.global_position - imp.global_position
+	off.y = 0.0
+	return off.length() <= collect_radius
 
 
 # ---------- In the editor only: the zone drawn as a disc on the water ----------

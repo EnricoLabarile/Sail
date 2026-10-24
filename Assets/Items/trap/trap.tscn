@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Items/trap/trap.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://Assets/Items/trap/trap.png" id="2_picture"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_trap"]
+render_priority = 1
+transparency = 1
+shading_mode = 0
+albedo_texture = ExtResource("2_picture")
+texture_filter = 0
+
+[sub_resource type="PlaneMesh" id="Mesh_trap"]
+size = Vector2(2.4, 2.4)
+
+[node name="Trap" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Picture" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_trap")
+material_override = SubResource("Mat_trap")

@@ -28,6 +28,21 @@
 5. Keep the number of new tools the player must learn to the minimum.
 6. Fun, engaging traversal is the core of the game: flowing movement, all about keeping momentum (like The Pathless).
 
+## The story so far (Enrico's synopsis, Oct 2026: a frame for choices; parts may go)
+You are a **monster hunter**. Reach the town (one of the islands) and gather information. A **smith** offers a boat
+upgrade (a metal reinforcement with a **ram**), dear. He offers work for a friend of his: he marks the friend's place on
+the map and asks you to deliver a **parcel**, paying a little for the trouble. On the way you can fish and, off the
+beaten track, find treasure; the area is still fenced in (several routes to the goal, not the whole world yet). The boat
+has **no weapons** yet; weak enemies on the way leave you alone, eventually. The friend thanks you, invites you to dinner
+and gives you a **trap** (in the inventory; selected, it's laid the next time you drop anchor; a monster that enters its
+area is caught; sailing over it puts the monster in the hold, to sell or bring to a goal). He asks you to **catch a
+monster** that plagues the area: it can't be beaten, only lured into the trap; bringing it back pays well, a little less
+than the upgrade costs, so the player explores for fishing spots. Meanwhile townsfolk hint where the **kraken** is, the
+terror of the local seas: met before the upgrade it can't be beaten. It shows as pieces breaking the water (head,
+tentacles): dodge the lashing tentacles, place traps tactically to hurt it and make it vulnerable, then ram it at full
+speed. (Alternative to ram and traps: a **bomb**, dropped astern with its own button, timed to blow up on the enemy.)
+For now (Enrico): bombs AND traps both in, to see which plays better; **the slingshot is gone**.
+
 ## Keeping the project folder clean (Enrico's rules)
 - **The layout now (Enrico chose it, Oct 2026)**: everything under `Assets/`, by part: `Assets/Boat/` (`boat/boat.tscn`,
   `boat.gd`; `boat_test.tscn`, the test scene), `Assets/Landscape/world/` (the sea), `Assets/Post_Process/dither/`,
@@ -172,26 +187,9 @@
   mesh and colour ramp, 24 dots, life 1 s, no velocity, local_coords off, size curve 0.4 → 1 × 0.7); `update_sail_trail()`
   (from `update_water_fx`) puts the emitter at the tip's x/z at y 0.05 and turns it on while |`turn_speed`| / `turn_rate` ×
   speed / `top_speed` > `sail_trail_threshold` (0.4), not at anchor or sinking (a condition, not real contact).
-- **The slingshot** (Enrico, as the prototype's; infinite stones for now, no inventory): `Assets/UI/slingshot/`
-  (`slingshot.tscn`: CanvasLayer 95 under the dither, in `DITHERED`; Control `Sling` bottom right, 80 × 100, mirroring
-  the logbook; `slingshot.gd`, `@tool` so it's drawn in the editor too, where it only draws): the prototype's wooden Y drawn in greys from its SVG (64 × 80 units; bands ink over a
-  paper edge from the prongs to the pouch, the pouch mid grey, the stone in it). Drag the pouch down: `pull` 0..1
-  over 48 units; at `fire_pull` 0.7 it shoots by itself (let go before: it springs back, 6/s); then the pouch is empty
-  for `reload_time` 0.9 s; Enter shoots too. One stone, straight ahead (Enrico): it lands `sling_distance` (12 m,
-  Enrico) ahead of the bow **as seen on the screen**, whatever her heading (Enrico: always the same distance): the ground
-  distance is `sling_distance` / |(fwd.x, fwd.z × cos(`camera_tilt_deg`))|, so north/south shots go 1/cos 45° further;
-  no `carry` of the boat's way any more (it took in the current, so it changed with her heading); `flight_time` 0.7 s,
-  leaving the bow at `muzzle_height` 1 m, arc `arc_height` (4 m, Enrico). While pulling, `aim_ring.gdshader` on a 2 m PlaneMesh at the landing
-  spot: a dashed ink ring over paper and a faint ink spot, firmer as the pull nears the shot (`strength`). Sounds:
-  `Sfx.sling_shot()`. **The stone** (`Assets/Boat/stone/`: `stone.tscn` + `stone.gd`, `stone.gdshader`,
-  `stone_shadow.gdshader`, `stone.png`; added to the boat's parent, so it doesn't move with her): `Picture`, a QuadMesh
-  4 × 4 m raised by half (its origin the bottom middle) facing the camera (billboard in the shader:
-  `MODELVIEW_MATRIX` from `INV_VIEW_MATRIX`), render_priority 2, showing one `frame` of a 4 × 4 sheet; frame 0 while
-  it flies, its height `from.y × (1 − t) + arc_height × 4t(1 − t)`; `Shadow`, a 0.9 m ink disc on the water (0.35, as
-  the clouds'), slid by height × the clouds' `shadow_offset / height` (found through the group "clouds"); landing in
-  the water (not `Land.is_land`) the shadow goes, frames 1..15 play once at `splash_fps` 12 (`Sfx.stone_splash()`),
-  then it frees itself; on land it's simply gone. `stone.png` is a stand-in (frames 64 × 64; frame 0 the stone near
-  the bottom middle, then the splash rising from the bottom) for Enrico to redraw.
+- **The slingshot: removed** (Enrico, Oct 2026; in git history: `Assets/UI/slingshot/`, `Assets/Boat/projectile/stone.*`).
+  `Assets/Boat/projectile/stone.gdshader` stays: the camera-facing flipbook used by the fireball and the bomb. Its
+  sounds (`sling_shot.ogg`, `stone_splash.ogg`, `Sfx.sling_shot()` / `stone_splash()`) are still in Sfx, unused.
 - **The outline** (`Assets/Boat/boat_outline.gdshader`, made by `boat_camera.gd` `add_outline()`: a QuadMesh child of the
   camera, stretched over the screen in the vertex shader, render_priority 1, after the sea): reads the depth buffer
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
@@ -206,7 +204,7 @@
   that puts her back on the edge at `follow_speed` 3). **Screen shake** (Enrico, whenever she takes damage): boat.gd
   `take_damage` calls `camera.shake()`; `update_shake` sets `h_offset` / `v_offset` to random ± `shake_strength` 0.5 m ×
   what's left of `shake_time` 0.3 s. It also makes the ink outline (`add_outline`, `outline_width`). The boat calls only
-  `camera.shake()` and `camera.jump_to_boat()` (respawn); the slingshot reads `boat.camera.tilt_deg`.
+  `camera.shake()` and `camera.jump_to_boat()` (respawn); nothing else reads it now.
 - **Sound** (`Sfx` autoload, `Assets/SFX/`): `.ogg` files made from the prototype's own Web Audio code by
   `art_src/audio/bake.py` (Playwright opens `bake.html`, which holds the prototype's `colouredNoise`, `chainLink`,
   `anchor` and `thunk` verbatim, renders each sound in an `OfflineAudioContext`; loops get an extra second
@@ -228,7 +226,7 @@
   `black_point` (greys at or below → solid ink), `white_point` (at or above → solid paper), `gamma` (the middle greys:
   > 1 lighter); `paper_color`, `ink_color`. Tone is set here, not with a WorldEnvironment (that would touch only the 3D).
 - **The game view** (`Assets/Post_Process/game_view.gd`, node `GameView` in Overworld; Enrico asked for performance):
-  at start (deferred, after every node is ready) it moves `Sea`, `Coast`, `Clouds`, `WindLines`, `Gulls`, `Boat`, `Dither`, `Helm`, `Slingshot` and the
+  at start (deferred, after every node is ready) it moves `Sea`, `Coast`, `Clouds`, `WindLines`, `Gulls`, `Boat`, `Dither`, `Helm`, `BombButton` and the
   logbook's `IconLayer` into a `SubViewport` drawn at the game's resolution, and shows its picture on a full-screen
   `TextureRect` (CanvasLayer 1, nearest filter: sharp dots). Size: real pixels of the game area
   (`get_visible_rect().size × get_final_transform().get_scale()`) / `dot_scale`, `dot_scale` = round(real width /
@@ -266,7 +264,9 @@
   leather (a 15 px tile of dots), stitching, metal corners, the pages with the edges beneath, and only spread 0 for
   now (Enrico): the two pages meet with no gap and no line down the middle (one sheet: no more pages for now). Top half:
   the hold (see The inventory), "Cargo" and "n/9" over a 3-across grid of slots (`SLOT_MAX` 40 px), each thing in a solid
-  frame with its icon at its own pixel size, empty slots dashed and faint. Bottom half: the 9×9 map A1..I9 (the
+  frame with its icon at its own pixel size (a pile with its number bottom right; the equipped one with a second, thick
+  frame inside), empty slots dashed and faint. **A tap on a bomb's or trap's slot equips it** (`_gui_input`, touch, only
+  fully open; `_slot_rects` kept by `_draw_hold`; `Inventory.toggle_equip`); it refreshes on `equipped_changed` too. Bottom half: the 9×9 map A1..I9 (the
   prototype's 100-unit layout), a square as big as fits, its middle on the spine, labels at least `LABEL_MIN_SIZE` 8 px,
   the square she's in shaded (ink 0.3). Everything on the pages is laid out flat and drawn twice by `_draw_half`, the
   right page as it is and the left squeezed toward the spine with `draw_set_transform` while the cover turns; the
@@ -274,10 +274,13 @@
   (The frame-rate counter is gone, Enrico.) It refreshes on opening and on `Inventory.changed`.
   **The book itself is not redrawn every frame** (Enrico): `logbook.gd` calls `book.refresh()` on opening, which reads
   the square once; after that it's drawn again only while the cover turns (`unfold`'s setter).
-- **The inventory** (`Inventory` autoload, `Assets/Inventory/inventory.gd`; icons in `Assets/Inventory/icons/`): the prototype's hold,
-  `SLOTS` 9, one thing a slot, an item is its name (`"fish"`), `items` in the order they came in; `add(item, count)` puts
-  in as many as fit and gives back how many, `remove`, `count`, `is_full`; signal `changed`. `ICONS` maps a name to its
-  picture for the logbook (`fish.png`, 32 × 18, the prototype's sardine as pixel art: a stand-in for Enrico to redraw).
+- **The inventory** (`Inventory` autoload, `Assets/Inventory/inventory.gd`, data only; the logbook draws it; icons in
+  `Assets/Inventory/icons/`: `fish.png`, `bomb.png`, `trap.png`, `imp.png`, stand-ins): `SLOTS` 9; an item is its name;
+  `items` one entry per thing; `STACKABLE` (`bomb`, `trap`) pile up in ONE slot; `slots()` gives the slots as
+  `{item, count}`; `add(item, count)` (as many as fit: a stackable already aboard needs no slot), `remove`, `count`,
+  `is_full`; signal `changed`. **Equipping** (Enrico): `EQUIPPABLE` (`bomb`, `trap`), one at a time, `equipped` ("" =
+  none), `toggle_equip(item)` (tap again = unequip; the last one spent unequips), signal `equipped_changed`.
+  `START_ITEMS` {bomb: 9, trap: 9} (Enrico, to try them). A captured imp is `"imp"` (one slot).
 - **Health** (Enrico, the prototype's hull as Zelda's hearts): on the boat (`boat.gd`): `max_hearts` 3, `health` in hearts
   (0.5 = half), `hit_damage` 0.5 a bump (in `bump()`, after its cooldown and minimum speed), `take_damage(hearts)`,
   `add_heart_container()` (one more heart and the hull whole), signal `health_changed(hurt)`. **At 0 she sinks** (Enrico): `start_sinking()` (no sailing, anchor or bumps; the water mask off so the sea covers her inside; no wake or bow wave), `update_sinking` takes `Model` down `sink_depth` 2.5 m and over `sink_lean_deg` 25° in `sink_time` 2 s (eased in), then signal `sank`; `respawn()` puts her back home (`home_position` / `home_turn`, where she was placed in Overworld) at anchor, hull whole, keeping the hold and heart containers. **The game over card** (`Assets/UI/game_over.tscn` + `.gd`, made like the start screen: CanvasLayer 130, process_mode Always, hidden): on `sank` it pauses the game and shows "Shipwrecked", "The hull gave way. Back home to mend it." and "Set sail again", which calls `respawn()` and unpauses.
@@ -316,11 +319,13 @@
   at `up_time` 1.15 s) → SINKING (`sink_time` 0.5 s) → UNDER again. **The fireball** (`fireball.gd`): from `spit_height`
   1.5 m, level, toward where she'll be in `aim_ahead` 0.5 s, `fireball_speed` 7.5 m/s; within `fireball_hit_radius`
   1.3 m of her middle `boat.take_damage(fireball_damage)` (1 heart, the prototype's), gone on land or after
-  `fireball_life` 3 s; `stone.gdshader`'s billboard flipbook, 4 × 4 frames of 32² looped at 12 fps (a stand-in). **Stones**:
-  `stone.gd` `land()` calls `stone_landed(point)` on every zone (group `sea_imps`); within `stone_hit_radius` 2 m of the imp
-  while it's RISING or UP: one of `max_hits` 3 off and it sinks at once; at 0, once under, DEAD for good. She sails out of
-  the zone (or sinks): it sinks and waits (WAITING), with all its hits back when she comes in again. No ripples, sounds,
-  popups or buzz (not asked).
+  `fireball_life` 3 s; `stone.gdshader`'s billboard flipbook, 4 × 4 frames of 32² looped at 12 fps (a stand-in). **Its
+  health** (Enrico): `max_hearts` 3; bombs and traps call `hit_imp_at(point, reach, damage)` on every zone (group
+  `sea_imps`): only while it's out of the water (RISING, UP, SINKING) and within `reach`: −`damage` hearts; left > 0 →
+  it ducks under at once; 0 → **DEFEATED** (`defeat()`: up on the water, harmless, stays put); the boat's middle within
+  `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) → CAPTURED, gone for good. Lost hearts stay lost (no
+  healing when she leaves and comes back). She sails out of the zone (or sinks): it sinks and waits (WAITING). No
+  ripples, sounds, popups or buzz (not asked).
 - **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
   `.gd` (`@tool`), `big_wave.tscn` + `.gd`, `big_wave.gdshader`, `big_wave.png`; under `BigWaves` in Overworld, for now
   one `WaveZone` at (0, 0, −200), `radius` 60): no sounds, no buzz, no darker sea (Enrico). The zone: a circle (green disc
@@ -350,6 +355,21 @@
   `rotation.y` (`lerp_angle`) toward the berth by 1 − exp(−`dock_speed` 3 × dt). The anchor button (`toggle_anchor`)
   while tied up → `cast_off()`: `berth` null, `anchored` false (no sound). She ties up again only after leaving the
   sensor and coming back (it's `area_entered`). `respawn()` clears `berth`.
+- **Bombs** (Enrico; `Assets/Items/bomb/`: `bomb.tscn` + `bomb.gd`, `bomb.png` a 2 × 1 sheet (dark, fuse lit), stand-in;
+  the button `Assets/UI/bomb_button/`: `bomb_button.tscn` (CanvasLayer 95, in `DITHERED`; Control `Button` bottom right,
+  80 px, where the slingshot was) + `bomb_button.gd` (`@tool`)): the button shows only while a bomb is equipped; a tap
+  (touch) takes one bomb out of the hold and drops it `stern_offset` 2.2 m behind her middle, on the water, into the
+  world. The bomb: a 1.6 m camera-facing picture (`stone.gdshader`, render_priority 2) whose spark blinks quicker and
+  quicker (2 → 8 a second); after `fuse_time` 2 s it blows: `Blast`, a flat disc growing to `blast_radius` 4 m and fading
+  over `blast_time` 0.4 s; every zone's `hit_imp_at(pos, blast_radius, damage 1)`, and the boat too
+  (`take_damage(1)`) if her middle is within the radius. No sound (not asked).
+- **Traps** (Enrico; `Assets/Items/trap/`: `trap.tscn` + `trap.gd`, `trap.png` (a stand-in, seen from above),
+  `trap_setter.gd` on `Boat/TrapSetter` in boat.tscn): boat.gd sends `anchor_dropped` when the anchor goes down
+  (`toggle_anchor`, not at a pier); with a trap equipped (and one aboard) TrapSetter lays one where she is (a 2.4 m
+  PlaneMesh 0.04 m up, StandardMaterial3D unshaded, alpha, render_priority 1). ARMING, faint (alpha 0.4): she must stay
+  at anchor `arm_time` 1.5 s, or it's taken back (nothing spent); then ACTIVE, solid, one trap out of the hold; it stays
+  when she sails away; an imp coming up within `radius` 2 m (`hit_imp_at`) loses `damage` 1 heart and the trap is
+  used up.
 - **Map markers** (Enrico; `Assets/Quests/map_marker/`: `map_marker.tscn` + `map_marker.gd` (`@tool`, `@icon`),
   `map_marker_icon.svg`; instanced under `MapMarkers` in Overworld, for now one at (60, 0, −150), F4, `active` on to
   try it): an invisible Node3D; in the editor a red X in a circle (the scene-tree icon, and in the 3D view a Sprite3D
@@ -358,10 +378,10 @@
   boat's). Group `map_markers`: `book.gd` `refresh()` (on opening) reads the squares of the active ones into
   `_marked_squares`; `_draw_map` draws an ink X (arms 0.3 of a square, width 2) in the middle of each.
 - **The UI is drawn in the editor too** (Enrico: to place and arrange it himself): `helm.gd`, `wind_vane.gd`,
-  `book_icon.gd`, `book.gd`, `health.gd` and `slingshot.gd` are `@tool`; in the editor (`Engine.is_editor_hint()`) `_gui_input`
+  `book_icon.gd`, `book.gd`, `health.gd` and `bomb_button.gd` are `@tool`; in the editor (`Engine.is_editor_hint()`) `_gui_input`
   and `_process` return at once (no touches, keys, boat, wind or sounds), so they only draw: the wheel with the
   sailing hub (redrawn each editor frame, its pictures being ready a frame late), the vane with the wind from the
-  north, the shut logbook icon, the open book (`unfold` = 1, the hold empty), three full hearts, the sling at rest. Their places and sizes
+  north, the shut logbook icon, the open book (`unfold` = 1, the hold empty), three full hearts, the bomb button (always shown there). Their places and sizes
   are the Controls' in their .tscn (anchors and offsets), except the open book's, which `logbook.gd` works out
   every frame (`BOOK_MAX`, `TOP_GAP`, centred).
 - **The start screen** (`Assets/UI/start_screen.tscn` + `.gd`, CanvasLayer 130, in Overworld): a card with the title, "Build

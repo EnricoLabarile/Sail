@@ -1,8 +1,7 @@
-// THE SLINGSHOT'S STONE: a picture that always faces the camera (a billboard), showing one frame of a sheet of
-// frames (frames_x across, frames_y down; stone.png, Enrico's to redraw). stone.gd picks the frame: 0 while it
-// flies, then 1, 2, … to the last once it lands in the water (the splash), and then it's gone.
-// The picture's bottom middle is the stone's point (the QuadMesh is raised by half its height in stone.tscn),
-// so the splash rises from the water. The dither turns it into dots.
+// A CAMERA-FACING PICTURE (a billboard) showing one frame of a sheet of frames (frames_x across, frames_y down);
+// the script using it picks `frame`. Used by the sea imp's fireball (fireball.tscn) and the bomb (bomb.tscn).
+// (It was the slingshot's stone's shader, hence its name and folder; the slingshot is gone.)
+// The picture's bottom middle is the object's point when its QuadMesh is raised by half its height.
 // (In Unreal: an unlit translucent sprite material with a Flipbook node, frame chosen from Blueprint.)
 shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_never;   // no light; both faces; it hides nothing behind it

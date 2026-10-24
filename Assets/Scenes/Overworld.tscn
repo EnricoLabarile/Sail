@@ -15,7 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://daikh4dkdrv5s" path="res://Assets/Landscape/islands/sm_rocks_01_a.fbx" id="21_ux1kc"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="23_gulls"]
-[ext_resource type="PackedScene" uid="uid://c6x4x6qmghv8y" path="res://Assets/UI/slingshot/slingshot.tscn" id="24_sling"]
+[ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="24_bomb_button"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="25_health"]
 [ext_resource type="PackedScene" uid="uid://c83avpy373bev" path="res://Assets/Landscape/fishing_spots/fishing_spot.tscn" id="26_fishing_spot"]
 [ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="27_game_over"]
@@ -52,7 +52,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)
 
 [node name="Logbook" parent="." unique_id=1838272232 instance=ExtResource("6_logbook")]
 
-[node name="Slingshot" parent="." unique_id=1906104851 instance=ExtResource("24_sling")]
+[node name="BombButton" parent="." instance=ExtResource("24_bomb_button")]
 
 [node name="Health" parent="." unique_id=914720043 instance=ExtResource("25_health")]
 

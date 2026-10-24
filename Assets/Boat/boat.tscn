@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dxb2hspq8rmba" path="res://Assets/Boat/boat.gd" id="1_boat"]
 [ext_resource type="Script" path="res://Assets/Boat/boat_camera.gd" id="9_camera"]
+[ext_resource type="Script" path="res://Assets/Items/trap/trap_setter.gd" id="10_trap_setter"]
 [ext_resource type="PackedScene" uid="uid://gsohuvlddwlj" path="res://Assets/Boat/sm_boat_hull.fbx" id="2_da1jx"]
 [ext_resource type="PackedScene" uid="uid://da2mslnca7e31" path="res://Assets/Boat/sm_boat_mast.fbx" id="3_ee1eo"]
 [ext_resource type="PackedScene" uid="uid://bkhrx3gsk66tq" path="res://Assets/Boat/sm_boat_sail.fbx" id="4_og2vt"]
@@ -117,3 +118,6 @@ scale_amount_min = 0.7
 scale_amount_max = 0.7
 scale_amount_curve = SubResource("Curve_sail_trail_size")
 color_ramp = SubResource("Grad_wake")
+
+[node name="TrapSetter" type="Node" parent="."]
+script = ExtResource("10_trap_setter")

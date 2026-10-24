@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Items/bomb/bomb.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://dwxakh3cdbnlq" path="res://Assets/Boat/projectile/stone.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" path="res://Assets/Items/bomb/bomb.png" id="3_sheet"]
+
+[sub_resource type="ShaderMaterial" id="Mat_bomb"]
+render_priority = 2
+shader = ExtResource("2_shader")
+shader_parameter/sheet = ExtResource("3_sheet")
+shader_parameter/frames_x = 2
+shader_parameter/frames_y = 1
+shader_parameter/frame = 0
+
+[sub_resource type="QuadMesh" id="Mesh_bomb"]
+size = Vector2(1.6, 1.6)
+center_offset = Vector3(0, 0.8, 0)
+
+[sub_resource type="StandardMaterial3D" id="Mat_blast"]
+render_priority = 2
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.92, 0.9, 0.86, 1)
+
+[sub_resource type="CylinderMesh" id="Mesh_blast"]
+top_radius = 1.0
+bottom_radius = 1.0
+height = 0.01
+radial_segments = 24
+rings = 0
+
+[node name="Bomb" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Picture" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_bomb")
+material_override = SubResource("Mat_bomb")
+
+[node name="Blast" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_blast")
+material_override = SubResource("Mat_blast")

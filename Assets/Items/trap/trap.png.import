@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://db31esx7aqfv0"
-path="res://.godot/imported/stone.png-f56787e725a788bf2db922ac46bc5a61.ctex"
+uid="uid://ubyly13hrn7j"
+path="res://.godot/imported/trap.png-5e3d2fc1e8c6b05fae7085a2adaf2c45.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Boat/projectile/stone.png"
-dest_files=["res://.godot/imported/stone.png-f56787e725a788bf2db922ac46bc5a61.ctex"]
+source_file="res://Assets/Items/trap/trap.png"
+dest_files=["res://.godot/imported/trap.png-5e3d2fc1e8c6b05fae7085a2adaf2c45.ctex"]
 
 [params]
 

@@ -38,7 +38,7 @@ var shadow_material: ShaderMaterial # the screen effect that draws the shadows (
 
 
 func _ready() -> void:
-	add_to_group("clouds")   # so others can find it (the slingshot's stones read shadow_offset and height)
+	add_to_group("clouds")   # so others can find it (e.g. to read shadow_offset and height)
 	set_sun_direction()
 	if cloud_textures.is_empty():
 		return                       # no pictures given: no clouds
