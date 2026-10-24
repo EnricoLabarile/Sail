@@ -5,7 +5,7 @@ extends Node3D
 ## draws the line on it. A few lines are made once at the start and used again and again (a pool, as in
 ## Unreal): when one is finished, it waits until it's needed again somewhere else.
 
-@export var line_count := 8            # how many lines can be on the sea at once
+@export var line_count := 32            # how many lines can be on the sea at once
 @export var lines_per_second := 0.6    # how many new lines appear each second (on average)
 @export var line_length := 6.0         # metres
 @export var line_width := 0.22         # metres (about two dots on the screen)

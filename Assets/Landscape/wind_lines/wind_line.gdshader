@@ -36,6 +36,6 @@ void fragment() {
 		discard;
 	}
 	float fade = min(1.0, min(progress * 9.0, (1.0 - progress) * 9.0));   // quick fade in and out
-	ALBEDO = vec3(0.0);
+	ALBEDO = vec3(0.7);
 	ALPHA = alpha * fade;
 }

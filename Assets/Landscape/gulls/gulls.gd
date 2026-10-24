@@ -7,7 +7,7 @@ extends Node3D
 ## (In Unreal: an actor that spawns a few flying sprites now and then and destroys them once they're gone.)
 
 @export var gull_texture: Texture2D           # the flipbook (gull.png, 4 x 4 frames)
-@export var gull_size := 2.2                  # metres the picture covers, a side (the prototype's gulls spanned 22 px)
+@export var gull_size := 4                  # metres the picture covers, a side (the prototype's gulls spanned 22 px)
 @export var height := 12.0                    # metres above the sea (the clouds are at 35)
 @export var fps := 12.0                       # flipbook frames a second
 @export var first_flock_after := Vector2(6.0, 10.0)   # seconds before the first flock (from, to: a random time)

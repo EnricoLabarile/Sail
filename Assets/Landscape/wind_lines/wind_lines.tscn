@@ -1,6 +1,6 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://duxq1bjfe0iib"]
 
-[ext_resource type="Script" path="res://Assets/Landscape/wind_lines/wind_lines.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cpcxe8uhyp1un" path="res://Assets/Landscape/wind_lines/wind_lines.gd" id="1_script"]
 
-[node name="WindLines" type="Node3D"]
+[node name="WindLines" type="Node3D" unique_id=1496493667]
 script = ExtResource("1_script")
