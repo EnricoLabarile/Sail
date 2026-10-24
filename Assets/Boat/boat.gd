@@ -1,7 +1,7 @@
 extends Node3D
 ## The player's boat (like a Pawn in Unreal): she sails by the wind, turns with the rudder,
 ## stops at anchor. The wheel (ui/helm) finds her through the group "player_boat" and sets
-## her rudder; Space works the anchor. Her camera follows her without turning.
+## her rudder; Space works the anchor. Her camera (boat_camera.gd, on the Camera3D node) follows her.
 ## 1 unit = 10 px of the HTML prototype.
 
 @export var top_speed := 7        # m/s with the sail at its best (doubled by Enrico; the prototype had ~4.2)
@@ -10,14 +10,6 @@ extends Node3D
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 5		    # how far she leans with the wind on the sail
-@export var camera_tilt_deg := 20 # the camera's tilt from straight down (the prototype's BOAT_TILT look)
-# How far the camera sits from her, along the way it looks. It's orthographic (no perspective), so this
-# doesn't change the picture at all: it only has to be far enough that tall things (the clouds, 15 m up)
-# near the bottom of the screen don't end up behind the camera's near plane and get cut off.
-@export var camera_distance := 100.0
-# The camera follows her loosely, with a dead zone in the middle (the screen is 40 m wide).
-@export var camera_dead_zone := 6     # metres she can move before the camera follows (0 = always follow)
-@export var camera_follow_speed := 3.0  # how quickly the camera catches up once she's out (higher = quicker)
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
 @export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
 
@@ -42,10 +34,6 @@ extends Node3D
 @export var wave_slowdown := 0.4     # her speed is multiplied by this when a wave hits her
 @export var wave_slew_deg := 14.0    # degrees a wave taken badly slews her bow round (× how badly)
 
-# The screen shakes when she takes damage (the camera's h_offset / v_offset, like a Camera Shake in Unreal).
-@export var shake_strength := 0.5    # metres the view jumps about at first
-@export var shake_time := 0.3        # seconds it lasts, dying away
-
 # Tying up at a pier (Assets/Landscape/pier): she glides to the pier's berth and turns to its heading.
 @export var dock_speed := 3.0   # how quickly she glides into place (higher = quicker; about 1/3 s to get most of the way)
 
@@ -62,9 +50,6 @@ extends Node3D
 @export var furl_rate := 2.2            # how quickly the sail is gathered up when the anchor goes down…
 @export var unfurl_rate := 3.5          # …and spread again when it comes up (higher = quicker)
 @export var furled_height := 0.06       # how tall the sail is when gathered up, as a share of its full height
-
-# The ink outline round her (Assets/Boat/boat_outline.gdshader).
-@export var outline_width := 1.5        # how thick, in phone points (0 = no outline)
 
 # The waves: she rocks gently on them, side to side (roll) and bow to stern (pitch).
 @export var wave_roll_deg := 3.0    # how far she rolls each way on the waves, in degrees
@@ -135,10 +120,8 @@ var roll_velocity := 0.0
 var pitch := 0.0            # the bow's angle now (radians, + = up), and how quickly it's changing
 var pitch_velocity := 0.0
 var surfing_left := 0.0     # seconds of surf left (0 = not surfing)
-var shake_left := 0.0       # seconds of screen shake left
 var berth: Node3D = null     # the pier's berth she's tied up at (null = not tied up)
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
-var camera_focus := Vector3.ZERO   # the point on the water the camera looks at (it trails behind her)
 var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
 var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she starts at anchor: gathered up)
 var health := 3.0           # hearts left (0.5 = half a heart); set to max_hearts at start
@@ -155,7 +138,7 @@ var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over n
 # NAMES must stay the same. ($Model, with the $, is a fixed address: it must be a direct child of Boat.)
 @onready var model: Node3D = $Model            # heels and bobs: everything inside it follows
 @onready var rig: Node3D = find_child("Rig")   # turns round the mast: the sail (and boom) inside it swing out
-@onready var camera: Camera3D = $Camera3D
+@onready var camera: Camera3D = $Camera3D   # her camera, with its own script (boat_camera.gd)
 @onready var wake: CPUParticles3D = find_child("Wake")          # the dots left behind the stern
 @onready var bow_wave_right: Node3D = find_child("BowWaveRight") # the water thrown up and out at the bow (Wind
 @onready var sail_tip: Node3D = find_child("SailTip")              # the boom's end (a Marker3D inside Rig, like a Socket)
@@ -172,32 +155,12 @@ var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over n
 
 func _ready() -> void:
 	add_to_group("player_boat")
-	camera.top_level = true   # it follows her position but not her turning
-	camera_focus = global_position   # the camera starts right over her
 	anchor_point = bow_point()   # she starts at anchor: it lies off her bow
 	model_height = model.position.y   # how deep she sits: wherever Model was placed in boat.tscn
 	health = max_hearts               # she sets out with the hull whole
 	home_position = global_position   # home: where she was placed in Overworld
 	home_turn = rotation.y
 	add_water_mask()
-	add_outline()
-
-
-## The ink outline round the boat (Assets/Boat/boat_outline.gdshader): a rectangle in front of the
-## camera that the shader stretches over the whole screen. Made here in code (and not in the scene) so it
-## doesn't cover the editor's view.
-func add_outline() -> void:
-	var outline := ShaderMaterial.new()
-	outline.shader = load("res://Assets/Boat/boat_outline.gdshader")
-	outline.render_priority = 1                 # drawn after the sea (0), so the line sits on the water
-	outline.set_shader_parameter("outline_width", outline_width)
-	var quad := QuadMesh.new()
-	quad.material = outline
-	var screen := MeshInstance3D.new()
-	screen.mesh = quad
-	screen.extra_cull_margin = 16384.0         # never skipped as "out of view" (the shader moves it)
-	screen.position = Vector3(0.0, 0.0, -1.0)  # just in front of the camera
-	camera.add_child(screen)
 
 
 ## Puts the boat's mask (Assets/Boat/boat_mask.gdshader) on the INSIDE of the hull only, as a
@@ -259,20 +222,6 @@ func hit_by_wave(direction: Vector3, strength: float, badly: float, damage: floa
 	rotate_y(side * deg_to_rad(wave_slew_deg) * badly)
 
 
-## The screen shake, every frame while it lasts: the camera jumps a random bit sideways and up/down, less and
-## less as it dies away. h_offset / v_offset move the picture without moving the camera's place (so the camera's
-## following isn't disturbed).
-func shake_camera(dt: float) -> void:
-	if shake_left <= 0.0:
-		camera.h_offset = 0.0
-		camera.v_offset = 0.0
-		return
-	shake_left = maxf(0.0, shake_left - dt)
-	var amount := shake_strength * shake_left / shake_time
-	camera.h_offset = randf_range(-amount, amount)
-	camera.v_offset = randf_range(-amount, amount)
-
-
 ## A pier's berth (pier.gd) tells her to tie up there: she stops, gathers the sail (as at anchor, so the wheel
 ## doesn't steer and the hub shows the anchor), and glides into place (glide_to_berth, every physics frame).
 func dock_at(spot: Node3D) -> void:
@@ -307,7 +256,7 @@ func take_damage(hearts: float) -> void:
 		return
 	health = maxf(0.0, health - hearts)
 	health_changed.emit(true)
-	shake_left = shake_time          # the screen shakes (see shake_camera)
+	camera.shake()                   # the screen shakes (boat_camera.gd)
 	if health <= 0.0:
 		start_sinking()
 
@@ -361,7 +310,7 @@ func respawn() -> void:
 	pitch_velocity = 0.0
 	model.position.y = model_height
 	model.rotation = Vector3.ZERO
-	camera_focus = global_position   # the camera jumps there too, no glide across the map
+	camera.jump_to_boat()            # the camera jumps there too, no glide across the map
 	set_water_mask(true)
 	health_changed.emit(false)
 
@@ -688,23 +637,3 @@ func bump(out: Vector3, into: float) -> void:
 		turn_side = 1.0 if randf() < 0.5 else -1.0          # head-on: either way
 	var swing := minf(0.3, 0.08 + into / top_speed * 0.25)  # radians, at most about 17 degrees
 	rotate_y(turn_side * swing)
-
-
-func _process(dt: float) -> void:
-	# the camera: from the south, tilted, always the same way up (like a spring arm that doesn't rotate),
-	# looking at camera_focus, which trails after her (follow_camera)
-	var t := deg_to_rad(camera_tilt_deg)
-	follow_camera(dt)
-	shake_camera(dt)
-	camera.global_position = camera_focus + Vector3(0.0, cos(t), sin(t)) * camera_distance
-	camera.global_rotation = Vector3(-(PI / 2.0 - t), 0.0, 0.0)
-
-
-## The camera's point trails after her: inside the dead zone it stays still, outside it glides toward her
-## until she's back on the zone's edge.
-func follow_camera(dt: float) -> void:
-	var off := global_position - camera_focus   # from the camera's point to her
-	off.y = 0.0
-	if off.length() > camera_dead_zone:
-		var goal := global_position - off.normalized() * camera_dead_zone   # puts her right on the edge
-		camera_focus = camera_focus.lerp(goal, minf(1.0, camera_follow_speed * dt))

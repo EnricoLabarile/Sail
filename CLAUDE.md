@@ -192,18 +192,21 @@
   the water (not `Land.is_land`) the shadow goes, frames 1..15 play once at `splash_fps` 12 (`Sfx.stone_splash()`),
   then it frees itself; on land it's simply gone. `stone.png` is a stand-in (frames 64 × 64; frame 0 the stone near
   the bottom middle, then the splash rising from the bottom) for Enrico to redraw.
-- **The outline** (`Assets/Boat/boat_outline.gdshader`, made by `boat.gd` `add_outline()`: a QuadMesh child of the
+- **The outline** (`Assets/Boat/boat_outline.gdshader`, made by `boat_camera.gd` `add_outline()`: a QuadMesh child of the
   camera, stretched over the screen in the vertex shader, render_priority 1, after the sea): reads the depth buffer
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
-  0.0 = nothing), and paints ink on pixels with no boat but boat within `outline_width` (boat.gd export, 1.5 phone
+  0.0 = nothing), and paints ink on pixels with no boat but boat within `outline_width` (boat_camera.gd export, 1.5 phone
   points) in 8 directions; boat pixels below `water_level` (0) don't count (their height is worked out from the depth
   with `INV_PROJECTION_MATRIX` / `INV_VIEW_MATRIX`), so the line follows the water line, not the hidden hull. Made in code so it doesn't cover the editor's view. Any future solid 3D object gets it too.
-- **The camera** (`Boat/Camera3D`, orthographic, `size` 40 = the screen's width (keep width), `far` 200): placed by `boat.gd` `_process` from the south,
-  tilted `camera_tilt_deg` 45, `camera_distance` 100 m back along the way it looks (in ortho the distance doesn't
-  change the picture; at 40 the clouds low on the screen fell behind the near plane and were cut). It looks at `camera_focus`, which
-  trails after her with a **dead zone** (Enrico, like Unreal's follow cameras; `follow_camera`): while she's within
-  `camera_dead_zone` 3 m of it the camera stays still; past it, it lerps toward the spot that puts her back on the
-  edge at `camera_follow_speed` 3. Kept simple (Enrico).
+- **The camera** (`Boat/Camera3D` with its own script, **`Assets/Boat/boat_camera.gd`**: everything about the camera
+  lives there, not in boat.gd; orthographic, `size` 40 = the screen's width (keep width), `far` 200): `top_level`, placed
+  every frame from the south, tilted `tilt_deg` 20, `distance` 100 m back along the way it looks (in ortho the distance
+  doesn't change the picture; it keeps the clouds out of the near plane). It looks at `focus`, which trails after her
+  with a **dead zone** (`follow`: while she's within `dead_zone` 6 m it stays still; past it, it lerps toward the spot
+  that puts her back on the edge at `follow_speed` 3). **Screen shake** (Enrico, whenever she takes damage): boat.gd
+  `take_damage` calls `camera.shake()`; `update_shake` sets `h_offset` / `v_offset` to random ± `shake_strength` 0.5 m ×
+  what's left of `shake_time` 0.3 s. It also makes the ink outline (`add_outline`, `outline_width`). The boat calls only
+  `camera.shake()` and `camera.jump_to_boat()` (respawn); the slingshot reads `boat.camera.tilt_deg`.
 - **Sound** (`Sfx` autoload, `Assets/SFX/`): `.ogg` files made from the prototype's own Web Audio code by
   `art_src/audio/bake.py` (Playwright opens `bake.html`, which holds the prototype's `colouredNoise`, `chainLink`,
   `anchor` and `thunk` verbatim, renders each sound in an `OfflineAudioContext`; loops get an extra second
@@ -337,9 +340,6 @@
   speed × `wave_slowdown` 0.4, bow slewed ± `wave_slew_deg` 14° × badly. Picture: a 1 m PlaneMesh scaled to length × 3 m,
   0.06 m up, render_priority 1, the sea's stencil read, a 4 × 4 flipbook (frames 128 × 48, travel = up, the crest on the
   middle row, bowed up) played once over its life (a stand-in: builds, breaks into foam, fades).
-- **Screen shake** (Enrico: whenever she takes damage): `take_damage` sets `shake_left` = `shake_time` 0.3 s;
-  `shake_camera` (from `_process`) sets the camera's `h_offset` / `v_offset` to random ± `shake_strength` 0.5 m × what's
-  left (they don't disturb the follow).
 - **Piers** (Enrico; `Assets/Landscape/pier/`: `pier.tscn` + `pier.gd` (`@tool`); instanced under `Piers` in Overworld,
   for now one at (−10, 0, −20), a test): `Mesh` (a placeholder wooden BoxMesh 2 × 0.6 × 10 m, toon_shade; not solid),
   `Berth` (Node3D, the boat's parking spot: her bow points along its −Z) with `Sensor` (Area3D, a `CylinderShape3D`

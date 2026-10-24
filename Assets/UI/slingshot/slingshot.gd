@@ -100,10 +100,10 @@ func landing_point(boat: Node3D) -> Vector3:
 	var forward := -boat.global_transform.basis.z
 	forward.y = 0.0
 	forward = forward.normalized()
-	# The camera looks down at a slant (camera_tilt_deg), so on the screen a metre north or south looks shorter
+	# The camera looks down at a slant (the camera's tilt_deg), so on the screen a metre north or south looks shorter
 	# than a metre east or west (× cos(tilt): 0.71 at 45°). To make every shot look the same length on the screen,
 	# whichever way she points, the stone goes that much further when she points north or south.
-	var squash := cos(deg_to_rad(boat.camera_tilt_deg))
+	var squash := cos(deg_to_rad(boat.camera.tilt_deg))
 	var on_screen := Vector2(forward.x, forward.z * squash).length()   # how long 1 m this way looks: 0.71 .. 1
 	var spot: Vector3 = boat.bow_point() + forward * (sling_distance / on_screen)
 	spot.y = 0.0
