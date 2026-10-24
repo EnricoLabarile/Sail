@@ -4,6 +4,10 @@
 - **Do only what Enrico asks.** No extra features, effects or animations he didn't request, even if the prototype
   has them or they seem nice: he decides what goes in. If something extra seems worth it, suggest it in one line
   and wait for his yes.
+- **No camera-facing (billboard) shaders or nodes** (Enrico's rule, Oct 2026): pictures in the world are plain
+  planes/quads that keep the node's own rotation; Enrico decides himself whether and how to tilt an element to the
+  camera's angle. (Already made before the rule: `stone.gdshader`, used by the bomb and the fireball, and
+  `sea_imp.gdshader`; the map marker's billboard is editor-only.)
 - Enrico comes from **Unreal Engine**: explain Godot things through their Unreal equivalents (scene ≈ Blueprint/level, node ≈ component/actor, instancing a scene ≈ placing a Blueprint, CanvasLayer + shader ≈ a post-process material, GDScript ≈ Blueprint graph logic, autoload ≈ GameInstance subsystem).
 - **Enrico is learning GDScript**: keep code simple and easy to read (plain names, short functions, no clever
   one-liners), comment it generously (what each block does and why, in plain words), and when I add or change code,
