@@ -1,5 +1,5 @@
 extends Node3D
-## ONE BOMB, dropped off the boat's bow (the bomb button, Assets/UI/bomb_button). It floats where it fell, its
+## ONE BOMB, dropped off the boat's bow (the bomb button, Assets/UI/bomb_button). It floats where it fell, carried by the current (drift_with_current), its
 ## fuse burning (the picture blinks, quicker and quicker), and after `fuse_time` seconds it blows up: everything
 ## within `blast_radius` loses `damage` hearts, and the screen shakes hard. The sea imps (sea_imp_zone.gd hit_imp_at, only while they're out
 ## of the water) and the boat too, if she's still that close: drop it ahead of an enemy's path, then get away.
@@ -32,6 +32,7 @@ func _process(dt: float) -> void:
 		var blinks_per_second := lerpf(2.0, 8.0, time / fuse_time)
 		var lit := int(time * blinks_per_second) % 2
 		picture.material_override.set_shader_parameter("frame", lit)
+		drift_with_current(dt)
 		if time >= fuse_time:
 			explode()
 		return
@@ -42,6 +43,19 @@ func _process(dt: float) -> void:
 	material.albedo_color.a = 1.0 - share
 	if share >= 1.0:
 		queue_free()
+
+
+## While the fuse burns it floats: the same current that carries the boat (boat.gd `drift`, downwind) carries it
+## too, as it does a dead imp. It stops where the next step would be on land, so it washes up against the shore.
+## (Once it has blown up it stays put: the blast is where it went off.)
+func drift_with_current(dt: float) -> void:
+	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	if boat == null:
+		return
+	var next_place: Vector3 = global_position + boat.drift * dt
+	next_place.y = global_position.y
+	if not Land.is_land(next_place):
+		global_position = next_place
 
 
 ## Boom: the bomb's picture goes, the flash shows, and everything in reach is hit.

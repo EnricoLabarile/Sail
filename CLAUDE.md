@@ -367,7 +367,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   80 px, where the slingshot was) + `bomb_button.gd` (`@tool`)): the button shows only while a bomb is equipped; a tap
   (touch) takes one bomb out of the hold and drops it `bow_offset` 2.2 m ahead of her middle (Enrico: off the bow), on the water, into the
   world. The bomb: a 1.6 m camera-facing picture (`stone.gdshader`, render_priority 2) whose spark blinks quicker and
-  quicker (2 → 8 a second); after `fuse_time` 2 s it blows: `Blast`, a flat disc growing to `blast_radius` 4 m and fading
+  quicker (2 → 8 a second), **carried by the current** while the fuse burns (Enrico; `drift_with_current`, as the dead
+  imp: the boat's `drift` × dt, no step onto land); after `fuse_time` 2 s it blows: `Blast`, a flat disc growing to `blast_radius` 4 m and fading
   over `blast_time` 0.4 s; every zone's `hit_imp_at(pos, blast_radius, damage 1)`, and the boat too
   (`take_damage(1)`) if her middle is within the radius; then a **powerful screen shake** wherever she is (Enrico:
   `boat.camera.shake_hard(shake_strength 1.5, shake_time 0.6)`, the bomb's exports; `boat_camera.gd` `shake_hard`: a
