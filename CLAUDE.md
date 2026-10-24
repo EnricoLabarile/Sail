@@ -189,7 +189,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   speed / `top_speed` > `sail_trail_threshold` (0.4), not at anchor or sinking (a condition, not real contact).
 - **The slingshot: removed** (Enrico, Oct 2026; in git history: `Assets/UI/slingshot/`, `Assets/Boat/projectile/stone.*`).
   `Assets/Boat/projectile/stone.gdshader` stays: the camera-facing flipbook used by the fireball and the bomb. Its
-  sounds (`sling_shot.ogg`, `stone_splash.ogg`, `Sfx.sling_shot()` / `stone_splash()`) are still in Sfx, unused.
+  sounds are gone too (bake.html can still make them).
 - **The outline** (`Assets/Boat/boat_outline.gdshader`, made by `boat_camera.gd` `add_outline()`: a QuadMesh child of the
   camera, stretched over the screen in the vertex shader, render_priority 1, after the sea): reads the depth buffer
   (`hint_depth_texture`; only the solid things are in it, i.e. the boat, since the sea is in the transparent pass;
@@ -209,16 +209,14 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `art_src/audio/bake.py` (Playwright opens `bake.html`, which holds the prototype's `colouredNoise`, `chainLink`,
   `anchor` and `thunk` verbatim, renders each sound in an `OfflineAudioContext`; loops get an extra second
   cross-faded onto the start; one gain for all keeps the prototype's balance; ffmpeg → Vorbis;
-  `CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome python art_src/audio/bake.py`). **Only the anchor, the
-  wheel and the slingshot now** (Enrico removed the sea, the wind and the water along the hull; bake.html still has them, bake.py's
+  `CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome python art_src/audio/bake.py`). **Only the anchor and the
+  wheel now** (Enrico removed the sea, the wind and the water along the hull; bake.html still has them, bake.py's
   `NAMES` leaves them out): `anchor_down.ogg` / `anchor_up.ogg` (`Sfx.anchor(down)`, called by `boat.gd`
   `toggle_anchor`); `wheel_rub.ogg` (a 6 s loop of the prototype's rub: low-passed noise at 520 Hz through its wheel
   bus, × `WHEEL_VOL` 2; `Sfx.wheel(spin, dt)` every frame from `helm.gd`: loudness = min(1, spin / 7 rad/s), silent
   under 0.05, eased over 0.08 s, pitch 0.8..1 for the prototype's filter 320..520 Hz) and `wheel_thunk.ogg` (the thud at
   full lock, `thunk(WHEEL_VOL)`; `Sfx.wheel_stop(strength)` when the wheel reaches full lock turning faster than 0.3
   rad/s, strength min(1, 0.5 + spin / 10)). The spokes' knocks stay off, as in the prototype (`WHEEL_KNOCKS` false).
-  The slingshot: `sling_shot.ogg` (the prototype's `thunk(0.35)`, `Sfx.sling_shot()`) and `stone_splash.ogg`
-  (`splash()` verbatim + `thunk(0.25)`, `Sfx.stone_splash()`).
   The players are nodes in `sfx.tscn` (their Volume dB = the level); nothing plays while the game is paused.
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
   Bayer 4×4 to paper/ink, one dot per pixel of the game view (below; `pixel_size` > 1 only makes the grain coarser).
