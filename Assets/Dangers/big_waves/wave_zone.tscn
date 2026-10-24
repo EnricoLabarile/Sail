@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Dangers/big_waves/wave_zone.gd" id="1_script"]
+
+[sub_resource type="CylinderShape3D" id="Shape_sensor"]
+resource_local_to_scene = true
+height = 4.0
+radius = 60.0
+
+[node name="WaveZone" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Sensor" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+
+[node name="Shape" type="CollisionShape3D" parent="Sensor"]
+shape = SubResource("Shape_sensor")

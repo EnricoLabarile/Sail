@@ -1,0 +1,25 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Dangers/big_waves/big_wave.gd" id="1_script"]
+[ext_resource type="Shader" path="res://Assets/Dangers/big_waves/big_wave.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" path="res://Assets/Dangers/big_waves/big_wave.png" id="3_sheet"]
+
+[sub_resource type="ShaderMaterial" id="Mat_wave"]
+render_priority = 1
+shader = ExtResource("2_shader")
+shader_parameter/sheet = ExtResource("3_sheet")
+shader_parameter/frames_x = 4
+shader_parameter/frames_y = 4
+shader_parameter/frame = 0
+
+[sub_resource type="PlaneMesh" id="Mesh_wave"]
+size = Vector2(1, 1)
+
+[node name="BigWave" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Picture" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_wave")
+material_override = SubResource("Mat_wave")

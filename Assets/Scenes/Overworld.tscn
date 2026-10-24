@@ -23,6 +23,8 @@
 [ext_resource type="PackedScene" path="res://Assets/Quests/map_marker/map_marker.tscn" id="29_map_marker"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/pier/pier.tscn" id="30_pier"]
 
+[ext_resource type="PackedScene" path="res://Assets/Dangers/big_waves/wave_zone.tscn" id="31_wave_zone"]
+
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
 [node name="Sea" parent="." unique_id=1750240136 instance=ExtResource("1_sea")]
@@ -82,6 +84,11 @@ active = true
 
 [node name="Pier" parent="Piers" unique_id=1711215043 instance=ExtResource("30_pier")]
 transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 7.6494904, 0, -78.6269)
+
+[node name="BigWaves" type="Node3D" parent="."]
+
+[node name="WaveZone" parent="BigWaves" instance=ExtResource("31_wave_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -200)
 
 [node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("7_start")]
 

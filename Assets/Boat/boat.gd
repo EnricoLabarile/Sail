@@ -35,6 +35,17 @@ extends Node3D
 # × her share of top_speed (0..1); over the threshold, the trail is on.
 @export var sail_trail_threshold := 0.4   # 0..1: 0.4 = e.g. full rudder at 40% of top speed, or half rudder at 80%
 
+# Big waves (Assets/Dangers/big_waves): surfing one from astern, or being hit by one head-on or broadside.
+@export var surf_boost := 3.2        # m/s on top of what the sail gives, while she surfs a wave
+@export var surf_time := 2.6         # seconds a surf lasts (the boost fades over its last 0.8 s)
+@export var wave_push := 4.5         # m/s a wave taken badly shoves her its way (× how strong it is)
+@export var wave_slowdown := 0.4     # her speed is multiplied by this when a wave hits her
+@export var wave_slew_deg := 14.0    # degrees a wave taken badly slews her bow round (× how badly)
+
+# The screen shakes when she takes damage (the camera's h_offset / v_offset, like a Camera Shake in Unreal).
+@export var shake_strength := 0.5    # metres the view jumps about at first
+@export var shake_time := 0.3        # seconds it lasts, dying away
+
 # Tying up at a pier (Assets/Landscape/pier): she glides to the pier's berth and turns to its heading.
 @export var dock_speed := 3.0   # how quickly she glides into place (higher = quicker; about 1/3 s to get most of the way)
 
@@ -123,6 +134,8 @@ var roll := 0.0             # her lean now (radians, + = to port), and how quick
 var roll_velocity := 0.0
 var pitch := 0.0            # the bow's angle now (radians, + = up), and how quickly it's changing
 var pitch_velocity := 0.0
+var surfing_left := 0.0     # seconds of surf left (0 = not surfing)
+var shake_left := 0.0       # seconds of screen shake left
 var berth: Node3D = null     # the pier's berth she's tied up at (null = not tied up)
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
 var camera_focus := Vector3.ZERO   # the point on the water the camera looks at (it trails behind her)
@@ -230,6 +243,36 @@ func toggle_anchor() -> void:
 	Sfx.anchor(anchored)             # its sound: the splash going down, the chain coming up (Assets/SFX/sfx.gd)
 
 
+## A big wave reached her from astern (big_wave.gd): she surfs it, a push of speed for surf_time seconds.
+func surf_wave() -> void:
+	surfing_left = surf_time
+
+
+## A big wave reached her head-on or broadside (big_wave.gd): half a heart (the zone's `damage`), a shove the
+## wave's way, her speed cut, her bow slewed round to one side or the other. `strength` (0..1) is how big the
+## wave is now, `badly` (0..1) how badly she took it (head-on and broadside are the worst).
+func hit_by_wave(direction: Vector3, strength: float, badly: float, damage: float) -> void:
+	take_damage(damage)
+	knock += direction * wave_push * strength
+	speed *= wave_slowdown
+	var side := 1.0 if randf() < 0.5 else -1.0
+	rotate_y(side * deg_to_rad(wave_slew_deg) * badly)
+
+
+## The screen shake, every frame while it lasts: the camera jumps a random bit sideways and up/down, less and
+## less as it dies away. h_offset / v_offset move the picture without moving the camera's place (so the camera's
+## following isn't disturbed).
+func shake_camera(dt: float) -> void:
+	if shake_left <= 0.0:
+		camera.h_offset = 0.0
+		camera.v_offset = 0.0
+		return
+	shake_left = maxf(0.0, shake_left - dt)
+	var amount := shake_strength * shake_left / shake_time
+	camera.h_offset = randf_range(-amount, amount)
+	camera.v_offset = randf_range(-amount, amount)
+
+
 ## A pier's berth (pier.gd) tells her to tie up there: she stops, gathers the sail (as at anchor, so the wheel
 ## doesn't steer and the hub shows the anchor), and glides into place (glide_to_berth, every physics frame).
 func dock_at(spot: Node3D) -> void:
@@ -264,6 +307,7 @@ func take_damage(hearts: float) -> void:
 		return
 	health = maxf(0.0, health - hearts)
 	health_changed.emit(true)
+	shake_left = shake_time          # the screen shakes (see shake_camera)
 	if health <= 0.0:
 		start_sinking()
 
@@ -301,6 +345,7 @@ func update_sinking(dt: float) -> void:
 func respawn() -> void:
 	sinking = false
 	berth = null
+	surfing_left = 0.0
 	global_position = home_position
 	rotation.y = home_turn
 	health = max_hearts
@@ -378,7 +423,14 @@ func _physics_process(dt: float) -> void:
 
 	# speed eases toward what the sail gives; the anchor takes her way off quickly
 	var target := top_speed * drive
-	speed += (target - speed) * minf(1.0, dt * (anchor_bite if anchored else accel))
+	var rate := anchor_bite if anchored else accel
+	# Surfing a big wave: a push on top, fading over its last 0.8 s; she picks it up quickly (rate 3).
+	if surfing_left > 0.0:
+		surfing_left = maxf(0.0, surfing_left - dt)
+		if not anchored:
+			target += surf_boost * minf(1.0, surfing_left / 0.8)
+			rate = 3.0
+	speed += (target - speed) * minf(1.0, dt * rate)
 
 	# She turns at the same rate whatever her speed, as in the prototype; not at anchor.
 	var yaw_before := rotation.y
@@ -643,6 +695,7 @@ func _process(dt: float) -> void:
 	# looking at camera_focus, which trails after her (follow_camera)
 	var t := deg_to_rad(camera_tilt_deg)
 	follow_camera(dt)
+	shake_camera(dt)
 	camera.global_position = camera_focus + Vector3(0.0, cos(t), sin(t)) * camera_distance
 	camera.global_rotation = Vector3(-(PI / 2.0 - t), 0.0, 0.0)
 

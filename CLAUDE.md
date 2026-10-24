@@ -318,6 +318,28 @@
   while it's RISING or UP: one of `max_hits` 3 off and it sinks at once; at 0, once under, DEAD for good. She sails out of
   the zone (or sinks): it sinks and waits (WAITING), with all its hits back when she comes in again. No ripples, sounds,
   popups or buzz (not asked).
+- **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
+  `.gd` (`@tool`), `big_wave.tscn` + `.gd`, `big_wave.gdshader`, `big_wave.png`; under `BigWaves` in Overworld, for now
+  one `WaveZone` at (0, 0, −200), `radius` 60): no sounds, no buzz, no darker sea (Enrico). The zone: a circle (green disc
+  in the editor), `Sensor` (Area3D on layer 4) sets `boat_inside`; while she's in (not sinking, not tied up), every
+  `spawn_every_min/max` 1.5–3 s a wave (at most `max_waves` 10) rises upwind of her (`spawn_back_min/max` 6–36 m,
+  ±`spawn_side` 26 m), in the zone, on water, with 12 m of water ahead; running downwind (wind ≥ `downwind_deg` 120° from
+  her bow, speed > 0.6) each second a `surf_wave_chance` 0.3 of her own wave `surf_wave_back` 10 m astern
+  (±`surf_wave_side` 4.5 m), already at her pace + `catch_up` 2.5 (capped `max_pace` 12), living 5.5–6.5 s; one at a time.
+  A wave (group `big_waves`): travels downwind (its −Z), crest `length` 4.5–7.5 m bowed 0.625 m forward in the middle,
+  `pace` 2.5–3 m/s, `life` 4–6 s; `strength()` builds over 30%, full, fades over the last 30%; dies down (jumps to 75% of
+  its life) 4 m before land or the zone's edge. The quiet hand (`adjust_pace`): a wave just behind her (≤ 22 m, crest
+  in line) while she runs its way (cos > 0.4) hurries to her real pace (her way + the current, `boat.drift`) + catch_up
+  and lives 40% longer; one about to hit her badly slows to `spare` 0.55. The crest reaching her (strength ≥ 0.55,
+  |u| < 1, within thickness × 0.6 × √(1−u²) + 0.3 of the bowed crest), once: her way (cos > 0.4) → `boat.surf_wave()`
+  (`surf_time` 2.6 s of + `surf_boost` 3.2 m/s, fading over its last 0.8 s, gathered at rate 3); else
+  `boat.hit_by_wave(dir, strength, badly, damage)`: `damage` 0.5 hearts, `knock` += dir × `wave_push` 4.5 × strength,
+  speed × `wave_slowdown` 0.4, bow slewed ± `wave_slew_deg` 14° × badly. Picture: a 1 m PlaneMesh scaled to length × 3 m,
+  0.06 m up, render_priority 1, the sea's stencil read, a 4 × 4 flipbook (frames 128 × 48, travel = up, the crest on the
+  middle row, bowed up) played once over its life (a stand-in: builds, breaks into foam, fades).
+- **Screen shake** (Enrico: whenever she takes damage): `take_damage` sets `shake_left` = `shake_time` 0.3 s;
+  `shake_camera` (from `_process`) sets the camera's `h_offset` / `v_offset` to random ± `shake_strength` 0.5 m × what's
+  left (they don't disturb the follow).
 - **Piers** (Enrico; `Assets/Landscape/pier/`: `pier.tscn` + `pier.gd` (`@tool`); instanced under `Piers` in Overworld,
   for now one at (−10, 0, −20), a test): `Mesh` (a placeholder wooden BoxMesh 2 × 0.6 × 10 m, toon_shade; not solid),
   `Berth` (Node3D, the boat's parking spot: her bow points along its −Z) with `Sensor` (Area3D, a `CylinderShape3D`
