@@ -46,6 +46,11 @@ _subresources={
 "use_external/fallback_path": "res://Assets/Landscape/islands/island.tres",
 "use_external/path": "uid://cfl5fdc0jlu4t"
 }
+},
+"nodes": {
+"PATH:sm_rocks_01_a": {
+"generate/physics": true
+}
 }
 }
 fbx/importer=0
