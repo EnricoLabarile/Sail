@@ -18,7 +18,7 @@ extends Camera3D
 # don't end up behind the camera's near plane and get cut off.
 @export var distance := 100.0
 @export var dead_zone := 6.0         # metres she can move before the camera follows (0 = always follow)
-@export var follow_speed := 3.0      # how quickly it catches up once she's out (higher = quicker)
+@export var follow_speed := 9      # how quickly it catches up once she's out (higher = quicker)
 @export var shake_strength := 0.5    # metres the view jumps about at first, when she's hurt
 @export var shake_time := 0.3        # seconds the shake lasts, dying away
 @export var outline_width := 1.5     # the ink outline round her, in phone points (0 = no outline)
