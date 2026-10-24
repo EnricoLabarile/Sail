@@ -20,6 +20,14 @@
   emulated from the mouse. Leave a gap at the bottom of the screen for the navigation bar.
 - Check a change without the editor: `godot --headless --path . --import` then `--quit-after 30` for script errors.
 
+## Game design rules (Enrico's; keep every change in line with them)
+1. The game is about sailing a boat in a tiny world.
+2. The player talks to NPCs; they ask favours and hint at places that can benefit the player.
+3. The player is only ever on the boat: there is no walking around.
+4. The map is a tool the player needs to use to find the way.
+5. Keep the number of new tools the player must learn to the minimum.
+6. Fun, engaging traversal is the core of the game: flowing movement, all about keeping momentum (like The Pathless).
+
 ## Keeping the project folder clean (Enrico's rules)
 - **The layout now (Enrico chose it, Oct 2026)**: everything under `Assets/`, by part: `Assets/Boat/` (`boat/boat.tscn`,
   `boat.gd`; `boat_test.tscn`, the test scene), `Assets/Landscape/world/` (the sea), `Assets/Post_Process/dither/`,
