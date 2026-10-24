@@ -13,10 +13,14 @@ extends Camera3D
 ##   - it carries the ink outline round the boat (boat_outline.gdshader), a screen effect in front of it.
 
 @export var tilt_deg := 20.0         # the camera's tilt from straight down (the prototype's BOAT_TILT look)
-# How far it sits from her, along the way it looks. It's orthographic (no perspective), so this doesn't change
-# the picture at all: it only has to be far enough that tall things (the clouds) near the bottom of the screen
-# don't end up behind the camera's near plane and get cut off.
+# How far it sits from her, along the way it looks, in metres (perspective: further = more sea in view). It's
+# set at start and then eased by update_zoom between distance_sailing and distance_anchored, so the number typed
+# here is only where it would be before the first frame.
 @export var distance := 100.0
+# The zoom (Enrico): the distance eases between these two, further out while she sails, closer at anchor or tied up.
+@export var distance_sailing := 130.0     # metres back while she sails
+@export var distance_anchored := 90.0     # metres back while she's at anchor or tied up at a pier
+@export var zoom_speed := 1.5             # how quickly it eases from one to the other (higher = quicker)
 @export var dead_zone := 6.0         # metres she can move before the camera follows (0 = always follow)
 @export var follow_speed := 9      # how quickly it catches up once she's out (higher = quicker)
 @export var shake_strength := 0.5    # metres the view jumps about at first, when she's hurt
@@ -34,11 +38,13 @@ var shake_now_time := 0.3            # how long the shake going on now lasts
 func _ready() -> void:
 	top_level = true                 # it follows her position by itself, not her turning
 	focus = boat.global_position     # it starts right over her
+	distance = target_distance()     # it starts at the right distance, no easing at the very start
 	add_outline()
 
 
 func _process(dt: float) -> void:
 	follow(dt)
+	update_zoom(dt)
 	update_shake(dt)
 	# From the south, tilted, looking at `focus`: up and back along the tilt by `distance`.
 	var t := deg_to_rad(tilt_deg)
@@ -81,6 +87,19 @@ func follow(dt: float) -> void:
 	if off.length() > dead_zone:
 		var goal := boat.global_position - off.normalized() * dead_zone   # puts her right on the edge
 		focus = focus.lerp(goal, minf(1.0, follow_speed * dt))
+
+
+## How far back it should be now: closer in at anchor (tied up at a pier counts as anchored too).
+func target_distance() -> float:
+	if boat.anchored:
+		return distance_anchored
+	return distance_sailing
+
+
+## Every frame the distance eases toward where it should be (a lerp: a share of the gap each frame), so dropping
+## or weighing the anchor glides the view in or out instead of jumping.
+func update_zoom(dt: float) -> void:
+	distance = lerpf(distance, target_distance(), minf(1.0, zoom_speed * dt))
 
 
 ## The shake, every frame while it lasts: a random jump sideways and up/down, less and less as it dies away.
