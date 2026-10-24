@@ -188,7 +188,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (from `update_water_fx`) puts the emitter at the tip's x/z at y 0.05 and turns it on while |`turn_speed`| / `turn_rate` ×
   speed / `top_speed` > `sail_trail_threshold` (0.4), not at anchor or sinking (a condition, not real contact).
 - **The slingshot: removed** (Enrico, Oct 2026; in git history: `Assets/UI/slingshot/`, `Assets/Boat/projectile/stone.*`).
-  `Assets/Boat/projectile/stone.gdshader` stays: the camera-facing flipbook used by the fireball and the bomb. Its
+  `Assets/Boat/projectile/stone.gdshader` stays: the camera-facing flipbook used by the fireball and the bomb. It keeps the node's scale (it once dropped it), so scaling `Picture` in `bomb.tscn` / `fireball.tscn` makes the picture bigger. Its
   sounds are gone too (bake.html can still make them).
 - **The outline** (`Assets/Boat/boat_outline.gdshader`, made by `boat_camera.gd` `add_outline()`: a QuadMesh child of the
   camera, stretched over the screen in the vertex shader, render_priority 1, after the sea): reads the depth buffer

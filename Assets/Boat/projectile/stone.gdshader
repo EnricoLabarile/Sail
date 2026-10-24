@@ -12,8 +12,15 @@ uniform int frames_y = 4;   // …and down
 uniform int frame = 0;      // the frame to show (set by stone.gd)
 
 void vertex() {
-	// Face the camera: keep the stone's place, but take the camera's own right, up and forward as the picture's.
-	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(INV_VIEW_MATRIX[0], INV_VIEW_MATRIX[1], INV_VIEW_MATRIX[2], MODEL_MATRIX[3]);
+	// Face the camera: keep the object's place, but take the camera's own right, up and forward as the picture's.
+	// The node's scale is kept too (the length of each of its axes), so scaling the node in the editor (or the
+	// Picture node under it) makes the picture bigger.
+	vec3 node_scale = vec3(length(MODEL_MATRIX[0].xyz), length(MODEL_MATRIX[1].xyz), length(MODEL_MATRIX[2].xyz));
+	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(
+		INV_VIEW_MATRIX[0] * node_scale.x,
+		INV_VIEW_MATRIX[1] * node_scale.y,
+		INV_VIEW_MATRIX[2] * node_scale.z,
+		MODEL_MATRIX[3]);
 }
 
 void fragment() {
