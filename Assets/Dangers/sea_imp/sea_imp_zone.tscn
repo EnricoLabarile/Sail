@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://Assets/Dangers/sea_imp/sea_imp_zone.gd" id="1_script"]
 [ext_resource type="Shader" path="res://Assets/Dangers/sea_imp/sea_imp.gdshader" id="2_shader"]
 [ext_resource type="Texture2D" path="res://Assets/Dangers/sea_imp/sea_imp.png" id="3_picture"]
+[ext_resource type="Shader" uid="uid://omkbgcxkuyoa" path="res://Assets/Landscape/fishing_spots/fishing_spot.gdshader" id="4_spot_shader"]
+[ext_resource type="Texture2D" uid="uid://dd5t1qxh53p24" path="res://Assets/Landscape/fishing_spots/fishing_spot.png" id="5_spot_tex"]
 
 [sub_resource type="ShaderMaterial" id="Mat_imp"]
 render_priority = 2
@@ -16,6 +18,19 @@ shader_parameter/frame = 0
 size = Vector2(4, 4)
 center_offset = Vector3(0, 2, 0)
 
+[sub_resource type="ShaderMaterial" id="Mat_patch"]
+render_priority = 1
+shader = ExtResource("4_spot_shader")
+shader_parameter/spot_tex = ExtResource("5_spot_tex")
+shader_parameter/frames_x = 4
+shader_parameter/frames_y = 4
+shader_parameter/fps = 16.0
+shader_parameter/phase = 0.0
+shader_parameter/fade = 1.0
+
+[sub_resource type="PlaneMesh" id="Mesh_patch"]
+size = Vector2(1, 1)
+
 [node name="SeaImpZone" type="Node3D"]
 script = ExtResource("1_script")
 
@@ -23,3 +38,9 @@ script = ExtResource("1_script")
 cast_shadow = 0
 mesh = SubResource("Mesh_imp")
 material_override = SubResource("Mat_imp")
+
+[node name="Patch" type="MeshInstance3D" parent="."]
+transform = Transform3D(3.6, 0, 0, 0, 1, 0, 0, 0, 3.6, 0, 0.05, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_patch")
+material_override = SubResource("Mat_patch")

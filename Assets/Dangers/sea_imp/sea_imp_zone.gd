@@ -1,162 +1,161 @@
 @tool
 extends Node3D
-## A SEA IMP'S ZONE: a circle of sea where a sea imp lives (the prototype's sea imp). While the boat is inside it,
-## the imp comes up out of the water somewhere near her, spits a fireball at her, sinks back under, and comes up
-## again somewhere else, over and over. It stops when:
-##   - the boat sails out of the zone (she ran away): the imp sinks and waits, and starts again if she comes back;
-##   - the boat sinks (0 hearts): the same;
-##   - the imp is DEFEATED: it has `max_hearts` hearts (3), and a bomb's blast or a trap takes one each
-##     (bomb.gd, trap.gd call hit_imp_at). A hit while it still has some makes it duck under at once (and come
-##     up elsewhere). At 0 it stays where it is, up and harmless; when the boat sails over it (within
-##     `collect_radius`), it goes into the hold ("imp", Inventory) and is gone for good.
-## Its lost hearts stay lost: sailing out of the zone and back doesn't heal it.
+## A SEA IMP (Enrico's "mimic"). Where you place it, it lurks: it looks just like a fishing spot, only smaller.
+## When the boat comes within `wake_radius` it wakes, and from then on it runs this cycle, over and over:
+##   1. EMERGING (`emerge_time` 1.5 s): only the patch of stirred water shows where it's about to come up, so
+##      the player can see it coming and react;
+##   2. UP: the imp itself shows (sea_imp.png); it waits `idle_before_spit` 1 s, spits a fireball at where the
+##      boat will be (1 heart if it hits), waits `idle_after_spit` 1 s more…
+##   3. …and disappears: UNDER for `under_time` 3 s, invisible and out of reach;
+##   4. then it emerges again somewhere else, a spot of open water that's in view (on the screen), and so on.
+## It goes back to lurking at its own place when the boat is more than `radius` from it (she got away), or sinks.
 ##
-## To place one: instance sea_imp_zone.tscn under SeaImps in Overworld (like placing a Blueprint), move it where
-## you want it on the sea and set `radius` in the Inspector. In the editor the zone is drawn as a red disc on the
-## water and the imp stands in its middle, so you can see them; while playing the disc isn't there.
-## (In Unreal: a trigger volume actor that owns its enemy and runs its little state machine every Tick.)
+## It has `max_hearts` 3: a bomb's blast or a trap (bomb.gd, trap.gd → hit_imp_at) takes one while it's emerging
+## or up; if it has some left it vanishes under at once (and the cycle goes on). At 0 it's DEFEATED: it stays up,
+## harmless, where it was; the boat sailing over it (within `collect_radius`) takes it into the hold ("imp").
+## Lost hearts stay lost.
 ##
-## The imp's picture: `Imp` (a camera-facing picture, sea_imp.gdshader) with sea_imp.png, a single frame for now.
-## When the animation sheet comes, set frames_x / frames_y on Imp's material and pick `frame` in this script.
+## To place one: instance sea_imp_zone.tscn under SeaImps in Overworld (like placing a Blueprint) and move it where
+## it should lurk. In the editor a red disc shows `radius`, and the lurking patch and the imp show at its place.
+## (In Unreal: an enemy actor with a little state machine run every Tick.)
+##
+## Its parts (sea_imp_zone.tscn): `Imp`, the imp's camera-facing picture (sea_imp.gdshader: nothing under the water
+## line is drawn; sea_imp.png, one frame for now); `Patch`, the stirred water (the fishing spot's own flipbook
+## shader and picture, smaller), shown while it lurks and while it's emerging.
 
 const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 
-## The zone's radius on the water, in metres.
-@export var radius := 25.0:
+## How far from its place it still hunts her, in metres: further than this, it goes back to lurking.
+@export var radius := 40.0:
 	set(value):
 		radius = value
 		_fit_editor_disc()
+@export var wake_radius := 10.0            # metres: the boat this close to the lurking imp wakes it
+@export var lurk_size := 3.6               # metres across the patch of stirred water (a fishing spot's is 6.6)
 @export var max_hearts := 3.0              # its health, in hearts (a bomb or a trap takes one)
 @export var collect_radius := 2.5          # metres: defeated, it goes into the hold when the boat's middle comes this close
-@export var spawn_distance_min := 8.0      # metres from the boat it comes up (nearest…
-@export var spawn_distance_max := 15.0     # …and furthest), always inside the zone and on water
-@export var under_time_min := 1.2          # seconds it stays under before coming up again (shortest…
-@export var under_time_max := 2.4          # …and longest)
-@export var rise_time := 0.5               # seconds to come up out of the water
-@export var spit_after := 0.75             # seconds up (after rising) before it spits
-@export var up_time := 1.15                # seconds up in all (after rising) before it sinks again
-@export var sink_time := 0.5               # seconds to sink back under
-@export var depth := 4.2                   # metres down it sits when it's under (a bit more than the picture's height, 4 m)
+@export var emerge_time := 1.5             # seconds the patch shows before it comes up (the warning)
+@export var idle_before_spit := 1.0        # seconds up before it spits
+@export var idle_after_spit := 1.0         # seconds up after spitting, before it disappears
+@export var under_time := 3.0              # seconds under (invisible, out of reach) before it emerges again
+@export var spawn_distance_min := 6.0      # metres from the boat it may come up (nearest…
+@export var spawn_distance_max := 18.0     # …furthest), always on water and in view
+@export var screen_margin := 0.12          # how far in from the screen's edges it comes up (a share of the screen)
 @export var fireball_speed := 7.5          # metres a second (she can dodge it)
-@export var fireball_damage := 1.0         # hearts a fireball takes off (the prototype's: a heart)
+@export var fireball_damage := 1.0         # hearts a fireball takes off (Enrico: one)
 @export var fireball_hit_radius := 1.3     # metres from the boat's middle a fireball hits her
 @export var fireball_life := 3.0           # seconds a fireball flies before it's gone
 @export var aim_ahead := 0.5               # it aims where the boat will be this many seconds later
 @export var spit_height := 1.5             # metres above the water the fireball leaves its mouth
 
-enum State { WAITING, UNDER, RISING, UP, SINKING, DEFEATED, CAPTURED }
+enum State { LURKING, EMERGING, UP, UNDER, DEFEATED, CAPTURED }
 
-var state := State.WAITING
+var state := State.LURKING
 var time := 0.0            # seconds in the current state
-var under_for := 0.0       # how long it stays under this time (picked at random)
+var has_spat := false      # has it spat since it came up?
 var hearts := 3.0          # hearts it has left
-var has_spat := false      # has it spat its fireball since it came up?
 
 @onready var imp: MeshInstance3D = $Imp
+@onready var patch: MeshInstance3D = $Patch
 
 
 func _ready() -> void:
+	_fit_patch()
 	if Engine.is_editor_hint():
 		_make_editor_disc()
 		return
 	add_to_group("sea_imps")    # so bombs and traps find it (bomb.gd, trap.gd: hit_imp_at)
 	hearts = max_hearts
-	imp.visible = false
+	lurk()
 
 
 func _process(dt: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	time += dt
-	var boat := get_tree().get_first_node_in_group("player_boat")
-	var boat_here: bool = boat != null and not boat.sinking and is_inside(boat.global_position)
+	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	if state == State.CAPTURED:
+		return
+	if state == State.DEFEATED:
+		# Up and harmless where it was beaten. The boat sailing over it takes it aboard (if there's room).
+		if boat != null and not boat.sinking and distance_to(boat, imp.global_position) <= collect_radius:
+			if Inventory.add("imp") == 1:
+				imp.visible = false
+				state = State.CAPTURED
+		return
+	if boat == null:
+		return
+	# She sank, or got away (further than `radius` from its place): back to lurking.
+	if state != State.LURKING and (boat.sinking or distance_to(boat, global_position) > radius):
+		lurk()
+		return
 	match state:
-		State.WAITING:
-			# Hidden, waiting for her to come into the zone.
-			if boat_here:
-				go_under()
-		State.UNDER:
-			# Under water, swimming to its next spot.
-			if not boat_here:
-				state = State.WAITING
-			elif time >= under_for:
-				come_up(boat)
-		State.RISING:
-			# Coming up out of the water.
-			set_height(lerpf(-depth, 0.0, minf(time / rise_time, 1.0)))
-			if not boat_here:
-				start_sinking()
-			elif time >= rise_time:
-				state = State.UP
-				time = 0.0
-				has_spat = false
+		State.LURKING:
+			if not boat.sinking and distance_to(boat, global_position) <= wake_radius:
+				emerge_at(global_position)              # the first time, it comes up where it lurked
+		State.EMERGING:
+			if time >= emerge_time:
+				come_up()
 		State.UP:
-			# Up: it stares at her, spits, then goes under.
-			if not boat_here:
-				start_sinking()
-			elif time >= spit_after and not has_spat:
+			if not has_spat and time >= idle_before_spit:
 				has_spat = true
 				spit(boat)
-			elif time >= up_time:
-				start_sinking()
-		State.SINKING:
-			# Going back under, then under and up again elsewhere.
-			set_height(lerpf(0.0, -depth, minf(time / sink_time, 1.0)))
-			if time >= sink_time:
-				imp.visible = false
+			elif has_spat and time >= idle_before_spit + idle_after_spit:
 				go_under()
-		State.DEFEATED:
-			# Up and harmless, where it was beaten. The boat sailing over it takes it aboard (if there's room).
-			if boat != null and not boat.sinking and is_near_boat(boat):
-				if Inventory.add("imp") == 1:
-					imp.visible = false
-					state = State.CAPTURED
-		State.CAPTURED:
-			pass                       # in the hold: gone for good
+		State.UNDER:
+			if time >= under_time:
+				var spot = find_spot_in_view(boat)
+				if spot != null:
+					emerge_at(spot)                        # (none found this frame: it tries again next frame)
 
 
-## Is this point of the sea inside the zone? (Only the distance across the water counts, not the height.)
-func is_inside(point: Vector3) -> bool:
-	var off := point - global_position
-	off.y = 0.0
-	return off.length() <= radius
+# ---- the states ----
+
+## Lurking at its own place: only the small patch of stirred water, like a fishing spot.
+func lurk() -> void:
+	state = State.LURKING
+	time = 0.0
+	imp.visible = false
+	patch.visible = true
+	patch.global_position = Vector3(global_position.x, 0.05, global_position.z)
 
 
-## Under water, for a little while (a random time between under_time_min and under_time_max).
+## The warning: the patch shows at `spot` for emerge_time seconds, then it comes up there.
+func emerge_at(spot: Vector3) -> void:
+	state = State.EMERGING
+	time = 0.0
+	imp.visible = false
+	patch.visible = true
+	patch.global_position = Vector3(spot.x, 0.05, spot.z)
+	imp.global_position = Vector3(spot.x, 0.0, spot.z)
+
+
+## Up: the imp shows where the patch was.
+func come_up() -> void:
+	state = State.UP
+	time = 0.0
+	has_spat = false
+	patch.visible = false
+	imp.visible = true
+
+
+## Gone under: invisible and out of reach for under_time seconds.
 func go_under() -> void:
 	state = State.UNDER
 	time = 0.0
-	under_for = randf_range(under_time_min, under_time_max)
+	imp.visible = false
+	patch.visible = false
 
 
-## Picks a spot on the water near the boat (spawn_distance_min..max away, inside the zone, not on land) and starts
-## coming up there. If no spot is found this time (she's near the zone's edge or a shore), it tries again next frame.
-func come_up(boat: Node3D) -> void:
-	for attempt in 20:
-		var angle := randf() * TAU
-		var distance := randf_range(spawn_distance_min, spawn_distance_max)
-		var spot: Vector3 = boat.global_position + Vector3(cos(angle), 0.0, sin(angle)) * distance
-		spot.y = 0.0
-		if is_inside(spot) and not Land.is_land(spot):
-			imp.global_position = spot
-			set_height(-depth)
-			imp.visible = true
-			state = State.RISING
-			time = 0.0
-			return
-
-
-## Starts going back under from wherever it is.
-func start_sinking() -> void:
-	state = State.SINKING
+## 0 hearts: it stays where it is, up on the water and harmless, waiting to be picked up.
+func defeat() -> void:
+	state = State.DEFEATED
 	time = 0.0
+	patch.visible = false
+	imp.visible = true
 
 
-## The imp's height: 0 = up (the bottom of its picture on the water line), -depth = all under.
-## (What's under the water isn't drawn: sea_imp.gdshader.)
-func set_height(height: float) -> void:
-	imp.global_position.y = height
-
+# ---- what it does ----
 
 ## Spits a fireball at where the boat will be `aim_ahead` seconds from now (if she keeps going as she is).
 func spit(boat: Node3D) -> void:
@@ -168,11 +167,33 @@ func spit(boat: Node3D) -> void:
 	ball.launch(start, target, fireball_speed, fireball_damage, fireball_hit_radius, fireball_life)
 
 
-## A bomb's blast or a trap at `point`, reaching `reach` metres (bomb.gd, trap.gd call this on every zone).
-## If the imp is out of the water (coming up, up or going under) and that close, it loses `damage` hearts:
-## at 0 it's defeated; otherwise it ducks under at once. Gives back true if it was hit.
+## A spot of open water to come up at: on the screen (not too near its edges), between spawn_distance_min and
+## spawn_distance_max from the boat. Up to 20 tries: a random point of the screen, followed down along the
+## camera's line of sight to the water (like a mouse click turned into a point on the ground). Null if none fits.
+func find_spot_in_view(boat: Node3D) -> Variant:
+	# The boat's camera (it lives in the game view's own viewport, not in this node's: game_view.gd).
+	var camera: Camera3D = boat.camera
+	var screen := camera.get_viewport().get_visible_rect().size
+	for attempt in 20:
+		var on_screen := Vector2(
+			randf_range(screen_margin, 1.0 - screen_margin) * screen.x,
+			randf_range(screen_margin, 1.0 - screen_margin) * screen.y)
+		var from := camera.project_ray_origin(on_screen)
+		var direction := camera.project_ray_normal(on_screen)
+		if direction.y >= -0.001:
+			continue                                      # looking up: it never meets the water
+		var spot := from + direction * (-from.y / direction.y)   # where the line of sight meets the water (y 0)
+		var distance := distance_to(boat, spot)
+		if distance >= spawn_distance_min and distance <= spawn_distance_max and not Land.is_land(spot):
+			return spot
+	return null
+
+
+## A bomb's blast or a trap at `point`, reaching `reach` metres (bomb.gd, trap.gd call this on every imp).
+## Only while it's emerging or up and that close: it loses `damage` hearts; at 0 it's defeated, otherwise it
+## vanishes under at once. Gives back true if it was hit.
 func hit_imp_at(point: Vector3, reach: float, damage: float) -> bool:
-	if state != State.RISING and state != State.UP and state != State.SINKING:
+	if state != State.EMERGING and state != State.UP:
 		return false
 	var off := point - imp.global_position
 	off.y = 0.0
@@ -182,26 +203,25 @@ func hit_imp_at(point: Vector3, reach: float, damage: float) -> bool:
 	if hearts <= 0.0:
 		defeat()
 	else:
-		start_sinking()
+		go_under()
 	return true
 
 
-## 0 hearts: it stays where it is, up on the water and harmless, waiting to be picked up.
-func defeat() -> void:
-	state = State.DEFEATED
-	time = 0.0
-	set_height(0.0)
-	imp.visible = true
-
-
-## Is the boat's middle within collect_radius of the imp? (Only the distance across the water.)
-func is_near_boat(boat: Node3D) -> bool:
-	var off := boat.global_position - imp.global_position
+## The distance across the water (not the height) from the boat to a point.
+func distance_to(boat: Node3D, point: Vector3) -> float:
+	var off := boat.global_position - point
 	off.y = 0.0
-	return off.length() <= collect_radius
+	return off.length()
 
 
-# ---------- In the editor only: the zone drawn as a disc on the water ----------
+## The patch (a 1 x 1 m plane) is scaled to lurk_size.
+func _fit_patch() -> void:
+	var node := get_node_or_null("Patch") as Node3D
+	if node:
+		node.scale = Vector3(lurk_size, 1.0, lurk_size)
+
+
+# ---------- In the editor only: `radius` drawn as a disc on the water ----------
 
 var _editor_disc: MeshInstance3D
 

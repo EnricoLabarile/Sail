@@ -305,25 +305,26 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `over_fishing_spot_changed(over)` when it goes empty/non-empty; `helm.gd` connects to it once (`_listen_to_boat`,
   deferred) and swaps the hub picture (`over_spot`; `_hub_picture_sailing_spot` / `_anchored_spot`, `_draw_hub(...,
   question)`, `_draw_question_mark`). After the haul, the anchor again. (Land's rays don't hit areas.)
-- **Sea imps** (Enrico, a danger as the prototype's sea imp; `Assets/Dangers/sea_imp/`: `sea_imp_zone.tscn` + `.gd`
-  (`@tool`), `sea_imp.gdshader`, `sea_imp.png`, `fireball.tscn` + `.gd`, `fireball.png`; zones placed by Enrico under
-  `SeaImps` in Overworld, for now one `SeaImpZone` at (−15, 0, −80), `radius` 22): a zone is a circle (`radius`; in the
-  editor a see-through red disc, made in code with no owner, and the imp standing in its middle). While the boat is in
-  it (and not sinking) the imp, `Imp` (a 4 m camera-facing picture, its bottom middle on the water; `sea_imp.gdshader`
-  discards whatever is below `water_level` 0, so it rises out of the water and sinks into it; alpha-scissored, nearest,
-  render_priority 2; `frames_x/y`, `frame` ready for Enrico's animation sheet, 1 × 1 now; the picture is a stand-in),
-  runs `State` WAITING → UNDER (`under_time_min/max` 1.2–2.4 s) → RISING (`rise_time` 0.5 s, from `depth` 4.2 m down,
-  at a water spot `spawn_distance_min/max` 8–15 m from her inside the zone) → UP (spits after `spit_after` 0.75 s, sinks
-  at `up_time` 1.15 s) → SINKING (`sink_time` 0.5 s) → UNDER again. **The fireball** (`fireball.gd`): from `spit_height`
-  1.5 m, level, toward where she'll be in `aim_ahead` 0.5 s, `fireball_speed` 7.5 m/s; within `fireball_hit_radius`
-  1.3 m of her middle `boat.take_damage(fireball_damage)` (1 heart, the prototype's), gone on land or after
-  `fireball_life` 3 s; `stone.gdshader`'s billboard flipbook, 4 × 4 frames of 32² looped at 12 fps (a stand-in). **Its
-  health** (Enrico): `max_hearts` 3; bombs and traps call `hit_imp_at(point, reach, damage)` on every zone (group
-  `sea_imps`): only while it's out of the water (RISING, UP, SINKING) and within `reach`: −`damage` hearts; left > 0 →
-  it ducks under at once; 0 → **DEFEATED** (`defeat()`: up on the water, harmless, stays put); the boat's middle within
-  `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) → CAPTURED, gone for good. Lost hearts stay lost (no
-  healing when she leaves and comes back). She sails out of the zone (or sinks): it sinks and waits (WAITING). No
-  ripples, sounds, popups or buzz (not asked).
+- **Sea imps** (Enrico's **mimic**; `Assets/Dangers/sea_imp/`: `sea_imp_zone.tscn` + `.gd` (`@tool`), `sea_imp.gdshader`,
+  `sea_imp.png`, `fireball.tscn` + `.gd`, `fireball.png`; placed by Enrico under `SeaImps` in Overworld, for now one
+  `SeaImpZone` at (−156, 0, −91)). Nodes: `Imp` (a 4 m camera-facing picture, its bottom middle on the water;
+  `sea_imp.gdshader` discards what's under the water line; alpha-scissored, nearest, render_priority 2; `frames_x/y`,
+  `frame` ready for Enrico's sheet; a stand-in) and `Patch` (the fishing spot's flipbook shader and picture,
+  render_priority 1, a 1 m plane scaled to `lurk_size` 3.6 m: smaller than a fishing spot's 6.6). `State`: **LURKING** at
+  its own place (only the patch, like a fishing spot) → the boat within `wake_radius` 10 m → **EMERGING** (`emerge_time`
+  1.5 s: only the patch, where it will come up: the warning) → **UP** (the imp; `idle_before_spit` 1 s, spits,
+  `idle_after_spit` 1 s) → **UNDER** (`under_time` 3 s, invisible, out of reach) → EMERGING again at a new spot
+  (`find_spot_in_view`: a random point of the screen within `screen_margin` 0.12 of the edges, followed down the boat
+  camera's line of sight to the water, `spawn_distance_min/max` 6–18 m from her, not land; 20 tries a frame). The first
+  time it comes up where it lurked. Back to LURKING (at its place) when she's more than `radius` 40 m from it, or sinks.
+  **The fireball** (`fireball.gd`): from `spit_height` 1.5 m, level, toward where she'll be in `aim_ahead` 0.5 s,
+  `fireball_speed` 7.5 m/s; within `fireball_hit_radius` 1.3 m of her middle `boat.take_damage(fireball_damage)` (1
+  heart, Enrico); gone on land or after `fireball_life` 3 s; `stone.gdshader`'s billboard flipbook (a stand-in).
+  **Health**: `max_hearts` 3; bombs and traps call `hit_imp_at(point, reach, damage)` on every imp (group `sea_imps`):
+  only while EMERGING or UP and within `reach`: −`damage` hearts; left > 0 → UNDER at once; 0 → **DEFEATED** (up,
+  harmless, stays put); the boat's middle within `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) →
+  CAPTURED, gone for good. Lost hearts stay lost. In the editor a red disc shows `radius`. No ripples, sounds, popups
+  or buzz (not asked).
 - **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
   `.gd` (`@tool`), `big_wave.tscn` + `.gd`, `big_wave.gdshader`, `big_wave.png`; under `BigWaves` in Overworld, for now
   one `WaveZone` at (0, 0, −200), `radius` 60): no sounds, no buzz, no darker sea (Enrico). The zone: a circle (green disc

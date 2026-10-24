@@ -72,7 +72,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1220932, -3.8146973e-06, -0
 
 [node name="SeaImpZone" parent="SeaImps" unique_id=1040785233 instance=ExtResource("28_sea_imp_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -156.08926, 0, -90.87308)
-radius = 22.0
 
 [node name="MapMarkers" type="Node3D" parent="." unique_id=161406149]
 
