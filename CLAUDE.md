@@ -201,11 +201,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   points) in 8 directions; boat pixels below `water_level` (0) don't count (their height is worked out from the depth
   with `INV_PROJECTION_MATRIX` / `INV_VIEW_MATRIX`), so the line follows the water line, not the hidden hull. Made in code so it doesn't cover the editor's view. Any future solid 3D object gets it too.
 - **The camera** (`Boat/Camera3D` with its own script, **`Assets/Boat/boat_camera.gd`**: everything about the camera
-  lives there, not in boat.gd; orthographic, `size` 40 = the screen's width (keep width), `far` 200): `top_level`, placed
-  every frame from the south, **at a distance that eases** (Enrico; `update_zoom`, lerp at `zoom_speed` 1.5) to
-  `distance_sailing` 130 under way / `distance_anchored` 90 at anchor or tied up (`boat.anchored`; Enrico's camera is
-  now perspective, fov 20, so the distance zooms); tilted `tilt_deg` 20, `distance` 100 m back along the way it looks (in ortho the distance
-  doesn't change the picture; it keeps the clouds out of the near plane). It looks at `focus`, which trails after her
+  lives there, not in boat.gd; **perspective** (Enrico: not orthographic), `fov` 20, keep width, `far` 200): `top_level`,
+  placed every frame from the south, tilted `tilt_deg` 20, `distance` m back along the way it looks; **the distance
+  eases** (Enrico; `update_zoom`, lerp at `zoom_speed` 1.5) to `distance_sailing` 130 under way / `distance_anchored` 90
+  at anchor or tied up (`boat.anchored`), so the view is further out while sailing. It looks at `focus`, which trails after her
   with a **dead zone** (`follow`: while she's within `dead_zone` 6 m it stays still; past it, it lerps toward the spot
   that puts her back on the edge at `follow_speed` 3). **Screen shake** (Enrico, whenever she takes damage): boat.gd
   `take_damage` calls `camera.shake()`; `update_shake` sets `h_offset` / `v_offset` to random ± `shake_strength` 0.5 m ×
