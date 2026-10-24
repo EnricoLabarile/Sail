@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dng2udo8eej1u"]
 
-[ext_resource type="Script" path="res://Assets/Items/bomb/bomb.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://dgd6q33l7nrmj" path="res://Assets/Items/bomb/bomb.gd" id="1_script"]
 [ext_resource type="Shader" uid="uid://dwxakh3cdbnlq" path="res://Assets/Boat/projectile/stone.gdshader" id="2_shader"]
-[ext_resource type="Texture2D" path="res://Assets/Items/bomb/bomb.png" id="3_sheet"]
+[ext_resource type="Texture2D" uid="uid://dnjbqvgn0t2wg" path="res://Assets/Items/bomb/bomb.png" id="3_sheet"]
 
 [sub_resource type="ShaderMaterial" id="Mat_bomb"]
 render_priority = 2
@@ -29,17 +29,17 @@ height = 0.01
 radial_segments = 24
 rings = 0
 
-[node name="Bomb" type="Node3D"]
+[node name="Bomb" type="Node3D" unique_id=1343770618]
 script = ExtResource("1_script")
 
-[node name="Picture" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+[node name="Picture" type="MeshInstance3D" parent="." unique_id=1598655501]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+material_override = SubResource("Mat_bomb")
 cast_shadow = 0
 mesh = SubResource("Mesh_bomb")
-material_override = SubResource("Mat_bomb")
 
-[node name="Blast" type="MeshInstance3D" parent="."]
+[node name="Blast" type="MeshInstance3D" parent="." unique_id=1756895018]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+material_override = SubResource("Mat_blast")
 cast_shadow = 0
 mesh = SubResource("Mesh_blast")
-material_override = SubResource("Mat_blast")

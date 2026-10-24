@@ -6,7 +6,7 @@ extends Node3D
 ## (In Unreal: a small actor with a timer that does a radial damage, then destroys itself.)
 
 @export var fuse_time := 2.0         # seconds from dropping it to the blast
-@export var blast_radius := 4.0      # metres the blast reaches
+@export var blast_radius := 8      # metres the blast reaches
 @export var damage := 1.0            # hearts it takes off whatever is in reach
 @export var blast_time := 0.4        # seconds the blast's flash lasts (it grows and fades)
 
