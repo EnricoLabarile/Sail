@@ -64,9 +64,9 @@ extends Node3D
 @export var bow_wave_min_size := 0.4    # its size at a crawl, as a share of full size (full at top speed)
 @export var shallows_check_time := 0.2   # seconds between looks for land nearby (it's up to 48 rays: not every frame)
 
-# The current (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, and the water carries her
-# downwind whatever the sail does, so she must steer to make up for it. At anchor too: the anchor line holds her.
-@export var current_speed := 1.5   # m/s the current carries her downwind (18 px/s in the prototype)
+# The current carries her downwind whatever the sail does, so she must steer to make up for it. At anchor too:
+# the anchor line holds her. How strong it is lives in the Wind autoload (wind.gd, CURRENT_SPEED), shared with
+# everything else that floats; here only how it takes hold of her at the start.
 @export var current_ease := 0.8     # how quickly it takes hold at the start
 
 # Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
@@ -393,7 +393,7 @@ func _physics_process(dt: float) -> void:
 	else:
 		if not anchored:
 			rotate_y(-rudder * turn_rate * dt)
-		update_current(dt, wind_from)
+		update_current(dt)
 		move_and_bounce(dt)
 		hold_at_anchor()
 	# How quickly she really turned this frame (the rudder, a bump, the anchor line swinging her):
@@ -613,12 +613,11 @@ func move_and_bounce(dt: float) -> void:
 		bump(out, into)
 
 
-## The current: downwind (the opposite of where the wind comes from), at current_speed.
-## It eases in at the start (drift_amount 0..1). It carries her at anchor too: the anchor line holds her
-## (see hold_at_anchor).
-func update_current(dt: float, wind_from: Vector3) -> void:
+## The current: the Wind autoload's (Wind.current(): downwind, at its CURRENT_SPEED). On her it eases in at the
+## start (drift_amount 0..1). It carries her at anchor too: the anchor line holds her (see hold_at_anchor).
+func update_current(dt: float) -> void:
 	drift_amount += (1.0 - drift_amount) * minf(1.0, dt * current_ease)
-	drift = -wind_from * current_speed * drift_amount
+	drift = Wind.current() * drift_amount
 
 
 ## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).

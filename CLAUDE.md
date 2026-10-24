@@ -56,7 +56,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   have capitals, spell every `res://` path exactly as on disk: the web export is case-sensitive).
 - **Autoloads** (project.godot): `PhoneFrame` (`Assets/Scenes/phone_frame.gd`, a phone-shaped frame on wide screens) and
   `Wind` (`Assets/Landscape/world/wind.gd`, the prototype's wind, but on **8 fixed directions** (Enrico: N, NE, E, SE, S, SW, W, NW, `DIRECTIONS` 8): a random one at the start, holds, then shifts 1–2 steps (`SHIFT_STEPS`, 45° or 90°) left or right, smoothly over 3–5 s, landing exactly on a direction,
-  constant strength (Enrico: only the direction changes); the boat and the wind vane read `Wind.from_deg`).
+  constant strength (Enrico: only the direction changes); the boat and the wind vane read `Wind.from_deg`). **The current
+  lives here too** (Enrico: a force on many things): `CURRENT_SPEED` 1.5 m/s, `Wind.current()` = downwind × it, read
+  by the boat (eased in with her `drift_amount`), a burning bomb and a dead imp.
   `Sfx` (`Assets/SFX/sfx.tscn` + `sfx.gd`, the sounds, see Sound below). `Inventory` (`Assets/Inventory/inventory.gd`, the hold, see The inventory).
   `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` shoots a physics ray straight down (y 100 → -20,
   `intersect_ray`): anything solid hit = land; outside the map counts as land, so the map's edge is a wall. **`Land.WORLD_SIZE`** (1008 m a side; Enrico doubled it from 504,
@@ -77,7 +79,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `shallows_width` 6 m of her middle, `Land.is_near_land`: 3 rings × 16 rays, looked again only every `shallows_check_time`
   0.2 s, `in_shallows`) the sail's drive is ×
   `shallows_sail` 0.3 (Enrico: less wind by the coast). **The current** (prototype's `CURRENT_DRIFT`): `drift` =
-  downwind × `current_speed` 1.8 m/s × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; also at
+  `Wind.current()` (downwind × `Wind.CURRENT_SPEED` 1.5 m/s) × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; also at
   anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
 - **The grid on the sea** (Enrico, as the prototype's room seams `drawRoomSeams`): `sea.gdshader`'s `seam()`
@@ -330,7 +332,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   0.5 s at `hurt_blinks_per_second` 12, `update_flash` sets `sea_imp.gdshader`'s `flash`, its material duplicated per
   imp); left > 0 → **HURT** (up, harmless, blinking; hit while emerging it shows itself) then UNDER; 0 → **DEFEATED** (up,
   harmless, after the same blinking **solid black** for good, dead (Enrico; a different picture later), and **carried by
-  the current** (`drift_with_current`: the boat's own `drift` × dt, no step onto land, so it washes up on a shore)); the boat's middle within `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) →
+  the current** (`drift_with_current`: `Wind.current()` × dt, no step onto land, so it washes up on a shore)); the boat's middle within `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) →
   CAPTURED, gone for good. Lost hearts stay lost. In the editor a red disc shows `radius`. No ripples, sounds, popups
   or buzz (not asked).
 - **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
@@ -369,7 +371,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   world. The bomb: a 1.6 m camera-facing picture (`stone.gdshader`, render_priority 2) whose spark blinks quicker and
   quicker (2 → 8 a second) and **pulses** (Enrico: shrinks and swells, `pulse_time` 1 s a cycle, ±`pulse_amount` 0.15
   round the `Picture`'s own scale from bomb.tscn, `pulse()`), **carried by the current** while the fuse burns (Enrico; `drift_with_current`, as the dead
-  imp: the boat's `drift` × dt, no step onto land); after `fuse_time` 2 s it blows: `Blast`, a flat disc growing to `blast_radius` 4 m and fading
+  imp: `Wind.current()` × dt, no step onto land); after `fuse_time` 2 s it blows: `Blast`, a flat disc growing to `blast_radius` 4 m and fading
   over `blast_time` 0.4 s; every zone's `hit_imp_at(pos, blast_radius, damage 1)`, and the boat too
   (`take_damage(1)`) if her middle is within the radius; then a **powerful screen shake** wherever she is (Enrico:
   `boat.camera.shake_hard(shake_strength 1.5, shake_time 0.6)`, the bomb's exports; `boat_camera.gd` `shake_hard`: a

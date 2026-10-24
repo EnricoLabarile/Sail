@@ -13,6 +13,9 @@ extends Node
 ##      turning smoothly over a few seconds;
 ##   4. then it holds again, and so on.
 ## The wind's strength never changes: only its direction does.
+##
+## THE CURRENT lives here too (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, so the sea
+## carries what floats on it downwind. Anything can ask `Wind.current()` for that push: the boat, a bomb, a dead imp.
 
 
 # ---- Knobs (constants: values you set here by hand, they never change while playing) ----
@@ -24,6 +27,7 @@ const HOLD := Vector2(12.0, 22.0)         # seconds it holds still between one s
 const DIRECTIONS := 8                     # how many directions the wind can come from (8 = every 45°)
 const SHIFT_STEPS := Vector2i(1, 2)       # how many steps round a shift turns it (1 = 45°, 2 = 90°)
 const SHIFT_TIME := Vector2(3.0, 5.0)     # how many seconds a shift takes
+const CURRENT_SPEED := 1.5                # m/s the current carries floating things downwind (boat, bombs, a dead imp)
 
 
 # ---- The value other scripts read ----
@@ -102,3 +106,9 @@ func step_deg() -> float:
 func from_vector() -> Vector3:
 	var a := deg_to_rad(from_deg)         # sin and cos want radians, not degrees
 	return Vector3(sin(a), 0.0, -cos(a))
+
+
+## The current: how fast and which way the water carries anything floating, in m/s. It flows downwind (the
+## opposite of where the wind comes from, -from_vector()) at CURRENT_SPEED, and turns with the wind.
+func current() -> Vector3:
+	return -from_vector() * CURRENT_SPEED
