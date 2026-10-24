@@ -1,6 +1,6 @@
 @tool
 extends Node3D
-## A SEA IMP (Enrico's "mimic"). Where you place it, it lurks: it looks just like a fishing spot, only smaller.
+## A SEA IMP (Enrico's "mimic"). Where you place it, it lurks: it looks like a fishing spot, a big patch of stirred water.
 ## When the boat comes within `wake_radius` it wakes, and from then on it runs this cycle, over and over:
 ##   1. EMERGING (`emerge_time` 1.5 s): only the patch of stirred water shows where it's about to come up, so
 ##      the player can see it coming and react;
@@ -21,7 +21,7 @@ extends Node3D
 ##
 ## Its parts (sea_imp_zone.tscn): `Imp`, the imp's camera-facing picture (sea_imp.gdshader: nothing under the water
 ## line is drawn; sea_imp.png, one frame for now); `Patch`, the stirred water (the fishing spot's own flipbook
-## shader and picture, smaller), shown while it lurks and while it's emerging.
+## shader and picture, `lurk_size` across), shown while it lurks and while it's emerging.
 
 const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 
@@ -31,7 +31,7 @@ const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 		radius = value
 		_fit_editor_disc()
 @export var wake_radius := 10.0            # metres: the boat this close to the lurking imp wakes it
-@export var lurk_size := 3.6               # metres across the patch of stirred water (a fishing spot's is 6.6)
+@export var lurk_size := 10.8              # metres across the patch of stirred water (Enrico: 3 times the first 3.6)
 @export var max_hearts := 3.0              # its health, in hearts (a bomb or a trap takes one)
 @export var collect_radius := 2.5          # metres: defeated, it goes into the hold when the boat's middle comes this close
 @export var emerge_time := 1.5             # seconds the patch shows before it comes up (the warning)
@@ -111,7 +111,7 @@ func _process(dt: float) -> void:
 
 # ---- the states ----
 
-## Lurking at its own place: only the small patch of stirred water, like a fishing spot.
+## Lurking at its own place: only the patch of stirred water, like a fishing spot.
 func lurk() -> void:
 	state = State.LURKING
 	time = 0.0

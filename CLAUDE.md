@@ -310,7 +310,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `SeaImpZone` at (−156, 0, −91)). Nodes: `Imp` (a 4 m camera-facing picture, its bottom middle on the water;
   `sea_imp.gdshader` discards what's under the water line; alpha-scissored, nearest, render_priority 2; `frames_x/y`,
   `frame` ready for Enrico's sheet; a stand-in) and `Patch` (the fishing spot's flipbook shader and picture,
-  render_priority 1, a 1 m plane scaled to `lurk_size` 3.6 m: smaller than a fishing spot's 6.6). `State`: **LURKING** at
+  render_priority 1, a 1 m plane scaled to `lurk_size` 10.8 m: Enrico, 3 times the first 3.6). `State`: **LURKING** at
   its own place (only the patch, like a fishing spot) → the boat within `wake_radius` 10 m → **EMERGING** (`emerge_time`
   1.5 s: only the patch, where it will come up: the warning) → **UP** (the imp; `idle_before_spit` 1 s, spits,
   `idle_after_spit` 1 s) → **UNDER** (`under_time` 3 s, invisible, out of reach) → EMERGING again at a new spot
@@ -357,7 +357,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
 - **Bombs** (Enrico; `Assets/Items/bomb/`: `bomb.tscn` + `bomb.gd`, `bomb.png` a 2 × 1 sheet (dark, fuse lit), stand-in;
   the button `Assets/UI/bomb_button/`: `bomb_button.tscn` (CanvasLayer 95, in `DITHERED`; Control `Button` bottom right,
   80 px, where the slingshot was) + `bomb_button.gd` (`@tool`)): the button shows only while a bomb is equipped; a tap
-  (touch) takes one bomb out of the hold and drops it `stern_offset` 2.2 m behind her middle, on the water, into the
+  (touch) takes one bomb out of the hold and drops it `bow_offset` 2.2 m ahead of her middle (Enrico: off the bow), on the water, into the
   world. The bomb: a 1.6 m camera-facing picture (`stone.gdshader`, render_priority 2) whose spark blinks quicker and
   quicker (2 → 8 a second); after `fuse_time` 2 s it blows: `Blast`, a flat disc growing to `blast_radius` 4 m and fading
   over `blast_time` 0.4 s; every zone's `hit_imp_at(pos, blast_radius, damage 1)`, and the boat too

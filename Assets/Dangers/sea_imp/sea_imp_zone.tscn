@@ -40,7 +40,7 @@ mesh = SubResource("Mesh_imp")
 material_override = SubResource("Mat_imp")
 
 [node name="Patch" type="MeshInstance3D" parent="."]
-transform = Transform3D(3.6, 0, 0, 0, 1, 0, 0, 0, 3.6, 0, 0.05, 0)
+transform = Transform3D(10.8, 0, 0, 0, 1, 0, 0, 0, 10.8, 0, 0.05, 0)
 cast_shadow = 0
 mesh = SubResource("Mesh_patch")
 material_override = SubResource("Mat_patch")
