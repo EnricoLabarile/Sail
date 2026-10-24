@@ -12,7 +12,7 @@ extends Node3D
 ##
 ## It has `max_hearts` 3: a bomb's blast or a trap (bomb.gd, trap.gd → hit_imp_at) takes one while it's emerging
 ## or up, and blinks black (HURT, `hurt_time`); if it has some left it then goes under (and the cycle goes on). At 0 it's DEFEATED: it stays up,
-## harmless, where it was; the boat sailing over it (within `collect_radius`) takes it into the hold ("imp").
+## harmless, black (dead), drifting with the current; the boat sailing over it (within `collect_radius`) takes it into the hold ("imp").
 ## Lost hearts stay lost.
 ##
 ## To place one: instance sea_imp_zone.tscn under SeaImps in Overworld (like placing a Blueprint) and move it where
@@ -81,7 +81,9 @@ func _process(dt: float) -> void:
 		return
 	update_flash()
 	if state == State.DEFEATED:
-		# Up and harmless where it was beaten. The boat sailing over it takes it aboard (if there's room).
+		# Beaten: black (update_flash), afloat and harmless, carried by the current (drift_with_current).
+		# The boat sailing over it takes it aboard (if there's room).
+		drift_with_current(boat, dt)
 		if boat != null and not boat.sinking and distance_to(boat, imp.global_position) <= collect_radius:
 			if Inventory.add("imp") == 1:
 				imp.visible = false
@@ -163,7 +165,7 @@ func get_hurt() -> void:
 	imp.visible = true
 
 
-## 0 hearts: it stays where it is, up on the water and harmless, waiting to be picked up.
+## 0 hearts: it stays up on the water, harmless, waiting to be picked up; it turns black and drifts with the current.
 func defeat() -> void:
 	state = State.DEFEATED
 	time = 0.0
@@ -225,12 +227,26 @@ func hit_imp_at(point: Vector3, reach: float, damage: float) -> bool:
 
 ## The black flash when it's hurt: for hurt_time seconds after a hit (HURT, or just DEFEATED) the picture
 ## blinks between black and its own colours (the shader's `flash`: 1 = black, 0 = as drawn).
+## Once DEFEATED and done blinking it stays black for good: it's dead (a different picture later, Enrico).
 func update_flash() -> void:
 	var flashing := (state == State.HURT or state == State.DEFEATED) and time < hurt_time
 	var black := 0.0
 	if flashing and int(time * hurt_blinks_per_second) % 2 == 0:
 		black = 1.0
+	if state == State.DEFEATED and time >= hurt_time:
+		black = 1.0                                   # dead: solid black
 	imp.material_override.set_shader_parameter("flash", black)
+
+
+## Dead, it floats: the same current that carries the boat (boat.gd `drift`, downwind) carries it too. It stops
+## where the next step would be on land, so it washes up against the shore instead of going through it.
+func drift_with_current(boat: Node3D, dt: float) -> void:
+	if boat == null:
+		return
+	var next_place: Vector3 = imp.global_position + boat.drift * dt
+	next_place.y = 0.0
+	if not Land.is_land(next_place):
+		imp.global_position = next_place
 
 
 ## The distance across the water (not the height) from the boat to a point.

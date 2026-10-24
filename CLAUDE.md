@@ -328,7 +328,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   only while EMERGING or UP and within `reach`: −`damage` hearts and **it blinks black** (Enrico: feedback; `hurt_time`
   0.5 s at `hurt_blinks_per_second` 12, `update_flash` sets `sea_imp.gdshader`'s `flash`, its material duplicated per
   imp); left > 0 → **HURT** (up, harmless, blinking; hit while emerging it shows itself) then UNDER; 0 → **DEFEATED** (up,
-  harmless, stays put, after the same blinking); the boat's middle within `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) →
+  harmless, after the same blinking **solid black** for good, dead (Enrico; a different picture later), and **carried by
+  the current** (`drift_with_current`: the boat's own `drift` × dt, no step onto land, so it washes up on a shore)); the boat's middle within `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) →
   CAPTURED, gone for good. Lost hearts stay lost. In the editor a red disc shows `radius`. No ripples, sounds, popups
   or buzz (not asked).
 - **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
