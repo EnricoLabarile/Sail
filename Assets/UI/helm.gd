@@ -5,6 +5,8 @@ extends Control
 ## - Drag round the wheel to steer: half a turn either way = full rudder. Let go and it spins back to the middle.
 ## - The hub is the anchor button: hold it hub_hold seconds to drop or weigh the anchor (a ring fills round
 ##   it while you hold, then the hub gives a little shake). Moving your finger off it turns the wheel instead.
+## - A quick tap on the hub (let go before hub_hold) sends `hub_tapped`: the talk box uses it to go on to the
+##   next page (Assets/UI/talk_box). While someone is talking (boat.talking) holding the hub does nothing.
 ## - At anchor the wheel doesn't steer (the drag and the arrow keys do nothing until the anchor is up).
 ## - The arrow keys turn it too.
 ##
@@ -14,6 +16,8 @@ extends Control
 ## and scaled to this Control's size. It finds the boat through the group "player_boat".
 ## @tool: the script also runs in the editor, so it's drawn there too and you can place and size it yourself
 ## (like a Blueprint's construction script). In the editor it only draws: it doesn't react or read the game.
+
+signal hub_tapped                # a quick tap on the hub (let go before hub_hold): the talk box listens
 
 @export var hub_hold := 0.33     # s to hold the hub for the anchor
 @export var lock_turn := PI      # how far the wheel turns for full rudder (PI = half a turn)
@@ -57,6 +61,12 @@ func _boat() -> Node:
 	return get_tree().get_first_node_in_group("player_boat")
 
 
+## Is an NPC talking? (Then holding the hub doesn't work the anchor: a tap goes on with the talk.)
+func _is_talking() -> bool:
+	var b := _boat()
+	return b != null and b.talking
+
+
 func _is_anchored() -> bool:
 	var b := _boat()
 	return b != null and b.anchored
@@ -98,6 +108,9 @@ func _gui_input(e: InputEvent) -> void:
 				hub_start = p
 			accept_event()
 		elif e.index == drag_index:
+			# Let go of the hub before hub_hold: a quick tap (the talk box goes on to its next page).
+			if hub_index == e.index and hub_t < hub_hold:
+				hub_tapped.emit()
 			drag_index = -1
 			hub_index = -1
 			hub_t = 0.0
@@ -128,7 +141,7 @@ func _process(dt: float) -> void:
 	var anchored := _is_anchored()
 
 	# 1. Holding the hub: when the time is up, drop or weigh the anchor, and shake the hub.
-	if hub_index != -1:
+	if hub_index != -1 and not _is_talking():   # while someone talks, holding it does nothing (a tap goes on)
 		hub_t += dt
 		if hub_t >= hub_hold:
 			if b:
@@ -272,6 +285,7 @@ var _hub_picture_anchored_spot: SubViewport
 
 
 func _ready() -> void:
+	add_to_group("helm")         # so the talk box finds the wheel and listens to hub_tapped
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR    # the turned picture stays smooth (the dither makes it dots)
 	_wheel_picture = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_wheel(c, middle, k))
 	_hub_picture_sailing = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, false, false))

@@ -102,6 +102,8 @@ signal over_fishing_spot_changed(over: bool)
 ## boat.tscn, Assets/Items/trap/trap_setter.gd): with a trap equipped, it lays one.
 signal anchor_dropped
 
+var talking := false   # an NPC is talking (the talk box sets it): the anchor button does nothing meanwhile
+
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
 const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.1], [45.0, 1.5], [180.0, 1.0]]
 
@@ -197,6 +199,8 @@ func set_rudder(v: float) -> void:
 func toggle_anchor() -> void:
 	if sinking:
 		return                       # going down: nothing to work
+	if talking:
+		return                       # someone is talking (Assets/UI/talk_box): the hub's taps go on with the talk
 	if berth != null:
 		cast_off()                   # tied up at a pier: the anchor button casts off
 		return

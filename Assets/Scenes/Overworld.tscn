@@ -23,6 +23,8 @@
 [ext_resource type="PackedScene" path="res://Assets/Quests/map_marker/map_marker.tscn" id="29_map_marker"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/pier/pier.tscn" id="30_pier"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/big_waves/wave_zone.tscn" id="31_wave_zone"]
+[ext_resource type="PackedScene" path="res://Assets/NPCs/npc/npc.tscn" id="32_npc"]
+[ext_resource type="PackedScene" path="res://Assets/UI/talk_box/talk_box.tscn" id="33_talk_box"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -172,3 +174,14 @@ transform = Transform3D(0.999978, 0, 0.006627202, 0, 1, 0, -0.006627202, 0, 0.99
 
 [node name="sm_rocks_01_a4" parent="Islands" unique_id=168278788 instance=ExtResource("21_ux1kc")]
 transform = Transform3D(-0.39833888, 0, 0.9172383, 0, 1, 0, -0.9172383, 0, -0.39833888, -45.301426, -7.6293945e-06, -47.22735)
+
+[node name="NPCs" type="Node3D" parent="."]
+
+[node name="TestNPC" parent="NPCs" instance=ExtResource("32_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, -34)
+speaker_name = "Old Fisherman"
+lines = Array[String](["Ahoy there! You're the monster hunter, aren't you?", "The sea round here has changed.
+Fish hide, and something burns in the water at night.", "Mind the patches of dark water.
+Not all of them are fish."])
+
+[node name="TalkBox" parent="." instance=ExtResource("33_talk_box")]

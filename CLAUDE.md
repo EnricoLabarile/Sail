@@ -383,6 +383,24 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   at anchor `arm_time` 1.5 s, or it's taken back (nothing spent); then ACTIVE, solid, one trap out of the hold; it stays
   when she sails away; an imp coming up within `radius` 2 m (`hit_imp_at`) loses `damage` 1 heart and the trap is
   used up.
+- **NPCs** (Enrico; `Assets/NPCs/npc/`: `npc.tscn` + `npc.gd` (`@tool`, `@icon` `npc_icon.svg`, a speech bubble),
+  `bubble.png` (a stand-in); instanced under `NPCs` in Overworld, for now `TestNPC` at (14, 0, −34), an "Old
+  Fisherman" with three test pages): no look yet, the node is the pivot. Inspector: `speaker_name`, `portrait`
+  (Texture2D, Enrico paints it), `lines` (`@export_multiline Array[String]`: an entry = a page, new lines inside it),
+  `talk_radius` 8 m (a yellow disc in the editor), `bob_height` 0.4, `bob_speed` 1.5, `fade_time` 0.3. `Sensor` (Area3D,
+  mask layer 4, the boat's `SpotSensor`: event-driven) sets `boat_near`; `Bubble` (a flat PlaneMesh 5 × 3.75 m lying
+  level 5 m up, StandardMaterial3D unshaded, alpha, render_priority 2, duplicated per NPC; Enrico tilts it if he wants:
+  no billboards) fades in while she's near and not talking and bobs up and down, fades out when she leaves. On the
+  boat's `anchor_dropped` with her near: `talk_box.open(speaker_name, portrait, lines, _on_talk_finished)`; it starts
+  again from the top each time she anchors there.
+- **The talk box** (`Assets/UI/talk_box/`: `talk_box.tscn` (CanvasLayer 115, crisp, not in `DITHERED`; Control `Box`
+  at the top, full width less 12 px, y 92–222) + `talk_box.gd`; in Overworld as `TalkBox`, group `talk_box`): a paper
+  panel, 2 px ink border, 3 px ink shadow (as the hearts'); on the left `Portrait` (TextureRect 86 px, a double ink
+  frame), on the right `Name` (14) and `Text` (13, autowrap), ink. Each page typed out at `letters_per_second` 30
+  (`visible_characters`). **A quick tap on the wheel's hub** (`helm.gd` signal `hub_tapped`: let go before `hub_hold`;
+  helm in group `helm`): while typing → the whole page; then the next page; after the last → closes and calls the
+  NPC back. While open `boat.talking` is true: `toggle_anchor` does nothing (hub hold, Space) and the hub's ring
+  doesn't fill.
 - **Map markers** (Enrico; `Assets/Quests/map_marker/`: `map_marker.tscn` + `map_marker.gd` (`@tool`, `@icon`),
   `map_marker_icon.svg`; instanced under `MapMarkers` in Overworld, for now one at (60, 0, −150), F4, `active` on to
   try it): an invisible Node3D; in the editor a red X in a circle (the scene-tree icon, and in the 3D view a Sprite3D
