@@ -1,0 +1,193 @@
+[gd_scene format=3 uid="uid://2q0665swjucm"]
+
+[ext_resource type="PackedScene" path="res://Assets/Landscape/world/sea.tscn" id="1_gjbok"]
+[ext_resource type="PackedScene" path="res://Assets/Landscape/clouds/clouds.tscn" id="2_i15an"]
+[ext_resource type="PackedScene" uid="uid://duxq1bjfe0iib" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="3_uhlno"]
+[ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="4_wv8kt"]
+[ext_resource type="PackedScene" uid="uid://dhestvacwpffc" path="res://Assets/Boat/boat.tscn" id="5_f13b8"]
+[ext_resource type="PackedScene" uid="uid://bba4hwropmrh4" path="res://Assets/Post_Process/dither/dither.tscn" id="6_g348q"]
+[ext_resource type="PackedScene" path="res://Assets/UI/helm.tscn" id="7_umkjq"]
+[ext_resource type="PackedScene" uid="uid://bhqupmdfm8my" path="res://Assets/UI/wind_vane.tscn" id="8_ufaij"]
+[ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="9_3mclh"]
+[ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="10_je45o"]
+[ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="11_yuic4"]
+[ext_resource type="PackedScene" uid="uid://c83avpy373bev" path="res://Assets/Landscape/fishing_spots/fishing_spot.tscn" id="12_k2jkj"]
+[ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="17_kqyu1"]
+[ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="18_43y3p"]
+[ext_resource type="Script" uid="uid://dte3lbhusmsjc" path="res://Assets/Post_Process/game_view.gd" id="19_3pron"]
+[ext_resource type="PackedScene" uid="uid://46d6jucney4i" path="res://Assets/Landscape/islands/sm_island_01_a.fbx" id="20_yh6e2"]
+[ext_resource type="PackedScene" uid="uid://w4l1206j8gt3" path="res://Assets/Landscape/islands/sm_island_02_a.fbx" id="21_mkjid"]
+[ext_resource type="PackedScene" uid="uid://boiuwov1823vx" path="res://Assets/Landscape/islands/sm_island_03_a.fbx" id="22_dlmmr"]
+[ext_resource type="PackedScene" uid="uid://daikh4dkdrv5s" path="res://Assets/Landscape/islands/sm_rocks_01_a.fbx" id="23_6igj4"]
+[ext_resource type="PackedScene" path="res://Assets/UI/talk_box/talk_box.tscn" id="26_f71w3"]
+[ext_resource type="Script" uid="uid://dkpkc26vqp16v" path="res://Assets/Landscape/shore/shore_baker.gd" id="27_ijh0j"]
+
+[node name="Node3D" type="Node3D" unique_id=1254907948]
+
+[node name="Sea" parent="." unique_id=1750240136 instance=ExtResource("1_gjbok")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3946066, -0.13475895, -0.06661034)
+show_shore_waves = null
+fog_falloff = 3.0
+metadata/_edit_lock_ = true
+
+[node name="Coast" type="Node3D" parent="." unique_id=2108873514]
+
+[node name="Clouds" parent="." unique_id=610020452 instance=ExtResource("2_i15an")]
+cloud_count = 128
+size_max = 40.0
+
+[node name="WindLines" parent="." unique_id=651435916 instance=ExtResource("3_uhlno")]
+
+[node name="Gulls" parent="." unique_id=1826287727 instance=ExtResource("4_wv8kt")]
+
+[node name="Boat" parent="." unique_id=1762906152 instance=ExtResource("5_f13b8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043, 0)
+top_speed = null
+accel = null
+anchor_bite = null
+turn_rate = null
+bow_reach = null
+heel_max_deg = null
+sail_fill_rate = null
+boom_max_deg = null
+turn_lean_deg = null
+bow_lift_deg = null
+bow_lift_curve = null
+sail_trail_threshold = null
+surf_boost = null
+surf_time = null
+wave_push = null
+wave_slowdown = null
+wave_slew_deg = null
+dock_speed = null
+cast_off_calm_time = null
+cast_off_push = null
+roll_stiffness = null
+roll_damping = null
+pitch_stiffness = null
+pitch_damping = null
+anchor_rode = null
+furl_rate = null
+unfurl_rate = null
+furled_height = null
+wave_roll_deg = null
+wave_pitch_deg = null
+wave_period = null
+shallows_width = null
+shallows_sail = null
+bow_wave_fps = null
+bow_wave_min_size = null
+shallows_check_time = null
+current_ease = null
+shore_calm_distance = null
+bounce_kick = null
+bounce_extra = null
+bounce_fade = null
+bounce_slowdown = null
+bounce_min_speed = null
+bounce_cooldown = null
+max_hearts = null
+hit_damage = null
+sink_time = null
+sink_depth = null
+sink_lean_deg = null
+
+[node name="Dither" parent="." unique_id=1041423395 instance=ExtResource("6_g348q")]
+
+[node name="Helm" parent="." unique_id=1401139767 instance=ExtResource("7_umkjq")]
+
+[node name="WindVane" parent="." unique_id=1472540336 instance=ExtResource("8_ufaij")]
+
+[node name="Logbook" parent="." unique_id=1838272232 instance=ExtResource("9_3mclh")]
+
+[node name="BombButton" parent="." unique_id=1236485803 instance=ExtResource("10_je45o")]
+
+[node name="Health" parent="." unique_id=914720043 instance=ExtResource("11_yuic4")]
+
+[node name="FishingSpots" type="Node3D" parent="." unique_id=1422904514]
+
+[node name="FishSpot" parent="FishingSpots" unique_id=2122243808 instance=ExtResource("12_k2jkj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, -50)
+reach = 4
+
+[node name="HeartSpot" parent="FishingSpots" unique_id=1191537044 instance=ExtResource("12_k2jkj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -62)
+loot = 1
+reach = 4
+
+[node name="SeaImps" type="Node3D" parent="." unique_id=690468872]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1220932, -3.8146973e-06, -0.06600571)
+
+[node name="Piers" type="Node3D" parent="." unique_id=788276141]
+
+[node name="BigWaves" type="Node3D" parent="." unique_id=121267375]
+
+[node name="StartScreen" parent="." unique_id=2112618694 instance=ExtResource("17_kqyu1")]
+
+[node name="GameOver" parent="." unique_id=633694080 instance=ExtResource("18_43y3p")]
+
+[node name="GameView" type="Node" parent="." unique_id=1016146137]
+script = ExtResource("19_3pron")
+
+[node name="Islands" type="Node3D" parent="." unique_id=1829695150]
+
+[node name="sm_island_01_a3" parent="Islands" unique_id=1944464174 instance=ExtResource("20_yh6e2")]
+transform = Transform3D(0.7404473, 0, -0.67211443, 0, 1, 0, 0.67211443, 0, 0.7404473, 30.051758, 3.8146973e-06, -0.66789436)
+
+[node name="sm_island_01_a2" parent="Islands" unique_id=1646994023 instance=ExtResource("20_yh6e2")]
+transform = Transform3D(0.056332152, 0, 0.9984121, 0, 1, 0, -0.9984121, 0, 0.056332152, -36.625286, -3.8146973e-06, -16.544876)
+
+[node name="sm_island_01_a6" parent="Islands" unique_id=2028749449 instance=ExtResource("20_yh6e2")]
+transform = Transform3D(0.15232997, 0, 0.9883297, 0, 1, 0, -0.9883297, 0, 0.15232997, 73.149734, -3.8146973e-06, -61.25704)
+
+[node name="sm_island_01_a4" parent="Islands" unique_id=661290164 instance=ExtResource("20_yh6e2")]
+transform = Transform3D(-0.8436566, 0, 0.5368831, 0, 1, 0, -0.5368831, 0, -0.8436566, -51.342182, 3.8146973e-06, -83.08045)
+
+[node name="sm_island_01_a5" parent="Islands" unique_id=467609755 instance=ExtResource("20_yh6e2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.236465, 1.1444092e-05, 85.44254)
+
+[node name="sm_island_01_a" parent="Islands" unique_id=1509807648 instance=ExtResource("20_yh6e2")]
+transform = Transform3D(0.27802143, 0, 0.96057487, 0, 1, 0, -0.96057487, 0, 0.27802143, 7.7263966, -3.8146973e-06, -99.77609)
+
+[node name="sm_island_02_a" parent="Islands" unique_id=1183451546 instance=ExtResource("21_mkjid")]
+transform = Transform3D(-0.5708347, 0, -0.821065, 0, 1, 0, 0.821065, 0, -0.5708347, -28.277727, 0, 10.66086)
+
+[node name="sm_island_02_a7" parent="Islands" unique_id=2033921 instance=ExtResource("21_mkjid")]
+transform = Transform3D(0.7928427, 0, -0.60942626, 0, 1, 0, 0.60942626, 0, 0.7928427, 13.509811, 0, 16.850773)
+
+[node name="sm_island_02_a6" parent="Islands" unique_id=1338478350 instance=ExtResource("21_mkjid")]
+transform = Transform3D(0.6658927, 0, 0.7460476, 0, 1, 0, -0.7460476, 0, 0.6658927, 134.38943, 0, -137.67863)
+
+[node name="sm_island_03_a" parent="Islands" unique_id=1753392735 instance=ExtResource("22_dlmmr")]
+transform = Transform3D(0.8726576, 0, 0.48833257, 0, 1, 0, -0.48833257, 0, 0.8726576, 61.742035, 0, -150.92355)
+
+[node name="sm_rocks_01_a" parent="Islands" unique_id=1462368174 instance=ExtResource("23_6igj4")]
+transform = Transform3D(0.65430313, 0, 0.7562324, 0, 1, 0, -0.7562324, 0, 0.65430313, 15.360878, 0, -27.689148)
+
+[node name="sm_rocks_01_a5" parent="Islands" unique_id=1366652030 instance=ExtResource("23_6igj4")]
+transform = Transform3D(0.6254343, 0, -0.78027683, 0, 1, 0, 0.78027683, 0, 0.6254343, -14.117521, 0, -24.55454)
+
+[node name="sm_rocks_01_a2" parent="Islands" unique_id=2121286234 instance=ExtResource("23_6igj4")]
+transform = Transform3D(-0.59436804, 0, -0.80419314, 0, 1, 0, 0.80419314, 0, -0.59436804, -41.896416, -7.6293945e-06, -59.48378)
+
+[node name="sm_rocks_01_a6" parent="Islands" unique_id=918228295 instance=ExtResource("23_6igj4")]
+transform = Transform3D(-0.59436804, 0, -0.80419314, 0, 1, 0, 0.80419314, 0, -0.59436804, 23.873672, -7.6293945e-06, -80.23782)
+
+[node name="sm_rocks_01_a8" parent="Islands" unique_id=196267351 instance=ExtResource("23_6igj4")]
+transform = Transform3D(0.93939656, 0, 0.3428325, 0, 1, 0, -0.3428325, 0, 0.93939656, -27.220127, -7.6293945e-06, -86.581184)
+
+[node name="sm_rocks_01_a7" parent="Islands" unique_id=871224464 instance=ExtResource("23_6igj4")]
+transform = Transform3D(0.99333715, 0, -0.11524436, 0, 1, 0, 0.11524436, 0, 0.99333715, 39.484016, -7.6293945e-06, -38.906773)
+
+[node name="sm_rocks_01_a3" parent="Islands" unique_id=1825259942 instance=ExtResource("23_6igj4")]
+transform = Transform3D(0.999978, 0, 0.006627202, 0, 1, 0, -0.006627202, 0, 0.999978, -37.275078, -7.6293945e-06, -36.97514)
+
+[node name="sm_rocks_01_a4" parent="Islands" unique_id=168278788 instance=ExtResource("23_6igj4")]
+transform = Transform3D(-0.39833888, 0, 0.9172383, 0, 1, 0, -0.9172383, 0, -0.39833888, -45.301426, -7.6293945e-06, -47.22735)
+
+[node name="NPCs" type="Node3D" parent="." unique_id=450601339]
+
+[node name="TalkBox" parent="." unique_id=272770690 instance=ExtResource("26_f71w3")]
+
+[node name="ShoreBaker" type="Node3D" parent="." unique_id=54035983]
+script = ExtResource("27_ijh0j")

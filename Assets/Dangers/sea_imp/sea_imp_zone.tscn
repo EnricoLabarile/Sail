@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://85hj3herq30r"]
 
-[ext_resource type="Script" path="res://Assets/Dangers/sea_imp/sea_imp_zone.gd" id="1_script"]
-[ext_resource type="Shader" path="res://Assets/Dangers/sea_imp/sea_imp.gdshader" id="2_shader"]
-[ext_resource type="Texture2D" path="res://Assets/Dangers/sea_imp/sea_imp.png" id="3_picture"]
+[ext_resource type="Script" uid="uid://dwatwb1gk4446" path="res://Assets/Dangers/sea_imp/sea_imp_zone.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://brrthixhtwgf7" path="res://Assets/Dangers/sea_imp/sea_imp.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" uid="uid://damujcylxfiir" path="res://Assets/Dangers/sea_imp/sea_imp.png" id="3_picture"]
 [ext_resource type="Shader" uid="uid://omkbgcxkuyoa" path="res://Assets/Landscape/fishing_spots/fishing_spot.gdshader" id="4_spot_shader"]
 [ext_resource type="Texture2D" uid="uid://dd5t1qxh53p24" path="res://Assets/Landscape/fishing_spots/fishing_spot.png" id="5_spot_tex"]
 
@@ -13,6 +13,9 @@ shader_parameter/sheet = ExtResource("3_picture")
 shader_parameter/frames_x = 1
 shader_parameter/frames_y = 1
 shader_parameter/frame = 0
+shader_parameter/alpha_cut = 0.5
+shader_parameter/water_level = 0.0
+shader_parameter/flash = 0.0
 
 [sub_resource type="QuadMesh" id="Mesh_imp"]
 size = Vector2(4, 4)
@@ -31,16 +34,16 @@ shader_parameter/fade = 1.0
 [sub_resource type="PlaneMesh" id="Mesh_patch"]
 size = Vector2(1, 1)
 
-[node name="SeaImpZone" type="Node3D"]
+[node name="SeaImpZone" type="Node3D" unique_id=1880735035]
 script = ExtResource("1_script")
 
-[node name="Imp" type="MeshInstance3D" parent="."]
+[node name="Imp" type="MeshInstance3D" parent="." unique_id=510057277]
+material_override = SubResource("Mat_imp")
 cast_shadow = 0
 mesh = SubResource("Mesh_imp")
-material_override = SubResource("Mat_imp")
 
-[node name="Patch" type="MeshInstance3D" parent="."]
+[node name="Patch" type="MeshInstance3D" parent="." unique_id=340265696]
 transform = Transform3D(10.8, 0, 0, 0, 1, 0, 0, 0, 10.8, 0, 0.05, 0)
+material_override = SubResource("Mat_patch")
 cast_shadow = 0
 mesh = SubResource("Mesh_patch")
-material_override = SubResource("Mat_patch")

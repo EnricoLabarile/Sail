@@ -27,11 +27,11 @@ extends Node3D
 const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 
 ## How far from its place it still hunts her, in metres: further than this, it goes back to lurking.
-@export var radius := 40.0:
+@export var radius := 60:
 	set(value):
 		radius = value
 		_fit_editor_disc()
-@export var wake_radius := 10.0            # metres: the boat this close to the lurking imp wakes it
+@export var wake_radius := 15            # metres: the boat this close to the lurking imp wakes it
 @export var lurk_size := 10.8              # metres across the patch of stirred water (Enrico: 3 times the first 3.6)
 @export var max_hearts := 3.0              # its health, in hearts (a bomb or a trap takes one)
 @export var collect_radius := 2.5          # metres: defeated, it goes into the hold when the boat's middle comes this close
