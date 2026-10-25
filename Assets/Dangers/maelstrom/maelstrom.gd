@@ -8,7 +8,7 @@ extends Node3D
 	set(value):
 		zone_radius = value
 		_fit_editor_disc()
-@export var outer_radius := 4:    # metres: the outer ring's size
+@export var outer_radius := 7:    # metres: the outer ring's size
 	set(value):
 		outer_radius = value
 		fit_pictures()               # the picture follows at once, in the editor too
@@ -22,7 +22,7 @@ extends Node3D
 @export var hidden_time := 5       # …and seconds it's gone
 @export var spin_speed := 2.0        # how fast the pictures turn (radians a second; 6.28 = a full turn)
 @export var fade_time := 3         # seconds it takes to fade in or out
-@export var pull_strength := 5     # m/s she's pulled toward the eye at the core's edge (top_speed is 7)
+@export var pull_strength := 25     # m/s she's pulled toward the eye at the core's edge (top_speed is 7)
 @export var hold_time := 1.5         # seconds it holds the boat spinning in its eye
 @export var hold_spin := 8.0         # how fast she spins in it (radians a second; 6.28 = a turn)
 @export var core_damage := 2.0       # hearts she loses when it spits her out
