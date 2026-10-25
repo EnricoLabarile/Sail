@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://46d6jucney4i" path="res://Assets/Landscape/islands/sm_island_01_a.fbx" id="13_w3tqx"]
 [ext_resource type="PackedScene" uid="uid://w4l1206j8gt3" path="res://Assets/Landscape/islands/sm_island_02_a.fbx" id="18_lvl7n"]
 [ext_resource type="PackedScene" uid="uid://boiuwov1823vx" path="res://Assets/Landscape/islands/sm_island_03_a.fbx" id="19_gl5xi"]
+[ext_resource type="PackedScene" uid="uid://bah0hbwkum132" path="res://Assets/Landscape/islands/sm_stack_01_a.fbx" id="20_2pil7"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/clouds/clouds.tscn" id="20_clouds"]
 [ext_resource type="Script" uid="uid://dte3lbhusmsjc" path="res://Assets/Post_Process/game_view.gd" id="21_game_view"]
 [ext_resource type="PackedScene" uid="uid://daikh4dkdrv5s" path="res://Assets/Landscape/islands/sm_rocks_01_a.fbx" id="21_ux1kc"]
@@ -175,6 +176,12 @@ transform = Transform3D(0.999978, 0, 0.006627202, 0, 1, 0, -0.006627202, 0, 0.99
 
 [node name="sm_rocks_01_a4" parent="Islands" unique_id=168278788 instance=ExtResource("21_ux1kc")]
 transform = Transform3D(-0.39833888, 0, 0.9172383, 0, 1, 0, -0.9172383, 0, -0.39833888, -45.301426, -7.6293945e-06, -47.22735)
+
+[node name="sm_stack_01_a" parent="Islands" unique_id=1244804383 instance=ExtResource("20_2pil7")]
+transform = Transform3D(0.8730468, 0.48763636, 0, -0.48763636, 0.8730468, 0, 0, 0, 1, -29.990126, -1.0290332, -70.69374)
+
+[node name="sm_stack_01_a2" parent="Islands" unique_id=564337682 instance=ExtResource("20_2pil7")]
+transform = Transform3D(-0.4060555, -0.42390648, 0.8095815, 0.16033463, 0.8391146, 0.51978815, -0.8996732, 0.34086677, -0.27276003, -5.603266, -3.1195464, -77.175896)
 
 [node name="NPCs" type="Node3D" parent="." unique_id=450601339]
 
