@@ -180,6 +180,8 @@ func _make_editor_disc() -> void:
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.albedo_color = Color(0.2, 0.9, 0.4, 0.2)
+	material.render_priority = 10       # drawn after the sea and everything else, never hidden by it from afar
+	material.no_depth_test = true       # and on top of the land, so it can be spotted from anywhere
 	mesh.material = material
 	_editor_disc = MeshInstance3D.new()
 	_editor_disc.mesh = mesh

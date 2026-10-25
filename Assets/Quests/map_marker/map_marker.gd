@@ -52,5 +52,6 @@ func _make_editor_icon() -> void:
 	sprite.fixed_size = true          # same size on screen however far the camera is
 	sprite.pixel_size = 0.0015
 	sprite.no_depth_test = true       # drawn over the islands, so you can always find it
+	sprite.render_priority = 12       # and after the sea, so the water never covers it from afar
 	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
 	add_child(sprite)

@@ -61,6 +61,8 @@ func _make_editor_helpers() -> void:
 	see_through.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	see_through.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	see_through.albedo_color = Color(0.2, 0.5, 1.0, 0.25)
+	see_through.render_priority = 10    # drawn after the sea and everything else, never hidden by it from afar
+	see_through.no_depth_test = true    # and on top of the land, so it can be spotted from anywhere
 	# 1. The radius: a flat blue disc round the berth, 1 m across, scaled to dock_radius.
 	var disc_mesh := CylinderMesh.new()
 	disc_mesh.top_radius = 1.0
@@ -76,6 +78,7 @@ func _make_editor_helpers() -> void:
 	#    A PrismMesh has its tip up (+Y); turned -90 degrees round X, the tip points to -Z.
 	var arrow_material := see_through.duplicate()
 	arrow_material.albedo_color = Color(0.2, 0.5, 1.0, 0.8)
+	arrow_material.render_priority = 11   # over its own disc
 	var arrow_mesh := PrismMesh.new()
 	arrow_mesh.size = Vector3(1.5, 3.0, 0.05)
 	arrow_mesh.material = arrow_material

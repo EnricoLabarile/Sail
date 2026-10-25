@@ -4,6 +4,10 @@
 - **Do only what Enrico asks.** No extra features, effects or animations he didn't request, even if the prototype
   has them or they seem nice: he decides what goes in. If something extra seems worth it, suggest it in one line
   and wait for his yes.
+- **Editor-only helpers must be visible from afar** (Enrico's rule): every debug disc, arrow or icon made for the
+  editor gets `render_priority` 10 or more (after the sea, which is a see-through pass and would otherwise cover it
+  when it's further away than the sea's middle) and `no_depth_test = true` (over the land). Done for the sea imp,
+  wave zone, pier, NPC and map marker helpers.
 - **No camera-facing (billboard) shaders or nodes** (Enrico's rule, Oct 2026): pictures in the world are plain
   planes/quads that keep the node's own rotation; Enrico decides himself whether and how to tilt an element to the
   camera's angle. (Already made before the rule: `stone.gdshader`, used by the bomb and the fireball, and
