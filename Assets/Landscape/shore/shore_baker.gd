@@ -3,7 +3,7 @@ extends Node3D
 ## THE SHORE BAKER: makes the picture the sea reads to draw its waves along the coasts (sea.gdshader's shore
 ## waves). Press "Bake shore" in the Inspector after moving, adding or removing coasts; it saves the picture at
 ## `save_path`. Each level (the Overworld, every gym) has its own baker and its own picture: give each a different
-## save_path, then pick that file in the level's Sea (Shore Texture). (In Unreal: an Editor Utility that bakes a distance field texture.)
+## save_path. After baking, the level's Sea is given the new picture by itself (Shore Texture): save the level. (In Unreal: an Editor Utility that bakes a distance field texture.)
 ##
 ## What the picture is: the whole map seen from above, one pixel every `metres_per_pixel`; each pixel holds how
 ## far that point of the sea is from the nearest coast (black = on the coast, white = MAX_DISTANCE metres or more).
@@ -43,12 +43,34 @@ func bake() -> void:
 	print("Shore baker: working out the distances…")
 	var distances := distance_to_land(land, side)
 	var picture := to_picture(distances, side)
-	picture.save_png(save_path)
-	print("Shore baker: saved ", save_path, " (pick it in this level's Sea: Shore Texture)")
+	# The Inspector may keep the file as a "uid://…" name (Godot's id for it): turn it back into its res:// path,
+	# since a picture can only be saved to a real path.
+	var path := save_path
+	if path.begins_with("uid://"):
+		path = ResourceUID.get_id_path(ResourceUID.text_to_id(path))
+	var error := picture.save_png(path)
+	if error != OK:
+		print("Shore baker: could NOT save ", path, " (error ", error, ")")
+		return
+	print("Shore baker: saved ", path)
 	if Engine.is_editor_hint():
-		# So the editor sees the new picture at once. (Asked for by name: EditorInterface only exists in the
-		# editor, and writing it plainly would break the exported game.)
-		Engine.get_singleton("EditorInterface").get_resource_filesystem().scan()
+		use_new_picture(path)
+
+
+## In the editor, after saving: the editor imports the new picture again at once, and this level's Sea is given it
+## (Shore Texture), so the waves change straight away. (EditorInterface is asked for by name: it only exists in
+## the editor, and writing it plainly would break the exported game.)
+func use_new_picture(path: String) -> void:
+	var editor = Engine.get_singleton("EditorInterface")
+	var files = editor.get_resource_filesystem()
+	files.update_file(path)              # it's a new or changed file…
+	files.reimport_files([path])         # …import it again now (the texture in memory is refreshed)
+	var sea := owner.find_child("Sea", true, false)
+	if sea == null:
+		return
+	sea.shore_texture = load(path)       # the level's Sea uses this picture now (its setter puts it on the material)
+	editor.mark_scene_as_unsaved()       # so the level is saved with it (Ctrl+S)
+	print("Shore baker: this level's Sea now uses ", path)
 
 
 # ---- 1. the photo ----

@@ -88,8 +88,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   looking down with its far plane at the sea's level (only what's above the water), the alpha = land; a two-sweep
   chamfer distance (1 / 1.41) in pixels × `metres_per_pixel` 1; saved as the PNG (`MAX_DISTANCE` 32 must match the
   shader's `shore_max_distance`). **Bake again after changing the coasts.** **One picture per level** (Enrico makes gyms
-  to test mechanics): the baker saves to its `save_path` export (the Overworld's `shore_distance.png`; give each level
-  its own), and each level's `Sea` picks its file in `shore_texture` (sea.gd; set in sea.tscn to the Overworld's):
+  to test mechanics): the baker saves to its `save_path` export (`@export_file`, which the Inspector may store as "uid://…": `bake()`
+  turns it back into the res:// path with `ResourceUID`; Enrico's files: `ShoreMask_Overworld.png`, `ShoreMask_Gym_SeaImp.png`;
+  after saving, `use_new_picture` reimports it and gives it to the level's `Sea` (`shore_texture`), marking the scene unsaved), and each level's `Sea` picks its file in `shore_texture` (sea.gd; set in sea.tscn to the Overworld's):
   at start it sends it to the material's `shore_tex` and to `Land.set_shore_picture()`, which `distance_to_shore`
   reads. `sea.gd` is `@tool`: in the editor it only does that (no fog, no turning), so each level shows its own waves there
   too; it draws with its own copy of sea.tscn's material (`sea_material`, worn as `material_override`, made once in
