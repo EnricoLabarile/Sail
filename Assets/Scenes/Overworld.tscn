@@ -25,6 +25,7 @@
 [ext_resource type="PackedScene" path="res://Assets/Dangers/big_waves/wave_zone.tscn" id="31_wave_zone"]
 [ext_resource type="PackedScene" uid="uid://v3vso8b52t23" path="res://Assets/NPCs/npc/npc.tscn" id="32_npc"]
 [ext_resource type="PackedScene" path="res://Assets/UI/talk_box/talk_box.tscn" id="33_talk_box"]
+[ext_resource type="Script" path="res://Assets/Landscape/shore/shore_baker.gd" id="34_shore_baker"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -186,3 +187,6 @@ Not all of them are fish."])
 talk_radius = 8.0
 
 [node name="TalkBox" parent="." unique_id=272770690 instance=ExtResource("33_talk_box")]
+
+[node name="ShoreBaker" type="Node3D" parent="."]
+script = ExtResource("34_shore_baker")

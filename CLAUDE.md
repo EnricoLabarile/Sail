@@ -70,7 +70,17 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   1008 × 1008 PlaneMesh at the origin, `sea.gdshader`: Enrico's texture `sea_tex` (`sea_tex.png`, 128², a 4 × 4 test flipbook of numbers; set in `sea.tscn`'s material; `sea_color` also
   tints it; nearest, repeating) tiled in world space every `tile_size` 8 m, animated as a flipbook (`frames_x` ×
   `frames_y` cells in one image, `fps`) and/or scrolled (`scroll` m/s), turned to follow the wind (`sea.gd` `_process`: `texture_angle` eases toward `Wind.from_deg` + `texture_turn_deg` 90 with `lerp_angle` over `follow_time` 1 s; Enrico's drawing points right = the way the wind blows, so a wind blowing east (from 270°) leaves it unturned; it turns round the boat, `texture_offset` keeping the water under her still; uniforms `wind_angle`, `wind_offset`): one texture read a pixel, the cheapest (the wavelets are
-  gone, Enrico); the boat's stencil. (Import the PNG Lossless, no VRAM compression.) Enrico chose the flipbook. Later (Enrico): a wave on the shore, somehow (not started). Enrico places the coasts as 3D meshes under the `Coast` node in `Overworld.tscn`; each needs
+  gone, Enrico); the boat's stencil. (Import the PNG Lossless, no VRAM compression.) Enrico chose the flipbook. **Shore waves** (Enrico, distance field): `sea.gdshader` `shore_foam()` reads `shore_tex`
+  (`Assets/Landscape/shore/shore_distance.png`, 1008², L8, imported lossless with `detect_3d/compress_to=0`: black = on
+  the coast, white = `shore_max_distance` 32 m or more; set in `sea.tscn`), and within `shore_width` 10 m of a coast draws
+  lines of foam every `wave_spacing` 3.5 m rolling in at `wave_speed` 1.2 m/s, `wave_line` 0.5 m thick near the shore and
+  thinner out, `wave_wobble` 1 m of value noise, plus steady foam `foam_width` 0.8 m along the coast; `shore_color` white
+  at `shore_opacity` 0.9 (one texture read a pixel). **Baked in the editor** by `ShoreBaker` (a Node3D in Overworld,
+  `Assets/Landscape/shore/shore_baker.gd`, `@tool`, `@export_tool_button` "Bake shore"; ~1 s): every MeshInstance3D
+  under `land_roots` (`../Islands`, `../Coast`) copied white into an own World3D, an orthographic camera 200 m up
+  looking down with its far plane at the sea's level (only what's above the water), the alpha = land; a two-sweep
+  chamfer distance (1 / 1.41) in pixels × `metres_per_pixel` 1; saved as the PNG (`MAX_DISTANCE` 32 must match the
+  shader's `shore_max_distance`). **Bake again after changing the coasts.** Enrico places the coasts as 3D meshes under the `Coast` node in `Overworld.tscn`; each needs
   a collision (a StaticBody3D with a CollisionShape3D: in the editor select the mesh, Mesh menu → Create Trimesh
   Static Body, or name it with the `-col` suffix in Blender), which is what `Land` hits. When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
   `impact()`, in `boat.gd`: `move_and_bounce`, `bump`; knobs `bounce_*`): only moving into the shore at ≥ 0.4 m/s,
