@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://v3vso8b52t23"]
 
-[ext_resource type="Script" path="res://Assets/NPCs/npc/npc.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://Assets/NPCs/npc/bubble.png" id="2_bubble"]
+[ext_resource type="Script" uid="uid://iu0tywdgxwn5" path="res://Assets/NPCs/npc/npc.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bshvyyw2yf1bp" path="res://Assets/NPCs/npc/bubble.png" id="2_bubble"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_bubble"]
 resource_local_to_scene = true
@@ -20,19 +20,25 @@ resource_local_to_scene = true
 height = 4.0
 radius = 8.0
 
-[node name="NPC" type="Node3D"]
+[sub_resource type="BoxMesh" id="BoxMesh_8ksrx"]
+
+[node name="NPC" type="Node3D" unique_id=103699983]
 script = ExtResource("1_script")
 
-[node name="Bubble" type="MeshInstance3D" parent="."]
+[node name="Bubble" type="MeshInstance3D" parent="." unique_id=458793763]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+material_override = SubResource("Mat_bubble")
 cast_shadow = 0
 mesh = SubResource("Mesh_bubble")
-material_override = SubResource("Mat_bubble")
 
-[node name="Sensor" type="Area3D" parent="."]
+[node name="Sensor" type="Area3D" parent="." unique_id=472912198]
 collision_layer = 0
 collision_mask = 8
 monitorable = false
 
-[node name="Shape" type="CollisionShape3D" parent="Sensor"]
+[node name="Shape" type="CollisionShape3D" parent="Sensor" unique_id=1696726975]
 shape = SubResource("Shape_sensor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=951736670]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.60734224, 0)
+mesh = SubResource("BoxMesh_8ksrx")
