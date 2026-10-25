@@ -12,6 +12,9 @@
   planes/quads that keep the node's own rotation; Enrico decides himself whether and how to tilt an element to the
   camera's angle. (Already made before the rule: `stone.gdshader`, used by the bomb and the fireball, and
   `sea_imp.gdshader`; the map marker's billboard is editor-only.)
+- **Guides for code Enrico writes himself** (when he says "lo voglio fare io" / "guide me"): steps in the file's own
+  order, **top to bottom** (declarations first, so nothing is used before it exists), one file at a time, each step
+  with the **line number** it goes at (worked out with the earlier steps already added), and the line's text to check.
 - Enrico comes from **Unreal Engine**: explain Godot things through their Unreal equivalents (scene ≈ Blueprint/level, node ≈ component/actor, instancing a scene ≈ placing a Blueprint, CanvasLayer + shader ≈ a post-process material, GDScript ≈ Blueprint graph logic, autoload ≈ GameInstance subsystem).
 - **Enrico is learning GDScript**: keep code simple and easy to read (plain names, short functions, no clever
   one-liners), comment it generously (what each block does and why, in plain words), and when I add or change code,
