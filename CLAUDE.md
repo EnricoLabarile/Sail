@@ -433,9 +433,13 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   are the Controls' in their .tscn (anchors and offsets), except the open book's, which `logbook.gd` works out
   every frame (`BOOK_MAX`, `TOP_GAP`, centred).
 - **The start screen** (`Assets/UI/start_screen.tscn` + `.gd`, CanvasLayer 130, in Overworld): a card with the title, "Build
-  N" and the build's start time, and "Set sail"; the game is paused until it's pressed. The numbers come from
-  `Assets/UI/build_info.gd` ("local" in the repo); `web.yml` rewrites it before exporting with `github.run_number`
-  and the time (Europe/Rome). Only identification for now (Enrico): no settings or knobs on it.
+  N" and the build's start time, and the line "Hold the anchor to set sail". **No button and no pause** (Enrico): she
+  starts at anchor and **weighing the anchor** (the hub held, as always) starts the game: the boat's signal
+  `anchor_weighed` (sent by `toggle_anchor` when it comes up; connected `CONNECT_ONE_SHOT`) hides the card. Until
+  then everything in the group `hidden_at_start` is hidden (`WindVane`, `Health`, the logbook's `IconLayer`,
+  `BombButton`; groups set in their .tscn), so only the hub shows (the wheel is faded away at anchor). The numbers
+  come from `Assets/UI/build_info.gd` ("local" in the repo); `web.yml` rewrites it before exporting with
+  `github.run_number` and the time (Europe/Rome). No settings or knobs on it.
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
   ```
   res://

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://Assets/UI/health/health.gd" id="1_health"]
 
-[node name="Health" type="CanvasLayer" groups=["hidden_while_talking"]]
+[node name="Health" type="CanvasLayer" groups=["hidden_while_talking", "hidden_at_start"]]
 layer = 110
 
 [node name="Hearts" type="Control" parent="."]

@@ -14,19 +14,7 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="Button"]
-bg_color = Color(0.106, 0.102, 0.09, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 8.0
-
 [node name="StartScreen" type="CanvasLayer"]
-process_mode = 3
 layer = 130
 script = ExtResource("1_start")
 
@@ -66,13 +54,8 @@ theme_override_font_sizes/font_size = 15
 text = "Build"
 horizontal_alignment = 1
 
-[node name="Start" type="Button" parent="Card/Margin/Lines"]
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.922, 0.906, 0.863, 1)
-theme_override_colors/font_pressed_color = Color(0.922, 0.906, 0.863, 1)
-theme_override_colors/font_hover_color = Color(0.922, 0.906, 0.863, 1)
-theme_override_font_sizes/font_size = 17
-theme_override_styles/normal = SubResource("Button")
-theme_override_styles/pressed = SubResource("Button")
-theme_override_styles/hover = SubResource("Button")
-text = "Set sail"
+[node name="Hint" type="Label" parent="Card/Margin/Lines"]
+theme_override_colors/font_color = Color(0.106, 0.102, 0.09, 1)
+theme_override_font_sizes/font_size = 14
+text = "Hold the anchor to set sail"
+horizontal_alignment = 1

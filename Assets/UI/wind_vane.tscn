@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://i05lxe1da0dr" path="res://Assets/UI/wind_vane.gd" id="1_vane"]
 
-[node name="WindVane" type="CanvasLayer" unique_id=1870220155 groups=["hidden_while_talking"]]
+[node name="WindVane" type="CanvasLayer" unique_id=1870220155 groups=["hidden_while_talking", "hidden_at_start"]]
 layer = 110
 
 [node name="Dial" type="Control" parent="." unique_id=125655127]

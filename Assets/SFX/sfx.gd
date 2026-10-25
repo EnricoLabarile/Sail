@@ -7,7 +7,7 @@ extends Node
 ##   wheel_thunk.ogg  the ship's wheel: a muted thud when it reaches full lock
 ## (The sea, the wind and the water along the hull were removed by Enrico; bake.html can still make them.)
 ## The players are nodes in sfx.tscn: open it to change a sound's loudness (Volume dB in the Inspector).
-## Nothing plays while the game is paused (the start screen).
+## Nothing plays while the game is paused (the game over card).
 ## (In Unreal: a few Audio Components on one actor, with their volumes set every Tick.)
 
 @onready var anchor_down: AudioStreamPlayer = $AnchorDown

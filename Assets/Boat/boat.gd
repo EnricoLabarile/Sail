@@ -106,6 +106,10 @@ signal over_fishing_spot_changed(over: bool)
 ## boat.tscn, Assets/Items/trap/trap_setter.gd): with a trap equipped, it lays one.
 signal anchor_dropped
 
+## Sent when the anchor comes up (not when she casts off from a pier). The start screen listens: weighing the
+## anchor the first time starts the game.
+signal anchor_weighed
+
 ## Sent when the wheel's hub should start or stop showing the speech bubble instead of the anchor: she came into
 ## an NPC's radius or left it, or a talk started or ended (talk_hint() says which). The wheel listens.
 signal talk_hint_changed
@@ -228,6 +232,8 @@ func toggle_anchor() -> void:
 		for spot in get_tree().get_nodes_in_group("fishing_spots"):
 			spot.try_fishing(self)
 		anchor_dropped.emit()
+	else:
+		anchor_weighed.emit()
 	Sfx.anchor(anchored)             # its sound: the splash going down, the chain coming up (Assets/SFX/sfx.gd)
 
 

@@ -7,7 +7,7 @@
 [node name="Logbook" type="Node"]
 script = ExtResource("1_logbook")
 
-[node name="IconLayer" type="CanvasLayer" parent="."]
+[node name="IconLayer" type="CanvasLayer" parent="." groups=["hidden_at_start"]]
 layer = 95
 
 [node name="BookIcon" type="Control" parent="IconLayer"]
