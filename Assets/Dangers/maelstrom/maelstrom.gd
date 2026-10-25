@@ -23,6 +23,11 @@ extends Node3D
 @export var spin_speed := 2.0        # how fast the pictures turn (radians a second; 6.28 = a full turn)
 @export var fade_time := 3         # seconds it takes to fade in or out
 @export var pull_strength := 5     # m/s she's pulled toward the eye at the core's edge (top_speed is 7)
+@export var hold_time := 1.5         # seconds it holds the boat spinning in its eye
+@export var hold_spin := 8.0         # how fast she spins in it (radians a second; 6.28 = a turn)
+@export var core_damage := 2.0       # hearts she loses when it spits her out
+@export var fling_speed := 12.0      # m/s of the push spitting her out…
+@export var fling_time := 1.2        # …for this many seconds: she's thrown about fling_speed x fling_time metres
 
 
 var fade := 0.0                      # 0 = invisible, 1 = fully there
@@ -32,6 +37,8 @@ var fade := 0.0                      # 0 = invisible, 1 = fully there
 var showing := true                  # is it there now?
 var timer := 0.0                     # seconds since it appeared (or disappeared)
 var target := Vector3.ZERO           # the point it's drifting toward, inside the zone
+var holding: Node3D = null           # the boat it's holding in its eye (null = none)
+var hold_left := 0.0                 # seconds before it spits her out
 
 @onready var whirl: Node3D = $Whirl
 @onready var outer: MeshInstance3D = $Whirl/Outer
@@ -96,7 +103,7 @@ func _process(dt: float) -> void:
 	if showing:
 		
 		wander(dt)
-		if timer >= shown_time:
+		if timer >= shown_time and holding == null:   # not while it holds her
 			disappear()
 	else:
 		if timer >= hidden_time:
@@ -169,9 +176,40 @@ func pull_boat() -> void:
 	var closeness := clampf((outer_radius - distance) / (outer_radius - core_radius), 0.0, 1.0)
 	boat.whirl_pull += to_eye.normalized() * pull_strength * closeness
 
-## At the physics' pace (with the boat's movement): the pull, only while it's dangerous.
-func _physics_process(_dt: float) -> void:
+## At the physics' pace (with the boat's movement): while it's dangerous, the pull and the catch;
+## while it holds her, only that.
+func _physics_process(dt: float) -> void:
 	if Engine.is_editor_hint():
 		return
-	if is_active():
+	if holding != null:
+		hold_boat(dt)                # holding her: nothing else (no pull)
+	elif is_active():
 		pull_boat()
+		try_catch()
+
+
+## The boat in the core (while it's active): it catches her.
+func try_catch() -> void:
+	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	if boat == null or boat.sinking or boat.berth != null or boat.caught_eye != null:
+		return                       # no boat, sinking, tied up, or already caught
+	var to_eye := whirl.global_position - boat.global_position
+	to_eye.y = 0.0
+	if to_eye.length() > core_radius:
+		return                       # not in the core
+	holding = boat
+	hold_left = hold_time
+	boat.catch(whirl, hold_spin)     # she's held in the eye (Whirl: it moves, she follows it)
+
+
+## Holding her: counts down, then spits her out the way her bow points, hurts her, and fades away.
+func hold_boat(dt: float) -> void:
+	hold_left -= dt
+	if hold_left > 0.0:
+		return
+	var direction := -holding.global_transform.basis.z   # her bow (Godot's forward is -Z): she's been spinning, so it's anywhere
+	direction.y = 0.0
+	holding.release(direction.normalized(), fling_speed, fling_time)
+	holding.take_damage(core_damage)
+	holding = null
+	disappear()                      # once it has caught her, it fades out

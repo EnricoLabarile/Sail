@@ -389,6 +389,18 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   speed × `wave_slowdown` 0.4, bow slewed ± `wave_slew_deg` 14° × badly. Picture: a 1 m PlaneMesh scaled to length × 3 m,
   0.06 m up, render_priority 1, the sea's stencil read, a 4 × 4 flipbook (frames 128 × 48, travel = up, the crest on the
   middle row, bowed up) played once over its life (a stand-in: builds, breaks into foam, fades).
+- **Maelstroms** (Enrico wrote stages 1–2 himself from my guides; `Assets/Dangers/maelstrom/`: `maelstrom.tscn` +
+  `maelstrom.gd` (`@tool`), `maelstrom_outer.png`, `maelstrom_core.png` stand-ins; instanced in Overworld as
+  `Maelstrom`): `Whirl` (moves) holds `Outer` / `Core`, 1 m PlaneMeshes scaled to `outer_radius` / `core_radius` × 2
+  (`fit_pictures`, setters: the editor follows too), both turning (`spin_speed`, the core twice as fast). It wanders
+  in its zone (`zone_radius`, red editor disc; `random_point_in_zone`, `wander_speed`), shows `shown_time`, hides
+  `hidden_time`, fading in and out over `fade_time` (`fade`, materials duplicated per maelstrom, `set_fade`).
+  **Inert while fading** (Enrico): `is_active()` = showing and fully faded in. Active: `pull_boat()` adds to
+  `boat.whirl_pull` (0 at the ring's edge → `pull_strength` at the core's; the boat adds it to her motion and
+  zeroes it every frame); `try_catch()`: her middle in the core → `boat.catch(whirl, hold_spin)` (boat.gd
+  `caught_eye`: she glides into the eye and spins, no helm, no anchor, `update_caught`) for `hold_time` 1.5 s, then
+  `hold_boat` → `boat.release(bow direction, fling_speed 12, fling_time 1.2)` (`fling_velocity` / `fling_left`, fading
+  over its last 0.4 s: thrown ~ speed × time metres), `take_damage(core_damage 2)`, and it fades out (`disappear`).
 - **Piers** (Enrico; `Assets/Landscape/pier/`: `pier.tscn` + `pier.gd` (`@tool`); instanced under `Piers` in Overworld,
   for now one at (−10, 0, −20), a test): `Mesh` (a placeholder wooden BoxMesh 2 × 0.6 × 10 m, toon_shade; not solid),
   `Berth` (Node3D, the boat's parking spot: her bow points along its −Z) with `Sensor` (Area3D, a `CylinderShape3D`

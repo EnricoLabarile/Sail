@@ -138,6 +138,10 @@ var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
 var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her motion
 var whirl_pull := Vector3.ZERO   # the maelstroms' pull this frame (m/s, toward their eye): added to her motion
+var caught_eye: Node3D = null    # the maelstrom's eye holding her (null = free): she spins in it, no helm, no anchor
+var caught_spin := 0.0           # how fast she spins while held (radians a second)
+var fling_velocity := Vector3.ZERO   # the push of being spat out of a maelstrom (m/s)…
+var fling_left := 0.0                # …and the seconds it still lasts
 var drift_amount := 0.0     # 0..1: how much the current has her (eases in and out, see current_ease)
 var bump_wait := 0.0        # seconds left before another bump can count
 var heel := 0.0             # how far she leans with the wind (radians), without the waves' roll
@@ -223,6 +227,8 @@ func toggle_anchor() -> void:
 		return                       # going down: nothing to work
 	if talking:
 		return                       # someone is talking (Assets/UI/talk_box): the hub's taps go on with the talk
+	if caught_eye != null:
+		return                       # spinning in a maelstrom: no anchor
 	if berth != null:
 		cast_off()                   # tied up at a pier: the anchor button casts off
 		return
@@ -253,6 +259,30 @@ func hit_by_wave(direction: Vector3, strength: float, badly: float, damage: floa
 	speed *= wave_slowdown
 	var side := 1.0 if randf() < 0.5 else -1.0
 	rotate_y(side * deg_to_rad(wave_slew_deg) * badly)
+
+
+## A maelstrom caught her: she stops and is held in its eye, spinning, until it lets her go (release).
+func catch(eye: Node3D, spin: float) -> void:
+	caught_eye = eye
+	caught_spin = spin
+	speed = 0.0
+	knock = Vector3.ZERO
+
+
+## The maelstrom spits her out: a push of `push_speed` m/s along `direction` for `push_time` seconds.
+func release(direction: Vector3, push_speed: float, push_time: float) -> void:
+	caught_eye = null
+	fling_velocity = direction * push_speed
+	fling_left = push_time
+
+
+## Held in a maelstrom's eye: she slides into its middle (it moves, so she follows it) and spins on herself.
+func update_caught(dt: float) -> void:
+	var eye := caught_eye.global_position
+	global_position.x = lerpf(global_position.x, eye.x, minf(1.0, dt * 4.0))   # glides in, quickly
+	global_position.z = lerpf(global_position.z, eye.z, minf(1.0, dt * 4.0))
+	rotate_y(-caught_spin * dt)      # minus: clockwise, the way the whirlpool turns
+	rock_and_roll(dt)                # she keeps bobbing
 
 
 ## A pier's berth (pier.gd) tells her to tie up there: she stops, gathers the sail (as at anchor, so the wheel
@@ -302,6 +332,8 @@ func start_sinking() -> void:
 	sunk_for = 0.0
 	speed = 0.0
 	knock = Vector3.ZERO
+	caught_eye = null
+	fling_left = 0.0
 	set_water_mask(false)            # the sea may cover her inside now
 	if wake:
 		wake.emitting = false        # no wake behind a wreck
@@ -335,10 +367,8 @@ func respawn() -> void:
 	health = max_hearts
 	speed = 0.0
 	knock = Vector3.ZERO
-	
 	caught_eye = null
 	fling_left = 0.0
-	
 	rudder = 0.0
 	anchored = true
 	anchor_point = bow_point()
@@ -410,13 +440,10 @@ func _physics_process(dt: float) -> void:
 	if sinking:
 		update_sinking(dt)
 		return
-		# Caught in a maelstrom: only that, no sailing, no helm, no anchor, until it spits her out.
+	# Caught in a maelstrom: only that, no sailing, no helm, no anchor, until it spits her out.
 	if caught_eye != null:
 		update_caught(dt)
 		return
-
-
-
 	# the keyboard: Space / Enter works the anchor (the arrows turn the wheel, in ui/helm)
 	if Input.is_action_just_pressed("ui_accept"):
 		toggle_anchor()
@@ -644,14 +671,12 @@ func move_and_bounce(dt: float) -> void:
 
 	var fwd := -global_transform.basis.z
 	var own_way := fwd * speed                           # her own way, from the sail
-	
-		# Spat out of a maelstrom: the push holds, then fades over its last 0.4 s.
+	# Spat out of a maelstrom: the push holds, then fades over its last 0.4 s.
 	var fling := Vector3.ZERO
 	if fling_left > 0.0:
 		fling_left = maxf(0.0, fling_left - dt)
 		fling = fling_velocity * minf(1.0, fling_left / 0.4)
-	
-	var velocity := own_way + knock + drift + whirl_pull + fling   # her way + a bump's push + the current + the whirlpools' pull
+	var velocity := own_way + knock + drift + whirl_pull + fling   # her way + a bump's push + the current + the whirlpools' pull + being spat out
 	whirl_pull = Vector3.ZERO        # used (it's in velocity now): each maelstrom adds its pull again next frame
 	var next := global_position + velocity * dt          # where she would be
 	var next_bow := next + fwd * bow_reach               # where her bow would be
@@ -679,8 +704,6 @@ func move_and_bounce(dt: float) -> void:
 	var into := -own_way.dot(out)                        # how fast her own way goes INTO the shore (m/s)
 	if into > 0.0:
 		bump(out, into)
-
-	whirl_pull = Vector3.ZERO        # used: each maelstrom adds its pull again next frame
 
 
 ## The current: the Wind autoload's (Wind.current(): downwind, at its CURRENT_SPEED). On her it eases in at the
