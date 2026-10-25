@@ -484,7 +484,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   then everything in the group `hidden_at_start` is hidden (`WindVane`, `Health`, the logbook's `IconLayer`,
   `BombButton`; groups set in their .tscn), so only the hub shows (the wheel is faded away at anchor). The numbers
   come from `Assets/UI/build_info.gd` ("local" in the repo); `web.yml` rewrites it before exporting with
-  `github.run_number` and the time (Europe/Rome). No settings or knobs on it.
+  `github.run_number` and the time (Europe/Rome). **Level list** (Enrico): under "Levels", a button per `.tscn` in
+  `LEVELS_FOLDER` `res://Assets/Scenes` (`level_names()`: `ResourceLoader.list_directory`, which also works in the web
+  export; `Overworld` first, the rest A–Z, `_` shown as spaces), the level being played inked; a tap
+  `change_scene_to_file` (autoloads carry over: hold, fog, wind). Card 300 × 340. A new level saved there gets its button by itself.
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
   ```
   res://
