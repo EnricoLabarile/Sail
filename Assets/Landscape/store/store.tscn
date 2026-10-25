@@ -21,6 +21,9 @@ for_sale = Array[Resource]([ExtResource("5_bomb"), ExtResource("6_trap")])
 
 [node name="Pier" parent="." instance=ExtResource("2_pier")]
 
+[node name="Berth" parent="Pier" index="1"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 2.6, 0, 0)
+
 [node name="Building" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.5, -7.5)
 cast_shadow = 0

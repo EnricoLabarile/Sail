@@ -437,7 +437,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   0 in the editor, where the Inventory doesn't run). `slots_of(list)` works out the slots of any list (a trade's result).
 - **Stores** (Enrico; `Assets/Landscape/store/`: `store.tscn` + `store.gd`, `store_counter.tscn` + `.gd`; for now one in
   `Gym_Store`, a copy of Gym_SeaImp without imps, at (−9.5, 0, 108) north of the boat): `Pier` (an instance of
-  `pier.tscn`, its docking as any pier; `pier.gd` now sends `docked(boat)` once she's tied up), `Building` (a
+  `pier.tscn`, its docking as any pier; its `Berth` turned 180° in store.tscn so she ties up bow out to sea, away from the building; `pier.gd` now sends `docked(boat)` once she's tied up), `Building` (a
   placeholder box), `StoreCounter`. Inspector: `merchant_name`, `for_sale` (`Array[ItemData]`: drag in .tres files),
   `stock` (−1 = no limit, else how many of each; `sold` counts). Docked → the counter **opens by itself** (Enrico).
   **The counter** (CanvasLayer 115, crisp; a card 340 × 460 like the start screen's): "Your hold" (piles, `x3 2c` =
