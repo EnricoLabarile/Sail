@@ -48,7 +48,7 @@ uniform sampler2D shore_tex : hint_default_white, filter_linear, repeat_disable;
 uniform float shore_max_distance = 32.0;   // metres white means in shore_tex (must match the baker's MAX_DISTANCE)
 uniform vec4 shore_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);   // the foam's colour (white: paper)
 uniform float shore_opacity : hint_range(0.0, 1.0) = 0.9;   // how strong the foam is (0 = no shore waves)
-uniform float shore_width = 10.0;      // metres from the coast the waves reach
+uniform float shore_width = 5;      // metres from the coast the waves reach
 uniform float wave_spacing = 3.5;      // metres between one line of foam and the next
 uniform float wave_speed = 1.2;        // metres a second they roll in toward the shore
 uniform float wave_line = 0.5;         // metres: how thick a line is near the shore (thinner further out)

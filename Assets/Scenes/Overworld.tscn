@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dhestvacwpffc" path="res://Assets/Boat/boat.tscn" id="2_boat"]
 [ext_resource type="PackedScene" path="res://Assets/UI/helm.tscn" id="3_helm"]
 [ext_resource type="PackedScene" uid="uid://bba4hwropmrh4" path="res://Assets/Post_Process/dither/dither.tscn" id="4_dither"]
-[ext_resource type="PackedScene" path="res://Assets/UI/wind_vane.tscn" id="5_vane"]
+[ext_resource type="PackedScene" uid="uid://bhqupmdfm8my" path="res://Assets/UI/wind_vane.tscn" id="5_vane"]
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="6_logbook"]
 [ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="7_start"]
 [ext_resource type="PackedScene" uid="uid://46d6jucney4i" path="res://Assets/Landscape/islands/sm_island_01_a.fbx" id="13_w3tqx"]
@@ -25,7 +25,7 @@
 [ext_resource type="PackedScene" path="res://Assets/Dangers/big_waves/wave_zone.tscn" id="31_wave_zone"]
 [ext_resource type="PackedScene" uid="uid://v3vso8b52t23" path="res://Assets/NPCs/npc/npc.tscn" id="32_npc"]
 [ext_resource type="PackedScene" path="res://Assets/UI/talk_box/talk_box.tscn" id="33_talk_box"]
-[ext_resource type="Script" path="res://Assets/Landscape/shore/shore_baker.gd" id="34_shore_baker"]
+[ext_resource type="Script" uid="uid://dkpkc26vqp16v" path="res://Assets/Landscape/shore/shore_baker.gd" id="34_shore_baker"]
 
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
@@ -44,7 +44,7 @@ size_max = 40.0
 [node name="Gulls" parent="." unique_id=1826287727 instance=ExtResource("23_gulls")]
 
 [node name="Boat" parent="." unique_id=1762906152 instance=ExtResource("2_boat")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043413162, -34)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -131.20982, -0.043405533, 1.083374)
 
 [node name="Dither" parent="." unique_id=1041423395 instance=ExtResource("4_dither")]
 
@@ -184,9 +184,8 @@ speaker_name = "Old Fisherman"
 lines = Array[String](["Ahoy there! You're the monster hunter, aren't you?", "The sea round here has changed.
 Fish hide, and something burns in the water at night.", "Mind the patches of dark water.
 Not all of them are fish."])
-talk_radius = 8.0
 
 [node name="TalkBox" parent="." unique_id=272770690 instance=ExtResource("33_talk_box")]
 
-[node name="ShoreBaker" type="Node3D" parent="."]
+[node name="ShoreBaker" type="Node3D" parent="." unique_id=54035983]
 script = ExtResource("34_shore_baker")

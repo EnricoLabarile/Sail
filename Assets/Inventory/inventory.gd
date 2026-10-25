@@ -33,7 +33,7 @@ const EQUIPPABLE := ["bomb", "trap"]    # these can be equipped (tap their slot 
 const START_ITEMS := {"bomb": 9, "trap": 9}
 
 var items: Array[String] = []   # what's aboard, one entry per thing, in the order it came in
-var equipped := ""              # the item equipped now ("" = nothing)
+var equipped := "bomb"              # the item equipped now ("" = nothing)
 
 
 func _ready() -> void:

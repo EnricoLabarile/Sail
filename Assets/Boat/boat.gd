@@ -39,7 +39,7 @@ extends Node3D
 # Casting off (Enrico): so the wind can't pin her against the shore by the pier, for a moment after she leaves it
 # the wind and the current don't touch her, and she gets a push forward (her bow points the way the berth does).
 @export var cast_off_calm_time := 3.0   # seconds after casting off with no wind and no current
-@export var cast_off_push := 10        # m/s of way she's given as she leaves (it fades as she slows down)
+@export var cast_off_push := 10	        # m/s of way she's given as she leaves (it fades as she slows down)
 
 # How she leans and pitches: not straight to where she should be, but like a weight on a spring, so she
 # swings a little past it and settles (the prototype's damped springs). This is what makes her feel alive.
@@ -72,6 +72,7 @@ extends Node3D
 # the anchor line holds her. How strong it is lives in the Wind autoload (wind.gd, CURRENT_SPEED), shared with
 # everything else that floats; here only how it takes hold of her at the start.
 @export var current_ease := 0.8     # how quickly it takes hold at the start
+@export var shore_calm_distance := 6.0   # metres from the coast where the current stops carrying her
 
 # Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
 @export var bounce_kick := 7     # m/s of push away from the shore on any bump…
@@ -416,12 +417,9 @@ func _physics_process(dt: float) -> void:
 	if calm_left > 0.0:
 		calm_left = maxf(0.0, calm_left - dt)
 		drive = 0.0
-	# In the shallows (land within shallows_width metres) the sail gives only shallows_sail of its push.
-	# Looking for land takes up to 48 rays, so it's done every shallows_check_time seconds, not every frame.
-	shallows_wait -= dt
-	if shallows_wait <= 0.0:
-		shallows_wait = shallows_check_time
-		in_shallows = Land.is_near_land(global_position, shallows_width)
+		# In the shallows (land within shallows_width metres) the sail gives only shallows_sail of its push.
+	# The baked picture of the distances says how far the shore is (Land): cheap, so every frame.
+	in_shallows = Land.distance_to_shore(global_position) < shallows_width
 	if in_shallows:
 		drive *= shallows_sail
 
@@ -671,7 +669,13 @@ func update_current(dt: float) -> void:
 		drift_amount = 0.0
 		drift = Vector3.ZERO
 		return
-	drift_amount += (1.0 - drift_amount) * minf(1.0, dt * current_ease)
+	
+	# Near the coast the current lets her go (Enrico): the baked picture says how far the shore is (Land).
+	var target := 1.0                                     # out at sea: the full current
+	if Land.distance_to_shore(global_position) < shore_calm_distance:
+		target = 0.0                                      # close to the shore: none
+	# Eased, not switched: drift_amount slides toward the target a little every frame, so she isn't jolted.
+	drift_amount += (target - drift_amount) * minf(1.0, dt * current_ease)
 	drift = Wind.current() * drift_amount
 
 

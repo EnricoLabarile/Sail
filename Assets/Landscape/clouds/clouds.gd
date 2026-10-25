@@ -17,6 +17,7 @@ extends Node3D
 @export var size_max := 30.0         # …and the biggest
 @export var height := 35.0           # metres above the sea
 @export var speed := 1            # metres a second they drift downwind
+@export var clear_radius := 80.0     # metres round the boat with no clouds at the start
 
 # The shadows.
 @export var shadows_on := true                          # false = no shadows
@@ -54,7 +55,8 @@ func _ready() -> void:
 	if shadows_on:
 		add_cloud_map()
 		add_shadow_effect()
-
+		
+	clear_start_area.call_deferred()
 
 ## A material that shows the picture as it is: no light on it (unshaded), see-through where the PNG is
 ## (alpha), both faces drawn.
@@ -163,3 +165,18 @@ func _process(dt: float) -> void:
 			map_wait = 1.0 / shadow_updates_per_second
 			follow_boat()
 			map_camera.get_viewport().render_target_update_mode = SubViewport.UPDATE_ONCE
+			
+			## At the start: any cloud closer than clear_radius to the boat is moved to another random place.
+func clear_start_area() -> void:
+	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	if boat == null:
+		return
+	var half := Land.WORLD_SIZE / 2.0
+	for cloud in clouds:
+		while horizontal_distance(cloud.position, boat.global_position) < clear_radius:
+			cloud.position = Vector3(randf_range(-half, half), height, randf_range(-half, half))
+
+
+## The distance between two points on the map, without counting the height.
+func horizontal_distance(a: Vector3, b: Vector3) -> float:
+	return Vector2(a.x - b.x, a.z - b.z).length()

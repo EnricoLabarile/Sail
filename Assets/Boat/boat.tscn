@@ -41,6 +41,9 @@ radius = 0.3
 _data = [Vector2(0, 0.4), 0.0, 0.6, 0, 1, Vector2(1, 1), 0.6, 0.0, 1, 0]
 point_count = 2
 
+[sub_resource type="BoxMesh" id="BoxMesh_8ksrx"]
+size = Vector3(1, 1.543457, 1)
+
 [node name="Boat" type="Node3D" unique_id=1479473515]
 script = ExtResource("1_boat")
 
@@ -121,3 +124,7 @@ color_ramp = SubResource("Grad_wake")
 
 [node name="TrapSetter" type="Node" parent="." unique_id=1025484265]
 script = ExtResource("10_trap_setter")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=67420740]
+transform = Transform3D(0.82448035, 0, 0, 0, 1.0002527, 0, 0, 0, 0.9644745, 0.5699463, 1.0084839, 0.89263916)
+mesh = SubResource("BoxMesh_8ksrx")

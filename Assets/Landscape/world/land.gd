@@ -19,6 +19,19 @@ const WORLD_SIZE := 1008.0
 const RAY_TOP := 100.0         # metres: the ray starts this high above the sea…
 const RAY_BOTTOM := -20.0      # …and goes down to this depth
 
+## The shore baker's script, only to read MAX_DISTANCE (so the two never disagree).
+const ShoreBaker := preload("res://Assets/Landscape/shore/shore_baker.gd")
+## The picture of the distances to the coast (made by the ShoreBaker, see shore_baker.gd).
+const SHORE_PICTURE := "res://Assets/Landscape/shore/shore_distance.png"
+
+var shore_image: Image   # that picture, kept in memory to read its pixels
+
+func _ready() -> void:
+	# The picture is imported as a texture (for the graphics card); get_image() gives a copy of its pixels
+	# that scripts can read (in Unreal: reading a texture's data on the CPU).
+	var texture := load(SHORE_PICTURE) as Texture2D
+	if texture:
+		shore_image = texture.get_image()
 
 ## True if this point of the world is land. Only x and z count (the height doesn't matter).
 func is_land(pos: Vector3) -> bool:
@@ -55,17 +68,17 @@ func way_to_sea(pos: Vector3) -> Vector3:
 		return Vector3.ZERO                # land all round: no way out found
 	return total.normalized()
 
-
-## True if there is land within `distance` metres of `pos` (for example: is she in the shallows?).
-##
-## How: it looks at points on three circles round `pos` (at a third, two thirds and all of the
-## distance), 16 points each, like the hours on a clock. If any of them is land, the answer is yes.
-func is_near_land(pos: Vector3, distance: float) -> bool:
-	for ring in [1.0, 2.0, 3.0]:
-		var radius: float = distance * ring / 3.0
-		for i in 16:
-			var angle := i * TAU / 16.0
-			var direction := Vector3(cos(angle), 0.0, sin(angle))
-			if is_land(pos + direction * radius):
-				return true
-	return false
+## How many metres from this point of the sea to the nearest coast (up to the picture's MAX_DISTANCE, 32 m:
+## further than that it says 32). 0 = on the coast.
+func distance_to_shore(pos: Vector3) -> float:
+	if shore_image == null:
+		return ShoreBaker.MAX_DISTANCE            # no picture: as if far from every coast
+	# 1. Where the point is on the map, from 0 (west / north edge) to 1 (east / south edge).
+	var half := WORLD_SIZE / 2.0
+	var across := (pos.x + half) / WORLD_SIZE
+	var down := (pos.z + half) / WORLD_SIZE
+	# 2. That place in the picture's pixels (clamped: outside the map, the nearest edge pixel).
+	var x := clampi(int(across * shore_image.get_width()), 0, shore_image.get_width() - 1)
+	var y := clampi(int(down * shore_image.get_height()), 0, shore_image.get_height() - 1)
+	# 3. The pixel's grey (0 = black .. 1 = white) times MAX_DISTANCE = metres.
+	return shore_image.get_pixel(x, y).r * ShoreBaker.MAX_DISTANCE
