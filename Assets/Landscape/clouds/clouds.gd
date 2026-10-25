@@ -17,6 +17,9 @@ extends Node3D
 @export var size_max := 30.0         # …and the biggest
 @export var height := 35.0           # metres above the sea
 @export var speed := 1            # metres a second they drift downwind
+## At the start no cloud is within this many metres of the boat (Enrico): the game starts with a clear screen, and
+## the clouds drift in from upwind later. ~80 m covers the screen even zoomed out (about 46 x 102 m) plus a cloud.
+@export var clear_radius := 80.0
 
 # The shadows.
 @export var shadows_on := true                          # false = no shadows
@@ -54,6 +57,9 @@ func _ready() -> void:
 	if shadows_on:
 		add_cloud_map()
 		add_shadow_effect()
+	# Clear the sky over the boat. Deferred (done at the end of this frame): the boat joins her group in her own
+	# _ready, which comes after this one (she's further down the scene), so she can't be found yet.
+	clear_start_area.call_deferred()
 
 
 ## A material that shows the picture as it is: no light on it (unshaded), see-through where the PNG is
@@ -128,6 +134,23 @@ func follow_boat() -> void:
 	map_camera.position.x = center.x
 	map_camera.position.z = center.y
 	shadow_material.set_shader_parameter("map_center", center)
+
+
+## At the start: any cloud within clear_radius of the boat is moved to another random place, outside it.
+func clear_start_area() -> void:
+	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	if boat == null:
+		return
+	var half := Land.WORLD_SIZE / 2.0
+	for cloud in clouds:
+		# Try new random places until one is far enough (on a 1008 m map almost every try is).
+		while horizontal_distance(cloud.position, boat.global_position) < clear_radius:
+			cloud.position = Vector3(randf_range(-half, half), height, randf_range(-half, half))
+
+
+## The distance between two points across the map (the height doesn't count).
+func horizontal_distance(a: Vector3, b: Vector3) -> float:
+	return Vector2(a.x - b.x, a.z - b.z).length()
 
 
 ## One cloud: a flat square lying level (a PlaneMesh faces up), at a random place, size and turn.
