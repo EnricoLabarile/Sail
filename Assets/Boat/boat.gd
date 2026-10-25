@@ -335,6 +335,10 @@ func respawn() -> void:
 	health = max_hearts
 	speed = 0.0
 	knock = Vector3.ZERO
+	
+	caught_eye = null
+	fling_left = 0.0
+	
 	rudder = 0.0
 	anchored = true
 	anchor_point = bow_point()
@@ -406,6 +410,13 @@ func _physics_process(dt: float) -> void:
 	if sinking:
 		update_sinking(dt)
 		return
+		# Caught in a maelstrom: only that, no sailing, no helm, no anchor, until it spits her out.
+	if caught_eye != null:
+		update_caught(dt)
+		return
+
+
+
 	# the keyboard: Space / Enter works the anchor (the arrows turn the wheel, in ui/helm)
 	if Input.is_action_just_pressed("ui_accept"):
 		toggle_anchor()
@@ -633,7 +644,15 @@ func move_and_bounce(dt: float) -> void:
 
 	var fwd := -global_transform.basis.z
 	var own_way := fwd * speed                           # her own way, from the sail
-	var velocity := own_way + knock + drift + whirl_pull   # her way + a bump's push + the current + the whirlpools' pull
+	
+		# Spat out of a maelstrom: the push holds, then fades over its last 0.4 s.
+	var fling := Vector3.ZERO
+	if fling_left > 0.0:
+		fling_left = maxf(0.0, fling_left - dt)
+		fling = fling_velocity * minf(1.0, fling_left / 0.4)
+	
+	var velocity := own_way + knock + drift + whirl_pull + fling   # her way + a bump's push + the current + the whirlpools' pull
+	whirl_pull = Vector3.ZERO        # used (it's in velocity now): each maelstrom adds its pull again next frame
 	var next := global_position + velocity * dt          # where she would be
 	var next_bow := next + fwd * bow_reach               # where her bow would be
 
@@ -660,8 +679,8 @@ func move_and_bounce(dt: float) -> void:
 	var into := -own_way.dot(out)                        # how fast her own way goes INTO the shore (m/s)
 	if into > 0.0:
 		bump(out, into)
-		
-		whirl_pull = Vector3.ZERO        # used: each maelstrom adds its pull again next frame
+
+	whirl_pull = Vector3.ZERO        # used: each maelstrom adds its pull again next frame
 
 
 ## The current: the Wind autoload's (Wind.current(): downwind, at its CURRENT_SPEED). On her it eases in at the

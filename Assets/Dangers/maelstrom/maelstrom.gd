@@ -22,7 +22,7 @@ extends Node3D
 @export var hidden_time := 5       # …and seconds it's gone
 @export var spin_speed := 2.0        # how fast the pictures turn (radians a second; 6.28 = a full turn)
 @export var fade_time := 3         # seconds it takes to fade in or out
-@export var pull_strength := 4.0     # m/s she's pulled toward the eye at the core's edge (top_speed is 7)
+@export var pull_strength := 5     # m/s she's pulled toward the eye at the core's edge (top_speed is 7)
 
 
 var fade := 0.0                      # 0 = invisible, 1 = fully there

@@ -47,6 +47,55 @@ size_max = 40.0
 
 [node name="Boat" parent="." unique_id=1762906152 instance=ExtResource("2_boat")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -131.20982, -0.043405533, 1.083374)
+top_speed = null
+accel = null
+anchor_bite = null
+turn_rate = null
+bow_reach = null
+heel_max_deg = null
+sail_fill_rate = null
+boom_max_deg = null
+turn_lean_deg = null
+bow_lift_deg = null
+bow_lift_curve = null
+sail_trail_threshold = null
+surf_boost = null
+surf_time = null
+wave_push = null
+wave_slowdown = null
+wave_slew_deg = null
+dock_speed = null
+cast_off_calm_time = null
+cast_off_push = null
+roll_stiffness = null
+roll_damping = null
+pitch_stiffness = null
+pitch_damping = null
+anchor_rode = null
+furl_rate = null
+unfurl_rate = null
+furled_height = null
+wave_roll_deg = null
+wave_pitch_deg = null
+wave_period = null
+shallows_width = null
+shallows_sail = null
+bow_wave_fps = null
+bow_wave_min_size = null
+shallows_check_time = null
+current_ease = null
+shore_calm_distance = null
+bounce_kick = null
+bounce_extra = null
+bounce_fade = null
+bounce_slowdown = null
+bounce_min_speed = null
+bounce_cooldown = null
+max_hearts = null
+hit_damage = null
+sink_time = null
+sink_depth = null
+sink_lean_deg = null
 
 [node name="Dither" parent="." unique_id=1041423395 instance=ExtResource("4_dither")]
 
@@ -200,3 +249,5 @@ script = ExtResource("34_shore_baker")
 
 [node name="Maelstrom" parent="." unique_id=455210000 instance=ExtResource("28_ubo31")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -124.03313, 0, -16.866133)
+shown_time = 5.0
+pull_strength = null
