@@ -121,8 +121,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
 - **Clouds** (`Assets/Landscape/clouds/`: `clouds.tscn` + `clouds.gd`, instanced as `Clouds` in Overworld): flat image
   planes (PlaneMesh facing up, `StandardMaterial3D` unshaded, alpha from the PNG, both faces, render_priority 4: drawn over the fog of war (Enrico), render layer 2)
   `height` 35 m up (Enrico); `cloud_count` 256 made at start (64 on the half-size map: same density) from `cloud_textures` (in turn; stand-ins `cloud_1..3.png`, soft
-  white blobs, to be replaced by Enrico's; imported Lossless, no VRAM compression), random place (**none within `clear_radius` 80 m of the boat at the start**, Enrico: the game
-  starts with a clear screen; `clear_start_area`, deferred, moves any that are), size
+  white blobs, to be replaced by Enrico's; imported Lossless, no VRAM compression), random place, size
   `size_min`–`size_max` 30–50 m and turn; every frame moved downwind (`-Wind.from_vector()` × `speed` 2 m/s) and
   wrapped round the map. Static pictures for now (flipbooks later, maybe). **Shadows** (they darken sea, land and boat alike):
   a **cloud map**, a `SubViewport` (`shadow_resolution` 256², transparent background, drawn again `shadow_updates_per_second`
