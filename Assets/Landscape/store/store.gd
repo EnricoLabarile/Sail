@@ -13,6 +13,7 @@ extends Node3D
 @export var merchant_name := "Merchant"      # shown on top of the counter
 @export var for_sale: Array[ItemData] = []    # what this merchant sells
 @export var stock := -1                       # how many of each it has (-1 = no limit)
+@export var open_delay := 1.5                 # seconds after tying up before the counter opens (she glides in first)
 
 var sold := {}                                # item's id → how many sold so far (for `stock`)
 
@@ -24,9 +25,13 @@ func _ready() -> void:
 	pier.docked.connect(_on_docked)
 
 
-## The boat tied up at this store's pier: the counter opens.
-func _on_docked(_boat: Node3D) -> void:
-	counter.open(self)
+## The boat tied up at this store's pier: after open_delay seconds (so you see her glide alongside first),
+## the counter opens, as long as she's still tied up here.
+func _on_docked(boat: Node3D) -> void:
+	# A one-off timer (like a Delay node in Blueprints): `await` waits here until it runs out.
+	await get_tree().create_timer(open_delay).timeout
+	if boat.berth == pier.berth:
+		counter.open(self)
 
 
 ## What's for sale now, as piles [{"item": id, "count": how many}], less what's already on the counter (`taken`).

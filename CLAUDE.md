@@ -439,7 +439,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `Gym_Store`, a copy of Gym_SeaImp without imps, at (−9.5, 0, 108) north of the boat): `Pier` (an instance of
   `pier.tscn`, its docking as any pier; its `Berth` turned 180° in store.tscn so she ties up bow out to sea, away from the building; `pier.gd` now sends `docked(boat)` once she's tied up), `Building` (a
   placeholder box), `StoreCounter`. Inspector: `merchant_name`, `for_sale` (`Array[ItemData]`: drag in .tres files),
-  `stock` (−1 = no limit, else how many of each; `sold` counts). Docked → the counter **opens by itself** (Enrico).
+  `stock` (−1 = no limit, else how many of each; `sold` counts). Docked → the counter **opens by itself** (Enrico) after `open_delay` 1.5 s (Enrico: see her glide alongside first; a
+  `create_timer` await, and only if she's still tied up there).
   **The counter** (CanvasLayer 115, crisp; a card 340 × 460 like the start screen's): "Your hold" (piles, `x3 2c` =
   three, 2 coins each; greyed if `sell_price` 0) and "For sale" (`goods_left`), a tap moves one to "You give" /
   "You take" under them, a tap there puts it back; the purse; the balance (given × sell − taken × buy: "You get n
