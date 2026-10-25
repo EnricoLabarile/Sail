@@ -4,7 +4,10 @@ extends Node3D
 ## shown_time seconds, hides for hidden_time, then comes back somewhere else in the zone, forever.
 ## It has two parts: the outer ring (Outer) and the core (Core), both turning.
 
-@export var zone_radius := 30.0      # metres: the circle it wanders in, round this node
+@export var zone_radius := 30.0:     # metres: the circle it wanders in, round this node
+	set(value):
+		zone_radius = value
+		_fit_editor_disc()
 @export var outer_radius := 10.0     # metres: the outer ring's size
 @export var core_radius := 2.5       # metres: the core's size
 @export var wander_speed := 2.0      # metres a second it drifts about
@@ -22,10 +25,10 @@ var target := Vector3.ZERO           # the point it's drifting toward, inside th
 
 
 func _ready() -> void:
-	# The pictures are 1 x 1 m planes: scale them to the sizes set above (diameter = radius x 2).
 	outer.scale = Vector3(outer_radius * 2.0, 1.0, outer_radius * 2.0)
 	core.scale = Vector3(core_radius * 2.0, 1.0, core_radius * 2.0)
 	if Engine.is_editor_hint():
+		_make_editor_disc()          # in the editor only: the zone drawn as a see-through disc
 		return                       # in the editor: just the look, it doesn't move
 	appear()
 	

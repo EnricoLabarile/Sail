@@ -26,11 +26,11 @@ script = ExtResource("1_uwwic")
 [node name="Whirl" type="Node3D" parent="." unique_id=1594803415]
 
 [node name="Core" type="MeshInstance3D" parent="Whirl" unique_id=1616604942]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
+transform = Transform3D(5, 0, 0, 0, 1, 0, 0, 0, 5, 0, 0.06, 0)
 material_override = SubResource("StandardMaterial3D_muq5q")
 mesh = SubResource("PlaneMesh_flrxc")
 
 [node name="Outer" type="MeshInstance3D" parent="Whirl" unique_id=854662754]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+transform = Transform3D(20, 0, 0, 0, 1, 0, 0, 0, 20, 0, 0.05, 0)
 material_override = SubResource("StandardMaterial3D_5xgie")
 mesh = SubResource("PlaneMesh_8ksrx")

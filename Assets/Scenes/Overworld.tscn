@@ -199,4 +199,4 @@ Not all of them are fish."])
 script = ExtResource("34_shore_baker")
 
 [node name="Maelstrom" parent="." unique_id=455210000 instance=ExtResource("28_ubo31")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110.62493, 0, -25.530422)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -105.46256, 0, -25.500183)
