@@ -345,7 +345,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   1.5 s: only the patch, where it will come up: the warning) → **UP** (the imp; `idle_before_spit` 1 s, spits,
   `idle_after_spit` 1 s) → **UNDER** (`under_time` 3 s, invisible, out of reach) → EMERGING again at a new spot
   (`find_spot_in_view`: a random point of the screen within `screen_margin` 0.12 of the edges, followed down the boat
-  camera's line of sight to the water, `spawn_distance_min/max` 6–18 m from her, not land; 20 tries a frame). The first
+  camera's line of sight to the water, `spawn_distance_min/max` 6–18 m from her, **downwind of her** (Enrico: the line
+  through her across the wind splits the screen, it only comes up on the side the wind blows toward, so a bomb drifts
+  to it; `is_downwind`, dot with −`Wind.from_vector()` > 0), not land; 20 tries a frame). The first
   time it comes up where it lurked. Back to LURKING (at its place) when she's more than `radius` 40 m from it, or sinks.
   **The fireball** (`fireball.gd`): from `spit_height` 1.5 m, level, toward where she'll be in `aim_ahead` 0.5 s,
   `fireball_speed` 7.5 m/s; within `fireball_hit_radius` 1.3 m of her middle `boat.take_damage(fireball_damage)` (1

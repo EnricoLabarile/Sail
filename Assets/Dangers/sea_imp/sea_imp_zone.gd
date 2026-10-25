@@ -186,7 +186,9 @@ func spit(boat: Node3D) -> void:
 
 
 ## A spot of open water to come up at: on the screen (not too near its edges), between spawn_distance_min and
-## spawn_distance_max from the boat. Up to 20 tries: a random point of the screen, followed down along the
+## spawn_distance_max from the boat, and DOWNWIND of her (Enrico): a line through the boat across the wind splits
+## the screen in two, and it only comes up on the side the wind blows toward, so a bomb dropped off her bow drifts
+## with the current toward it (never upwind, where she'd have to beat into the wind to reach it). Up to 20 tries: a random point of the screen, followed down along the
 ## camera's line of sight to the water (like a mouse click turned into a point on the ground). Null if none fits.
 func find_spot_in_view(boat: Node3D) -> Variant:
 	# The boat's camera (it lives in the game view's own viewport, not in this node's: game_view.gd).
@@ -202,9 +204,24 @@ func find_spot_in_view(boat: Node3D) -> Variant:
 			continue                                      # looking up: it never meets the water
 		var spot := from + direction * (-from.y / direction.y)   # where the line of sight meets the water (y 0)
 		var distance := distance_to(boat, spot)
-		if distance >= spawn_distance_min and distance <= spawn_distance_max and not Land.is_land(spot):
-			return spot
+		if distance < spawn_distance_min or distance > spawn_distance_max:
+			continue                                      # too near her or too far
+		if not is_downwind(boat, spot):
+			continue                                      # on the upwind side of the line: not there
+		if Land.is_land(spot):
+			continue                                      # on land
+		return spot
 	return null
+
+
+## True if `spot` is on the downwind side of the line through the boat across the wind. The wind blows toward
+## -Wind.from_vector(); the arrow from her to the spot points that way (a positive dot product, i.e. less than
+## 90 degrees between them) when the spot is downwind of her.
+func is_downwind(boat: Node3D, spot: Vector3) -> bool:
+	var downwind: Vector3 = -Wind.from_vector()
+	var to_spot := spot - boat.global_position
+	to_spot.y = 0.0
+	return to_spot.dot(downwind) > 0.0
 
 
 ## A bomb's blast or a trap at `point`, reaching `reach` metres (bomb.gd, trap.gd call this on every imp).
