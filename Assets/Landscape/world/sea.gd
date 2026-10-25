@@ -13,6 +13,10 @@ extends MeshInstance3D
 # the difference. That's what the 90 below does: 270 + 90 = 360 = no turn.
 @export var texture_turn_deg := 90.0  # change it only if the drawing should point another way (0 = toward the bottom)
 
+# This level's shore picture (made by its ShoreBaker: Bake shore). The waves along the coasts are drawn from it,
+# and Land reads it to know how far the coast is (the shallows). Each level picks its own file here.
+@export var shore_texture: Texture2D
+
 # The fog of war's soft edge (fog.gdshader's falloff): metres it shades off over. 0 = as it comes (about one cell).
 @export var fog_falloff := 0.0
 
@@ -27,6 +31,9 @@ func _ready() -> void:
 	# The grid of the logbook's squares on the water (sea.gdshader's seam): its size from the world's.
 	sea_material.set_shader_parameter("world_size", Land.WORLD_SIZE)
 	sea_material.set_shader_parameter("cell_size", Land.WORLD_SIZE / 9.0)   # 9 x 9 squares, as the logbook's map
+	# This level's shore picture: to the sea's waves and to Land (the shallows).
+	sea_material.set_shader_parameter("shore_tex", shore_texture)
+	Land.set_shore_picture(shore_texture)
 	texture_angle = deg_to_rad(Wind.from_deg + texture_turn_deg)   # start already facing the wind
 	add_fog()
 

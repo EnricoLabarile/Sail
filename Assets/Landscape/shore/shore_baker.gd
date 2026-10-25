@@ -1,8 +1,9 @@
 @tool
 extends Node3D
 ## THE SHORE BAKER: makes the picture the sea reads to draw its waves along the coasts (sea.gdshader's shore
-## waves). Press "Bake shore" in the Inspector after moving, adding or removing coasts; it saves
-## shore_distance.png next to this script. (In Unreal: an Editor Utility that bakes a distance field texture.)
+## waves). Press "Bake shore" in the Inspector after moving, adding or removing coasts; it saves the picture at
+## `save_path`. Each level (the Overworld, every gym) has its own baker and its own picture: give each a different
+## save_path, then pick that file in the level's Sea (Shore Texture). (In Unreal: an Editor Utility that bakes a distance field texture.)
 ##
 ## What the picture is: the whole map seen from above, one pixel every `metres_per_pixel`; each pixel holds how
 ## far that point of the sea is from the nearest coast (black = on the coast, white = MAX_DISTANCE metres or more).
@@ -22,10 +23,11 @@ extends Node3D
 ## The furthest distance the picture can tell, in metres (white = this far or more). The sea shader must use
 ## the same number (sea.gdshader: shore_max_distance).
 const MAX_DISTANCE := 32.0
-const SAVE_PATH := "res://Assets/Landscape/shore/shore_distance.png"
 
 ## The press-to-bake button in the Inspector (it calls bake()).
 @export_tool_button("Bake shore", "Bake") var bake_button := bake
+## Where this level's picture is saved. A different file for every level, or one would overwrite the other.
+@export_file("*.png") var save_path := "res://Assets/Landscape/shore/shore_distance.png"
 ## The nodes whose meshes are the land (everything inside them, however deep).
 @export var land_roots: Array[NodePath] = [NodePath("../Islands"), NodePath("../Coast")]
 ## Metres a pixel of the picture covers (1 = a 1008 x 1008 picture for the 1008 m map; 2 = four times quicker
@@ -40,8 +42,8 @@ func bake() -> void:
 	print("Shore baker: working out the distances…")
 	var distances := distance_to_land(land, side)
 	var picture := to_picture(distances, side)
-	picture.save_png(SAVE_PATH)
-	print("Shore baker: saved ", SAVE_PATH)
+	picture.save_png(save_path)
+	print("Shore baker: saved ", save_path, " (pick it in this level's Sea: Shore Texture)")
 	if Engine.is_editor_hint():
 		# So the editor sees the new picture at once. (Asked for by name: EditorInterface only exists in the
 		# editor, and writing it plainly would break the exported game.)

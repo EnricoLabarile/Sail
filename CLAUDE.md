@@ -87,7 +87,11 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   under `land_roots` (`../Islands`, `../Coast`) copied white into an own World3D, an orthographic camera 200 m up
   looking down with its far plane at the sea's level (only what's above the water), the alpha = land; a two-sweep
   chamfer distance (1 / 1.41) in pixels × `metres_per_pixel` 1; saved as the PNG (`MAX_DISTANCE` 32 must match the
-  shader's `shore_max_distance`). **Bake again after changing the coasts.** Enrico places the coasts as 3D meshes under the `Coast` node in `Overworld.tscn`; each needs
+  shader's `shore_max_distance`). **Bake again after changing the coasts.** **One picture per level** (Enrico makes gyms
+  to test mechanics): the baker saves to its `save_path` export (the Overworld's `shore_distance.png`; give each level
+  its own), and each level's `Sea` picks its file in `shore_texture` (sea.gd; set in sea.tscn to the Overworld's):
+  at start it sends it to the material's `shore_tex` and to `Land.set_shore_picture()`, which `distance_to_shore`
+  reads. (In the editor the sea shows the material's own picture, the Overworld's, until the game runs.) Enrico places the coasts as 3D meshes under the `Coast` node in `Overworld.tscn`; each needs
   a collision (a StaticBody3D with a CollisionShape3D: in the editor select the mesh, Mesh menu → Create Trimesh
   Static Body, or name it with the `-col` suffix in Blender), which is what `Land` hits. When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
   `impact()`, in `boat.gd`: `move_and_bounce`, `bump`; knobs `bounce_*`): only moving into the shore at ≥ 0.4 m/s,

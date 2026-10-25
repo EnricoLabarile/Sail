@@ -21,17 +21,21 @@ const RAY_BOTTOM := -20.0      # …and goes down to this depth
 
 ## The shore baker's script, only to read MAX_DISTANCE (so the two never disagree).
 const ShoreBaker := preload("res://Assets/Landscape/shore/shore_baker.gd")
-## The picture of the distances to the coast (made by the ShoreBaker, see shore_baker.gd).
-const SHORE_PICTURE := "res://Assets/Landscape/shore/shore_distance.png"
 
-var shore_image: Image   # that picture, kept in memory to read its pixels
+## The picture of the distances to the coast of the level that's open (made by its ShoreBaker), kept in
+## memory to read its pixels. Each level has its own: the level's Sea hands it over at start (set_shore_picture).
+var shore_image: Image
 
-func _ready() -> void:
+
+## The level's Sea calls this at start with its shore picture (sea.gd, `shore_texture`). null = no picture:
+## every point counts as far from the coast.
+func set_shore_picture(texture: Texture2D) -> void:
+	if texture == null:
+		shore_image = null
+		return
 	# The picture is imported as a texture (for the graphics card); get_image() gives a copy of its pixels
 	# that scripts can read (in Unreal: reading a texture's data on the CPU).
-	var texture := load(SHORE_PICTURE) as Texture2D
-	if texture:
-		shore_image = texture.get_image()
+	shore_image = texture.get_image()
 
 ## True if this point of the world is land. Only x and z count (the height doesn't matter).
 func is_land(pos: Vector3) -> bool:
