@@ -24,6 +24,12 @@ extends MeshInstance3D
 	set(value):
 		shore_texture = value
 		use_shore_picture()          # the waves follow at once, in the editor too
+# Untick to hide the shore waves (handy while placing islands: the old waves don't get in the way). Only the look:
+# Land keeps reading the picture (the shallows still work in the game).
+@export var show_shore_waves := true:
+	set(value):
+		show_shore_waves = value
+		use_shore_picture()
 
 # The fog of war's soft edge (fog.gdshader's falloff): metres it shades off over. 0 = as it comes (about one cell).
 @export var fog_falloff := 0.0
@@ -53,7 +59,11 @@ func use_shore_picture() -> void:
 		return                       # the scene is still loading (the setter can run before the mesh is there)
 	if sea_material == null:
 		sea_material = mesh.material.duplicate()
-	sea_material.set_shader_parameter("shore_tex", shore_texture)
+	# No picture (null) = the shader's default white = far from every coast everywhere: no waves.
+	if show_shore_waves:
+		sea_material.set_shader_parameter("shore_tex", shore_texture)
+	else:
+		sea_material.set_shader_parameter("shore_tex", null)
 	material_override = sea_material
 
 
