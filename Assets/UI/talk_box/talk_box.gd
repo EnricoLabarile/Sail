@@ -7,6 +7,8 @@ extends Control
 ##   - while the page is still being typed: the whole page shows at once;
 ##   - once it's all there: the next page; after the last page, the box closes.
 ## While it's open the hub's long press doesn't work the anchor (boat.gd `talking`), so she can't sail off by mistake.
+## While it's open everything in the group "hidden_while_talking" is hidden (the wind vane and the hearts, Enrico):
+## to hide something else too, add its node to that group (Node dock → Groups; like an Actor Tag in Unreal).
 ##
 ## Its layout (where it sits, how big, the frame's size) is set in talk_box.tscn: Box's anchors and offsets,
 ## Portrait / Name / Text's places inside it. Drawn crisp, on its own CanvasLayer (115), not through the dither.
@@ -52,6 +54,7 @@ func open(speaker: String, picture: Texture2D, lines: Array[String], when_done: 
 	name_label.text = speaker
 	portrait.texture = picture
 	_set_boat_talking(true)
+	_show_hud(false)
 	visible = true
 	_show_page()
 
@@ -80,9 +83,16 @@ func _show_page() -> void:
 func _close() -> void:
 	visible = false
 	_set_boat_talking(false)
+	_show_hud(true)
 	finished.emit()
 	if on_finished.is_valid():
 		on_finished.call()
+
+
+## Hides (or shows again) every node in the group "hidden_while_talking": the wind vane and the hearts.
+func _show_hud(show: bool) -> void:
+	for node in get_tree().get_nodes_in_group("hidden_while_talking"):
+		node.visible = show
 
 
 ## The boat ignores the anchor button's long press while someone is talking (boat.gd toggle_anchor).

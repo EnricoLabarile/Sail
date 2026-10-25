@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://Assets/UI/wind_vane.gd" id="1_vane"]
 
-[node name="WindVane" type="CanvasLayer"]
+[node name="WindVane" type="CanvasLayer" groups=["hidden_while_talking"]]
 layer = 110
 
 [node name="Dial" type="Control" parent="."]

@@ -406,7 +406,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (`visible_characters`). **A quick tap on the wheel's hub** (`helm.gd` signal `hub_tapped`: let go before `hub_hold`;
   helm in group `helm`): while typing → the whole page; then the next page; after the last → closes and calls the
   NPC back. While open `boat.talking` is true: `toggle_anchor` does nothing (hub hold, Space) and the hub's ring
-  doesn't fill.
+  doesn't fill. **While open, every node in the group `hidden_while_talking` is hidden** (Enrico: the
+  `WindVane` and `Health` CanvasLayers, group set in their .tscn; `_show_hud`); add a node to it to hide it too.
 - **Map markers** (Enrico; `Assets/Quests/map_marker/`: `map_marker.tscn` + `map_marker.gd` (`@tool`, `@icon`),
   `map_marker_icon.svg`; instanced under `MapMarkers` in Overworld, for now one at (60, 0, −150), F4, `active` on to
   try it): an invisible Node3D; in the editor a red X in a circle (the scene-tree icon, and in the 3D view a Sprite3D
