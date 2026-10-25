@@ -369,9 +369,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   through her across the wind splits the screen, it only comes up on the side the wind blows toward, so a bomb drifts
   to it; `is_downwind`, dot with −`Wind.from_vector()` > 0), not land; 20 tries a frame). The first
   time it comes up where it lurked. Back to LURKING (at its place) when she sinks, or (Enrico) when she's more than
-  `radius` from it **and** it's out of her sight (`is_seen`: only EMERGING / UP / HURT count, underwater doesn't, and its
-  spot must be in `boat.camera.is_position_in_frustum`): up on screen it keeps chasing her past the radius, and gives up
-  once it dives or she leaves it off screen.
+  `radius` from it **and** it's off her screen (`is_seen`: the imp, or its patch while emerging / under water, inside
+  `boat.camera.is_position_in_frustum`; underwater counts as on screen too, Enrico): on screen it keeps chasing her past
+  the radius, and gives up once she leaves it off screen (its patch swims at 6 m/s, she sails faster).
   **The fireball** (`fireball.gd`): from `spit_height` 1.5 m, level, toward where she'll be in `aim_ahead` 0.5 s,
   `fireball_speed` 7.5 m/s; within `fireball_hit_radius` 1.3 m of her middle `boat.take_damage(fireball_damage)` (1
   heart, Enrico); gone on land or after `fireball_life` 3 s; `stone.gdshader`'s billboard flipbook (a stand-in).
