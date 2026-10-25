@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://Assets/Inventory/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://c6x5adgpv5duu" path="res://Assets/Inventory/icons/bomb.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_item")
+id = "bomb"
+display_name = "Bomb"
+icon = ExtResource("2_icon")
+buy_price = 5
+sell_price = 2
+stackable = true
+equippable = true

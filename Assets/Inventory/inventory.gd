@@ -4,12 +4,16 @@ extends Node
 ## Inventory.add("fish"). (In Unreal: a GameInstance subsystem that keeps the player's items.)
 ## Only the data lives here: the logbook (Assets/UI/logbook/book.gd) draws it and lets the player tap it.
 ##
-## An item is just its name (a String), e.g. "fish"; its picture for the logbook is in ICONS.
-## Most things take a slot each (two fish = two slots). STACKABLE things (bombs, traps) pile up in ONE slot,
+## An item is just its name (a String), e.g. "fish". Everything else about it (its picture, its prices, whether it
+## stacks or can be equipped) is in its ItemData file, Assets/Inventory/items/<name>.tres, read at the start into
+## `catalogue` (see item_data.gd). A new kind of item = a new .tres in that folder.
+## Most things take a slot each (two fish = two slots). Stackable things (bombs, traps) pile up in ONE slot,
 ## however many there are, with their number drawn on it. When all the slots are taken, nothing new fits.
 ##
-## EQUIPPABLE things (a bomb or a trap) are equipped by tapping their slot in the logbook; one at a time
+## Equippable things (a bomb or a trap) are equipped by tapping their slot in the logbook; one at a time
 ## (equipping one unequips the other); tapping it again unequips it. `equipped` says which ("" = nothing).
+##
+## The purse: `coins`, taken in and spent at the stores. It takes no slot.
 
 ## Sent whenever something comes in or goes out (the open logbook listens, to draw the pages again).
 signal changed
@@ -17,28 +21,62 @@ signal changed
 signal equipped_changed
 
 const SLOTS := 9   # how many slots the hold has
-
-## Every item's picture in the logbook, by name. A new kind of item: add its name and its PNG here.
-const ICONS := {
-	"fish": preload("res://Assets/Inventory/icons/fish.png"),
-	"bomb": preload("res://Assets/Inventory/icons/bomb.png"),
-	"trap": preload("res://Assets/Inventory/icons/trap.png"),
-	"imp": preload("res://Assets/Inventory/icons/imp.png"),
-}
-
-const STACKABLE := ["bomb", "trap"]     # these pile up in one slot
-const EQUIPPABLE := ["bomb", "trap"]    # these can be equipped (tap their slot in the logbook)
+const ITEMS_FOLDER := "res://Assets/Inventory/items"   # one ItemData .tres per kind of item
 
 ## What she sets out with (Enrico: 9 bombs and 9 traps, to try them).
 const START_ITEMS := {"bomb": 9, "trap": 9}
+const START_COINS := 0              # coins in the purse at the start (Enrico: 0)
 
+var catalogue := {}                 # every kind of item: its name → its ItemData (read from ITEMS_FOLDER)
 var items: Array[String] = []   # what's aboard, one entry per thing, in the order it came in
 var equipped := "bomb"              # the item equipped now ("" = nothing)
+var coins := START_COINS            # the purse
 
 
 func _ready() -> void:
+	load_catalogue()
 	for item in START_ITEMS:
 		add(item, START_ITEMS[item])
+
+
+## Reads every ItemData file in ITEMS_FOLDER into `catalogue`, by its id. (ResourceLoader.list_directory works
+## in the exported game too, where the files are stored under other names.)
+func load_catalogue() -> void:
+	for file_name in ResourceLoader.list_directory(ITEMS_FOLDER):
+		if not file_name.ends_with(".tres"):
+			continue
+		var data := load(ITEMS_FOLDER + "/" + file_name) as ItemData
+		if data and data.id != "":
+			catalogue[data.id] = data
+
+
+## An item's ItemData (null if there's no file for it).
+func data(item: String) -> ItemData:
+	return catalogue.get(item)
+
+
+## An item's picture (null if none).
+func icon_of(item: String) -> Texture2D:
+	var info := data(item)
+	return info.icon if info else null
+
+
+## True if this item piles up in one slot.
+func is_stackable(item: String) -> bool:
+	var info := data(item)
+	return info != null and info.stackable
+
+
+## True if this item can be equipped.
+func is_equippable(item: String) -> bool:
+	var info := data(item)
+	return info != null and info.equippable
+
+
+## Puts coins in the purse (or takes them out, with a negative number).
+func add_coins(amount: int) -> void:
+	coins += amount
+	changed.emit()
 
 
 ## Puts `count` of `item` in the hold, as many as there's room for. Gives back how many went in.
@@ -46,7 +84,7 @@ func _ready() -> void:
 func add(item: String, count := 1) -> int:
 	var added := 0
 	while added < count:
-		var needs_slot := not (STACKABLE.has(item) and items.has(item))
+		var needs_slot := not (is_stackable(item) and items.has(item))
 		if needs_slot and is_full():
 			break
 		items.append(item)
@@ -78,10 +116,15 @@ func count(item: String) -> int:
 ## The slots as the logbook shows them, in order: each one a Dictionary {"item": name, "count": how many}.
 ## A stackable thing is one slot with its whole count; anything else is one slot with count 1.
 func slots() -> Array:
+	return slots_of(items)
+
+
+## The same for any list of items (e.g. the hold as it would be after a trade, to see if it all fits).
+func slots_of(list: Array[String]) -> Array:
 	var result := []
 	var stacked := {}                  # stackable item → its slot in `result`
-	for item in items:
-		if STACKABLE.has(item):
+	for item in list:
+		if is_stackable(item):
 			if stacked.has(item):
 				result[stacked[item]]["count"] += 1
 				continue
@@ -98,7 +141,7 @@ func is_full() -> bool:
 ## Equips `item` (tapping its slot); if it's already equipped, unequips it. Only equippable things that are
 ## aboard can be equipped, one at a time.
 func toggle_equip(item: String) -> void:
-	if not EQUIPPABLE.has(item) or count(item) == 0:
+	if not is_equippable(item) or count(item) == 0:
 		return
 	if equipped == item:
 		equipped = ""

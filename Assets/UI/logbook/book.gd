@@ -7,7 +7,7 @@ extends Control
 ##   - the leather cover: dark, with a fine dotted grain, stitching round the edge and metal corners;
 ##   - two paper pages with the edges of the pages beneath showing at the sides;
 ##   - the top half: the hold ("Cargo", the Inventory autoload): its slots in a grid of 3 across, each thing
-##     aboard drawn in its slot (its picture from Inventory.ICONS; a pile of bombs or traps with its number in
+##     aboard drawn in its slot (its picture from its ItemData, Inventory.icon_of; a pile of bombs or traps with its number in
 ##     the corner), the empty slots dashed and faint. Tapping a bomb's or a trap's slot equips it (or unequips
 ##     it): the equipped slot has a thick double frame (Inventory.toggle_equip);
 ##   - the bottom half: the map, the world cut into 9 x 9 squares (A..I from the west, 1..9 from the north,
@@ -265,7 +265,7 @@ func _draw_hold(area: Rect2) -> void:
 	# The heading, just above the grid: the title on the left, the count on the right.
 	var used := _slots.size()
 	_half_text(Vector2(left, top - 7.0), "Cargo", 13, INK, HORIZONTAL_ALIGNMENT_LEFT)
-	_half_text(Vector2(left + grid_w, top - 7.0), str(used) + "/" + str(_slot_count), 10, Color(INK, 0.8), HORIZONTAL_ALIGNMENT_RIGHT)
+	_half_text(Vector2(left + grid_w, top - 7.0), str(Inventory.coins) + " coins   " + str(used) + "/" + str(_slot_count), 10, Color(INK, 0.8), HORIZONTAL_ALIGNMENT_RIGHT)
 
 	# The slots, row by row. Their places are kept in _slot_rects, for the taps (_gui_input).
 	_slot_rects.clear()
@@ -280,10 +280,10 @@ func _draw_hold(area: Rect2) -> void:
 			_half_frame(r, INK, 1.5, false)
 			if item == _equipped:
 				_half_frame(r.grow(-3.0), INK, 2.0, false)      # equipped: a second, thick frame inside
-			var icon: Texture2D = Inventory.ICONS.get(item)
+			var icon := Inventory.icon_of(item)
 			if icon:
 				_draw_icon(icon, r)
-			if Inventory.STACKABLE.has(item):
+			if Inventory.is_stackable(item):
 				# the pile's number, small, in the bottom right corner
 				_half_text(r.end - Vector2(4.0, 4.0), str(amount), 10, INK, HORIZONTAL_ALIGNMENT_RIGHT)
 		else:
