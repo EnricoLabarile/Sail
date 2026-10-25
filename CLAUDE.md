@@ -260,7 +260,12 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   filter), the hub sailing and the hub at anchor; only the rim's fixed shade, the hub's shake and its hold ring are
   drawn live (draw calls ~290 → ~45: the wheel's discs of 40 triangles each were most of them). Drag to steer (half a turn = full rudder, springs back to the middle); the hub's grip is
   16.5 sailing / 21 at anchor (× 2.6): held `hub_hold` 0.33 s (a ring fills) it works the anchor and shakes; a finger
-  moving 9 off the hub turns the wheel instead; at anchor the wheel doesn't steer (drag and arrow keys). Its sounds:
+  moving 9 off the hub turns the wheel instead; at anchor the wheel doesn't steer (drag and arrow keys), and **it fades
+  away, only the hub stays** (Enrico, as the prototype; `wheel_shown` 1 → 0 over `wheel_fade_time` 0.3 s, also tied up;
+  `_has_point` then only takes the hub). **The hub's glyph** (`_draw_hub(..., glyph)`: "anchor", "question" over a
+  fishing spot, "talk" a speech bubble, `_draw_speech_bubble`; talk comes first; six pictures): the speech bubble while
+  she's in an NPC's radius or someone talks (Enrico: dropping anchor there starts the talk), from the boat's
+  `talk_hint_changed` (`set_near_npc`, `npcs_near`, `talking`'s setter, `talk_hint()`). Its sounds:
   see Sound (the rub and the thud at full lock). No buzz yet.
 - **The logbook** (`Assets/UI/logbook/`: `logbook.tscn` + `logbook.gd`, `book_icon.gd`, `book.gd`; in Overworld): as the
   prototype's. The button bottom left (76 px, drawn in greys on a CanvasLayer under the dither, 95, so it's 1-bit) emits
@@ -388,7 +393,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   Fisherman" with three test pages): no look yet, the node is the pivot. Inspector: `speaker_name`, `portrait`
   (Texture2D, Enrico paints it), `lines` (`@export_multiline Array[String]`: an entry = a page, new lines inside it),
   `talk_radius` 8 m (a yellow disc in the editor), `bob_height` 0.4, `bob_speed` 1.5, `fade_time` 0.3. `Sensor` (Area3D,
-  mask layer 4, the boat's `SpotSensor`: event-driven) sets `boat_near`; `Bubble` (a flat PlaneMesh 5 × 3.75 m lying
+  mask layer 4, the boat's `SpotSensor`: event-driven) sets `boat_near` and tells the boat (`set_near_npc`: the hub
+  shows a speech bubble); `Bubble` (a flat PlaneMesh 5 × 3.75 m lying
   level 5 m up, StandardMaterial3D unshaded, alpha, render_priority 2, duplicated per NPC; Enrico tilts it if he wants:
   no billboards) fades in while she's near and not talking and bobs up and down, fades out when she leaves. On the
   boat's `anchor_dropped` with her near: `talk_box.open(speaker_name, portrait, lines, _on_talk_finished)`; it starts

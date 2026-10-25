@@ -7,7 +7,10 @@ extends Control
 ##   it while you hold, then the hub gives a little shake). Moving your finger off it turns the wheel instead.
 ## - A quick tap on the hub (let go before hub_hold) sends `hub_tapped`: the talk box uses it to go on to the
 ##   next page (Assets/UI/talk_box). While someone is talking (boat.talking) holding the hub does nothing.
-## - At anchor the wheel doesn't steer (the drag and the arrow keys do nothing until the anchor is up).
+## - At anchor (or tied up) the wheel fades away and only the hub stays (as in the prototype): it doesn't steer
+##   then anyway (the drag and the arrow keys do nothing until the anchor is up). It comes back as she weighs.
+## - The hub's glyph: the anchor; a question mark over a fishing spot; a speech bubble in an NPC's radius and while
+##   one is talking (dropping anchor there starts the talk, a tap goes on with it). The boat tells it (signals).
 ## - The arrow keys turn it too.
 ##
 ## It is drawn with code, in greys, like the logbook button: its CanvasLayer (helm.tscn) sits UNDER the
@@ -24,6 +27,7 @@ signal hub_tapped                # a quick tap on the hub (let go before hub_hol
 @export var return_rate := 3.5   # let go, the wheel spins back to the middle: this share of its angle a second…
 @export var return_min := 0.8    # …but at least this many rad/s, so it gets all the way back (as in the prototype)
 @export var key_rate := PI * 1.1 # rad/s the arrow keys turn it
+@export var wheel_fade_time := 0.3   # s for the wheel to fade out as the anchor goes down (and back in as it comes up)
 
 # The prototype's measures (in its pixels): the drawing's size, its middle, how much the wheel is scaled up.
 const DRAW_W := 221.0
@@ -53,6 +57,8 @@ var hub_start := Vector2.ZERO    # where that finger came down (in the prototype
 var hub_shake := 0.0             # 1 right after the anchor goes down or comes up, fading to 0
 var shown_anchor := true         # the anchor state the hub was last drawn with
 var over_spot := false           # is the boat over a fishing spot? (then the hub shows a question mark)
+var talk_hint := false           # in an NPC's radius, or talking? (then the hub shows a speech bubble)
+var wheel_shown := 1.0           # 1 = the wheel fully there, 0 = faded away (at anchor: only the hub)
 var last_angle := 0.0            # the wheel's angle a frame ago (for its speed, for the sounds)
 var at_lock := false             # true while the wheel is hard over, at full lock
 
@@ -88,6 +94,8 @@ func _local(screen_pos: Vector2) -> Vector2:
 ## Only a touch on the wheel itself counts (inside its handles): the corners of this box let a touch
 ## through to what's under them (the logbook).
 func _has_point(point: Vector2) -> bool:
+	if _is_anchored():
+		return _local(point).length() < HUB_GRIP_ANCHORED * WHEEL_SCALE * HUB_SCALE   # the wheel is gone: only the hub
 	return _local(point).length() < OUTER_GRIP * WHEEL_SCALE
 
 func _gui_input(e: InputEvent) -> void:
@@ -176,7 +184,13 @@ func _process(dt: float) -> void:
 		Sfx.wheel_stop(minf(1.0, 0.5 + spin / 10.0))
 	at_lock = hard_over
 
-	# 3. The hub's face changes with the anchor: redraw when it does.
+	# 3. The wheel fades out at anchor and back in when she weighs (a share of the way every frame).
+	var wheel_target := 0.0 if anchored else 1.0
+	if wheel_shown != wheel_target:
+		wheel_shown = move_toward(wheel_shown, wheel_target, dt / wheel_fade_time)
+		queue_redraw()
+
+	# 4. The hub's face changes with the anchor: redraw when it does.
 	if anchored != shown_anchor:
 		shown_anchor = anchored
 		queue_redraw()
@@ -188,11 +202,19 @@ func _listen_to_boat() -> void:
 	var b := _boat()
 	if b:
 		b.over_fishing_spot_changed.connect(_on_over_fishing_spot)
+		b.talk_hint_changed.connect(_on_talk_hint_changed)
 
 
 ## The boat came over a fishing spot (over = true) or left it: show the question mark or the anchor.
 func _on_over_fishing_spot(over: bool) -> void:
 	over_spot = over
+	queue_redraw()
+
+
+## She came into an NPC's radius or left it, or a talk started or ended: show the speech bubble or not.
+func _on_talk_hint_changed() -> void:
+	var b := _boat()
+	talk_hint = b != null and b.talk_hint()
 	queue_redraw()
 
 
@@ -282,16 +304,20 @@ var _hub_picture_sailing: SubViewport
 var _hub_picture_anchored: SubViewport
 var _hub_picture_sailing_spot: SubViewport    # the same two, with a question mark instead of the anchor
 var _hub_picture_anchored_spot: SubViewport
+var _hub_picture_sailing_talk: SubViewport     # and two with a speech bubble (by an NPC, or talking)
+var _hub_picture_anchored_talk: SubViewport
 
 
 func _ready() -> void:
 	add_to_group("helm")         # so the talk box finds the wheel and listens to hub_tapped
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR    # the turned picture stays smooth (the dither makes it dots)
 	_wheel_picture = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_wheel(c, middle, k))
-	_hub_picture_sailing = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, false, false))
-	_hub_picture_anchored = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, true, false))
-	_hub_picture_sailing_spot = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, false, true))
-	_hub_picture_anchored_spot = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, true, true))
+	_hub_picture_sailing = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, false, "anchor"))
+	_hub_picture_anchored = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, true, "anchor"))
+	_hub_picture_sailing_spot = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, false, "question"))
+	_hub_picture_anchored_spot = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, true, "question"))
+	_hub_picture_sailing_talk = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, false, "talk"))
+	_hub_picture_anchored_talk = _make_picture(func(c: CanvasItem, middle: Vector2, k: float): _draw_hub(c, middle, k, true, "talk"))
 	resized.connect(_redraw_pictures)
 	_redraw_pictures()
 	if not Engine.is_editor_hint():
@@ -320,6 +346,8 @@ func _redraw_pictures() -> void:
 	_set_picture_size(_hub_picture_anchored, HUB_REACH * WHEEL_SCALE * HUB_SCALE * k)
 	_set_picture_size(_hub_picture_sailing_spot, HUB_REACH * WHEEL_SCALE * HUB_SCALE * k)
 	_set_picture_size(_hub_picture_anchored_spot, HUB_REACH * WHEEL_SCALE * HUB_SCALE * k)
+	_set_picture_size(_hub_picture_sailing_talk, HUB_REACH * WHEEL_SCALE * HUB_SCALE * k)
+	_set_picture_size(_hub_picture_anchored_talk, HUB_REACH * WHEEL_SCALE * HUB_SCALE * k)
 	queue_redraw()
 
 
@@ -339,14 +367,15 @@ func _draw() -> void:
 	var k := _k()
 	var middle := size * 0.5 + (MIDDLE - Vector2(DRAW_W, DRAW_H) * 0.5) * k
 	var s := k * WHEEL_SCALE
-	# 1. The wheel's picture, turned by wheel_angle round the middle.
-	var wheel := _wheel_picture.get_texture()
-	draw_set_transform(middle, wheel_angle, Vector2.ONE)
-	draw_texture(wheel, -Vector2(wheel.get_size()) * 0.5)
-	# 2. The rim is darker at the bottom right: the light comes from the top left, so this shade doesn't
-	#    turn with the wheel. Drawn here, over the turning picture.
-	draw_set_transform(middle, 0.0, Vector2(s, s))
-	draw_arc(Vector2.ZERO, 55.0, -0.15 * PI, 0.85 * PI, 32, grey(0, 0.18), 8.6)
+	# 1. The wheel's picture, turned by wheel_angle round the middle (see-through as it fades at anchor).
+	if wheel_shown > 0.0:
+		var wheel := _wheel_picture.get_texture()
+		draw_set_transform(middle, wheel_angle, Vector2.ONE)
+		draw_texture(wheel, -Vector2(wheel.get_size()) * 0.5, Color(1.0, 1.0, 1.0, wheel_shown))
+		# 2. The rim is darker at the bottom right: the light comes from the top left, so this shade doesn't
+		#    turn with the wheel. Drawn here, over the turning picture.
+		draw_set_transform(middle, 0.0, Vector2(s, s))
+		draw_arc(Vector2.ZERO, 55.0, -0.15 * PI, 0.85 * PI, 32, grey(0, 0.18 * wheel_shown), 8.6)
 	# 3. The hub's picture (sailing or at anchor), with its little shake after a press.
 	var shake_x := sin(Time.get_ticks_msec() * 0.09) * 2.2 * hub_shake
 	var hub_middle := middle + Vector2(shake_x * s, 0.0)
@@ -364,9 +393,11 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)    # back to normal
 
 
-## Which of the four hub pictures to show: sailing or at anchor, with the anchor or (over a fishing spot)
-## with a question mark.
+## Which of the hub pictures to show: sailing or at anchor, with the anchor, a question mark (over a fishing
+## spot) or a speech bubble (by an NPC or talking: that comes first).
 func _hub_picture() -> SubViewport:
+	if talk_hint:
+		return _hub_picture_anchored_talk if _is_anchored() else _hub_picture_sailing_talk
 	if over_spot:
 		return _hub_picture_anchored_spot if _is_anchored() else _hub_picture_sailing_spot
 	return _hub_picture_anchored if _is_anchored() else _hub_picture_sailing
@@ -438,7 +469,8 @@ func _draw_wheel(c: CanvasItem, middle: Vector2, k: float) -> void:
 ## for each look: a brass bezel lit from the top left with four rivets, a shaded face with a glint of glass,
 ## and an anchor. Sailing: a light face with an ink anchor. At anchor: a dark face, one light rim, a paper anchor.
 ## `question`: a question mark instead of the anchor (the boat is over a fishing spot: something down there).
-func _draw_hub(c: CanvasItem, middle: Vector2, k: float, anchored: bool, question: bool) -> void:
+## `glyph` is what's drawn on its face: "anchor", "question" (a question mark) or "talk" (a speech bubble).
+func _draw_hub(c: CanvasItem, middle: Vector2, k: float, anchored: bool, glyph: String) -> void:
 	var ink := grey(0)
 	var paper := grey(255)
 	var s := k * WHEEL_SCALE * HUB_SCALE
@@ -465,18 +497,45 @@ func _draw_hub(c: CanvasItem, middle: Vector2, k: float, anchored: bool, questio
 	if anchored:
 		c.draw_arc(Vector2.ZERO, hub_r + 1.4, 0.0, TAU, 48, paper, 1.3)           # a light rim: reads on dark water
 
-	# 3. The anchor (or the question mark): ink on the light face, paper on the dark one.
+	# 3. The anchor (or the question mark, or the speech bubble): ink on the light face, paper on the dark one.
 	var mark := paper if anchored else ink
 	var w := 1.7 if anchored else 1.75
 	c.draw_set_transform(middle, 0.0, Vector2(s, s) * 1.2)
-	if question:
+	if glyph == "question":
 		_draw_question_mark(c, mark)
+		return
+	if glyph == "talk":
+		_draw_speech_bubble(c, mark)
 		return
 	c.draw_arc(Vector2(0.0, -7.0), 1.9, 0.0, TAU, 16, mark, w)                     # the ring at the top
 	c.draw_line(Vector2(0.0, -5.0), Vector2(0.0, 7.5), mark, w)                     # the shank
 	c.draw_line(Vector2(-4.5, -2.2), Vector2(4.5, -2.2), mark, w)                   # the stock
 	c.draw_polyline(curve(Vector2(-6.5, 2.5), Vector2(-5.0, 7.5), Vector2(0.0, 7.5)), mark, w)   # the arms
 	c.draw_polyline(curve(Vector2(0.0, 7.5), Vector2(5.0, 7.5), Vector2(6.5, 2.5)), mark, w)
+
+
+## A speech bubble: a rounded box with a little tail at the bottom left and three dots inside.
+func _draw_speech_bubble(c: CanvasItem, mark: Color) -> void:
+	var box := PackedVector2Array()
+	var half := Vector2(7.0, 4.6)        # half its width and height
+	var corner := 2.2                    # how round its corners are
+	var middle := Vector2(0.0, -1.5)
+	# The outline, corner by corner (a quarter circle each), clockwise from the top left.
+	var corners := [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]
+	for i in 4:
+		var centre: Vector2 = middle + Vector2(corners[i].x * (half.x - corner), corners[i].y * (half.y - corner))
+		var start := PI + i * PI / 2.0
+		for j in 5:
+			var a := start + j * PI / 8.0
+			box.append(centre + Vector2(cos(a), sin(a)) * corner)
+	box.append(box[0])
+	c.draw_polyline(box, mark, 1.6)
+	# The tail: a little wedge from the bottom edge, down to the left.
+	var bottom := middle.y + half.y
+	c.draw_polyline(PackedVector2Array([Vector2(-3.5, bottom), Vector2(-5.0, bottom + 3.6), Vector2(-0.5, bottom)]), mark, 1.6)
+	# Three dots.
+	for x in [-3.2, 0.0, 3.2]:
+		c.draw_circle(Vector2(x, middle.y), 1.05, mark)
 
 
 ## A question mark, as the prototype's: the hook (an arc round its top, then a curve down to the middle) and the dot.

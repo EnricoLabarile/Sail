@@ -87,12 +87,14 @@ func _on_sensor_entered(area: Area3D) -> void:
 	var boat := area.get_parent()
 	if boat != null and boat.is_in_group("player_boat"):
 		boat_near = true
+		boat.set_near_npc(self, true)     # the wheel's hub shows the speech bubble
 
 
 func _on_sensor_exited(area: Area3D) -> void:
 	var boat := area.get_parent()
 	if boat != null and boat.is_in_group("player_boat"):
 		boat_near = false
+		boat.set_near_npc(self, false)
 
 
 ## The anchor went down somewhere: if it was inside our radius, start talking.

@@ -102,7 +102,18 @@ signal over_fishing_spot_changed(over: bool)
 ## boat.tscn, Assets/Items/trap/trap_setter.gd): with a trap equipped, it lays one.
 signal anchor_dropped
 
-var talking := false   # an NPC is talking (the talk box sets it): the anchor button does nothing meanwhile
+## Sent when the wheel's hub should start or stop showing the speech bubble instead of the anchor: she came into
+## an NPC's radius or left it, or a talk started or ended (talk_hint() says which). The wheel listens.
+signal talk_hint_changed
+
+## An NPC is talking (the talk box sets it): the anchor button does nothing meanwhile.
+var talking := false:
+	set(value):
+		var had_hint := talk_hint()
+		talking = value
+		if talk_hint() != had_hint:
+			talk_hint_changed.emit()
+var npcs_near: Array[Node3D] = []   # the NPCs whose radius she's in now (they tell her: npc.gd)
 
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
 const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.1], [45.0, 1.5], [180.0, 1.0]]
@@ -333,6 +344,7 @@ func add_heart_container() -> void:
 
 ## A fishing spot tells her she's over it (here = true) or not any more (false). When that makes the difference
 ## between "over a spot" and "over none", she sends over_fishing_spot_changed (the wheel listens).
+## (See also set_near_npc, below: the same for NPCs.)
 func set_over_fishing_spot(spot: Node3D, here: bool) -> void:
 	var was_over := not fishing_spots_under.is_empty()
 	if here and not fishing_spots_under.has(spot):
@@ -342,6 +354,23 @@ func set_over_fishing_spot(spot: Node3D, here: bool) -> void:
 	var is_over := not fishing_spots_under.is_empty()
 	if is_over != was_over:
 		over_fishing_spot_changed.emit(is_over)
+
+
+## An NPC tells her she came into its radius (near = true) or left it (npc.gd, from its Sensor).
+func set_near_npc(npc: Node3D, near: bool) -> void:
+	var had_hint := talk_hint()
+	if near and not npcs_near.has(npc):
+		npcs_near.append(npc)
+	if not near:
+		npcs_near.erase(npc)
+	if talk_hint() != had_hint:
+		talk_hint_changed.emit()
+
+
+## Should the wheel's hub show the speech bubble? While she's in an NPC's radius (dropping anchor will start the
+## talk) or while someone is talking (a tap goes on).
+func talk_hint() -> bool:
+	return talking or not npcs_near.is_empty()
 
 
 ## Where her bow is now, on the water.
