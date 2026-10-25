@@ -178,10 +178,11 @@ transform = Transform3D(-0.39833888, 0, 0.9172383, 0, 1, 0, -0.9172383, 0, -0.39
 [node name="NPCs" type="Node3D" parent="." unique_id=450601339]
 
 [node name="TestNPC" parent="NPCs" unique_id=172880777 instance=ExtResource("32_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.2959385, 0, -39.41675)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.388, 0, -37.942)
 speaker_name = "Old Fisherman"
 lines = Array[String](["Ahoy there! You're the monster hunter, aren't you?", "The sea round here has changed.
 Fish hide, and something burns in the water at night.", "Mind the patches of dark water.
 Not all of them are fish."])
+talk_radius = 8.0
 
 [node name="TalkBox" parent="." unique_id=272770690 instance=ExtResource("33_talk_box")]

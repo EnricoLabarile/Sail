@@ -21,12 +21,14 @@ height = 4.0
 radius = 8.0
 
 [sub_resource type="BoxMesh" id="BoxMesh_8ksrx"]
+size = Vector3(1, 1.8682861, 1)
 
 [node name="NPC" type="Node3D" unique_id=103699983]
 script = ExtResource("1_script")
+talk_radius = 8.0
 
 [node name="Bubble" type="MeshInstance3D" parent="." unique_id=458793763]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+transform = Transform3D(1, 0, 0, 0, 0.8230769, -0.5679299, 0, 0.5679299, 0.8230769, 0.026761532, 2.7311347, -3.046103)
 material_override = SubResource("Mat_bubble")
 cast_shadow = 0
 mesh = SubResource("Mesh_bubble")
@@ -40,5 +42,5 @@ monitorable = false
 shape = SubResource("Shape_sensor")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=951736670]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.60734224, 0)
+transform = Transform3D(0.5885144, 0, 0, 0, 0.99999964, 0, 0, 0, 0.5784726, 0, 1.0414853, 0)
 mesh = SubResource("BoxMesh_8ksrx")
