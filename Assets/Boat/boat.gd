@@ -36,6 +36,10 @@ extends Node3D
 
 # Tying up at a pier (Assets/Landscape/pier): she glides to the pier's berth and turns to its heading.
 @export var dock_speed := 3.0   # how quickly she glides into place (higher = quicker; about 1/3 s to get most of the way)
+# Casting off (Enrico): so the wind can't pin her against the shore by the pier, for a moment after she leaves it
+# the wind and the current don't touch her, and she gets a push forward (her bow points the way the berth does).
+@export var cast_off_calm_time := 3.0   # seconds after casting off with no wind and no current
+@export var cast_off_push := 5.0        # m/s of way she's given as she leaves (it fades as she slows down)
 
 # How she leans and pitches: not straight to where she should be, but like a weight on a spring, so she
 # swings a little past it and settles (the prototype's damped springs). This is what makes her feel alive.
@@ -138,6 +142,7 @@ var pitch := 0.0            # the bow's angle now (radians, + = up), and how qui
 var pitch_velocity := 0.0
 var surfing_left := 0.0     # seconds of surf left (0 = not surfing)
 var berth: Node3D = null     # the pier's berth she's tied up at (null = not tied up)
+var calm_left := 0.0         # seconds left of the calm after casting off (no wind, no current)
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
 var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
 var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she starts at anchor: gathered up)
@@ -257,6 +262,8 @@ func dock_at(spot: Node3D) -> void:
 func cast_off() -> void:
 	berth = null
 	anchored = false
+	calm_left = cast_off_calm_time   # for a moment neither the wind nor the current touches her…
+	speed = cast_off_push            # …and she's pushed off forward, out of the berth
 
 
 ## Every physics frame while tied up: a little closer to the berth and a little more turned to its heading,
@@ -399,6 +406,10 @@ func _physics_process(dt: float) -> void:
 	var wind_from: Vector3 = Wind.from_vector()                 # the wind (Assets/Landscape/world/wind.gd)
 	var off := rad_to_deg(fwd.angle_to(wind_from))               # 0 = head to wind, 180 = wind astern
 	var drive := 0.0 if anchored else polar(off)
+	# Just cast off from a pier: the wind gives nothing for calm_left seconds (she glides on the push).
+	if calm_left > 0.0:
+		calm_left = maxf(0.0, calm_left - dt)
+		drive = 0.0
 	# In the shallows (land within shallows_width metres) the sail gives only shallows_sail of its push.
 	# Looking for land takes up to 48 rays, so it's done every shallows_check_time seconds, not every frame.
 	shallows_wait -= dt
@@ -649,6 +660,11 @@ func move_and_bounce(dt: float) -> void:
 ## The current: the Wind autoload's (Wind.current(): downwind, at its CURRENT_SPEED). On her it eases in at the
 ## start (drift_amount 0..1). It carries her at anchor too: the anchor line holds her (see hold_at_anchor).
 func update_current(dt: float) -> void:
+	# Just cast off from a pier: no current yet; afterwards it takes hold again gently (drift_amount from 0).
+	if calm_left > 0.0:
+		drift_amount = 0.0
+		drift = Vector3.ZERO
+		return
 	drift_amount += (1.0 - drift_amount) * minf(1.0, dt * current_ease)
 	drift = Wind.current() * drift_amount
 

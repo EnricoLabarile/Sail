@@ -367,7 +367,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   not at anchor → `boat.dock_at(berth)`: `berth` set, `anchored` true (sail gathered, no steering, hub dark), speed 0;
   every physics frame `glide_to_berth` (instead of steering / current / bumps / the anchor line) moves her x/z and
   `rotation.y` (`lerp_angle`) toward the berth by 1 − exp(−`dock_speed` 3 × dt). The anchor button (`toggle_anchor`)
-  while tied up → `cast_off()`: `berth` null, `anchored` false (no sound). She ties up again only after leaving the
+  while tied up → `cast_off()`: `berth` null, `anchored` false (no sound); **then a calm and a push** (Enrico: so the
+  wind can't trap her on land): for `cast_off_calm_time` 3 s (`calm_left`) the sail's drive is 0 and there's no current
+  (`drift_amount` back to 0, so it eases in again after), and her speed is set to `cast_off_push` 5 m/s forward (it
+  fades at `accel`, ~7.5 m in the 3 s); she can steer meanwhile. She ties up again only after leaving the
   sensor and coming back (it's `area_entered`). `respawn()` clears `berth`.
 - **Bombs** (Enrico; `Assets/Items/bomb/`: `bomb.tscn` + `bomb.gd`, `bomb.png` a 2 × 1 sheet (dark, fuse lit), stand-in;
   the button `Assets/UI/bomb_button/`: `bomb_button.tscn` (CanvasLayer 95, in `DITHERED`; Control `Button` bottom right,
