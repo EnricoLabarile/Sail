@@ -28,7 +28,8 @@ const MAX_DISTANCE := 32.0
 @export_tool_button("Bake shore", "Bake") var bake_button := bake
 ## Where this level's picture is saved. A different file for every level, or one would overwrite the other.
 @export_file("*.png") var save_path := "res://Assets/Landscape/shore/shore_distance.png"
-## The nodes whose meshes are the land (everything inside them, however deep).
+## The nodes whose meshes are the land (everything inside them, however deep). If a path doesn't lead anywhere (the
+## node was moved into a "folder" node), the node is looked for by its name anywhere in the level.
 @export var land_roots: Array[NodePath] = [NodePath("../Islands"), NodePath("../Coast")]
 ## Metres a pixel of the picture covers (1 = a 1008 x 1008 picture for the 1008 m map; 2 = four times quicker
 ## to bake, smoother; 0.5 = sharper, four times slower).
@@ -71,6 +72,9 @@ func take_photo(side: int) -> PackedByteArray:
 	for path in land_roots:
 		var root := get_node_or_null(path)
 		if root == null:
+			root = owner.find_child(path.get_name(path.get_name_count() - 1), true, false)   # by its name (Islands, Coast)
+		if root == null:
+			print("Shore baker: no ", path, " found, skipped")
 			continue
 		for found in root.find_children("*", "MeshInstance3D", true, false):
 			var original := found as MeshInstance3D

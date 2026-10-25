@@ -10,7 +10,7 @@ extends Node
 ## What stays at full resolution, crisp, on top: the open logbook, the wind vane, the start screen.
 ##
 ## How: when the game starts (after every node is ready), the nodes listed in DITHERED (and the logbook's
-## button layer) are moved into the SubViewport. In the editor the scene looks as always.
+## button layer) are moved into the SubViewport, wherever they are in the level (found by name). In the editor the scene looks as always.
 ## Taps and drags on the picture are passed on to the SubViewport, scaled to its pixels (push_input).
 
 const DESIGN_WIDTH := 360.0   # the game's width in the project settings: the controls are laid out for this width
@@ -21,7 +21,7 @@ const DESIGN_WIDTH := 360.0   # the game's width in the project settings: the co
 ## size on the screen whatever this is: only the grain changes. (On a narrower screen it can't go finer than
 ## a dot per real pixel.)
 @export var dots_across := 360
-const DITHERED := ["Sea", "Coast", "Clouds", "WindLines", "Gulls", "Boat", "Dither", "Helm", "BombButton"]   # nodes of Overworld moved into the view
+const DITHERED := ["Sea", "Coast", "Clouds", "WindLines", "Gulls", "Boat", "Dither", "Helm", "BombButton"]   # nodes of the level moved into the view (by name, anywhere in it)
 
 var view: SubViewport         # where the dithered part of the game is drawn
 var screen: TextureRect       # the view's picture, stretched over the screen
@@ -38,10 +38,11 @@ func _build() -> void:
 	view.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(view)
 
-	# 2. Move the dithered nodes into it: the world, the dither and the controls under it.
-	var scene := get_parent()
+	# 2. Move the dithered nodes into it: the world, the dither and the controls under it. They're looked for by
+	#    name anywhere in the level (owner = the level's root), so they can sit inside "folder" nodes (Core, UI…).
+	var scene := owner
 	for node_name in DITHERED:
-		var node := scene.get_node_or_null(node_name)
+		var node := scene.find_child(node_name, true, false)
 		if node:
 			node.reparent(view)
 	var icon_layer := scene.find_child("IconLayer", true, false)   # the logbook's button (its open book stays crisp)

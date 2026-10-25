@@ -84,7 +84,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   thinner out, `wave_wobble` 1 m of value noise, plus steady foam `foam_width` 0.8 m along the coast; `shore_color` white
   at `shore_opacity` 0.9 (one texture read a pixel). **Baked in the editor** by `ShoreBaker` (a Node3D in Overworld,
   `Assets/Landscape/shore/shore_baker.gd`, `@tool`, `@export_tool_button` "Bake shore"; ~1 s): every MeshInstance3D
-  under `land_roots` (`../Islands`, `../Coast`) copied white into an own World3D, an orthographic camera 200 m up
+  under `land_roots` (`../Islands`, `../Coast`; a path that leads nowhere is looked for by its last name anywhere in the level) copied white into an own World3D, an orthographic camera 200 m up
   looking down with its far plane at the sea's level (only what's above the water), the alpha = land; a two-sweep
   chamfer distance (1 / 1.41) in pixels × `metres_per_pixel` 1; saved as the PNG (`MAX_DISTANCE` 32 must match the
   shader's `shore_max_distance`). **Bake again after changing the coasts.** **One picture per level** (Enrico makes gyms
@@ -256,7 +256,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   > 1 lighter); `paper_color`, `ink_color`. Tone is set here, not with a WorldEnvironment (that would touch only the 3D).
 - **The game view** (`Assets/Post_Process/game_view.gd`, node `GameView` in Overworld; Enrico asked for performance):
   at start (deferred, after every node is ready) it moves `Sea`, `Coast`, `Clouds`, `WindLines`, `Gulls`, `Boat`, `Dither`, `Helm`, `BombButton` and the
-  logbook's `IconLayer` into a `SubViewport` drawn at the game's resolution, and shows its picture on a full-screen
+  logbook's `IconLayer` (found by name anywhere in the level, `owner.find_child`: Enrico groups the Overworld into
+  "folder" nodes, Core / Dangers / Decorative / Gameplay / UI and PostProcess) into a `SubViewport` drawn at the game's resolution, and shows its picture on a full-screen
   `TextureRect` (CanvasLayer 1, nearest filter: sharp dots). Size: real pixels of the game area
   (`get_visible_rect().size × get_final_transform().get_scale()`) / `dot_scale`, `dot_scale` = round(real width /
   `dots_across`), ≥ 1 (**`dots_across`**, an export on `GameView`, 360 = the grain as it was; 540 = 2 × 2 real pixels a
