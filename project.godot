@@ -34,6 +34,15 @@ window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
 
+[file_customization]
+
+folder_colors={
+"res://Assets/Boat/": "blue",
+"res://Assets/Dangers/": "red",
+"res://Assets/Landscape/": "green",
+"res://Assets/UI/": "yellow"
+}
+
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true

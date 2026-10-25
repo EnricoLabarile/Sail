@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://b5lqfu2xq0o10"]
+
+[ext_resource type="Script" uid="uid://dpp33762r6bgb" path="res://Assets/Dangers/maelstrom/maelstrom.gd" id="1_uwwic"]
+[ext_resource type="Texture2D" uid="uid://dto33bbval1wu" path="res://Assets/Dangers/maelstrom/maelstrom_core.png" id="2_fpbhu"]
+[ext_resource type="Texture2D" uid="uid://cwq7s2icfqlen" path="res://Assets/Dangers/maelstrom/maelstrom_outer.png" id="3_bnl7x"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_muq5q"]
+render_priority = 1
+transparency = 1
+shading_mode = 0
+albedo_texture = ExtResource("2_fpbhu")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_flrxc"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5xgie"]
+render_priority = 1
+transparency = 1
+shading_mode = 0
+albedo_texture = ExtResource("3_bnl7x")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_8ksrx"]
+
+[node name="Maelstrom" type="Node3D" unique_id=455210000]
+script = ExtResource("1_uwwic")
+
+[node name="Whirl" type="Node3D" parent="." unique_id=1594803415]
+
+[node name="Core" type="MeshInstance3D" parent="Whirl" unique_id=1616604942]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
+material_override = SubResource("StandardMaterial3D_muq5q")
+mesh = SubResource("PlaneMesh_flrxc")
+
+[node name="Outer" type="MeshInstance3D" parent="Whirl" unique_id=854662754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+material_override = SubResource("StandardMaterial3D_5xgie")
+mesh = SubResource("PlaneMesh_8ksrx")

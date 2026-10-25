@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" uid="uid://c83avpy373bev" path="res://Assets/Landscape/fishing_spots/fishing_spot.tscn" id="26_fishing_spot"]
 [ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="27_game_over"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/sea_imp/sea_imp_zone.tscn" id="28_sea_imp_zone"]
+[ext_resource type="PackedScene" uid="uid://b5lqfu2xq0o10" path="res://Assets/Dangers/maelstrom/maelstrom.tscn" id="28_ubo31"]
 [ext_resource type="PackedScene" path="res://Assets/Quests/map_marker/map_marker.tscn" id="29_map_marker"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/pier/pier.tscn" id="30_pier"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/big_waves/wave_zone.tscn" id="31_wave_zone"]
@@ -196,3 +197,6 @@ Not all of them are fish."])
 
 [node name="ShoreBaker" type="Node3D" parent="." unique_id=54035983]
 script = ExtResource("34_shore_baker")
+
+[node name="Maelstrom" parent="." unique_id=455210000 instance=ExtResource("28_ubo31")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110.62493, 0, -25.530422)
