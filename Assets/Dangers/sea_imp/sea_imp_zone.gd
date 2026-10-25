@@ -9,7 +9,8 @@ extends Node3D
 ##   3. …and dives: UNDER, the imp invisible and out of reach, but its patch of dark water SWIMS (Enrico), at
 ##      `swim_speed`, from where it went under to where it will come up next, so the player sees it coming;
 ##   4. then it emerges again somewhere else, a spot of open water that's in view (on the screen), and so on.
-## It goes back to lurking at its own place when the boat is more than `radius` from it (she got away), or sinks.
+## It goes back to lurking at its own place when the boat sinks, or when she's more than `radius` from it (she got
+## away) AND it's out of her sight (under water, or off screen): while it's up on screen it chases her past the radius.
 ##
 ## It has `max_hearts` 3: a bomb's blast or a trap (bomb.gd, trap.gd → hit_imp_at) takes one while it's emerging
 ## or up, and blinks black (HURT, `hurt_time`); if it has some left it then goes under (and the cycle goes on). At 0 it's DEFEATED: it stays up,
@@ -96,8 +97,14 @@ func _process(dt: float) -> void:
 		return
 	if boat == null:
 		return
-	# She sank, or got away (further than `radius` from its place): back to lurking.
-	if state != State.LURKING and (boat.sinking or distance_to(boat, global_position) > radius):
+	# She sank: back to lurking at once.
+	if state != State.LURKING and boat.sinking:
+		lurk()
+		return
+	# She got away (further than `radius` from its place): it goes back to lurking only once it's also out of
+	# her sight. While it's up on screen it keeps chasing her (Enrico); once it dives (underwater doesn't count
+	# as being seen) or she leaves it off screen, it gives up and goes home.
+	if state != State.LURKING and distance_to(boat, global_position) > radius and not is_seen(boat):
 		lurk()
 		return
 	match state:
@@ -121,6 +128,17 @@ func _process(dt: float) -> void:
 
 
 # ---- the states ----
+
+## Can the player see it? Only while it's on the surface (emerging, up or hurt: underwater doesn't count) and
+## its spot is inside the boat camera's view (is_position_in_frustum: inside what the camera sees).
+func is_seen(boat: Node3D) -> bool:
+	if state != State.EMERGING and state != State.UP and state != State.HURT:
+		return false
+	var spot := imp.global_position
+	if state == State.EMERGING:
+		spot = patch.global_position      # still under: its warning patch is what shows
+	return boat.camera.is_position_in_frustum(spot)
+
 
 ## Lurking at its own place: only the patch of stirred water, like a fishing spot.
 func lurk() -> void:
