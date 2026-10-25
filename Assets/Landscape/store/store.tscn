@@ -1,32 +1,33 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dbtp2k2bhtr7n"]
 
-[ext_resource type="Script" path="res://Assets/Landscape/store/store.gd" id="1_store"]
-[ext_resource type="PackedScene" path="res://Assets/Landscape/pier/pier.tscn" id="2_pier"]
+[ext_resource type="Script" uid="uid://j1qsaqxuh4x0" path="res://Assets/Landscape/store/store.gd" id="1_store"]
+[ext_resource type="Script" uid="uid://cuk7atfycnyit" path="res://Assets/Inventory/item_data.gd" id="2_o8rgx"]
+[ext_resource type="PackedScene" uid="uid://cw2t2edse5qr" path="res://Assets/Landscape/pier/pier.tscn" id="2_pier"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/store/store_counter.tscn" id="3_counter"]
 [ext_resource type="Shader" uid="uid://cun5pmnoonaa0" path="res://Assets/Boat/toon_shade.gdshader" id="4_toon"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/bomb.tres" id="5_bomb"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/trap.tres" id="6_trap"]
 
 [sub_resource type="ShaderMaterial" id="Mat_building"]
+render_priority = 0
 shader = ExtResource("4_toon")
+shader_parameter/ambient = 0.45
 shader_parameter/base_color = Color(0.85, 0.82, 0.75, 1)
 
 [sub_resource type="BoxMesh" id="Mesh_building"]
 material = SubResource("Mat_building")
 size = Vector3(5, 3, 4)
 
-[node name="Store" type="Node3D"]
+[node name="Store" type="Node3D" unique_id=1920875079]
 script = ExtResource("1_store")
-for_sale = Array[Resource]([ExtResource("5_bomb"), ExtResource("6_trap")])
+for_sale = Array[ExtResource("2_o8rgx")]([ExtResource("5_bomb"), ExtResource("6_trap")])
 
-[node name="Pier" parent="." instance=ExtResource("2_pier")]
+[node name="Pier" parent="." unique_id=300920557 instance=ExtResource("2_pier")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4.5155735, 0, -4.351101)
 
-[node name="Berth" parent="Pier" index="1"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 2.6, 0, 0)
-
-[node name="Building" type="MeshInstance3D" parent="."]
+[node name="Building" type="MeshInstance3D" parent="." unique_id=592375012]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.5, -7.5)
 cast_shadow = 0
 mesh = SubResource("Mesh_building")
 
-[node name="StoreCounter" parent="." instance=ExtResource("3_counter")]
+[node name="StoreCounter" parent="." unique_id=1913194284 instance=ExtResource("3_counter")]

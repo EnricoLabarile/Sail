@@ -22,6 +22,18 @@ albedo_texture = ExtResource("3_bnl7x")
 
 [node name="Maelstrom" type="Node3D" unique_id=455210000]
 script = ExtResource("1_uwwic")
+zone_radius = 30.0
+outer_radius = 10.0
+core_radius = 2.5
+shown_time = 5.0
+hidden_time = 3.0
+fade_time = null
+pull_strength = null
+hold_time = null
+hold_spin = null
+core_damage = null
+fling_speed = null
+fling_time = null
 
 [node name="Whirl" type="Node3D" parent="." unique_id=1594803415]
 

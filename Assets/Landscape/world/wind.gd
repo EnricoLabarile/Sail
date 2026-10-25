@@ -23,7 +23,7 @@ extends Node
 # Each time, a random number between the two is picked.
 
 const FIRST_HOLD := Vector2(28.0, 36.0)   # seconds the wind holds still at the start of the game
-const HOLD := Vector2(12.0, 22.0)         # seconds it holds still between one shift and the next
+const HOLD := Vector2(30.0, 40.0)         # seconds it holds still between one shift and the next
 const DIRECTIONS := 8                     # how many directions the wind can come from (8 = every 45°)
 const SHIFT_STEPS := Vector2i(1, 2)       # how many steps round a shift turns it (1 = 45°, 2 = 90°)
 const SHIFT_TIME := Vector2(3.0, 5.0)     # how many seconds a shift takes

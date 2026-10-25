@@ -1,10 +1,12 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cw2t2edse5qr"]
 
-[ext_resource type="Script" path="res://Assets/Landscape/pier/pier.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://eo2j03np3641" path="res://Assets/Landscape/pier/pier.gd" id="1_script"]
 [ext_resource type="Shader" uid="uid://cun5pmnoonaa0" path="res://Assets/Boat/toon_shade.gdshader" id="2_toon"]
 
 [sub_resource type="ShaderMaterial" id="Mat_wood"]
+render_priority = 0
 shader = ExtResource("2_toon")
+shader_parameter/ambient = 0.45
 shader_parameter/base_color = Color(0.55, 0.45, 0.35, 1)
 
 [sub_resource type="BoxMesh" id="Mesh_pier"]
@@ -16,21 +18,26 @@ resource_local_to_scene = true
 height = 4.0
 radius = 8.0
 
-[node name="Pier" type="Node3D"]
+[node name="Pier" type="Node3D" unique_id=96918305]
 script = ExtResource("1_script")
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=1279416756]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 cast_shadow = 0
 mesh = SubResource("Mesh_pier")
 
-[node name="Berth" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0, 0)
+[node name="Mesh2" type="MeshInstance3D" parent="." unique_id=1915564569]
+transform = Transform3D(-4.371139e-08, 0, 0.45870185, 0, 1, 0, -1, 0, -2.0050495e-08, 0, 0.2, -4.6470985)
+cast_shadow = 0
+mesh = SubResource("Mesh_pier")
 
-[node name="Sensor" type="Area3D" parent="Berth"]
+[node name="Berth" type="Node3D" parent="." unique_id=73855597]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.38483548, 0, -6.9479837)
+
+[node name="Sensor" type="Area3D" parent="Berth" unique_id=670060891]
 collision_layer = 0
 collision_mask = 8
 monitorable = false
 
-[node name="Shape" type="CollisionShape3D" parent="Berth/Sensor"]
+[node name="Shape" type="CollisionShape3D" parent="Berth/Sensor" unique_id=1616833297]
 shape = SubResource("Shape_sensor")

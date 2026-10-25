@@ -23,6 +23,13 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="27_35spf"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="28_f8m4f"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_flrxc"]
+shading_mode = 0
+albedo_color = Color(0.13319641, 0.13319641, 0.13319638, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8ksrx"]
+size = Vector3(1, 0.38684082, 1)
+
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
 [node name="Core" type="Node" parent="." unique_id=70268906]
@@ -196,7 +203,7 @@ transform = Transform3D(-0.5197628, 0, 0.8543106, 0, 1, 0, -0.8543106, 0, -0.519
 transform = Transform3D(0.9992119, 0, 0.039690435, 0, 1, 0, -0.039690435, 0, 0.9992119, 151.51482, 1.5258789e-05, -90.99428)
 
 [node name="sm_island_02_a21" parent="Gameplay/Islands" unique_id=1011783737 instance=ExtResource("14_663nb")]
-transform = Transform3D(-0.95786726, 0, -0.28721118, 0, 1, 0, 0.28721118, 0, -0.95786726, 150.76392, 3.0517578e-05, -114.31309)
+transform = Transform3D(-0.75312567, 0, -0.6578768, 0, 1, 0, 0.6578768, 0, -0.75312567, 145.85718, 3.0517578e-05, -113.68326)
 
 [node name="sm_island_02_a22" parent="Gameplay/Islands" unique_id=1540632884 instance=ExtResource("14_663nb")]
 transform = Transform3D(0.21389288, 0, 0.976857, 0, 1, 0, -0.976857, 0, 0.21389288, 126.64889, 3.0517578e-05, -153.77785)
@@ -241,3 +248,8 @@ script = ExtResource("21_uvb2l")
 [node name="BombButton" parent="UI and PostProcess" unique_id=1236485803 instance=ExtResource("27_35spf")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("28_f8m4f")]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=62666018]
+transform = Transform3D(48.513165, -3.7141132, 1.667418, 7.1925955, 26.730911, 0, -12.561986, 0.9617315, 6.4394054, 14.97052, 23.414318, 58.386005)
+material_override = SubResource("StandardMaterial3D_flrxc")
+mesh = SubResource("BoxMesh_8ksrx")

@@ -12,7 +12,7 @@ extends MeshInstance3D
 ## It's made here in code (and not as a node in the scene) so it doesn't cover the editor's view.
 
 # The sea texture follows the wind (Wind.from_deg), a little late.
-@export var follow_time := 5        # seconds: how late the texture turns after the wind
+@export var follow_time := 0        # seconds: how late the texture turns after the wind
 # The drawing points to its RIGHT: that's the way the wind blows in it. With the wind blowing toward the east
 # (coming from the west, Wind.from_deg = 270) the drawing isn't turned at all; for any other wind it's turned by
 # the difference. That's what the 90 below does: 270 + 90 = 360 = no turn.
