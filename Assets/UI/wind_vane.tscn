@@ -1,11 +1,12 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bhqupmdfm8my"]
 
-[ext_resource type="Script" path="res://Assets/UI/wind_vane.gd" id="1_vane"]
+[ext_resource type="Script" uid="uid://i05lxe1da0dr" path="res://Assets/UI/wind_vane.gd" id="1_vane"]
 
-[node name="WindVane" type="CanvasLayer" groups=["hidden_while_talking"]]
+[node name="WindVane" type="CanvasLayer" unique_id=1870220155 groups=["hidden_while_talking"]]
 layer = 110
 
-[node name="Dial" type="Control" parent="."]
+[node name="Dial" type="Control" parent="." unique_id=125655127]
+layout_mode = 3
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0

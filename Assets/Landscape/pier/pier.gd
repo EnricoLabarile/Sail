@@ -15,7 +15,7 @@ extends Node3D
 ## (In Unreal: an actor with a Static Mesh, a Scene Component as the parking spot and a trigger round it.)
 
 ## Metres round the berth within which the boat ties up.
-@export var dock_radius := 8.0:
+@export var dock_radius := 8:
 	set(value):
 		dock_radius = value
 		_fit_sensor()

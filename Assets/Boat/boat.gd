@@ -39,7 +39,7 @@ extends Node3D
 # Casting off (Enrico): so the wind can't pin her against the shore by the pier, for a moment after she leaves it
 # the wind and the current don't touch her, and she gets a push forward (her bow points the way the berth does).
 @export var cast_off_calm_time := 3.0   # seconds after casting off with no wind and no current
-@export var cast_off_push := 5.0        # m/s of way she's given as she leaves (it fades as she slows down)
+@export var cast_off_push := 10        # m/s of way she's given as she leaves (it fades as she slows down)
 
 # How she leans and pitches: not straight to where she should be, but like a weight on a spring, so she
 # swings a little past it and settles (the prototype's damped springs). This is what makes her feel alive.
