@@ -320,10 +320,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   **The book itself is not redrawn every frame** (Enrico): `logbook.gd` calls `book.refresh()` on opening, which reads
   the square once; after that it's drawn again only while the cover turns (`unfold`'s setter).
 - **The inventory** (`Inventory` autoload, `Assets/Inventory/inventory.gd`, data only; the logbook draws it; icons in
-  `Assets/Inventory/icons/`: `fish.png`, `bomb.png`, `trap.png`, `imp.png`, stand-ins): `SLOTS` 9; an item is its name;
-  `items` one entry per thing; `STACKABLE` (`bomb`, `trap`) pile up in ONE slot; `slots()` gives the slots as
+  `Assets/Inventory/icons/`: `fish.png`, `bomb.png`, `trap.png`, `imp.png`, stand-ins): `SLOTS` 9; an item is its name
+  (its ItemData, see Items); `items` one entry per thing; stackable ones (`bomb`, `trap`) pile up in ONE slot; `slots()` gives the slots as
   `{item, count}`; `add(item, count)` (as many as fit: a stackable already aboard needs no slot), `remove`, `count`,
-  `is_full`; signal `changed`. **Equipping** (Enrico): `EQUIPPABLE` (`bomb`, `trap`), one at a time, `equipped` ("" =
+  `is_full`; signal `changed`. **Equipping** (Enrico): equippable ones (`bomb`, `trap`), one at a time, `equipped` ("" =
   none), `toggle_equip(item)` (tap again = unequip; the last one spent unequips), signal `equipped_changed`.
   `START_ITEMS` {bomb: 9, trap: 9} (Enrico, to try them). A captured imp is `"imp"` (one slot).
 - **Health** (Enrico, the prototype's hull as Zelda's hearts): on the boat (`boat.gd`): `max_hearts` 3, `health` in hearts
@@ -427,6 +427,26 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (`drift_amount` back to 0, so it eases in again after), and her speed is set to `cast_off_push` 5 m/s forward (it
   fades at `accel`, ~7.5 m in the 3 s); she can steer meanwhile. She ties up again only after leaving the
   sensor and coming back (it's `area_entered`). `respawn()` clears `berth`.
+- **Items** (`Assets/Inventory/item_data.gd`, `class_name ItemData`, a Resource = a Data Asset): one `.tres` per kind
+  in `Assets/Inventory/items/` (`fish`, `bomb`, `trap`, `imp`): `id` (the name the code uses), `display_name`, `icon`,
+  `buy_price` (what a merchant asks; fish 4, bomb 5, trap 6, imp 0 = not sold), `sell_price` (what a merchant pays;
+  fish 2, bomb 2, trap 3, imp 15; 0 = not bought), `stackable`, `equippable`. The `Inventory` reads the folder at start
+  (`load_catalogue`, `ResourceLoader.list_directory`) into `catalogue`; `data(id)`, `icon_of`, `is_stackable`,
+  `is_equippable` replace the old ICONS / STACKABLE / EQUIPPABLE lists. A new kind of item = a new `.tres`. **The purse**:
+  `Inventory.coins` (`START_COINS` 0, `add_coins`; no slot), shown in the logbook's Cargo heading ("n coins  2/9";
+  0 in the editor, where the Inventory doesn't run). `slots_of(list)` works out the slots of any list (a trade's result).
+- **Stores** (Enrico; `Assets/Landscape/store/`: `store.tscn` + `store.gd`, `store_counter.tscn` + `.gd`; for now one in
+  `Gym_Store`, a copy of Gym_SeaImp without imps, at (−9.5, 0, 108) north of the boat): `Pier` (an instance of
+  `pier.tscn`, its docking as any pier; `pier.gd` now sends `docked(boat)` once she's tied up), `Building` (a
+  placeholder box), `StoreCounter`. Inspector: `merchant_name`, `for_sale` (`Array[ItemData]`: drag in .tres files),
+  `stock` (−1 = no limit, else how many of each; `sold` counts). Docked → the counter **opens by itself** (Enrico).
+  **The counter** (CanvasLayer 115, crisp; a card 340 × 460 like the start screen's): "Your hold" (piles, `x3 2c` =
+  three, 2 coins each; greyed if `sell_price` 0) and "For sale" (`goods_left`), a tap moves one to "You give" /
+  "You take" under them, a tap there puts it back; the purse; the balance (given × sell − taken × buy: "You get n
+  coins" / "You pay n coins" / "Even trade") or why not ("Tap things…", "Not enough coins", "No room in the hold":
+  `hold_after()` through `slots_of`); **Quit** / **Trade** (moves the items, settles the purse, `sold_one`), both
+  close it and leave her tied up (she leaves with the anchor as at any pier; it opens again only on docking again).
+  While open: the groups `hidden_while_talking` and `hidden_at_start` and the helm hidden, `boat.talking` true (no anchor).
 - **Bombs** (Enrico; `Assets/Items/bomb/`: `bomb.tscn` + `bomb.gd`, `bomb.png` a 2 × 1 sheet (dark, fuse lit), stand-in;
   the button `Assets/UI/bomb_button/`: `bomb_button.tscn` (CanvasLayer 95, in `DITHERED`; Control `Button` bottom right,
   80 px, where the slingshot was) + `bomb_button.gd` (`@tool`)): the button shows only while a bomb is equipped; a tap

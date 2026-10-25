@@ -14,6 +14,9 @@ extends Node3D
 ## In the editor a see-through blue disc shows the radius, and an arrow on the berth shows her heading.
 ## (In Unreal: an actor with a Static Mesh, a Scene Component as the parking spot and a trigger round it.)
 
+## Sent when the boat has tied up here (a store listens, to open its counter: Assets/Landscape/store).
+signal docked(boat: Node3D)
+
 ## Metres round the berth within which the boat ties up.
 @export var dock_radius := 8:
 	set(value):
@@ -49,6 +52,8 @@ func _on_sensor_entered(area: Area3D) -> void:
 	if boat.anchored:
 		return
 	boat.dock_at(berth)
+	if boat.berth == berth:          # she really tied up here (dock_at says no while she's sinking, say)
+		docked.emit(boat)
 
 
 # ---------- In the editor only: the radius and the berth's heading ----------

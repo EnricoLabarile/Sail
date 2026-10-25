@@ -265,7 +265,9 @@ func _draw_hold(area: Rect2) -> void:
 	# The heading, just above the grid: the title on the left, the count on the right.
 	var used := _slots.size()
 	_half_text(Vector2(left, top - 7.0), "Cargo", 13, INK, HORIZONTAL_ALIGNMENT_LEFT)
-	_half_text(Vector2(left + grid_w, top - 7.0), str(Inventory.coins) + " coins   " + str(used) + "/" + str(_slot_count), 10, Color(INK, 0.8), HORIZONTAL_ALIGNMENT_RIGHT)
+	# The purse too (in the editor the Inventory isn't running: 0).
+	var coins: int = 0 if Engine.is_editor_hint() else Inventory.coins
+	_half_text(Vector2(left + grid_w, top - 7.0), str(coins) + " coins   " + str(used) + "/" + str(_slot_count), 10, Color(INK, 0.8), HORIZONTAL_ALIGNMENT_RIGHT)
 
 	# The slots, row by row. Their places are kept in _slot_rects, for the taps (_gui_input).
 	_slot_rects.clear()
