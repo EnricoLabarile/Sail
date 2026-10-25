@@ -137,6 +137,7 @@ var anchored := true   # she starts at anchor: hold the wheel's hub (or press Sp
 var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +1 full to starboard (right)
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
 var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her motion
+var whirl_pull := Vector3.ZERO   # the maelstroms' pull this frame (m/s, toward their eye): added to her motion
 var drift_amount := 0.0     # 0..1: how much the current has her (eases in and out, see current_ease)
 var bump_wait := 0.0        # seconds left before another bump can count
 var heel := 0.0             # how far she leans with the wind (radians), without the waves' roll
@@ -422,7 +423,7 @@ func _physics_process(dt: float) -> void:
 	in_shallows = Land.distance_to_shore(global_position) < shallows_width
 	if in_shallows:
 		drive *= shallows_sail
-
+		
 	# speed eases toward what the sail gives; the anchor takes her way off quickly
 	var target := top_speed * drive
 	var rate := anchor_bite if anchored else accel
@@ -632,7 +633,7 @@ func move_and_bounce(dt: float) -> void:
 
 	var fwd := -global_transform.basis.z
 	var own_way := fwd * speed                           # her own way, from the sail
-	var velocity := own_way + knock + drift              # how she's moving now, in m/s (her way + a bump's push + the current)
+	var velocity := own_way + knock + drift + whirl_pull   # her way + a bump's push + the current + the whirlpools' pull
 	var next := global_position + velocity * dt          # where she would be
 	var next_bow := next + fwd * bow_reach               # where her bow would be
 
@@ -659,6 +660,8 @@ func move_and_bounce(dt: float) -> void:
 	var into := -own_way.dot(out)                        # how fast her own way goes INTO the shore (m/s)
 	if into > 0.0:
 		bump(out, into)
+		
+		whirl_pull = Vector3.ZERO        # used: each maelstrom adds its pull again next frame
 
 
 ## The current: the Wind autoload's (Wind.current(): downwind, at its CURRENT_SPEED). On her it eases in at the

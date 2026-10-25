@@ -32,7 +32,7 @@
 [node name="Node3D" type="Node3D" unique_id=1254907948]
 
 [node name="Sea" parent="." unique_id=1750240136 instance=ExtResource("1_sea")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11217594, 0.08686733, -0.18092918)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26995945, 0.0868597, -0.12084007)
 fog_falloff = 3.0
 
 [node name="Coast" type="Node3D" parent="." unique_id=2108873514]
@@ -199,4 +199,4 @@ Not all of them are fish."])
 script = ExtResource("34_shore_baker")
 
 [node name="Maelstrom" parent="." unique_id=455210000 instance=ExtResource("28_ubo31")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -105.46256, 0, -25.500183)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -124.03313, 0, -16.866133)
