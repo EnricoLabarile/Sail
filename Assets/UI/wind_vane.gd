@@ -96,12 +96,17 @@ func _draw() -> void:
 	var at := on_circle(c, r, wind_on_ring)
 	var inward := (c - at).normalized()
 	var side := Vector2(-inward.y, inward.x)
-	draw_circle(at, 7.5, PAPER)
-	draw_arc(at, 7.5, 0.0, TAU, 24, INK, 1.5)
+	# In the bad-wind zone the badge's colours flip (Enrico): an ink disc with a paper arrow, so you see at once
+	# that the sail gives little from there. Elsewhere a paper disc with an ink arrow.
+	var in_bad_wind := drive_at(absf(wrapf(wind_on_ring, -180.0, 180.0))) < poor_drive
+	var disc := INK if in_bad_wind else PAPER
+	var mark := PAPER if in_bad_wind else INK
+	draw_circle(at, 7.5, disc)
+	draw_arc(at, 7.5, 0.0, TAU, 24, mark, 1.5)
 	var tip := at + inward * 4.5
 	var tail := at - inward * 4.5
-	draw_line(tail, tip - inward * 2.0, INK, 2.0)
-	draw_colored_polygon(PackedVector2Array([tip, tip - inward * 4.0 + side * 3.5, tip - inward * 4.0 - side * 3.5]), INK)
+	draw_line(tail, tip - inward * 2.0, mark, 2.0)
+	draw_colored_polygon(PackedVector2Array([tip, tip - inward * 4.0 + side * 3.5, tip - inward * 4.0 - side * 3.5]), mark)
 
 
 ## A thick ink arc on the ring from `from_deg` to `to_deg` (clockwise from the top; draw_arc itself counts from

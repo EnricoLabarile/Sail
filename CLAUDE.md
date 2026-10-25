@@ -282,7 +282,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   boat in the middle always bow up; a thin ink ring round her, **thick ink where the wind is bad** (where the sail gives
   less than `poor_drive` 0.5 of its best, read from the boat's own `POLAR` via `BOAT_SCRIPT`, so it follows the curve:
   `_thick_arc` per stretch); the **wind badge** on the ring where the wind comes from seen from her (`wind_on_ring` =
-  `Wind.from_deg` − her compass heading; 0 = on the bow), a paper disc with an ink arrow pointing in. Redrawn only
+  `Wind.from_deg` − her compass heading; 0 = on the bow), a paper disc with an ink arrow pointing in, **flipped (ink disc, paper arrow) while the wind is in the bad zone**
+  (Enrico). Redrawn only
   when the badge moves by 0.5° or more.
 - **The logbook** (`Assets/UI/logbook/`: `logbook.tscn` + `logbook.gd`, `book_icon.gd`, `book.gd`; in Overworld): as the
   prototype's. The button bottom left (76 px, drawn in greys on a CanvasLayer under the dither, 95, so it's 1-bit) emits
