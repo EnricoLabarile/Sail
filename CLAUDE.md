@@ -343,9 +343,12 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   render_priority 1, a 1 m plane scaled to `lurk_size` 10.8 m: Enrico, 3 times the first 3.6). `State`: **LURKING** at
   its own place (only the patch, like a fishing spot) → the boat within `wake_radius` 10 m → **EMERGING** (`emerge_time`
   1.5 s: only the patch, where it will come up: the warning) → **UP** (the imp; `idle_before_spit` 1 s, spits,
-  `idle_after_spit` 1 s) → **UNDER** (`under_time` 3 s, invisible, out of reach) → EMERGING again at a new spot
+  `idle_after_spit` 1 s) → **UNDER** (the imp invisible, out of reach; **its patch swims**, Enrico: `swim()`, from where it
+  dived straight to the next spot at a steady `swim_speed` 6 m/s, `move_toward`; the spot, `swim_target`, is chosen the
+  first frame under, retried each frame until one fits) → EMERGING at that spot
   (`find_spot_in_view`: a random point of the screen within `screen_margin` 0.12 of the edges, followed down the boat
-  camera's line of sight to the water, `spawn_distance_min/max` 6–18 m from her, **downwind of her** (Enrico: the line
+  camera's line of sight to the water, `spawn_distance_min/max` 6–18 m from her, **downwind of her** while
+  `downwind_only` (on; off = anywhere on the screen, Enrico, to compare) (Enrico: the line
   through her across the wind splits the screen, it only comes up on the side the wind blows toward, so a bomb drifts
   to it; `is_downwind`, dot with −`Wind.from_vector()` > 0), not land; 20 tries a frame). The first
   time it comes up where it lurked. Back to LURKING (at its place) when she's more than `radius` 40 m from it, or sinks.

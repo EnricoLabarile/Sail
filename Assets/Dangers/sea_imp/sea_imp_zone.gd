@@ -6,7 +6,8 @@ extends Node3D
 ##      the player can see it coming and react;
 ##   2. UP: the imp itself shows (sea_imp.png); it waits `idle_before_spit` 1 s, spits a fireball at where the
 ##      boat will be (1 heart if it hits), waits `idle_after_spit` 1 s more…
-##   3. …and disappears: UNDER for `under_time` 3 s, invisible and out of reach;
+##   3. …and dives: UNDER, the imp invisible and out of reach, but its patch of dark water SWIMS (Enrico), at
+##      `swim_speed`, from where it went under to where it will come up next, so the player sees it coming;
 ##   4. then it emerges again somewhere else, a spot of open water that's in view (on the screen), and so on.
 ## It goes back to lurking at its own place when the boat is more than `radius` from it (she got away), or sinks.
 ##
@@ -37,7 +38,10 @@ const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 @export var emerge_time := 2             # seconds the patch shows before it comes up (the warning)
 @export var idle_before_spit := 1.5        # seconds up before it spits
 @export var idle_after_spit := 3         # seconds up after spitting, before it disappears
-@export var under_time := 3.0              # seconds under (invisible, out of reach) before it emerges again
+@export var swim_speed := 6.0              # m/s its patch swims under water to the next spot (Enrico: a steady speed)
+## Where it may come up again (Enrico, to compare how the fight feels): on = only downwind of the boat (a bomb
+## drifts to it); off = anywhere on the screen.
+@export var downwind_only := true
 @export var spawn_distance_min := 6.0      # metres from the boat it may come up (nearest…
 @export var spawn_distance_max := 18.0     # …furthest), always on water and in view
 @export var screen_margin := 0.12          # how far in from the screen's edges it comes up (a share of the screen)
@@ -56,6 +60,7 @@ var state := State.LURKING
 var time := 0.0            # seconds in the current state
 var has_spat := false      # has it spat since it came up?
 var hearts := 3.0          # hearts it has left
+var swim_target: Variant = null   # under water: the spot it's swimming to (null = not chosen yet)
 
 @onready var imp: MeshInstance3D = $Imp
 @onready var patch: MeshInstance3D = $Patch
@@ -112,10 +117,7 @@ func _process(dt: float) -> void:
 			if time >= hurt_time:
 				go_under()                                 # done blinking: it vanishes under
 		State.UNDER:
-			if time >= under_time:
-				var spot = find_spot_in_view(boat)
-				if spot != null:
-					emerge_at(spot)                        # (none found this frame: it tries again next frame)
+			swim(boat, dt)
 
 
 # ---- the states ----
@@ -148,12 +150,15 @@ func come_up() -> void:
 	imp.visible = true
 
 
-## Gone under: invisible and out of reach for under_time seconds.
+## Gone under: the imp invisible and out of reach; its patch stays where it dived, and from the next frame it
+## swims to where it will come up (swim()).
 func go_under() -> void:
 	state = State.UNDER
 	time = 0.0
 	imp.visible = false
-	patch.visible = false
+	patch.visible = true
+	patch.global_position = Vector3(imp.global_position.x, 0.05, imp.global_position.z)
+	swim_target = null
 
 
 ## Hit (with hearts left): it stays up, harmless, blinking black for hurt_time seconds, then goes under.
@@ -175,6 +180,21 @@ func defeat() -> void:
 
 # ---- what it does ----
 
+## Under water, every frame: choose where to come up (once), then the patch swims straight there at
+## swim_speed; when it arrives, the warning starts there (emerge_at) and the imp comes up as before.
+func swim(boat: Node3D, dt: float) -> void:
+	if swim_target == null:
+		swim_target = find_spot_in_view(boat)
+		if swim_target == null:
+			return                                 # no good spot this frame: wait where it is, try again next frame
+	var target: Vector3 = swim_target
+	var here := patch.global_position
+	var goal := Vector3(target.x, here.y, target.z)
+	# move_toward: a step of swim_speed × dt toward the goal, never past it (like VInterpConstantTo in Unreal).
+	patch.global_position = here.move_toward(goal, swim_speed * dt)
+	if patch.global_position.distance_to(goal) < 0.01:
+		emerge_at(target)
+
 ## Spits a fireball at where the boat will be `aim_ahead` seconds from now (if she keeps going as she is).
 func spit(boat: Node3D) -> void:
 	var forward: Vector3 = -boat.global_transform.basis.z
@@ -186,7 +206,7 @@ func spit(boat: Node3D) -> void:
 
 
 ## A spot of open water to come up at: on the screen (not too near its edges), between spawn_distance_min and
-## spawn_distance_max from the boat, and DOWNWIND of her (Enrico): a line through the boat across the wind splits
+## spawn_distance_max from the boat, and (with downwind_only on) DOWNWIND of her (Enrico): a line through the boat across the wind splits
 ## the screen in two, and it only comes up on the side the wind blows toward, so a bomb dropped off her bow drifts
 ## with the current toward it (never upwind, where she'd have to beat into the wind to reach it). Up to 20 tries: a random point of the screen, followed down along the
 ## camera's line of sight to the water (like a mouse click turned into a point on the ground). Null if none fits.
@@ -206,8 +226,8 @@ func find_spot_in_view(boat: Node3D) -> Variant:
 		var distance := distance_to(boat, spot)
 		if distance < spawn_distance_min or distance > spawn_distance_max:
 			continue                                      # too near her or too far
-		if not is_downwind(boat, spot):
-			continue                                      # on the upwind side of the line: not there
+		if downwind_only and not is_downwind(boat, spot):
+			continue                                      # on the upwind side of the line: not there (if downwind_only)
 		if Land.is_land(spot):
 			continue                                      # on land
 		return spot
