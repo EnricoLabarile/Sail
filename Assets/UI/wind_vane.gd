@@ -1,62 +1,110 @@
 @tool
 extends Control
-## The wind indicator, top right: a paper dial with north at the top (the camera never turns, so the
-## screen's up is always north). The ink arrow flies the way the wind blows, its feathered tail on
-## the side the wind comes from; the small hollow triangle on the rim is where the bow points, so the
-## angle between them tells you how she sails. It reads the boat's wind every frame, so it follows any
-## change of wind (it shifts now and then, see Wind). (Like a UMG widget that reads a value from the pawn on tick.)
+## The wind indicator, top right, as in Valheim (Enrico): it turns with the boat, not with the map.
+##   - In the middle the boat, always pointing up (her bow is the top of the dial).
+##   - Round her a ring. Its thick ink stretches are where the wind is bad for sailing: if the wind comes from
+##     there, the sail gives less than `poor_drive` of its best (worked out from the boat's curve, POLAR in
+##     boat.gd, so it follows any change to it). For this boat that's right ahead and a little either side.
+##   - On the ring, the wind: a little badge with an arrow pointing in, sitting where the wind comes FROM,
+##     seen from the boat. Steer, and it slides round the ring; keep it off the thick ink to sail well.
+## It's redrawn only when the wind's place on the ring moves (by half a degree or more).
+## (Like a UMG widget that reads a value from the pawn on tick.)
 ## @tool: the script also runs in the editor, so it's drawn there too and you can place and size it yourself
-## (like a Blueprint's construction script). In the editor it only draws: it doesn't react or read the game.
+## (like a Blueprint's construction script). In the editor it only draws: the wind from behind on the left.
 
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
+## The boat's script, only to read its sailing curve (POLAR: [degrees off the wind, share of top speed]).
+const BOAT_SCRIPT := preload("res://Assets/Boat/boat.gd")
 
-var wind_deg := 0.0      # where the wind blows from (0 = north, 90 = east)
-var heading := Vector2.UP
+@export var poor_drive := 0.5    # below this share of the sail's best, the ring is drawn thick (bad wind)
+
+var wind_on_ring := 215.0        # where the wind comes from, seen from the boat: 0 = dead ahead, 90 = from the right
+
 
 func _process(_dt: float) -> void:
 	if Engine.is_editor_hint():
-		return                       # in the editor: only the drawing (the wind from the north)
+		return                       # in the editor: only the drawing
 	var b := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if b == null:
 		return
+	# The way her bow points, as a compass angle (0 = north, 90 = east): Godot's forward is -Z, north is -Z.
 	var fwd := -b.global_transform.basis.z
-	var h := Vector2(fwd.x, fwd.z).normalized()           # world +x = screen right, world +z = screen down
-	var w: float = Wind.from_deg
-	if absf(w - wind_deg) > 0.2 or h.distance_to(heading) > 0.01:
-		wind_deg = w
-		heading = h
+	var heading_deg := rad_to_deg(atan2(fwd.x, -fwd.z))
+	# The wind's direction minus hers = where it comes from, seen from her (0 = on the bow, 180 = astern).
+	var angle := wrapf(Wind.from_deg - heading_deg, 0.0, 360.0)
+	if absf(wrapf(angle - wind_on_ring, -180.0, 180.0)) > 0.5:
+		wind_on_ring = angle
 		queue_redraw()
+
+
+## How much the sail gives with the wind `off_deg` degrees off the bow (0..180): the boat's own curve.
+func drive_at(off_deg: float) -> float:
+	var curve: Array = BOAT_SCRIPT.POLAR
+	for i in range(1, curve.size()):
+		if off_deg <= curve[i][0]:
+			var a = curve[i - 1]
+			var b = curve[i]
+			return lerpf(a[1], b[1], (off_deg - a[0]) / (b[0] - a[0]))
+	return curve[-1][1]
+
+
+## A point on a circle of radius r round c, at `deg` degrees clockwise from the top.
+func on_circle(c: Vector2, r: float, deg: float) -> Vector2:
+	var a := deg_to_rad(deg)
+	return c + Vector2(sin(a), -cos(a)) * r
+
 
 func _draw() -> void:
 	var c := size * 0.5
-	var r := minf(size.x, size.y) * 0.5 - 2.0
-	# the dial
-	draw_circle(c, r, INK)
-	draw_circle(c, r - 2.5, PAPER)
-	for i in 8:                                             # ticks, longer at N E S W
-		var a := i * TAU / 8.0
-		var d := Vector2(sin(a), -cos(a))
-		var l := 6.0 if i % 2 == 0 else 3.0
-		draw_line(c + d * (r - 3.0), c + d * (r - 3.0 - l), INK, 1.5)
-	# N at the top
-	var f := get_theme_default_font()
-	draw_string(f, c + Vector2(-4.0, -r + 18.0), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, INK)
-	# the wind: from its side toward the other
-	var from := Vector2(sin(deg_to_rad(wind_deg)), -cos(deg_to_rad(wind_deg)))
-	var arm := r * 0.62
-	var tail := c + from * arm
-	var tip := c - from * arm
-	var side := Vector2(-from.y, from.x)
-	draw_line(tail, tip + from * 6.0, INK, 3.0)
-	draw_colored_polygon(PackedVector2Array([tip, tip + from * 10.0 + side * 6.0, tip + from * 10.0 - side * 6.0]), INK)
-	for k in 2:                                             # two feathers at the tail
-		var p := tail - from * (k * 5.0)
-		draw_line(p, p + from * 5.0 + side * 5.0, INK, 2.0)
-		draw_line(p, p + from * 5.0 - side * 5.0, INK, 2.0)
-	# the bow: a hollow triangle on the rim
-	var hp := c + heading * (r - 2.0)
-	var hs := Vector2(-heading.y, heading.x)
-	var tri := PackedVector2Array([hp + heading * 5.0, hp - heading * 5.0 + hs * 5.0, hp - heading * 5.0 - hs * 5.0])
-	draw_colored_polygon(tri, PAPER)
-	draw_polyline(PackedVector2Array([tri[0], tri[1], tri[2], tri[0]]), INK, 1.5)
+	var r := minf(size.x, size.y) * 0.5 - 8.0      # the ring (room outside it for the wind badge)
+
+	# 1. A paper disc behind, so it reads on any sea, and the thin ring.
+	draw_circle(c, r + 6.0, PAPER)
+	draw_arc(c, r, 0.0, TAU, 64, INK, 1.5)
+
+	# 2. The bad-wind stretches, in thick ink. Going round the ring a degree at a time, a stretch starts where the
+	#    sail starts giving too little and ends where it's good again; each stretch is drawn as one arc.
+	var in_stretch := false                               # are we inside a bad stretch now?
+	var stretch_start := 0                                # if so, where it began (degrees)
+	for deg in range(-180, 181):
+		var poor := drive_at(absf(deg)) < poor_drive      # absf: the same either side of the bow
+		if poor and not in_stretch:                       # a bad stretch begins here
+			in_stretch = true
+			stretch_start = deg
+		var ends_here := in_stretch and (not poor or deg == 180)
+		if ends_here:                                     # …and ends here: draw it
+			_thick_arc(c, r, stretch_start, deg)
+			in_stretch = false
+
+	# 3. The boat in the middle, bow up: a pointed hull in ink with a paper line down her middle.
+	var hull := PackedVector2Array()
+	var length := r * 0.62
+	var beam := r * 0.22
+	# t goes from 0 (the bow, at the top) to 1 (the stern): her half-width is beam × sin(PI × t), so 0 at both
+	# ends and widest in the middle (a leaf shape, like Valheim's).
+	for i in 13:                                    # the right side, bow to stern…
+		var t := i / 12.0
+		hull.append(c + Vector2(beam * sin(PI * t), -length + 2.0 * length * t))
+	for i in range(12, -1, -1):                     # …then the left side, stern back to bow
+		var t := i / 12.0
+		hull.append(c + Vector2(-beam * sin(PI * t), -length + 2.0 * length * t))
+	draw_colored_polygon(hull, INK)
+	draw_line(c + Vector2(0.0, -length * 0.55), c + Vector2(0.0, length * 0.6), PAPER, 1.0)
+
+	# 4. The wind: a badge on the ring where it comes from, with an arrow pointing in (the way it blows).
+	var at := on_circle(c, r, wind_on_ring)
+	var inward := (c - at).normalized()
+	var side := Vector2(-inward.y, inward.x)
+	draw_circle(at, 7.5, PAPER)
+	draw_arc(at, 7.5, 0.0, TAU, 24, INK, 1.5)
+	var tip := at + inward * 4.5
+	var tail := at - inward * 4.5
+	draw_line(tail, tip - inward * 2.0, INK, 2.0)
+	draw_colored_polygon(PackedVector2Array([tip, tip - inward * 4.0 + side * 3.5, tip - inward * 4.0 - side * 3.5]), INK)
+
+
+## A thick ink arc on the ring from `from_deg` to `to_deg` (clockwise from the top; draw_arc itself counts from
+## the right, hence the - 90).
+func _thick_arc(c: Vector2, r: float, from_deg: float, to_deg: float) -> void:
+	draw_arc(c, r, deg_to_rad(from_deg - 90.0), deg_to_rad(to_deg - 90.0), 24, INK, 5.0)
