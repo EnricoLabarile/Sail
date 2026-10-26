@@ -14,7 +14,7 @@ extends Node3D
 
 var velocity := Vector3.ZERO   # metres a second, across the water (set by launch)
 var damage := 1.0              # hearts it takes off the boat when it hits
-var hit_radius := 1.3          # metres: this close to the boat's middle, it hits her
+var hit_radius := 5          # metres: this close to the boat's middle, it hits her
 var life := 3.0                # seconds before it's gone, hit or not
 var time := 0.0                # seconds since it was spat
 

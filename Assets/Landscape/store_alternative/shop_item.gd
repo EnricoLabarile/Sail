@@ -3,8 +3,8 @@ extends Node3D
 ## paper disc, floating and bobbing on the water. The boat sails over it (its Sensor, an Area3D like a Trigger
 ## Volume, feels her SpotSensor): the shop decides whether she gets it (try_buy) or bounces off.
 
-@export var bob_height := 0.08   # metres it bobs up and down
-@export var bob_speed := 2.0     # how fast
+@export var bob_height := 0.1   # metres it bobs up and down
+@export var bob_speed := 8     # how fast
 
 var item := ""                   # the item's id ("bomb"…)
 var price := 0                   # coins it costs (its ItemData buy_price)

@@ -21,7 +21,7 @@ extends Node3D
 	set(value):
 		greet_radius = value
 		_fit_greet_area()
-@export var pickup_radius := 2.4               # metres from a thing her middle must come to take it (or bounce)
+@export var pickup_radius := 5               # metres from a thing her middle must come to take it (or bounce)
 @export var bounce_push := 12.0                # m/s she's pushed back off a thing she can't take (was 6, Enrico: more)
 @export var line_time := 3.0                   # seconds a line stays in the bubble
 @export var coin_count_time := 0.6             # seconds the purse on screen takes to count down to what's left after a buy

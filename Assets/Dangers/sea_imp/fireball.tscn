@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dyi5q3nwcwb67"]
 
-[ext_resource type="Script" path="res://Assets/Dangers/sea_imp/fireball.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://b6y30k6vmpqia" path="res://Assets/Dangers/sea_imp/fireball.gd" id="1_script"]
 [ext_resource type="Shader" uid="uid://dwxakh3cdbnlq" path="res://Assets/Boat/projectile/stone.gdshader" id="2_shader"]
-[ext_resource type="Texture2D" path="res://Assets/Dangers/sea_imp/fireball.png" id="3_sheet"]
+[ext_resource type="Texture2D" uid="uid://tcm44edwccrd" path="res://Assets/Dangers/sea_imp/fireball.png" id="3_sheet"]
 
 [sub_resource type="ShaderMaterial" id="Mat_fireball"]
 render_priority = 2
@@ -15,10 +15,10 @@ shader_parameter/frame = 0
 [sub_resource type="QuadMesh" id="Mesh_fireball"]
 size = Vector2(1.2, 1.2)
 
-[node name="Fireball" type="Node3D"]
+[node name="Fireball" type="Node3D" unique_id=1679490105]
 script = ExtResource("1_script")
 
-[node name="Picture" type="MeshInstance3D" parent="."]
+[node name="Picture" type="MeshInstance3D" parent="." unique_id=1783977203]
+material_override = SubResource("Mat_fireball")
 cast_shadow = 0
 mesh = SubResource("Mesh_fireball")
-material_override = SubResource("Mat_fireball")
