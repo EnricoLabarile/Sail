@@ -25,7 +25,7 @@ extends MeshInstance3D
 		shore_texture = value
 		use_shore_picture()          # the waves follow at once, in the editor too
 # Untick to hide the shore waves (handy while placing islands: the old waves don't get in the way). Only the look:
-# Land keeps reading the picture (the shallows still work in the game).
+# Land keeps reading the picture (the shallows still work in the game), and the deep water stays.
 @export var show_shore_waves := true:
 	set(value):
 		show_shore_waves = value
@@ -59,11 +59,10 @@ func use_shore_picture() -> void:
 		return                       # the scene is still loading (the setter can run before the mesh is there)
 	if sea_material == null:
 		sea_material = mesh.material.duplicate()
-	# No picture (null) = the shader's default white = far from every coast everywhere: no waves.
-	if show_shore_waves:
-		sea_material.set_shader_parameter("shore_tex", shore_texture)
-	else:
-		sea_material.set_shader_parameter("shore_tex", null)
+	# No picture (null) = the shader's default white = far from every coast everywhere: no waves, all deep water.
+	# show_shore_waves only hides the waves: the picture stays, for the deep water.
+	sea_material.set_shader_parameter("shore_tex", shore_texture)
+	sea_material.set_shader_parameter("shore_waves_on", show_shore_waves)
 	material_override = sea_material
 
 

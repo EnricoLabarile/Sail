@@ -54,6 +54,15 @@ uniform float wave_speed = 1.2;        // metres a second they roll in toward th
 uniform float wave_line = 0.5;         // metres: how thick a line is near the shore (thinner further out)
 uniform float foam_width = 0.8;        // metres of steady foam right along the coast
 uniform float wave_wobble = 1.0;       // metres the lines wander in and out, so they aren't perfectly even
+uniform bool shore_waves_on = true;    // sea.gd's show_shore_waves: off hides the waves (the deep water stays)
+
+// DEEP WATER (Enrico): the same shore picture darkens the sea further from the coasts. Near a coast the water
+// stays as it is; from deep_from metres out it darkens, more and more, until deep_to metres, where it's darkest.
+// The picture only knows up to shore_max_distance (32 m): beyond that it's all "deep", so keep deep_to under it.
+uniform vec4 deep_color : source_color = vec4(0.106, 0.102, 0.09, 1.0);   // the colour it darkens toward (ink)
+uniform float deep_opacity : hint_range(0.0, 1.0) = 0.3;   // how dark the deepest water gets (0 = no deep water)
+uniform float deep_from = 2.0;         // metres from the coast where the darkening starts
+uniform float deep_to = 30.0;          // metres from the coast where it's at its darkest
 
 // world_pos: where on the sea this pixel is, in metres. vertex() works it out, fragment() reads it.
 varying vec3 world_pos;
@@ -91,13 +100,17 @@ float noise(vec2 p) {
 	return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
 }
 
-// 1 where this point of the sea is on a line of foam by the shore, 0 where it isn't.
-float shore_foam(vec2 p) {
-	// 1. How far from the coast, in metres: shore_tex covers the whole map, so the point's place on the map
-	//    (0..1 across and down) is where to read it.
+// How far this point of the sea is from the nearest coast, in metres: shore_tex covers the whole map, so the
+// point's place on the map (0..1 across and down) is where to read it. (No picture: white, as far as it goes.)
+float distance_from_coast(vec2 p) {
 	vec2 on_map = (p + world_size * 0.5) / world_size;
-	float from_coast = texture(shore_tex, on_map).r * shore_max_distance;
-	if (from_coast > shore_width) {
+	return texture(shore_tex, on_map).r * shore_max_distance;
+}
+
+// 1 where this point of the sea is on a line of foam by the shore, 0 where it isn't.
+float shore_foam(vec2 p, float from_coast) {
+	// 1. Too far out (or the waves switched off): no waves (most of the sea).
+	if (!shore_waves_on || from_coast > shore_width) {
 		return 0.0;                                    // too far out: no waves (most of the sea)
 	}
 	// 2. Wobble it a little, so the lines aren't perfectly even copies of the coast.
@@ -133,10 +146,15 @@ void fragment() {
 	vec2 uv = (frame_cell + in_tile) / vec2(float(frames_x), float(frames_y));
 	vec3 water = texture(sea_tex, uv).rgb * sea_color.rgb;
 
+	// The deep water: darker the further from the coast (0 near it, 1 from deep_to out; smoothstep eases it).
+	float from_coast = distance_from_coast(world_pos.xz);
+	float deep = smoothstep(deep_from, deep_to, from_coast);
+	water = mix(water, deep_color.rgb, deep_opacity * deep);
+
 	// The grid: is this pixel on a border between squares, and on a dash rather than a gap?
 	vec3 with_grid = mix(water, seam_color.rgb, seam_opacity * seam(world_pos.xz));
 	// The shore waves on top.
-	ALBEDO = mix(with_grid, shore_color.rgb, shore_opacity * shore_foam(world_pos.xz));
+	ALBEDO = mix(with_grid, shore_color.rgb, shore_opacity * shore_foam(world_pos.xz, from_coast));
 	// Fully solid, but writing ALPHA puts the sea among the see-through things, which Godot draws AFTER
 	// the solid ones: so the boat (and its mask) is already drawn when the sea comes, and the stencil works.
 	ALPHA = 1.0;

@@ -95,6 +95,7 @@ signal health_changed(hurt: bool)
 @export var sink_time := 2.0        # seconds she takes to go under
 @export var sink_depth := 2.5       # metres she goes down
 @export var sink_lean_deg := 25.0   # how far she rolls over as she goes
+@export var emerge_on_start := true # she comes up out of the water when the level starts (and always after a respawn)
 
 ## Sent once she's gone under (the game over card listens).
 signal sank
@@ -159,6 +160,8 @@ var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she 
 var health := 3.0           # hearts left (0.5 = half a heart); set to max_hearts at start
 var sinking := false        # true from 0 hearts until she's back home (no sailing, no anchor)
 var sunk_for := 0.0         # seconds since she started sinking
+var emerging := false       # true while she comes up out of the water (the sinking played backwards; no control)
+var emerged_for := 0.0      # seconds since she started coming up
 var home_position := Vector3.ZERO   # where she starts (home): read at start, she comes back here after sinking
 var home_turn := 0.0                # and which way she faced there (rotation.y)
 var water_mask: ShaderMaterial      # the mask on her inside (see add_water_mask)
@@ -193,6 +196,8 @@ func _ready() -> void:
 	home_position = global_position   # home: where she was placed in Overworld
 	home_turn = rotation.y
 	add_water_mask()
+	if emerge_on_start:
+		start_emerging()
 
 
 ## Puts the boat's mask (Assets/Boat/boat_mask.gdshader) on the INSIDE of the hull only, as a
@@ -223,8 +228,8 @@ func set_rudder(v: float) -> void:
 	rudder = clampf(v, -1.0, 1.0)
 
 func toggle_anchor() -> void:
-	if sinking:
-		return                       # going down: nothing to work
+	if sinking or emerging:
+		return                       # going down or coming up: nothing to work
 	if talking:
 		return                       # someone is talking (Assets/UI/talk_box): the hub's taps go on with the talk
 	if caught_eye != null:
@@ -317,8 +322,8 @@ func glide_to_berth(dt: float) -> void:
 
 ## Takes `hearts` off her health (never below 0) and tells the hearts top left. At 0 she starts to sink.
 func take_damage(hearts: float) -> void:
-	if sinking:
-		return
+	if sinking or emerging:
+		return                       # going down, or still coming up: nothing more can hurt her
 	health = maxf(0.0, health - hearts)
 	health_changed.emit(true)
 	camera.shake()                   # the screen shakes (boat_camera.gd)
@@ -380,8 +385,40 @@ func respawn() -> void:
 	model.position.y = model_height
 	model.rotation = Vector3.ZERO
 	camera.jump_to_boat()            # the camera jumps there too, no glide across the map
-	set_water_mask(true)
 	health_changed.emit(false)
+	start_emerging()                 # and she comes up out of the water
+
+
+## The spawn: the sinking played backwards (Enrico). She starts sink_depth under, leaning sink_lean_deg over,
+## and comes up over sink_time seconds (update_emerging does it, frame by frame). Until she's up: no sailing,
+## no anchor, no damage, and her inside has no mask (the sea covers her while she's under).
+func start_emerging() -> void:
+	emerging = true
+	emerged_for = 0.0
+	set_water_mask(false)
+	model.position.y = model_height - sink_depth
+	model.rotation.z = deg_to_rad(sink_lean_deg)
+	if wake:
+		wake.emitting = false
+	for wing in [bow_wave_right, bow_wave_left]:
+		if wing:
+			wing.visible = false
+
+
+## Each frame while she comes up: exactly the sinking's movement, backwards in time. Sinking went down
+## slowly at first and quicker at the end (share × share); played backwards, she comes up quickly at first and
+## slows as she reaches the surface. Once up: the mask back on her inside, and she's free to sail.
+func update_emerging(dt: float) -> void:
+	emerged_for += dt
+	var share := minf(1.0, emerged_for / sink_time)     # 0 = still under, 1 = up
+	var under := 1.0 - share                            # how much of the sinking is still "left": 1 → 0
+	model.position.y = model_height - sink_depth * under * under
+	model.rotation.z = deg_to_rad(sink_lean_deg) * under
+	if share >= 1.0:
+		emerging = false
+		model.position.y = model_height
+		model.rotation.z = 0.0
+		set_water_mask(true)
 
 
 ## A heart container (Zelda's): one more heart, and the hull mended whole.
@@ -439,6 +476,11 @@ func _physics_process(dt: float) -> void:
 	# Sinking: only that, no sailing, no anchor, no bumps.
 	if sinking:
 		update_sinking(dt)
+		return
+	# Coming up out of the water (the spawn): only that, until she's up.
+	if emerging:
+		update_emerging(dt)
+		Fog.reveal(global_position)    # the fog clears round her already, so she comes up in seen water
 		return
 	# Caught in a maelstrom: only that, no sailing, no helm, no anchor, until it spits her out.
 	if caught_eye != null:
