@@ -87,7 +87,6 @@ shape = SubResource("Shape_greet")
 
 [node name="Talk" type="CanvasLayer" parent="." unique_id=2060676134]
 layer = 112
-visible = false
 
 [node name="Bubble" type="PanelContainer" parent="Talk" unique_id=792684976]
 offset_right = 200.0

@@ -28,6 +28,7 @@ extends Camera3D
 @export var outline_width := 1.5     # the ink outline round her, in phone points (0 = no outline)
 
 var focus := Vector3.ZERO            # the point on the water it looks at (it trails behind her)
+var close_up_requests := 0           # how many things want the closer view now (a floating shop she's at, say)
 var shake_left := 0.0                # seconds of shake left
 var shake_now_strength := 0.5        # how strong the shake going on now started (shake() or shake_hard())
 var shake_now_time := 0.3            # how long the shake going on now lasts
@@ -91,9 +92,18 @@ func follow(dt: float) -> void:
 
 ## How far back it should be now: closer in at anchor (tied up at a pier counts as anchored too).
 func target_distance() -> float:
-	if boat.anchored:
+	if boat.anchored or close_up_requests > 0:
 		return distance_anchored
 	return distance_sailing
+
+
+## Something asks for the closer view (as at anchor) while she's near it (`on` true), or lets it go (`on` false).
+## Counted, so two things asking at once don't cancel each other out. (Used by the floating shop's greeting area.)
+func ask_close_up(on: bool) -> void:
+	if on:
+		close_up_requests += 1
+	else:
+		close_up_requests = maxi(0, close_up_requests - 1)
 
 
 ## Every frame the distance eases toward where it should be (a lerp: a share of the gap each frame), so dropping

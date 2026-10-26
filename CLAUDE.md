@@ -453,12 +453,15 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (a copy of Gym_Store) at (−9.5, 0, 92)): no pier, no stopping. `Merchant` (a `Raft` box and a `Picture` quad 3 × 4 m
   facing south, not a billboard: Enrico tilts it), `Slot1..3` (Marker3D pivots), `GreetArea` (Area3D, mask layer 4,
   `greet_radius` 20; a green editor disc). Inspector: `for_sale` (up to 3 ItemData, one per slot in order),
-  `welcome_line`, `no_money_line`, `hold_full_line`, `greet_radius`, `pickup_radius` 1.6, `bounce_push` 6, `line_time` 3.
+  `welcome_line`, `no_money_line`, `hold_full_line`, `greet_radius` (30, Enrico), `pickup_radius` 2.4, `bounce_push` 6, `line_time` 3.
+  **In the greet area the camera comes in as at anchor** (Enrico): `boat_camera.gd` `ask_close_up(on)` counts
+  `close_up_requests`, `target_distance()` = `distance_anchored` while > 0. Items drawn **twice as big** (Enrico: disc
+  r 1.8, rim 2, icon plane 2.6 m). `Talk` is switched on in `_ready` (game only), so a scene saved in the editor can't keep it hidden.
   On each slot a `ShopItem` (its icon on a paper disc with an ink rim, bobbing; `Sensor` of `pickup_radius`): her
   SpotSensor entering → `try_buy`: room in the hold (`slots_of`) and `coins ≥ buy_price` → `Inventory.add`,
   `add_coins(-price)`, the thing gone for good; else `bounce`: `boat.push_away(point, bounce_push)` (boat.gd: speed 0 and
   a `knock` away from it, no damage) and the merchant's line. **Speech bubble** and **price tags** ("5c") are crisp
-  Controls on `Talk` (CanvasLayer 112) pinned each frame to the merchant's head / just in front of each thing
+  Controls on `Talk` (CanvasLayer 112) pinned each frame to the merchant's head / 2.6 m in front of each thing
   (`on_screen`: `camera.unproject_position` in the game view, as a share of it, times the screen); the bubble shows
   `line_time` s on entering the greet area (each time) and on a bounce; the tags only while she's in the greet area.
   For now `Inventory.START_COINS` is 10 (Enrico: to try it; buying a bomb leaves 5, a trap at 6 bounces).

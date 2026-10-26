@@ -19,7 +19,7 @@ extends Node3D
 	set(value):
 		greet_radius = value
 		_fit_greet_area()
-@export var pickup_radius := 1.6               # metres from a thing her middle must come to take it (or bounce)
+@export var pickup_radius := 2.4               # metres from a thing her middle must come to take it (or bounce)
 @export var bounce_push := 6.0                 # m/s she's pushed back off a thing she can't take
 @export var line_time := 3.0                   # seconds a line stays in the bubble
 
@@ -40,8 +40,8 @@ func _ready() -> void:
 	_fit_greet_area()
 	if Engine.is_editor_hint():
 		_make_editor_disc()
-		talk_layer.visible = false
 		return
+	talk_layer.visible = true              # the bubble's layer on (the bubble itself shows only when he speaks)
 	bubble.visible = false
 	$GreetArea.area_entered.connect(_on_greet_entered)
 	$GreetArea.area_exited.connect(_on_greet_exited)
@@ -95,17 +95,21 @@ func bounce(thing: Node3D, boat: Node3D, line: String) -> void:
 
 # ---------- the merchant's words ----------
 
+## She came within greet_radius: the merchant greets her, and the camera comes closer (as at anchor).
 func _on_greet_entered(area: Area3D) -> void:
 	var boat := area.get_parent() as Node3D
-	if boat and boat.is_in_group("player_boat"):
+	if boat and boat.is_in_group("player_boat") and not boat_near:
 		boat_near = true
+		boat.camera.ask_close_up(true)
 		say(welcome_line)
 
 
+## She left: the camera goes back out.
 func _on_greet_exited(area: Area3D) -> void:
 	var boat := area.get_parent() as Node3D
-	if boat and boat.is_in_group("player_boat"):
+	if boat and boat.is_in_group("player_boat") and boat_near:
 		boat_near = false
+		boat.camera.ask_close_up(false)
 
 
 ## Shows `line` in the bubble over the merchant for line_time seconds.
@@ -135,7 +139,7 @@ func _process(dt: float) -> void:
 		var head := on_screen(camera, merchant.global_position + Vector3(0, 4.2, 0))
 		bubble.position = head - Vector2(bubble.size.x * 0.5, bubble.size.y)   # centred above the head
 	for i in items.size():
-		var spot := on_screen(camera, items[i].global_position + Vector3(0, 0, 1.4))   # just in front of the thing
+		var spot := on_screen(camera, items[i].global_position + Vector3(0, 0, 2.6))   # just in front of the thing
 		price_tags[i].position = spot - price_tags[i].size * 0.5
 
 
