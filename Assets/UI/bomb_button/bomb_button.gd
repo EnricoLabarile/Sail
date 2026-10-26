@@ -4,6 +4,7 @@ extends Control
 ## only while a bomb is equipped (tap the bombs' slot in the logbook: Inventory.equipped). A tap drops a bomb
 ## off the boat's bow (Enrico; Assets/Items/bomb/bomb.tscn) and takes one out of the hold; when the last one goes,
 ## nothing is equipped any more and the button hides.
+## After each bomb the button rests for `cooldown` seconds (Enrico): taps do nothing and it's drawn greyed.
 ## Drawn with code under the dither (CanvasLayer 95, like the wheel), so it's 1-bit.
 ## @tool: drawn in the editor too (always shown there), so you can place and size it; there it only draws.
 
@@ -13,8 +14,10 @@ const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
 
 @export var bow_offset := 2.2        # metres ahead of the boat's middle the bomb is dropped (about her bow)
+@export var cooldown := 2.0          # seconds after a bomb before the next one can be dropped
 
 var pressed_time := 0.0              # > 0 for a moment after a tap: the button is drawn pushed in
+var cooldown_left := 0.0             # seconds before it can drop another bomb (0 = ready)
 
 
 func _ready() -> void:
@@ -44,6 +47,11 @@ func _process(dt: float) -> void:
 	if pressed_time > 0.0:
 		pressed_time = maxf(0.0, pressed_time - dt)
 		queue_redraw()
+	# The cooldown counts down; when it reaches 0 the button is drawn ready again.
+	if cooldown_left > 0.0:
+		cooldown_left = maxf(0.0, cooldown_left - dt)
+		if cooldown_left == 0.0:
+			queue_redraw()
 
 
 ## A bomb off the bow, one out of the hold.
@@ -51,6 +59,8 @@ func drop_bomb() -> void:
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if boat == null or boat.sinking:
 		return
+	if cooldown_left > 0.0:
+		return                            # still resting after the last bomb
 	if not Inventory.remove("bomb"):
 		return
 	var bomb := BOMB_SCENE.instantiate()
@@ -60,6 +70,7 @@ func drop_bomb() -> void:
 	bomb.global_position = boat.global_position + ahead.normalized() * bow_offset
 	bomb.global_position.y = 0.0
 	pressed_time = 0.15
+	cooldown_left = cooldown
 	queue_redraw()
 
 
@@ -74,3 +85,6 @@ func _draw() -> void:
 	draw_arc(middle, radius, 0.0, TAU, 48, INK, 3.0)
 	var icon_size := ICON.get_size() * (radius * 1.1 / ICON.get_size().y)
 	draw_texture_rect(ICON, Rect2(middle - icon_size * 0.5, icon_size), false)
+	# Resting after a bomb: a see-through ink veil over it (the dither turns it into a grey of dots).
+	if cooldown_left > 0.0:
+		draw_circle(middle, radius, Color(INK, 0.5))
