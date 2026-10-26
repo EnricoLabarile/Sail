@@ -4,8 +4,8 @@ extends Node3D
 ## her rudder; Space works the anchor. Her camera (boat_camera.gd, on the Camera3D node) follows her.
 ## 1 unit = 10 px of the HTML prototype.
 
-@export var top_speed := 8        # m/s with the sail at its best (doubled by Enrico; the prototype had ~4.2)
-@export var accel := 0.5            # how quickly she gathers way (higher = quicker)
+@export var top_speed := 10        # m/s with the sail at its best (doubled by Enrico; the prototype had ~4.2)
+@export var accel := 1.0            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
@@ -126,7 +126,7 @@ var talking := false:
 var npcs_near: Array[Node3D] = []   # the NPCs whose radius she's in now (they tell her: npc.gd)
 
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
-const POLAR := [[0.0, 0.3], [20, 1.0], [45.0, 1.0 ], [90.0, 1.0], [180.0, 1.0]]
+const POLAR := [[10, 0.4], [20, 1.0], [45.0, 1.0 ], [90.0, 1.0], [180.0, 1.0]]
 
 var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0

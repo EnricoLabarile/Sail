@@ -27,7 +27,7 @@ const HOLD := Vector2(30.0, 40.0)         # seconds it holds still between one s
 const DIRECTIONS := 16                     # how many directions the wind can come from (8 = every 45°)
 const SHIFT_STEPS := Vector2i(1, 1)       # how many steps round a shift turns it (1 = 45°, 2 = 90°)
 const SHIFT_TIME := Vector2(3.0, 5.0)     # how many seconds a shift takes
-const CURRENT_SPEED := 2.5                # m/s the current carries floating things downwind (boat, bombs, a dead imp)
+const CURRENT_SPEED := 1.5                # m/s the current carries floating things downwind (boat, bombs, a dead imp)
 
 
 # ---- The value other scripts read ----
