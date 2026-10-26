@@ -54,10 +54,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1220932, -3.8146973e-06, -0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.355698, 1.5258789e-05, -60.483482)
 
 [node name="SeaImpZone4" parent="Dangers/SeaImps" unique_id=1880735035 instance=ExtResource("5_t2wju")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -121.43124, 1.5258789e-05, 18.876148)
+transform = Transform3D(0.6198008, 0, -0.78475916, 0, 1, 0, 0.78475916, 0, 0.6198008, -104.32108, 1.5258789e-05, 26.1834)
 
 [node name="SeaImpZone5" parent="Dangers/SeaImps" unique_id=1429137121 instance=ExtResource("5_t2wju")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -127.07914, 1.5258789e-05, 43.62463)
+transform = Transform3D(0.6198008, 0, -0.78475916, 0, 1, 0, 0.78475916, 0, 0.6198008, -127.24325, 1.5258789e-05, 37.090282)
 
 [node name="Decorative" type="Node" parent="." unique_id=958528587]
 
@@ -99,13 +99,22 @@ transform = Transform3D(0.056332152, 0, 0.9984121, 0, 1, 0, -0.9984121, 0, 0.056
 transform = Transform3D(-0.27952054, 0, 0.9601397, 0, 1, 0, -0.9601397, 0, -0.27952054, 48.401134, 1.1444092e-05, 46.672882)
 
 [node name="sm_island_02_a7" parent="Gameplay/Islands" unique_id=2033921 instance=ExtResource("14_663nb")]
-transform = Transform3D(0.83913857, 0, 0.5439178, 0, 1, 0, -0.5439178, 0, 0.83913857, -17.35956, 0, 60.852592)
-
-[node name="sm_island_02_a8" parent="Gameplay/Islands" unique_id=131305566 instance=ExtResource("14_663nb")]
-transform = Transform3D(-0.9956737, 0, -0.09291884, 0, 1, 0, 0.09291884, 0, -0.9956737, -60.37726, 0, 117.185905)
+transform = Transform3D(0.8672013, 0, -0.4979576, 0, 1, 0, 0.4979576, 0, 0.8672013, -52.796715, 0, 86.56299)
 
 [node name="sm_island_02_a10" parent="Gameplay/Islands" unique_id=1427877418 instance=ExtResource("14_663nb")]
 transform = Transform3D(0.011377424, 0, -0.99993527, 0, 1, 0, 0.99993527, 0, 0.011377424, -19.967415, 0, 178.34622)
+
+[node name="sm_island_02_a15" parent="Gameplay/Islands" unique_id=1819376966 instance=ExtResource("14_663nb")]
+transform = Transform3D(0.75953186, 0, -0.65047, 0, 1, 0, 0.65047, 0, 0.75953186, -47.71799, 0, 179.1876)
+
+[node name="sm_island_02_a37" parent="Gameplay/Islands" unique_id=935133906 instance=ExtResource("14_663nb")]
+transform = Transform3D(-0.0006631017, 0, -0.9999997, 0, 1, 0, 0.9999997, 0, -0.0006631017, -87.40392, 0, 183.6729)
+
+[node name="sm_island_02_a38" parent="Gameplay/Islands" unique_id=1882152446 instance=ExtResource("14_663nb")]
+transform = Transform3D(-0.6352558, 0, -0.7018758, 0, 0.8512968, 0, 0.4000696, 0, -1.1144826, -161.60052, 0, 117.23723)
+
+[node name="sm_island_02_a39" parent="Gameplay/Islands" unique_id=1310704405 instance=ExtResource("14_663nb")]
+transform = Transform3D(-0.29062104, 0, -1.2143899, 0, 0.8512968, 0, 0.692203, 0, -0.5098608, -128.0998, 0, 156.73718)
 
 [node name="sm_island_02_a11" parent="Gameplay/Islands" unique_id=1559623630 instance=ExtResource("14_663nb")]
 transform = Transform3D(-0.5169904, 0, 0.8559911, 0, 1, 0, -0.8559911, 0, -0.5169904, 0.44094467, 1.5258789e-05, 179.50635)
@@ -178,9 +187,6 @@ transform = Transform3D(0.5200575, 0, -0.85413134, 0, 1, 0, 0.85413134, 0, 0.520
 
 [node name="sm_island_02_a35" parent="Gameplay/Islands" unique_id=1299649829 instance=ExtResource("14_663nb")]
 transform = Transform3D(0.5200575, 0, -0.85413134, 0, 1, 0, 0.85413134, 0, 0.5200575, -189.18759, 9.1552734e-05, -27.671814)
-
-[node name="sm_island_02_a32" parent="Gameplay/Islands" unique_id=1850260254 instance=ExtResource("14_663nb")]
-transform = Transform3D(-0.07186007, 0, 0.9974146, 0, 1, 0, -0.9974146, 0, -0.07186007, -86.63042, 1.5258789e-05, 101.157715)
 
 [node name="sm_island_02_a29" parent="Gameplay/Islands" unique_id=1824218790 instance=ExtResource("14_663nb")]
 transform = Transform3D(-0.87779284, 0, 0.4790402, 0, 1, 0, -0.4790402, 0, -0.87779284, -10.03555, 1.5258789e-05, -140.8361)
