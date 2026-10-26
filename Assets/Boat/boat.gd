@@ -724,6 +724,17 @@ func update_current(dt: float) -> void:
 	drift = Wind.current() * drift_amount
 
 
+## Pushed back by something she can't go over (an item of a floating shop she can't afford): she loses her way and
+## is shoved away from `from_point` at `push` m/s (the same push a bump gives, fading at bounce_fade). No damage.
+func push_away(from_point: Vector3, push: float) -> void:
+	var away := global_position - from_point
+	away.y = 0.0
+	if away.length() < 0.01:
+		away = global_transform.basis.z    # right on top of it: back her out astern
+	speed = 0.0
+	knock += away.normalized() * push
+
+
 ## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).
 ## As in the HTML prototype: a push back out, much less speed, the bow swung off a little, and the hull
 ## takes hit_damage (half a heart).

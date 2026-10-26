@@ -433,7 +433,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   fish 2, bomb 2, trap 3, imp 15; 0 = not bought), `stackable`, `equippable`. The `Inventory` reads the folder at start
   (`load_catalogue`, `ResourceLoader.list_directory`) into `catalogue`; `data(id)`, `icon_of`, `is_stackable`,
   `is_equippable` replace the old ICONS / STACKABLE / EQUIPPABLE lists. A new kind of item = a new `.tres`. **The purse**:
-  `Inventory.coins` (`START_COINS` 0, `add_coins`; no slot), shown in the logbook's Cargo heading ("n coins  2/9";
+  `Inventory.coins` (`START_COINS` 10 for now, `add_coins`; no slot), shown in the logbook's Cargo heading ("n coins  2/9";
   0 in the editor, where the Inventory doesn't run). `slots_of(list)` works out the slots of any list (a trade's result).
 - **Stores** (Enrico; `Assets/Landscape/store/`: `store.tscn` + `store.gd`, `store_counter.tscn` + `.gd`; for now one in
   `Gym_Store`, a copy of Gym_SeaImp without imps, at (−9.5, 0, 108) north of the boat): `Pier` (an instance of
@@ -448,6 +448,20 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `hold_after()` through `slots_of`); **Quit** / **Trade** (moves the items, settles the purse, `sold_one`), both
   close it and leave her tied up (she leaves with the anchor as at any pier; it opens again only on docking again).
   While open: the groups `hidden_while_talking` and `hidden_at_start` and the helm hidden, `boat.talking` true (no anchor).
+- **The floating shop** (Enrico's alternative store, to try a physical, UI-less shop; `Assets/Landscape/store_alternative/`:
+  `store_alternative.tscn` + `.gd` (`@tool`), `shop_item.tscn` + `.gd`, `merchant.png` stand-in; one in `Gym_StoreAlt`
+  (a copy of Gym_Store) at (−9.5, 0, 92)): no pier, no stopping. `Merchant` (a `Raft` box and a `Picture` quad 3 × 4 m
+  facing south, not a billboard: Enrico tilts it), `Slot1..3` (Marker3D pivots), `GreetArea` (Area3D, mask layer 4,
+  `greet_radius` 20; a green editor disc). Inspector: `for_sale` (up to 3 ItemData, one per slot in order),
+  `welcome_line`, `no_money_line`, `hold_full_line`, `greet_radius`, `pickup_radius` 1.6, `bounce_push` 6, `line_time` 3.
+  On each slot a `ShopItem` (its icon on a paper disc with an ink rim, bobbing; `Sensor` of `pickup_radius`): her
+  SpotSensor entering → `try_buy`: room in the hold (`slots_of`) and `coins ≥ buy_price` → `Inventory.add`,
+  `add_coins(-price)`, the thing gone for good; else `bounce`: `boat.push_away(point, bounce_push)` (boat.gd: speed 0 and
+  a `knock` away from it, no damage) and the merchant's line. **Speech bubble** and **price tags** ("5c") are crisp
+  Controls on `Talk` (CanvasLayer 112) pinned each frame to the merchant's head / just in front of each thing
+  (`on_screen`: `camera.unproject_position` in the game view, as a share of it, times the screen); the bubble shows
+  `line_time` s on entering the greet area (each time) and on a bounce; the tags only while she's in the greet area.
+  For now `Inventory.START_COINS` is 10 (Enrico: to try it; buying a bomb leaves 5, a trap at 6 bounces).
 - **Bombs** (Enrico; `Assets/Items/bomb/`: `bomb.tscn` + `bomb.gd`, `bomb.png` a 2 × 1 sheet (dark, fuse lit), stand-in;
   the button `Assets/UI/bomb_button/`: `bomb_button.tscn` (CanvasLayer 95, in `DITHERED`; Control `Button` bottom right,
   80 px, where the slingshot was) + `bomb_button.gd` (`@tool`)): the button shows only while a bomb is equipped; a tap
