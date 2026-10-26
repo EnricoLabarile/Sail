@@ -50,6 +50,7 @@ const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 @export var fireball_damage := 1.0         # hearts a fireball takes off (Enrico: one)
 @export var fireball_hit_radius := 1.3     # metres from the boat's middle a fireball hits her
 @export var fireball_life := 3.0           # seconds a fireball flies before it's gone
+@export var show_fireball_hit_radius := true  # DEBUG: a red disc on the water under each fireball, as big as its hit radius
 @export var aim_ahead := 0.5               # it aims where the boat will be this many seconds later
 @export var spit_height := 1.5             # metres above the water the fireball leaves its mouth
 @export var hurt_time := 0.5               # seconds it stays up blinking black when hit, before it goes under
@@ -218,6 +219,7 @@ func spit(boat: Node3D) -> void:
 	var start := imp.global_position + Vector3(0.0, spit_height, 0.0)
 	var ball := FIREBALL_SCENE.instantiate()
 	get_parent().add_child(ball)     # into the world, not inside the zone
+	ball.show_hit_radius = show_fireball_hit_radius
 	ball.launch(start, target, fireball_speed, fireball_damage, fireball_hit_radius, fireball_life)
 
 
