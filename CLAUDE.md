@@ -295,13 +295,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `talk_hint_changed` (`set_near_npc`, `npcs_near`, `talking`'s setter, `talk_hint()`). Its sounds:
   see Sound (the rub and the thud at full lock). No buzz yet.
 - **The wind vane** (`Assets/UI/wind_vane.tscn` + `wind_vane.gd`, `@tool`; CanvasLayer 110, crisp, top right, 68 px;
-  group `hidden_while_talking`): **as Valheim's** (Enrico): it turns with the boat, not the map. A leaf-shaped ink
-  boat in the middle always bow up; a thin ink ring round her, **thick ink where the wind is bad** (where the sail gives
-  less than `poor_drive` 0.5 of its best, read from the boat's own `POLAR` via `BOAT_SCRIPT`, so it follows the curve:
-  `_thick_arc` per stretch); the **wind badge** on the ring where the wind comes from seen from her (`wind_on_ring` =
-  `Wind.from_deg` − her compass heading; 0 = on the bow), a paper disc with an ink arrow pointing in, **flipped (ink disc, paper arrow) while the wind is in the bad zone**
-  (Enrico). Redrawn only
-  when the badge moves by 0.5° or more.
+  groups `hidden_while_talking`, `hidden_at_start`): **just an arrow** (Enrico, simple; it was Valheim's dial with the
+  boat and the bad-wind ring): ink with a paper edge (`edge_width` 2 px), pointing the way the wind BLOWS on the screen
+  (`blows_to` = `Wind.from_deg` + 180; the camera looks north, so up = north). Redrawn only when it turns by 0.5° or more.
 - **The logbook** (`Assets/UI/logbook/`: `logbook.tscn` + `logbook.gd`, `book_icon.gd`, `book.gd`; in Overworld): as the
   prototype's. The button bottom left (76 px, drawn in greys on a CanvasLayer under the dither, 95, so it's 1-bit) emits
   `pressed`; `logbook.gd` tweens `drop` (the shut book comes down, 0.26 s) then `book.unfold` (the cover swings open on
