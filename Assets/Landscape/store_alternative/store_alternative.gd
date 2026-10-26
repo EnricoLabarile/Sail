@@ -15,7 +15,7 @@ extends Node3D
 @export var welcome_line := "Welcome, sailor! Sail over what you fancy."
 @export var no_money_line := "You can't afford that."
 @export var hold_full_line := "Your hold is full."
-@export var greet_radius := 20.0:              # metres round the shop where the merchant greets her
+@export var greet_radius := 30.0:              # metres round the shop where the merchant greets her
 	set(value):
 		greet_radius = value
 		_fit_greet_area()

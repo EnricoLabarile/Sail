@@ -1,10 +1,10 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b615j63sngld2"]
 
 [ext_resource type="Script" uid="uid://dkpkc26vqp16v" path="res://Assets/Landscape/shore/shore_baker.gd" id="1_eel5a"]
 [ext_resource type="PackedScene" uid="uid://dhestvacwpffc" path="res://Assets/Boat/boat.tscn" id="2_56yd8"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/world/sea.tscn" id="3_igu3s"]
 [ext_resource type="Texture2D" uid="uid://cc1dk2viasrhn" path="res://Assets/Landscape/shore/ShoreMask_Gym_SeaImp.png" id="4_vbl16"]
-[ext_resource type="PackedScene" path="res://Assets/Landscape/store_alternative/store_alternative.tscn" id="5_store"]
+[ext_resource type="PackedScene" uid="uid://b1oj2qchl13xi" path="res://Assets/Landscape/store_alternative/store_alternative.tscn" id="5_store"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/clouds/clouds.tscn" id="7_0sdrp"]
 [ext_resource type="PackedScene" uid="uid://duxq1bjfe0iib" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="8_4ah68"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="9_dr6ve"]
@@ -114,13 +114,16 @@ size_max = 40.0
 transform = Transform3D(0.7404473, 0, -0.67211443, 0, 1, 0, 0.67211443, 0, 0.7404473, 46.05899, 3.8146973e-06, 122.37088)
 
 [node name="sm_island_01_a6" parent="Gameplay/Islands" unique_id=2028749449 instance=ExtResource("13_ug3rh")]
-transform = Transform3D(0.15232997, 0, 0.9883297, 0, 1, 0, -0.9883297, 0, 0.15232997, -36.574722, 1.1444092e-05, 90.88389)
+transform = Transform3D(0.15232997, 0, 0.9883297, 0, 1, 0, -0.9883297, 0, 0.15232997, -53.38568, 3.8146973e-06, 73.609886)
 
 [node name="sm_island_01_a5" parent="Gameplay/Islands" unique_id=467609755 instance=ExtResource("13_ug3rh")]
 transform = Transform3D(-0.27952054, 0, 0.9601397, 0, 1, 0, -0.9601397, 0, -0.27952054, 37.210785, 1.1444092e-05, 59.317375)
 
 [node name="sm_island_02_a7" parent="Gameplay/Islands" unique_id=2033921 instance=ExtResource("14_663nb")]
-transform = Transform3D(0.90985775, 0, -0.41492015, 0, 1, 0, 0.41492015, 0, 0.90985775, -13.171689, 0, 70.98628)
+transform = Transform3D(-0.98343027, 0, 0.18128622, 0, 1, 0, -0.18128622, 0, -0.98343027, -41.958252, 0, 45.97432)
+
+[node name="sm_island_02_a16" parent="Gameplay/Islands" unique_id=1051922521 instance=ExtResource("14_663nb")]
+transform = Transform3D(0.5743413, 0, -0.8186158, 0, 1, 0, 0.8186158, 0, 0.5743413, -7.0560226, 0, 26.523857)
 
 [node name="sm_island_02_a8" parent="Gameplay/Islands" unique_id=131305566 instance=ExtResource("14_663nb")]
 transform = Transform3D(-0.9956737, 0, -0.09291884, 0, 1, 0, 0.09291884, 0, -0.9956737, -60.37726, 0, 117.185905)
@@ -147,12 +150,12 @@ transform = Transform3D(0.93395346, 0, 0.35739467, 0, 1, 0, -0.35739467, 0, 0.93
 transform = Transform3D(0.15909289, 0, 0.9872637, 0, 1, 0, -0.9872637, 0, 0.15909289, 73.373604, 1.5258789e-05, 52.35415)
 
 [node name="sm_island_02_a17" parent="Gameplay/Islands" unique_id=521083947 instance=ExtResource("14_663nb")]
-transform = Transform3D(-0.5197628, 0, 0.8543106, 0, 1, 0, -0.8543106, 0, -0.5197628, 3.7807493, 1.5258789e-05, 64.8291)
+transform = Transform3D(-0.45745745, 0, -0.8892315, 0, 1, 0, 0.8892315, 0, -0.45745745, 19.217056, 1.5258789e-05, 48.99836)
 
 [node name="sm_island_03_a" parent="Gameplay/Islands" unique_id=1753392735 instance=ExtResource("15_s2gd6")]
 transform = Transform3D(-0.25566947, 0, 0.9667643, 0, 1, 0, -0.9667643, 0, -0.25566947, 188.45221, -1.5258789e-05, 103.46207)
 
-[node name="StoreAlternative" parent="Gameplay" instance=ExtResource("5_store")]
+[node name="StoreAlternative" parent="Gameplay" unique_id=508852421 instance=ExtResource("5_store")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.5, 0, 92)
 
 [node name="UI and PostProcess" type="Node" parent="." unique_id=58599448]

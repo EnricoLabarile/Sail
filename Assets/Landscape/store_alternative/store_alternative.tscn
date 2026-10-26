@@ -1,17 +1,29 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b1oj2qchl13xi"]
 
-[ext_resource type="Script" path="res://Assets/Landscape/store_alternative/store_alternative.gd" id="1_shop"]
-[ext_resource type="Texture2D" path="res://Assets/Landscape/store_alternative/merchant.png" id="2_merchant"]
+[ext_resource type="Script" uid="uid://6g6hy88dmpli" path="res://Assets/Landscape/store_alternative/store_alternative.gd" id="1_shop"]
+[ext_resource type="Script" uid="uid://cuk7atfycnyit" path="res://Assets/Inventory/item_data.gd" id="2_jq7js"]
+[ext_resource type="Texture2D" uid="uid://dwnrpahwcxioh" path="res://Assets/Landscape/store_alternative/merchant.png" id="2_merchant"]
 [ext_resource type="Shader" uid="uid://cun5pmnoonaa0" path="res://Assets/Boat/toon_shade.gdshader" id="3_toon"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/bomb.tres" id="4_bomb"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/trap.tres" id="5_trap"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/fish.tres" id="6_fish"]
 
+[sub_resource type="ShaderMaterial" id="Mat_raft"]
+render_priority = 0
+shader = ExtResource("3_toon")
+shader_parameter/ambient = 0.45
+shader_parameter/base_color = Color(0.55, 0.45, 0.35, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_raft"]
+material = SubResource("Mat_raft")
+size = Vector3(4, 0.4, 3)
+
 [sub_resource type="StandardMaterial3D" id="Mat_merchant"]
 transparency = 2
 alpha_scissor_threshold = 0.5
-shading_mode = 0
+alpha_antialiasing_mode = 0
 cull_mode = 2
+shading_mode = 0
 albedo_texture = ExtResource("2_merchant")
 texture_filter = 0
 
@@ -19,20 +31,16 @@ texture_filter = 0
 material = SubResource("Mat_merchant")
 size = Vector2(3, 4)
 
-[sub_resource type="ShaderMaterial" id="Mat_raft"]
-shader = ExtResource("3_toon")
-shader_parameter/base_color = Color(0.55, 0.45, 0.35, 1)
-
-[sub_resource type="BoxMesh" id="Mesh_raft"]
-material = SubResource("Mat_raft")
-size = Vector3(4, 0.4, 3)
-
 [sub_resource type="CylinderShape3D" id="Shape_greet"]
 resource_local_to_scene = true
 height = 6.0
 radius = 20.0
 
 [sub_resource type="StyleBoxFlat" id="Bubble_style"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
 bg_color = Color(0.922, 0.906, 0.863, 1)
 border_width_left = 2
 border_width_top = 2
@@ -43,54 +51,51 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
-content_margin_left = 8.0
-content_margin_top = 6.0
-content_margin_right = 8.0
-content_margin_bottom = 6.0
 
-[node name="StoreAlternative" type="Node3D"]
+[node name="StoreAlternative" type="Node3D" unique_id=279097789]
 script = ExtResource("1_shop")
-for_sale = Array[Resource]([ExtResource("4_bomb"), ExtResource("5_trap"), ExtResource("6_fish")])
+for_sale = Array[ExtResource("2_jq7js")]([ExtResource("4_bomb"), ExtResource("5_trap"), ExtResource("6_fish")])
 
-[node name="Merchant" type="Node3D" parent="."]
+[node name="Merchant" type="Node3D" parent="." unique_id=461258791]
 
-[node name="Raft" type="MeshInstance3D" parent="Merchant"]
+[node name="Raft" type="MeshInstance3D" parent="Merchant" unique_id=335843231]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 cast_shadow = 0
 mesh = SubResource("Mesh_raft")
 
-[node name="Picture" type="MeshInstance3D" parent="Merchant"]
+[node name="Picture" type="MeshInstance3D" parent="Merchant" unique_id=298581047]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, 0)
 cast_shadow = 0
 mesh = SubResource("Mesh_merchant")
 
-[node name="Slot1" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 6)
+[node name="Slot1" type="Marker3D" parent="." unique_id=465275270]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 6)
 
-[node name="Slot2" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 7)
+[node name="Slot2" type="Marker3D" parent="." unique_id=1453017068]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 14)
 
-[node name="Slot3" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 6)
+[node name="Slot3" type="Marker3D" parent="." unique_id=521694009]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 6)
 
-[node name="GreetArea" type="Area3D" parent="."]
+[node name="GreetArea" type="Area3D" parent="." unique_id=171654891]
 collision_layer = 0
 collision_mask = 8
 monitorable = false
 
-[node name="Shape" type="CollisionShape3D" parent="GreetArea"]
+[node name="Shape" type="CollisionShape3D" parent="GreetArea" unique_id=827223425]
 shape = SubResource("Shape_greet")
 
-[node name="Talk" type="CanvasLayer" parent="."]
+[node name="Talk" type="CanvasLayer" parent="." unique_id=2060676134]
 layer = 112
+visible = false
 
-[node name="Bubble" type="PanelContainer" parent="Talk"]
+[node name="Bubble" type="PanelContainer" parent="Talk" unique_id=792684976]
 offset_right = 200.0
 offset_bottom = 40.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("Bubble_style")
 
-[node name="Text" type="Label" parent="Talk/Bubble"]
+[node name="Text" type="Label" parent="Talk/Bubble" unique_id=1784210875]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.106, 0.102, 0.09, 1)
