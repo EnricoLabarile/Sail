@@ -7,8 +7,10 @@ extends Node3D
 ## comes within greet_radius ("welcome"), and when she bounces off a thing (too dear, or the hold is full).
 ## (In Unreal: an actor with three trigger volumes for the goods and one round the shop for the greeting.)
 ##
+## The goods are ordinary pickups (Assets/Items/pickup/pickup.tscn, the same thing that can lie anywhere in the
+## world), each with a price and `auto_take` off: the shop listens to their `touched` and decides.
 ## While she's at the shop her purse shows on screen (Purse, top left under the hearts); after a buy it counts down to
-## what's left, with a blip (Sfx.pickup) and a little screen shake.
+## what's left (the pickup itself makes the blip and the little screen shake).
 ## The bubble and the price tags are drawn crisp, pinned to where the merchant and the goods are on screen
 ## (Talk, a CanvasLayer), so the words stay readable through the dither.
 ## In the editor a see-through green disc shows greet_radius.
@@ -25,12 +27,10 @@ extends Node3D
 @export var bounce_push := 12.0                # m/s she's pushed back off a thing she can't take (was 6, Enrico: more)
 @export var line_time := 3.0                   # seconds a line stays in the bubble
 @export var coin_count_time := 0.6             # seconds the purse on screen takes to count down to what's left after a buy
-@export var buy_shake_strength := 0.25         # the little screen shake when she takes a thing (metres)…
-@export var buy_shake_time := 0.18             # …and how long it lasts (seconds)
 
-const ITEM_SCENE := preload("res://Assets/Landscape/store_alternative/shop_item.tscn")
+const PICKUP_SCENE := preload("res://Assets/Items/pickup/pickup.tscn")
 
-var items: Array[Node3D] = []                  # the things still for sale (ShopItem nodes)
+var items: Array[Node3D] = []                  # the things still for sale (Pickup nodes)
 var price_tags: Array[Label] = []              # their price tags on screen, in the same order
 var boat_near := false                         # is she within greet_radius?
 var line_left := 0.0                           # seconds the bubble still shows
@@ -56,16 +56,20 @@ func _ready() -> void:
 	put_out_goods()
 
 
-## One ShopItem on each slot, for the first three things in for_sale (an empty entry leaves its slot empty).
+## One pickup on each slot, for the first three things in for_sale (an empty entry leaves its slot empty).
 func put_out_goods() -> void:
 	for i in mini(3, for_sale.size()):
 		var info := for_sale[i]
 		if info == null:
 			continue
 		var slot := get_node("Slot%d" % (i + 1)) as Node3D
-		var thing := ITEM_SCENE.instantiate()
+		var thing := PICKUP_SCENE.instantiate()
+		thing.item = info
+		thing.price = info.buy_price
+		thing.reach = pickup_radius
+		thing.auto_take = false              # the shop decides, not the pickup
 		slot.add_child(thing)
-		thing.setup(info, self, pickup_radius)
+		thing.touched.connect(try_buy)
 		items.append(thing)
 		var tag := make_price_tag("%dc" % info.buy_price)
 		talk_layer.add_child(tag)
@@ -77,28 +81,23 @@ func put_out_goods() -> void:
 ## The boat came over `thing`: she gets it if she can pay and it fits; otherwise she bounces off and the merchant
 ## says why.
 func try_buy(thing: Node3D, boat: Node3D) -> void:
-	var after: Array[String] = Inventory.items.duplicate()
-	after.append(thing.item)
-	if Inventory.slots_of(after).size() > Inventory.SLOTS:
+	var reason: String = thing.why_not()
+	if reason == "hold_full":
 		bounce(thing, boat, hold_full_line)
 		return
-	if Inventory.coins < thing.price:
+	if reason == "no_money":
 		bounce(thing, boat, no_money_line)
 		return
-	# Bought: into the hold, the coins out of the purse, and it's gone from the water (for good).
-	Inventory.add(thing.item)
-	Inventory.add_coins(-thing.price)
-	# The feedback: a snappy blip, a little shake, and the purse on screen counting down to what's left
+	# Bought: the pickup goes into the hold, takes the coins, makes its blip and shake, and is gone (for good).
+	var index := items.find(thing)
+	thing.take(boat)
+	# The purse on screen counts down to what's left
 	# (a Tween eases coins_shown from the old number to the new one; like a Timeline in Blueprints).
-	Sfx.pickup()
-	boat.camera.shake_hard(buy_shake_strength, buy_shake_time)
 	var count := create_tween()
 	count.tween_property(self, "coins_shown", float(Inventory.coins), coin_count_time)
-	var index := items.find(thing)
 	items.remove_at(index)
 	price_tags[index].queue_free()
 	price_tags.remove_at(index)
-	thing.queue_free()
 
 
 ## She can't take it: pushed back off it (boat.gd push_away: no damage), and the merchant says `line`.

@@ -449,27 +449,37 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   close it and leave her tied up (she leaves with the anchor as at any pier; it opens again only on docking again).
   While open: the groups `hidden_while_talking` and `hidden_at_start` and the helm hidden, `boat.talking` true (no anchor).
 - **The floating shop** (Enrico's alternative store, to try a physical, UI-less shop; `Assets/Landscape/store_alternative/`:
-  `store_alternative.tscn` + `.gd` (`@tool`), `shop_item.tscn` + `.gd`, `merchant.png` stand-in; one in `Gym_StoreAlt`
+  `store_alternative.tscn` + `.gd` (`@tool`), `merchant.png` stand-in; its goods are ordinary **pickups**, see below; one in `Gym_StoreAlt`
   (a copy of Gym_Store) at (−9.5, 0, 92)): no pier, no stopping. `Merchant` (a `Raft` box and a `Picture` quad 3 × 4 m
   facing south, not a billboard: Enrico tilts it), `Slot1..3` (Marker3D pivots), `GreetArea` (Area3D, mask layer 4,
   `greet_radius` 20; a green editor disc). Inspector: `for_sale` (up to 3 ItemData, one per slot in order),
   `welcome_line`, `no_money_line`, `hold_full_line`, `greet_radius` (30, Enrico), `pickup_radius` 2.4, `bounce_push` 12 (Enrico: more), `line_time` 3.
-  **Buy feedback** (Enrico): `Sfx.pickup()` (`Assets/SFX/pickup.ogg`, a snappy two-note blip made by
-  `art_src/audio/make_pickup.py`, numpy + ffmpeg; player `Pickup` in sfx.tscn), `camera.shake_hard(buy_shake_strength 0.25,
-  buy_shake_time 0.18)`, and **the purse on screen** (`Talk/Purse`, a paper label "Coins  n" top left under the hearts,
+  **Buy feedback** (Enrico; made by the pickup itself now): `Sfx.pickup()` (`Assets/SFX/pickup.ogg`, a snappy two-note blip made by
+  `art_src/audio/make_pickup.py`, numpy + ffmpeg; player `Pickup` in sfx.tscn), `camera.shake_hard(take_shake_strength 0.25,
+  take_shake_time 0.18)` (the pickup's exports), and **the purse on screen** (`Talk/Purse`, a paper label "Coins  n" top left under the hearts,
   only while she's in the greet area) counting down to what's left: a Tween of `coins_shown` over `coin_count_time` 0.6 s.
   The bubble is kept 8 px inside the screen's sides.
   **In the greet area the camera comes in as at anchor** (Enrico): `boat_camera.gd` `ask_close_up(on)` counts
   `close_up_requests`, `target_distance()` = `distance_anchored` while > 0. Items drawn **twice as big** (Enrico: disc
   r 1.8, rim 2, icon plane 2.6 m). `Talk` is switched on in `_ready` (game only), so a scene saved in the editor can't keep it hidden.
-  On each slot a `ShopItem` (its icon on a paper disc with an ink rim, bobbing; `Sensor` of `pickup_radius`): her
-  SpotSensor entering → `try_buy`: room in the hold (`slots_of`) and `coins ≥ buy_price` → `Inventory.add`,
-  `add_coins(-price)`, the thing gone for good; else `bounce`: `boat.push_away(point, bounce_push)` (boat.gd: speed 0 and
+  On each slot a pickup (`price` = its `buy_price`, `reach` = `pickup_radius`, `auto_take` off, its `touched`
+  connected to `try_buy`): `why_not()` "" → `take()` (into the hold, coins out, blip and shake, gone for good) and the
+  purse counts down; "hold_full" / "no_money" → `bounce`: `boat.push_away(point, bounce_push)` (boat.gd: speed 0 and
   a `knock` away from it, no damage) and the merchant's line. **Speech bubble** and **price tags** ("5c") are crisp
   Controls on `Talk` (CanvasLayer 112) pinned each frame to the merchant's head / 2.6 m in front of each thing
   (`on_screen`: `camera.unproject_position` in the game view, as a share of it, times the screen); the bubble shows
   `line_time` s on entering the greet area (each time) and on a bounce; the tags only while she's in the greet area.
   For now `Inventory.START_COINS` is 10 (Enrico: to try it; buying a bomb leaves 5, a trap at 6 bounces).
+- **Pickups** (Enrico: every collectable is a thing on its own; `Assets/Items/pickup/`: `pickup.tscn` + `pickup.gd`
+  (`@tool`)): an item floating on the water, the old shop item's look (`Float`, which bobs: a paper `Disc` r 1.8 with an
+  ink `Rim` r 2, the icon on a 2.6 m plane made in code with no owner, so it shows in the editor and is never saved),
+  `Sensor` (Area3D, mask layer 4, a cylinder of `reach`, local to scene). Inspector: `item` (ItemData), `count` 1,
+  `price` 0 (coins; 0 = free), `reach` 2.4, `auto_take` (on), `bob_height` / `bob_speed`, `take_shake_strength` /
+  `take_shake_time`. Her SpotSensor entering → signal `touched(pickup, boat)`; with `auto_take`, `why_not()` ("" /
+  "hold_full" / "no_money") "" → `take(boat)`: `Inventory.add(id, count)`, coins out if priced, `Sfx.pickup()`, the shake,
+  signal `taken`, freed; no room: it stays. Placed by hand anywhere, made by the floating shop, and **dropped by a killed
+  sea imp** (`sea_imp_zone.gd` `defeat()` → `drop_loot()`: `drop_min`–`drop_max` 1–2 pickups of `drop_item` (bomb.tres)
+  within `drop_spread` 3 m of it, on water (`loot_spot`), added next to the zone so they stay put).
 - **Bombs** (Enrico; `Assets/Items/bomb/`: `bomb.tscn` + `bomb.gd`, `bomb.png` a 2 × 1 sheet (dark, fuse lit), stand-in;
   the button `Assets/UI/bomb_button/`: `bomb_button.tscn` (CanvasLayer 95, in `DITHERED`; Control `Button` bottom right,
   80 px, where the slingshot was) + `bomb_button.gd` (`@tool`)): the button shows only while a bomb is equipped; a tap
