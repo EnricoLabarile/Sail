@@ -52,6 +52,21 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+[sub_resource type="StyleBoxFlat" id="Purse_style"]
+bg_color = Color(0.922, 0.906, 0.863, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.106, 0.102, 0.09, 1)
+shadow_color = Color(0.106, 0.102, 0.09, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 3)
+content_margin_left = 8.0
+content_margin_top = 3.0
+content_margin_right = 8.0
+content_margin_bottom = 3.0
+
 [node name="StoreAlternative" type="Node3D" unique_id=279097789]
 script = ExtResource("1_shop")
 for_sale = Array[ExtResource("2_jq7js")]([ExtResource("4_bomb"), ExtResource("5_trap"), ExtResource("6_fish")])
@@ -102,3 +117,13 @@ theme_override_font_sizes/font_size = 13
 text = "Welcome!"
 horizontal_alignment = 1
 autowrap_mode = 3
+
+[node name="Purse" type="Label" parent="Talk"]
+offset_left = 12.0
+offset_top = 50.0
+offset_right = 100.0
+offset_bottom = 74.0
+theme_override_colors/font_color = Color(0.106, 0.102, 0.09, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("Purse_style")
+text = "Coins  10"

@@ -7,6 +7,8 @@ extends Node3D
 ## comes within greet_radius ("welcome"), and when she bounces off a thing (too dear, or the hold is full).
 ## (In Unreal: an actor with three trigger volumes for the goods and one round the shop for the greeting.)
 ##
+## While she's at the shop her purse shows on screen (Purse, top left under the hearts); after a buy it counts down to
+## what's left, with a blip (Sfx.pickup) and a little screen shake.
 ## The bubble and the price tags are drawn crisp, pinned to where the merchant and the goods are on screen
 ## (Talk, a CanvasLayer), so the words stay readable through the dither.
 ## In the editor a see-through green disc shows greet_radius.
@@ -20,8 +22,11 @@ extends Node3D
 		greet_radius = value
 		_fit_greet_area()
 @export var pickup_radius := 2.4               # metres from a thing her middle must come to take it (or bounce)
-@export var bounce_push := 6.0                 # m/s she's pushed back off a thing she can't take
+@export var bounce_push := 12.0                # m/s she's pushed back off a thing she can't take (was 6, Enrico: more)
 @export var line_time := 3.0                   # seconds a line stays in the bubble
+@export var coin_count_time := 0.6             # seconds the purse on screen takes to count down to what's left after a buy
+@export var buy_shake_strength := 0.25         # the little screen shake when she takes a thing (metres)…
+@export var buy_shake_time := 0.18             # …and how long it lasts (seconds)
 
 const ITEM_SCENE := preload("res://Assets/Landscape/store_alternative/shop_item.tscn")
 
@@ -29,11 +34,13 @@ var items: Array[Node3D] = []                  # the things still for sale (Shop
 var price_tags: Array[Label] = []              # their price tags on screen, in the same order
 var boat_near := false                         # is she within greet_radius?
 var line_left := 0.0                           # seconds the bubble still shows
+var coins_shown := 0.0                         # the number the purse on screen shows (it counts down to the real one)
 
 @onready var merchant: Node3D = $Merchant
 @onready var talk_layer: CanvasLayer = $Talk
 @onready var bubble: PanelContainer = $Talk/Bubble
 @onready var bubble_text: Label = $Talk/Bubble/Text
+@onready var purse: Label = $Talk/Purse
 
 
 func _ready() -> void:
@@ -43,6 +50,7 @@ func _ready() -> void:
 		return
 	talk_layer.visible = true              # the bubble's layer on (the bubble itself shows only when he speaks)
 	bubble.visible = false
+	purse.visible = false
 	$GreetArea.area_entered.connect(_on_greet_entered)
 	$GreetArea.area_exited.connect(_on_greet_exited)
 	put_out_goods()
@@ -80,6 +88,12 @@ func try_buy(thing: Node3D, boat: Node3D) -> void:
 	# Bought: into the hold, the coins out of the purse, and it's gone from the water (for good).
 	Inventory.add(thing.item)
 	Inventory.add_coins(-thing.price)
+	# The feedback: a snappy blip, a little shake, and the purse on screen counting down to what's left
+	# (a Tween eases coins_shown from the old number to the new one; like a Timeline in Blueprints).
+	Sfx.pickup()
+	boat.camera.shake_hard(buy_shake_strength, buy_shake_time)
+	var count := create_tween()
+	count.tween_property(self, "coins_shown", float(Inventory.coins), coin_count_time)
 	var index := items.find(thing)
 	items.remove_at(index)
 	price_tags[index].queue_free()
@@ -101,6 +115,7 @@ func _on_greet_entered(area: Area3D) -> void:
 	if boat and boat.is_in_group("player_boat") and not boat_near:
 		boat_near = true
 		boat.camera.ask_close_up(true)
+		coins_shown = Inventory.coins          # the purse on screen starts at what she has
 		say(welcome_line)
 
 
@@ -130,6 +145,9 @@ func _process(dt: float) -> void:
 			bubble.visible = false
 	for tag in price_tags:
 		tag.visible = boat_near
+	# The purse on screen: only while she's at the shop, showing coins_shown rounded (it counts down after a buy).
+	purse.visible = boat_near
+	purse.text = "Coins  %d" % roundi(coins_shown)
 	if not boat_near and not bubble.visible:
 		return
 	var camera := get_boat_camera()
@@ -138,6 +156,9 @@ func _process(dt: float) -> void:
 	if bubble.visible:
 		var head := on_screen(camera, merchant.global_position + Vector3(0, 4.2, 0))
 		bubble.position = head - Vector2(bubble.size.x * 0.5, bubble.size.y)   # centred above the head
+		# …but kept inside the screen, 8 px from its sides, so the words are never cut off.
+		var screen_width := talk_layer.get_viewport().get_visible_rect().size.x
+		bubble.position.x = clampf(bubble.position.x, 8.0, screen_width - bubble.size.x - 8.0)
 	for i in items.size():
 		var spot := on_screen(camera, items[i].global_position + Vector3(0, 0, 2.6))   # just in front of the thing
 		price_tags[i].position = spot - price_tags[i].size * 0.5

@@ -5,6 +5,7 @@ extends Node
 ##   anchor_up.ogg    the anchor weighed: the chain rattling in
 ##   wheel_rub.ogg    the ship's wheel: a soft wooden rub while it turns (a short loop)
 ##   wheel_thunk.ogg  the ship's wheel: a muted thud when it reaches full lock
+##   pickup.ogg       a snappy two-note blip: a thing taken at the floating shop (made by art_src/audio/make_pickup.py)
 ## (The sea, the wind and the water along the hull were removed by Enrico; bake.html can still make them.)
 ## The players are nodes in sfx.tscn: open it to change a sound's loudness (Volume dB in the Inspector).
 ## Nothing plays while the game is paused (the game over card).
@@ -14,6 +15,7 @@ extends Node
 @onready var anchor_up: AudioStreamPlayer = $AnchorUp
 @onready var wheel_rub: AudioStreamPlayer = $WheelRub
 @onready var wheel_thunk: AudioStreamPlayer = $WheelThunk
+@onready var pickup_sound: AudioStreamPlayer = $Pickup
 
 var rub_db := 0.0       # the rub's loudness as set in sfx.tscn (read at start): the code turns it down from there
 var thunk_db := 0.0     # the same for the thud
@@ -54,6 +56,11 @@ func wheel(spin: float, dt: float) -> void:
 func wheel_stop(strength: float) -> void:
 	wheel_thunk.volume_db = thunk_db + loudness_db(strength)
 	wheel_thunk.play()
+
+
+## A thing taken at the floating shop (store_alternative.gd).
+func pickup() -> void:
+	pickup_sound.play()
 
 
 ## A loudness share (0..1) in decibels, as volume_db wants: 1 = 0 dB (as set), 0.5 = -6 dB, 0 = -80 dB (silent).
