@@ -32,7 +32,6 @@ colors = PackedColorArray(1, 1, 1, 0.8, 0, 0, 0, 0)
 [sub_resource type="QuadMesh" id="Mesh_bow_wave"]
 material = ExtResource("5_bow_wave")
 size = Vector2(2, 2)
-center_offset = Vector3(0.965, 0.45, 0)
 
 [sub_resource type="SphereShape3D" id="Shape_spot_sensor"]
 radius = 0.3
@@ -95,12 +94,12 @@ scale_amount_curve = SubResource("Curve_wake_size")
 color_ramp = SubResource("Grad_wake")
 
 [node name="BowWaveRight" type="MeshInstance3D" parent="." unique_id=1905278275]
-transform = Transform3D(0.86600274, 0.50002515, 3.090824e-08, -1.1313044e-08, -4.2224084e-08, 0.9999877, 0.49998695, -0.86606896, -3.0908236e-08, 0.08, 0.02, -2.95)
+transform = Transform3D(1.6623099, 1.3726516, 3.701966e-08, -2.5663603e-08, -8.5173774e-08, 0.9999877, 1.5435469, -1.4782656, -2.3241832e-08, 2.0587428, 0.02, -2.5868475)
 cast_shadow = 0
 mesh = SubResource("Mesh_bow_wave")
 
 [node name="BowWaveLeft" type="MeshInstance3D" parent="." unique_id=1613075961]
-transform = Transform3D(-0.86600274, -0.50002515, -5.3853974e-08, 8.742048e-08, -4.3713587e-08, -0.9999877, 0.49998692, -0.86606896, 8.156555e-08, -0.08, 0.02, -2.95)
+transform = Transform3D(-1.9179254, -1.2631313, -3.468133e-08, 2.2797276e-07, -8.1490484e-08, -0.99998784, 1.7668293, -1.371152, 9.138051e-08, -2.2385092, 0.02, -2.4070923)
 cast_shadow = 0
 mesh = SubResource("Mesh_bow_wave")
 

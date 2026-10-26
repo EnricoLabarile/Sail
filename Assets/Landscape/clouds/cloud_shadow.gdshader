@@ -24,7 +24,7 @@ uniform float map_size = 160.0;             // metres the cloud map covers, a si
 uniform float cloud_height = 15.0;          // the clouds' height (clouds.gd height)
 // How far the shadow moves sideways for every metre of height it falls (the sun's slant), on x and z.
 uniform vec2 sun_shift = vec2(0.27, 0.27);
-uniform float shadow_opacity = 0.35;        // how dark under a solid cloud: 0 = no shadow, 1 = black
+uniform float shadow_opacity = 0.75;        // how dark under a solid cloud: 0 = no shadow, 1 = black
 
 void vertex() {
 	// Stretch the rectangle (a 1 x 1 QuadMesh, corners at -0.5 and 0.5) over the whole screen.
