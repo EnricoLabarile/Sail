@@ -83,7 +83,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   lines of foam every `wave_spacing` 3.5 m rolling in at `wave_speed` 1.2 m/s, `wave_line` 0.5 m thick near the shore and
   thinner out, `wave_wobble` 1 m of value noise, plus steady foam `foam_width` 0.8 m along the coast; `shore_color` white
   at `shore_opacity` 0.9 (one texture read a pixel). **Deep water** (Enrico): the same picture darkens the sea away from the coasts (`distance_from_coast()`,
-  read once a pixel for both): `smoothstep(deep_from 2, deep_to 30, metres)` × `deep_opacity` 0.3 toward `deep_color`
+  read once a pixel for both): `smoothstep(deep_from, deep_to 30, metres)`, `deep_from` = the boat's `shallows_width` (sent by `sea.gd` `match_deep_water_to_shallows`, deferred; Enrico: the darkening starts where the slow water ends; 3 in the shader for the editor) × `deep_opacity` 0.3 toward `deep_color`
   (ink), before the grid and the foam; no picture = all deep. `show_shore_waves` off now only hides the waves
   (`shore_waves_on` uniform), the deep water stays. **Baked in the editor** by `ShoreBaker` (a Node3D in Overworld,
   `Assets/Landscape/shore/shore_baker.gd`, `@tool`, `@export_tool_button` "Bake shore"; ~1 s): every MeshInstance3D

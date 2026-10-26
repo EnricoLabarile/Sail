@@ -61,7 +61,8 @@ uniform bool shore_waves_on = true;    // sea.gd's show_shore_waves: off hides t
 // The picture only knows up to shore_max_distance (32 m): beyond that it's all "deep", so keep deep_to under it.
 uniform vec4 deep_color : source_color = vec4(0.106, 0.102, 0.09, 1.0);   // the colour it darkens toward (ink)
 uniform float deep_opacity : hint_range(0.0, 1.0) = 0.3;   // how dark the deepest water gets (0 = no deep water)
-uniform float deep_from = 2.0;         // metres from the coast where the darkening starts
+uniform float deep_from = 3.0;         // metres from the coast where the darkening starts (in the game sea.gd
+                                       // sends the boat's shallows_width: it starts where the slow water ends)
 uniform float deep_to = 30.0;          // metres from the coast where it's at its darkest
 
 // world_pos: where on the sea this pixel is, in metres. vertex() works it out, fragment() reads it.

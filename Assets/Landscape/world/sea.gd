@@ -50,6 +50,7 @@ func _ready() -> void:
 	Land.set_shore_picture(shore_texture)   # Land reads this level's picture too (how far the coast is: the shallows)
 	texture_angle = deg_to_rad(Wind.from_deg + texture_turn_deg)   # start already facing the wind
 	add_fog()
+	match_deep_water_to_shallows.call_deferred()   # deferred: after the boat's _ready (she joins her group there)
 
 
 ## This level's shore picture on the sea: a copy of the material from sea.tscn (made once) with the picture in it,
@@ -76,6 +77,16 @@ func _notification(what: int) -> void:
 
 
 ## The fog of war on screen (see the notes at the top).
+## The deep water starts darkening exactly where the shallows end (Enrico): the boat's shallows_width (where
+## her sail gives less) is sent to the shader as deep_from, so near the coast the light water is the slow water,
+## and from there out it darkens. Change shallows_width on the Boat and the colour follows.
+func match_deep_water_to_shallows() -> void:
+	var boat := get_tree().get_first_node_in_group("player_boat")
+	if boat == null:
+		return                       # no boat in this level: the shader keeps its own deep_from
+	sea_material.set_shader_parameter("deep_from", boat.shallows_width)
+
+
 func add_fog() -> void:
 	var fog := ShaderMaterial.new()
 	fog.shader = load("res://Assets/Landscape/world/fog.gdshader")
