@@ -482,7 +482,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
 - **Bombs** (Enrico; `Assets/Items/bomb/`: `bomb.tscn` + `bomb.gd`, `bomb.png` a 2 × 1 sheet (dark, fuse lit), stand-in;
   the button `Assets/UI/bomb_button/`: `bomb_button.tscn` (CanvasLayer 95, in `DITHERED`; Control `Button` bottom right,
   80 px, where the slingshot was) + `bomb_button.gd` (`@tool`)): the button shows only while a bomb is equipped; a tap
-  (touch) takes one bomb out of the hold (then the button rests `cooldown` 2 s, Enrico: taps do nothing, a see-through ink veil over it, `cooldown_left`) and drops it `bow_offset` 2.2 m ahead of her middle (Enrico: off the bow), on the water, into the
+  (touch) takes one bomb out of the hold (then the button rests `cooldown` 2 s, Enrico: taps do nothing, a see-through ink pie of the wait still left shrinking clockwise from the top, `cooldown_left`, `_draw_pie`) and drops it `bow_offset` 2.2 m ahead of her middle (Enrico: off the bow), on the water, into the
   world. The bomb: a 1.6 m camera-facing picture (`stone.gdshader`, render_priority 2) whose spark blinks quicker and
   quicker (2 → 8 a second) and **pulses** (Enrico: shrinks and swells, `pulse_time` 1 s a cycle, ±`pulse_amount` 0.15
   round the `Picture`'s own scale from bomb.tscn, `pulse()`), **carried by the current** while the fuse burns (Enrico; `drift_with_current`, as the dead

@@ -4,7 +4,9 @@ extends Control
 ## only while a bomb is equipped (tap the bombs' slot in the logbook: Inventory.equipped). A tap drops a bomb
 ## off the boat's bow (Enrico; Assets/Items/bomb/bomb.tscn) and takes one out of the hold; when the last one goes,
 ## nothing is equipped any more and the button hides.
-## After each bomb the button rests for `cooldown` seconds (Enrico): taps do nothing and it's drawn greyed.
+## After each bomb the button rests for `cooldown` seconds (Enrico): taps do nothing, and a see-through ink pie
+## covers the share of the wait still left, shrinking clockwise from the top until it's gone (like a cooldown in
+## any action game).
 ## Drawn with code under the dither (CanvasLayer 95, like the wheel), so it's 1-bit.
 ## @tool: drawn in the editor too (always shown there), so you can place and size it; there it only draws.
 
@@ -47,11 +49,10 @@ func _process(dt: float) -> void:
 	if pressed_time > 0.0:
 		pressed_time = maxf(0.0, pressed_time - dt)
 		queue_redraw()
-	# The cooldown counts down; when it reaches 0 the button is drawn ready again.
+	# The cooldown counts down, and the pie is drawn again every frame meanwhile (it shrinks).
 	if cooldown_left > 0.0:
 		cooldown_left = maxf(0.0, cooldown_left - dt)
-		if cooldown_left == 0.0:
-			queue_redraw()
+		queue_redraw()
 
 
 ## A bomb off the bow, one out of the hold.
@@ -85,6 +86,17 @@ func _draw() -> void:
 	draw_arc(middle, radius, 0.0, TAU, 48, INK, 3.0)
 	var icon_size := ICON.get_size() * (radius * 1.1 / ICON.get_size().y)
 	draw_texture_rect(ICON, Rect2(middle - icon_size * 0.5, icon_size), false)
-	# Resting after a bomb: a see-through ink veil over it (the dither turns it into a grey of dots).
+	# Resting after a bomb: the pie of what's left of the wait, in see-through ink (the dither turns it to dots).
 	if cooldown_left > 0.0:
-		draw_circle(middle, radius, Color(INK, 0.5))
+		_draw_pie(middle, radius, cooldown_left / cooldown)
+
+
+## A pie slice in see-through ink: `share` of the circle (1 = all of it, 0 = nothing), starting at the top and
+## going clockwise. It's a fan: the middle, then points round the edge from the top to where the slice ends.
+func _draw_pie(middle: Vector2, radius: float, share: float) -> void:
+	var points := PackedVector2Array([middle])
+	var steps := maxi(2, int(48 * share))            # more points for a bigger slice, so the edge stays round
+	for i in steps + 1:
+		var angle := TAU * share * i / steps          # 0 = the top, growing clockwise
+		points.append(middle + Vector2(sin(angle), -cos(angle)) * radius)
+	draw_colored_polygon(points, Color(INK, 0.5))
