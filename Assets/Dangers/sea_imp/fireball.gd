@@ -17,8 +17,8 @@ var damage := 1.0              # hearts it takes off the boat when it hits
 var hit_radius := 5          # metres: this close to the boat's middle, it hits her
 var life := 3.0                # seconds before it's gone, hit or not
 var time := 0.0                # seconds since it was spat
-var show_hit_radius := false   # DEBUG (set by the sea imp): draw the hit radius as a red disc on the water
-var hit_disc: MeshInstance3D   # that disc, if shown
+var show_hit_radius := false   # DEBUG (set by the sea imp): draw the hit radius as an ink ring on the water
+var hit_disc: MeshInstance3D   # that ring, if shown
 
 
 ## The sea imp calls this right after adding the fireball to the world.
@@ -58,24 +58,23 @@ func _process(dt: float) -> void:
 		queue_free()
 
 
-## DEBUG: a flat see-through red disc on the water, as wide as the hit radius: the boat's MIDDLE must come inside it
-## for the fireball to hit her. Drawn over everything (no depth test), so it shows over the boat too.
+## DEBUG: a thin ring of ink on the water, as wide as the hit radius: the boat's MIDDLE must come inside it for the
+## fireball to hit her. Black, because the 1-bit dither turns a coloured disc into the same grey dots as the sea
+## (a red one was there but invisible). Drawn over everything (no depth test), so it shows over the boat too.
 func make_hit_disc() -> void:
-	var disc := CylinderMesh.new()
-	disc.top_radius = hit_radius
-	disc.bottom_radius = hit_radius
-	disc.height = 0.02
-	disc.radial_segments = 32
-	disc.rings = 1
+	var ring := TorusMesh.new()          # a TorusMesh lies flat, like a ring on a table
+	ring.outer_radius = hit_radius
+	ring.inner_radius = max(hit_radius - 0.15, 0.01)   # 15 cm thick: a couple of dots on screen
+	ring.ring_segments = 6
+	ring.rings = 48
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.albedo_color = Color(1.0, 0.1, 0.1, 0.35)
+	material.albedo_color = Color.BLACK
 	material.no_depth_test = true
 	material.render_priority = 10
-	disc.material = material
+	ring.material = material
 	hit_disc = MeshInstance3D.new()
-	hit_disc.mesh = disc
+	hit_disc.mesh = ring
 	add_child(hit_disc)
 	hit_disc.global_position = Vector3(global_position.x, 0.08, global_position.z)
 

@@ -373,7 +373,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `boat.camera.is_position_in_frustum`; underwater counts as on screen too, Enrico): on screen it keeps chasing her past
   the radius, and gives up once she leaves it off screen (its patch swims at 6 m/s, she sails faster).
   **The fireball** (`fireball.gd`): from `spit_height` 1.5 m, level, toward where she'll be in `aim_ahead` 0.5 s,
-  `fireball_speed` 7.5 m/s; within `fireball_hit_radius` 1.3 m of her middle (the zone's value, passed in `launch`: it replaces the ball's own `hit_radius`; **debug**: `show_fireball_hit_radius` on the zone, on, draws a see-through red disc of that radius on the water under each ball, `make_hit_disc`, render_priority 10, no depth test) `boat.take_damage(fireball_damage)` (1
+  `fireball_speed` 7.5 m/s; within `fireball_hit_radius` 1.3 m of her middle (the zone's value, passed in `launch`: it replaces the ball's own `hit_radius`; **debug**: `show_fireball_hit_radius` on the zone, on, draws an ink ring of that radius on the water under each ball (`make_hit_disc`, a TorusMesh 0.15 m thick, black, render_priority 10, no depth test; a red disc vanished in the dither, same grey as the sea)) `boat.take_damage(fireball_damage)` (1
   heart, Enrico); gone on land or after `fireball_life` 3 s; `stone.gdshader`'s billboard flipbook (a stand-in).
   **Health**: `max_hearts` 3; bombs and traps call `hit_imp_at(point, reach, damage)` on every imp (group `sea_imps`):
   only while EMERGING or UP and within `reach`: −`damage` hearts and **it blinks black** (Enrico: feedback; `hurt_time`
