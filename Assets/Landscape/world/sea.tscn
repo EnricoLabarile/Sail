@@ -1,22 +1,45 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cnu0m3427cdln"]
 
 [ext_resource type="Shader" uid="uid://y01s8ugtrxyq" path="res://Assets/Landscape/world/sea.gdshader" id="2_sea"]
-[ext_resource type="Script" path="res://Assets/Landscape/world/sea.gd" id="5_script"]
+[ext_resource type="Script" uid="uid://dh43s3p0e1f2e" path="res://Assets/Landscape/world/sea.gd" id="5_script"]
 [ext_resource type="Texture2D" uid="uid://cq3g250kg05in" path="res://Assets/Landscape/world/sea_tex.png" id="6_tex"]
 [ext_resource type="Texture2D" uid="uid://ctff4qtpd7y0y" path="res://Assets/Landscape/shore/shore_distance.png" id="7_shore"]
 
 [sub_resource type="ShaderMaterial" id="Mat_sea"]
+render_priority = 0
 shader = ExtResource("2_sea")
+shader_parameter/sea_color = Color(0.91, 0.91, 0.91, 1)
 shader_parameter/sea_tex = ExtResource("6_tex")
+shader_parameter/tile_size = 32.0
 shader_parameter/frames_x = 4
 shader_parameter/frames_y = 4
+shader_parameter/fps = 6.0
+shader_parameter/scroll = Vector2(0, 0)
+shader_parameter/wind_angle = 0.0
+shader_parameter/wind_offset = Vector2(0, 0)
+shader_parameter/seam_color = Color(1, 1, 1, 1)
+shader_parameter/seam_opacity = 0.8
+shader_parameter/seam_width = 0.3
+shader_parameter/seam_dash = 0.6
+shader_parameter/seam_gap = 0.9
+shader_parameter/cell_size = 112.0
+shader_parameter/world_size = 1008.0
 shader_parameter/shore_tex = ExtResource("7_shore")
+shader_parameter/shore_max_distance = 32.0
+shader_parameter/shore_color = Color(1, 1, 1, 1)
+shader_parameter/shore_opacity = 0.9
+shader_parameter/shore_width = 5.0
+shader_parameter/wave_spacing = 3.5
+shader_parameter/wave_speed = 1.2
+shader_parameter/wave_line = 0.5
+shader_parameter/foam_width = 0.8
+shader_parameter/wave_wobble = 1.0
 
 [sub_resource type="PlaneMesh" id="Mesh_sea"]
 material = SubResource("Mat_sea")
 size = Vector2(1008, 1008)
 
-[node name="Sea" type="MeshInstance3D"]
+[node name="Sea" type="MeshInstance3D" unique_id=49755571]
 mesh = SubResource("Mesh_sea")
 script = ExtResource("5_script")
 shore_texture = ExtResource("7_shore")

@@ -32,13 +32,13 @@ const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 	set(value):
 		radius = value
 		_fit_editor_disc()
-@export var wake_radius := 15            # metres: the boat this close to the lurking imp wakes it
+@export var wake_radius := 25            # metres: the boat this close to the lurking imp wakes it
 @export var lurk_size := 10.8              # metres across the patch of stirred water (Enrico: 3 times the first 3.6)
 @export var max_hearts := 3.0              # its health, in hearts (a bomb or a trap takes one)
 @export var collect_radius := 2.5          # metres: defeated, it goes into the hold when the boat's middle comes this close
 @export var emerge_time := 2             # seconds the patch shows before it comes up (the warning)
 @export var idle_before_spit := 1.5        # seconds up before it spits
-@export var idle_after_spit := 3         # seconds up after spitting, before it disappears
+@export var idle_after_spit := 1         # seconds up after spitting, before it disappears
 @export var swim_speed := 6.0              # m/s its patch swims under water to the next spot (Enrico: a steady speed)
 ## Where it may come up again (Enrico, to compare how the fight feels): on = only downwind of the boat (a bomb
 ## drifts to it); off = anywhere on the screen.
@@ -46,9 +46,9 @@ const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 @export var spawn_distance_min := 6.0      # metres from the boat it may come up (nearest…
 @export var spawn_distance_max := 18.0     # …furthest), always on water and in view
 @export var screen_margin := 0.12          # how far in from the screen's edges it comes up (a share of the screen)
-@export var fireball_speed := 7.5          # metres a second (she can dodge it)
+@export var fireball_speed := 8.5          # metres a second (she can dodge it)
 @export var fireball_damage := 1.0         # hearts a fireball takes off (Enrico: one)
-@export var fireball_hit_radius := 1.3     # metres from the boat's middle a fireball hits her
+@export var fireball_hit_radius := 3     # metres from the boat's middle a fireball hits her
 @export var fireball_life := 3.0           # seconds a fireball flies before it's gone
 @export var show_fireball_hit_radius := true  # DEBUG: an ink ring on the water under each fireball, as big as its hit radius
 @export var aim_ahead := 0.5               # it aims where the boat will be this many seconds later

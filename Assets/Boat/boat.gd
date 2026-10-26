@@ -4,7 +4,7 @@ extends Node3D
 ## her rudder; Space works the anchor. Her camera (boat_camera.gd, on the Camera3D node) follows her.
 ## 1 unit = 10 px of the HTML prototype.
 
-@export var top_speed := 7        # m/s with the sail at its best (doubled by Enrico; the prototype had ~4.2)
+@export var top_speed := 8        # m/s with the sail at its best (doubled by Enrico; the prototype had ~4.2)
 @export var accel := 0.5            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
@@ -61,8 +61,8 @@ extends Node3D
 @export var wave_period := 3.0      # seconds for one wave to pass under her (higher = slower rocking)
 
 # The shallows: near the coast there's less wind, so the sail gives less.
-@export var shallows_width := 6.0   # metres from the land that count as shallows
-@export var shallows_sail := 0.3    # what the sail gives there, as a share of the usual (0.3 = 30%)
+@export var shallows_width := 3.0   # metres from the land that count as shallows
+@export var shallows_sail := 0.5    # what the sail gives there, as a share of the usual (0.3 = 30%)
 # The bow wave (boat.tscn: BowWaveRight / BowWaveLeft, bow_wave.png, a 4 x 4 flipbook).
 @export var bow_wave_fps := 12.0        # frames a second it plays at top speed (slower when slower)
 @export var bow_wave_min_size := 0.4    # its size at a crawl, as a share of full size (full at top speed)
@@ -125,7 +125,7 @@ var talking := false:
 var npcs_near: Array[Node3D] = []   # the NPCs whose radius she's in now (they tell her: npc.gd)
 
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
-const POLAR := [[0.0, 0.0], [15.0, 0.4], [30.0, 0.1], [45.0, 1.5], [180.0, 1.0]]
+const POLAR := [[0.0, 0.3], [20, 1.0], [45.0, 1.0 ], [90.0, 1.0], [180.0, 1.0]]
 
 var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0

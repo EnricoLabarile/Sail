@@ -17,7 +17,7 @@ const INK := Color("1b1a17")
 ## The boat's script, only to read its sailing curve (POLAR: [degrees off the wind, share of top speed]).
 const BOAT_SCRIPT := preload("res://Assets/Boat/boat.gd")
 
-@export var poor_drive := 0.5    # below this share of the sail's best, the ring is drawn thick (bad wind)
+@export var poor_drive := 0.9    # below this share of the sail's best, the ring is drawn thick (bad wind)
 
 var wind_on_ring := 215.0        # where the wind comes from, seen from the boat: 0 = dead ahead, 90 = from the right
 

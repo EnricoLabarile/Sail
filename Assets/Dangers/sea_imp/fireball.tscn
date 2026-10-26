@@ -19,6 +19,7 @@ size = Vector2(1.2, 1.2)
 script = ExtResource("1_script")
 
 [node name="Picture" type="MeshInstance3D" parent="." unique_id=1783977203]
+transform = Transform3D(1.9876158, 0, 0, 0, 1.9876158, 0, 0, 0, 1, 0, 0, 0)
 material_override = SubResource("Mat_fireball")
 cast_shadow = 0
 mesh = SubResource("Mesh_fireball")
