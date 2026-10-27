@@ -18,7 +18,7 @@ const PICKUP := preload("res://Assets/Items/pickup/pickup.tscn")
 ## What's inside (drag a .tres from Assets/Inventory/items here). Empty = the barrel breaks and leaves nothing.
 @export var contents: ItemData
 @export var count := 1              # how many of it
-@export var radius := 3           # metres: how close her middle can come to its middle (its size as a collider)
+@export var radius := 5           # metres: how close her middle can come to its middle (its size as a collider)
 @export var push_fade := 3.5        # how quickly the barrel's push dies away (higher = it stops sooner)
 
 var push := Vector3.ZERO            # the barrel's own push (m/s, on the sea), after she ran into it; fades away

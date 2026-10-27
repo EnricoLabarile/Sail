@@ -24,7 +24,6 @@ radius = 4.5
 
 [node name="Barrel" type="Node3D" unique_id=1639547901]
 script = ExtResource("1_barrel")
-radius = 3.0
 
 [node name="Picture" type="MeshInstance3D" parent="." unique_id=594974973]
 transform = Transform3D(2.5821686, 0, 0, 0, 1, 0, 0, 0, 2.5821686, 0, 0.1, 0)
@@ -33,6 +32,7 @@ cast_shadow = 0
 mesh = SubResource("Mesh_barrel")
 
 [node name="Sensor" type="Area3D" parent="." unique_id=669708140]
+transform = Transform3D(1.4301491, 0, 0, 0, 1, 0, 0, 0, 1.4301491, 0, 0, 0)
 collision_layer = 0
 collision_mask = 8
 monitorable = false
