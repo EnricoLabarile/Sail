@@ -14,11 +14,12 @@ extends Control
 ##     home in E5), with the square she's in shaded.
 ## What the pages show is read when the book opens (and when the hold changes): it isn't redrawn every frame.
 ##
-## MORE PAGES (Enrico): after that first spread, one spread for every active map marker that has its close-up
-## (map_marker.gd take_picture): the square it's in ("F4") and the picture of the area round it, 1-bit, across
-## both pages, with a small X in the middle where the marker is. A swipe across the open book turns the page
-## (finger to the left: the next one; to the right: the one before). Dots at the bottom say which page this is.
-## The book remembers the page it was left on.
+## THE SECOND SPREAD (Enrico): "Marked places", 9 slots in a grid of 3 x 3 across both pages. Each active map
+## marker that has its printed map (map_marker.gd print_map) fills one, in turn: the picture of the area round
+## it, framed, a small X in the middle where the marker is, and the name of its square ("F4") in the corner.
+## Slots with no marker are empty squares, dashed and faint (as the hold's). Up to 9 markers: more aren't shown.
+## A swipe across the open book turns the page (finger to the left: the next one; to the right: the one
+## before). Dots at the bottom say which page this is. The book remembers the page it was left on.
 ##
 ## `unfold` (0..1) is changed by logbook.gd with a Tween:
 ##   0 = shut: only the right half shows, the front cover lying over the right page (leather up);
@@ -52,6 +53,12 @@ const HEADING_HEIGHT := 20.0  # room above the slots for "Cargo" and the count
 # Turning the pages
 const SWIPE := 40.0           # pixels a finger must slide sideways for a swipe (less is a tap)
 const DOTS_HEIGHT := 12.0     # room at the bottom of the pages for the page dots
+const PAGE_COUNT := 2         # the spreads: 0 = the hold and the map, 1 = the marked places
+
+# The marked places' slots (the second spread)
+const PLACE_SLOTS := 9        # how many marked places fit
+const PLACE_COLUMNS := 3      # in a grid of 3 across (so 3 rows)
+const PLACE_GAP := 8.0        # the space between two slots
 
 ## How open the book is, 0..1. Every change redraws it (see book_icon.gd for how "set(value)" works).
 var unfold := 0.0:
@@ -66,8 +73,8 @@ var _slot_count := 9            # how many slots the hold has (Inventory.SLOTS, 
 var _slots: Array = []          # the hold's slots as Inventory.slots() gives them ({item, count}), read on opening
 var _equipped := ""             # what's equipped (Inventory.equipped), read on opening
 var _slot_rects: Array[Rect2] = []   # where each slot is drawn on the book (worked out in _draw_hold), for taps
-var page := 0                   # the spread showing: 0 = the hold and the map, 1.. = the markers' close-ups
-var _marker_pages: Array = []   # one entry per close-up page: {"picture": the texture, "square": its square}, read on opening
+var page := 0                   # the spread showing: 0 = the hold and the map, 1 = the marked places
+var _places: Array = []         # one entry per marked place (at most PLACE_SLOTS): {"picture": the texture, "square": its square}, read on opening
 var _touch_start := Vector2(-1, -1)   # where the finger came down (to tell a swipe from a tap)
 
 # The part of the spread being drawn right now, from x = _half_from to x = _half_to (see _draw_half):
@@ -98,14 +105,13 @@ func refresh() -> void:
 		_boat_square = Vector2i(clampi(col, 0, ROOMS - 1), clampi(row, 0, ROOMS - 1))
 	# The squares marked with an X: every active map marker (Assets/Quests/map_marker) says which square it's in.
 	_marked_squares.clear()
-	# Each active marker with its picture taken also gets a page of its own (after the first).
-	_marker_pages.clear()
+	# Each active marker with its printed map also fills a slot on the marked places' spread (up to PLACE_SLOTS).
+	_places.clear()
 	for marker in get_tree().get_nodes_in_group("map_markers"):
 		if marker.active and not _marked_squares.has(marker.square()):
 			_marked_squares.append(marker.square())
-		if marker.active and marker.picture != null:
-			_marker_pages.append({"picture": marker.picture, "square": marker.square()})
-	page = mini(page, _marker_pages.size())   # a marker switched off: its page has gone
+		if marker.active and marker.picture != null and _places.size() < PLACE_SLOTS:
+			_places.append({"picture": marker.picture, "square": marker.square()})
 	# The hold: how many slots, and the picture of each thing aboard (in the order it came in).
 	_slot_count = Inventory.SLOTS
 	_slots = Inventory.slots()
@@ -173,8 +179,8 @@ func _draw_half(from: float, to: float, squeeze: float) -> void:
 		_draw_hold(hold_area)
 		_draw_map(map_area)
 	else:
-		# A marker's page: its close-up.
-		_draw_close_up(Rect2(area_x, PAD_TOP + PAGE_PAD, area_w, page_h - PAGE_PAD), _marker_pages[page - 1])
+		# The second spread: the marked places.
+		_draw_places(Rect2(area_x, PAD_TOP + PAGE_PAD, area_w, page_h - PAGE_PAD))
 	_draw_page_dots()
 
 	draw_set_transform(Vector2.ZERO)   # back to normal for whatever is drawn next
@@ -215,8 +221,7 @@ func _gui_input(event: InputEvent) -> void:
 
 ## Turns the page by `step` (1 = next, -1 = back), if there is one that way.
 func turn_page(step: int) -> void:
-	var last := _marker_pages.size()               # the last page's number (0 = only the first spread)
-	var new_page := clampi(page + step, 0, last)
+	var new_page := clampi(page + step, 0, PAGE_COUNT - 1)
 	if new_page != page:
 		page = new_page
 		queue_redraw()
@@ -392,36 +397,61 @@ func _draw_map(area: Rect2) -> void:
 
 # ---- a marker's page ----
 
-## A marker's close-up: the name of its square ("F4") at the top left, then its picture as big as fits, centred
-## on the spine across both pages, drawn at a whole number of book pixels per picture pixel (so the dots stay even),
-## with an ink frame and a small X in the middle, where the marker is.
-func _draw_close_up(area: Rect2, entry: Dictionary) -> void:
+## The marked places: the title at the top, then PLACE_SLOTS square slots in a grid of PLACE_COLUMNS across,
+## as big as fit, centred on the spine (across both pages). A slot with a marker shows its printed map;
+## the others are empty squares, dashed and faint.
+func _draw_places(area: Rect2) -> void:
+	var spine := size.x * 0.5
+	var rows := ceili(PLACE_SLOTS / float(PLACE_COLUMNS))
+	var room_h := area.size.y - HEADING_HEIGHT           # the height left for the slots under the title
+	# A slot's side: the biggest that lets the whole grid fit the width and the height left (whole pixels).
+	var by_width := (area.size.x - PLACE_GAP * (PLACE_COLUMNS - 1)) / PLACE_COLUMNS
+	var by_height := (room_h - PLACE_GAP * (rows - 1)) / rows
+	var slot := floorf(minf(by_width, by_height))
+	var grid_w := PLACE_COLUMNS * slot + (PLACE_COLUMNS - 1) * PLACE_GAP
+	var grid_h := rows * slot + (rows - 1) * PLACE_GAP
+	var left := roundf(spine - grid_w * 0.5)
+	var top := roundf(area.position.y + HEADING_HEIGHT + (room_h - grid_h) * 0.5)
+
+	# The title, just above the grid, and how many places are marked.
+	_half_text(Vector2(left, top - 7.0), "Marked places", 13, INK, HORIZONTAL_ALIGNMENT_LEFT)
+	_half_text(Vector2(left + grid_w, top - 7.0), str(_places.size()) + "/" + str(PLACE_SLOTS), 10, Color(INK, 0.8), HORIZONTAL_ALIGNMENT_RIGHT)
+
+	# The slots, row by row.
+	for i in PLACE_SLOTS:
+		var col := i % PLACE_COLUMNS
+		var row := floori(i / float(PLACE_COLUMNS))
+		var r := Rect2(left + col * (slot + PLACE_GAP), top + row * (slot + PLACE_GAP), slot, slot)
+		if i < _places.size():
+			_draw_place(r, _places[i])
+		else:
+			_half_frame(r, Color(INK, 0.45), 1.0, true)     # no marker: an empty square
+
+
+## One marked place in its slot: the printed map filling it, an ink frame, a small X in the middle (where the
+## marker is) and the name of its square ("F4") on a paper tab in the top left corner.
+func _draw_place(r: Rect2, entry: Dictionary) -> void:
 	var picture: Texture2D = entry["picture"]
 	var square: Vector2i = entry["square"]
-	var square_name := char(65 + square.x) + str(square.y + 1)      # column A..I, row 1..9
-	_half_text(area.position + Vector2(0.0, 12.0), "Marked place  " + square_name, 13, INK, HORIZONTAL_ALIGNMENT_LEFT)
-	var room := Vector2(area.size.x, area.size.y - 22.0)       # under the title
-	var picture_px := picture.get_size().x
-	var fit := minf(room.x, room.y) / picture_px
-	var zoom := maxf(1.0, floorf(fit)) if fit >= 1.0 else fit   # book pixels per picture pixel
-	var side := picture_px * zoom
-	var corner := Vector2(size.x * 0.5 - side * 0.5, area.position.y + 22.0 + (room.y - side) * 0.5).round()
-	var r := Rect2(corner, Vector2(side, side))
 	_half_texture(picture, r)
 	_half_frame(r, INK, 2.0, false)
-	# The X where the marker is (the middle of the picture), paper under ink so it reads on any ground.
+	# The X where the marker is, paper under ink so it reads on land and sea alike.
 	var middle := r.get_center()
-	var arm := side * 0.04
-	for width_and_colour in [[5.0, PAPER], [2.5, INK]]:
+	var arm := r.size.x * 0.08
+	for width_and_colour in [[4.0, PAPER], [2.0, INK]]:
 		_half_line(middle + Vector2(-arm, -arm), middle + Vector2(arm, arm), width_and_colour[1], width_and_colour[0], false)
 		_half_line(middle + Vector2(arm, -arm), middle + Vector2(-arm, arm), width_and_colour[1], width_and_colour[0], false)
+	# The square's name: column A..I, row 1..9, ink on a little paper tab with an ink frame.
+	var square_name := char(65 + square.x) + str(square.y + 1)
+	var tab := Rect2(r.position + Vector2(2.0, 2.0), Vector2(22.0, 15.0))
+	_half_rect(tab, PAPER)
+	_half_frame(tab, INK, 1.0, false)
+	_half_text(Vector2(tab.get_center().x, tab.end.y - 3.5), square_name, 10, INK, HORIZONTAL_ALIGNMENT_CENTER)
 
 
-## A dot for every page at the bottom of the spread, the one showing filled. Only when there's more than one.
+## A dot for every page at the bottom of the spread, the one showing filled.
 func _draw_page_dots() -> void:
-	var count := _marker_pages.size() + 1
-	if count < 2:
-		return
+	var count := PAGE_COUNT
 	var gap := 12.0
 	var y := size.y - PAD_BOTTOM - DOTS_HEIGHT * 0.5
 	var first_x := size.x * 0.5 - (count - 1) * gap * 0.5
