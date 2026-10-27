@@ -32,3 +32,5 @@ stream = ExtResource("10_imp")
 
 [node name="BombBlast" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("11_bomb")
+volume_db = -6.0
+pitch_scale = 1.5

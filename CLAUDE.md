@@ -261,7 +261,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (`imp_death.ogg`, `ImpDeath`, `Sfx.imp_death()`, from `sea_imp_zone.gd` `defeat()`): a low buzzy growl falling
   110 → 38 Hz with a wobble, a bubbling gurgle of low noise, soft overdrive, 1.1 s. **Bomb** (`bomb_blast.ogg`,
   `BombBlast`, `Sfx.bomb_blast()`, from `bomb.gd` `explode()`): a short crack, a boom falling 80 → 28 Hz, a low
-  rumble, overdriven, 1.6 s. Both made by `art_src/audio/make_danger_sounds.py` (numpy, scipy, ffmpeg); both keep
+  rumble, overdriven, 1.6 s; played less intense (Enrico): `BombBlast` Pitch Scale 1.5 (higher, ~1.1 s) and Volume
+  −6 dB (half) in sfx.tscn. The imp's death plays `imp_death_delay` 0.25 s late (an export on sfx.gd), as an imp is
+  usually killed by a bomb, whose blast covered it. Both made by `art_src/audio/make_danger_sounds.py` (numpy, scipy, ffmpeg); both keep
   overtones above 200 Hz on purpose, as a phone's speaker can't play their deep part.
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
   Bayer 4×4 to paper/ink, one dot per pixel of the game view (below; `pixel_size` > 1 only makes the grain coarser).

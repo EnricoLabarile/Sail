@@ -8,6 +8,7 @@ extends Node
 ##   pickup.ogg       a snappy two-note blip: something came aboard, anything (made by art_src/audio/make_pickup.py)
 ##   imp_death.ogg    a sea imp killed: a low falling growl with a gurgle of noise   } made by
 ##   bomb_blast.ogg   a bomb going off: a crack, a deep boom, a rumble               } art_src/audio/make_danger_sounds.py
+##                    (played higher and quieter: BombBlast's Pitch Scale 1.5 and Volume -6 dB in sfx.tscn, Enrico)
 ## (The sea, the wind and the water along the hull were removed by Enrico; bake.html can still make them.)
 ## The players are nodes in sfx.tscn: open it to change a sound's loudness (Volume dB in the Inspector).
 ## Nothing plays while the game is paused (the game over card).
@@ -20,6 +21,10 @@ extends Node
 @onready var pickup_sound: AudioStreamPlayer = $Pickup
 @onready var imp_death_sound: AudioStreamPlayer = $ImpDeath
 @onready var bomb_blast_sound: AudioStreamPlayer = $BombBlast
+
+## Seconds the imp's death sound waits before it plays. An imp is usually killed by a bomb, whose blast starts in
+## the same instant and would cover it (Enrico couldn't hear it): a moment later, it's heard after the bang.
+@export var imp_death_delay := 0.25
 
 var rub_db := 0.0       # the rub's loudness as set in sfx.tscn (read at start): the code turns it down from there
 var thunk_db := 0.0     # the same for the thud
@@ -68,8 +73,9 @@ func came_aboard() -> void:
 	pickup_sound.play()
 
 
-## A sea imp killed (sea_imp_zone.gd, defeat).
+## A sea imp killed (sea_imp_zone.gd, defeat): imp_death_delay seconds later (a timer, like a Delay node).
 func imp_death() -> void:
+	await get_tree().create_timer(imp_death_delay).timeout
 	imp_death_sound.play()
 
 
