@@ -86,7 +86,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -200)
 
 [node name="Clouds" parent="Decorative" unique_id=610020452 instance=ExtResource("20_clouds")]
 cloud_count = 128
-size_max = 40.0
 
 [node name="WindLines" parent="Decorative" unique_id=651435916 instance=ExtResource("22_wind_lines")]
 

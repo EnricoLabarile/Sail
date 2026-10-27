@@ -98,7 +98,6 @@ metadata/_edit_lock_ = true
 
 [node name="Clouds" parent="Decorative" unique_id=610020452 instance=ExtResource("7_0sdrp")]
 cloud_count = 128
-size_max = 40.0
 
 [node name="WindLines" parent="Decorative" unique_id=651435916 instance=ExtResource("8_4ah68")]
 
