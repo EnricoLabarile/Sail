@@ -14,6 +14,7 @@ extends Control
 ## Portrait / Name / Text's places inside it. Drawn crisp, on its own CanvasLayer (115), not through the dither.
 
 @export var letters_per_second := 30.0   # how fast the words are typed out (higher = quicker)
+@export var letters_per_blip := 2         # a talk blip (Sfx.talk_blip, Animal Crossing style) every this many letters
 
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
@@ -23,6 +24,7 @@ signal finished                           # the last page was closed
 var pages: Array[String] = []             # the lines being shown, one entry a page
 var page := 0                             # which page is showing now
 var letters_shown := 0.0                  # how many letters of this page are typed out so far
+var letters_since_blip := 0               # letters typed since the last blip
 var on_finished: Callable                 # who to tell when it's over (the NPC)
 
 @onready var portrait: TextureRect = $Portrait
@@ -43,8 +45,16 @@ func _process(dt: float) -> void:
 	# The typewriter: a few more letters every frame, until the whole page is there.
 	var total := text_label.get_total_character_count()
 	if letters_shown < total:
+		var before := int(letters_shown)
 		letters_shown = minf(total, letters_shown + letters_per_second * dt)
 		text_label.visible_characters = int(letters_shown)
+		# The voice: count the new letters (spaces and punctuation are silent) and blip every letters_per_blip.
+		for i in range(before, int(letters_shown)):
+			if i < text_label.text.length() and _is_spoken(text_label.text[i]):
+				letters_since_blip += 1
+				if letters_since_blip >= letters_per_blip:
+					letters_since_blip = 0
+					Sfx.talk_blip()
 
 
 ## Opens the box with these pages (an NPC calls it). `when_done` is called after the last page is closed.
@@ -80,6 +90,12 @@ func _show_page() -> void:
 	text_label.text = pages[page]
 	letters_shown = 0.0
 	text_label.visible_characters = 0
+	letters_since_blip = letters_per_blip - 1   # so the first letter of a page blips at once
+
+
+## Is this letter "said"? Letters and numbers are; spaces and punctuation make no sound.
+func _is_spoken(letter: String) -> bool:
+	return letter.to_lower() != letter.to_upper() or letter.is_valid_int()
 
 
 func _close() -> void:

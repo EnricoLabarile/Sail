@@ -12,6 +12,7 @@ extends Node
 ##   hull_bump.ogg    the hull knocking against a shore or a barrel: a dull thud, a woody knock, a little scrape
 ##                    (made by art_src/audio/make_bump.py)
 ##   equip_bomb.ogg   the bomb equipped: two dry metallic clicks, like a gun being loaded (art_src/audio/make_equip.py)
+##   talk_blip.ogg    one syllable of a talking NPC, Animal Crossing style: a short voiced blip (art_src/audio/make_talk_blip.py)
 ## (The sea, the wind and the water along the hull were removed by Enrico; bake.html can still make them.)
 ## The players are nodes in sfx.tscn: open it to change a sound's loudness (Volume dB in the Inspector).
 ## Nothing plays while the game is paused (the game over card).
@@ -26,6 +27,11 @@ extends Node
 @onready var bomb_blast_sound: AudioStreamPlayer = $BombBlast
 @onready var hull_bump_sound: AudioStreamPlayer = $HullBump
 @onready var equip_bomb_sound: AudioStreamPlayer = $EquipBomb
+@onready var talk_blip_sound: AudioStreamPlayer = $TalkBlip
+
+## The talk blips' pitch: each one picked at random between these (1 = as made), so a page babbles like a voice.
+@export var talk_pitch_min := 0.9
+@export var talk_pitch_max := 1.25
 
 ## Seconds the imp's death sound waits before it plays. An imp is usually killed by a bomb, whose blast starts in
 ## the same instant and would cover it (Enrico couldn't hear it): a moment later, it's heard after the bang.
@@ -101,6 +107,12 @@ func hull_bump(strength: float) -> void:
 ## The bomb equipped (bomb_button.gd): a snappy click-clack.
 func equip_bomb() -> void:
 	equip_bomb_sound.play()
+
+
+## One syllable of a talking NPC (talk_box.gd, while the letters are typed out): the blip at a random pitch.
+func talk_blip() -> void:
+	talk_blip_sound.pitch_scale = randf_range(talk_pitch_min, talk_pitch_max)
+	talk_blip_sound.play()
 
 
 ## A loudness share (0..1) in decibels, as volume_db wants: 1 = 0 dB (as set), 0.5 = -6 dB, 0 = -80 dB (silent).

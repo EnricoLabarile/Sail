@@ -21,7 +21,7 @@ signal taken(pickup: Node3D)                   # it went into the hold (just bef
 		_show_icon()
 @export var count := 1                 # how many of it she gets
 @export var price := 0                 # coins it costs (0 = free; the shop sets its own prices)
-@export var reach := 2.4               # metres from it her middle must come to take it
+@export var reach := 3.5               # metres from it her middle must come to take it (Enrico: was 2.4, made easier)
 @export var auto_take := true          # off when a shop decides instead (it listens to `touched`)
 @export var bob_height := 0.1          # metres it bobs up and down
 @export var bob_speed := 8.0           # how fast

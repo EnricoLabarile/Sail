@@ -504,7 +504,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (a copy of Gym_Store) at (−9.5, 0, 92)): no pier, no stopping. `Merchant` (a `Raft` box and a `Picture` quad 3 × 4 m
   facing south, not a billboard: Enrico tilts it), `Slot1..3` (Marker3D pivots), `GreetArea` (Area3D, mask layer 4,
   `greet_radius` 20; a green editor disc). Inspector: `for_sale` (up to 3 ItemData, one per slot in order),
-  `welcome_line`, `no_money_line`, `hold_full_line`, `greet_radius` (30, Enrico), `pickup_radius` 2.4, `bounce_push` 12 (Enrico: more), `line_time` 3.
+  `welcome_line`, `no_money_line`, `hold_full_line`, `greet_radius` (30, Enrico), `pickup_radius` 5 (the script's value; the .tscn's 2.4 override was removed), `bounce_push` 12 (Enrico: more), `line_time` 3.
   **Buy feedback** (Enrico; the shake made by the pickup, the sound by the boat for anything coming aboard): `Sfx.came_aboard()` (`Assets/SFX/pickup.ogg`, a snappy two-note blip made by
   `art_src/audio/make_pickup.py`, numpy + ffmpeg; player `Pickup` in sfx.tscn), `camera.shake_hard(take_shake_strength 0.25,
   take_shake_time 0.18)` (the pickup's exports), and **the purse on screen** (`Talk/Purse`, a paper label "Coins  n" top left under the hearts,
@@ -525,7 +525,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (`@tool`)): an item floating on the water, the old shop item's look (`Float`, which bobs: a paper `Disc` r 1.8 with an
   ink `Rim` r 2, the icon on a 2.6 m plane made in code with no owner, so it shows in the editor and is never saved),
   `Sensor` (Area3D, mask layer 4, a cylinder of `reach`, local to scene). Inspector: `item` (ItemData), `count` 1,
-  `price` 0 (coins; 0 = free), `reach` 2.4, `auto_take` (on), `bob_height` / `bob_speed`, `take_shake_strength` /
+  `price` 0 (coins; 0 = free), `reach` 3.5 (Enrico: easier to pick up; was 2.4), `auto_take` (on), `bob_height` / `bob_speed`, `take_shake_strength` /
   `take_shake_time`. Her SpotSensor entering → signal `touched(pickup, boat)`; with `auto_take`, `why_not()` ("" /
   "hold_full" / "no_money") "" → `take(boat)`: `Inventory.add(id, count)`, coins out if priced, `Sfx.pickup()`, the shake,
   signal `taken`, freed; no room: it stays. (Its sound is the boat's "came aboard", see Sound.) Placed by hand anywhere, made by the floating shop, and **dropped by a killed
@@ -578,7 +578,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `_draw_shimmer`: a slanted paper band with thin ink edges, cut to the hub's circle with `Geometry2D.intersect_polygons`,
   sweeps left to right in `shimmer_time` 0.5 s every `shimmer_every` 1.6 s; redrawn every frame only then); `Bubble` (a flat PlaneMesh 5 × 3.75 m lying
   level 5 m up, StandardMaterial3D unshaded, alpha, render_priority 2, duplicated per NPC; Enrico tilts it if he wants:
-  no billboards) fades in while she's near and not talking and bobs up and down, fades out when she leaves. On the
+  no billboards) fades in while she's near and not talking and bobs up and down, fades out when she leaves. **The talk starts by itself** (Enrico): on entering the radius (`_start_talk_on_arrival`, deferred; not tied up, sinking, or already talked to) the anchor drops by itself (`boat.toggle_anchor()`, its sound too), or if she's already anchored the talk just opens. On the
   boat's `anchor_dropped` with her near: `talk_box.open(speaker_name, portrait, lines, _on_talk_finished)`. **When the talk ends**
   (Enrico) the NPC calls `boat.done_talking_with(self)`: the boat keeps `npcs_talked_to`, and until she leaves its radius
   (`set_near_npc(…, false)` drops it) that NPC no longer counts for `talk_hint()` (= talking or `npcs_waiting()`): the hub shows
@@ -589,7 +589,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   at the top, full width less 12 px, y 92–222) + `talk_box.gd`; in Overworld as `TalkBox`, group `talk_box`): a paper
   panel, 2 px ink border, 3 px ink shadow (as the hearts'); on the left `Portrait` (TextureRect 86 px, a double ink
   frame), on the right `Name` (14) and `Text` (13, autowrap), ink. Each page typed out at `letters_per_second` 30
-  (`visible_characters`). **A quick tap on the wheel's hub** (`helm.gd` signal `hub_tapped`: let go before `hub_hold`;
+  (`visible_characters`). **Its voice** (Enrico, like Animal Crossing): every `letters_per_blip` 2 spoken letters (letters and digits; `_is_spoken`, the first of a page at once) `Sfx.talk_blip()`: `talk_blip.ogg` (player `TalkBlip` −8 dB, polyphony 3; a 70 ms voiced blip, 330 Hz gliding down through two vowel formants, made by `art_src/audio/make_talk_blip.py`) at a random pitch `talk_pitch_min/max` 0.9–1.25 (sfx.gd exports). **A quick tap on the wheel's hub** (`helm.gd` signal `hub_tapped`: let go before `hub_hold`;
   helm in group `helm`): while typing → the whole page; then the next page; after the last → closes and calls the
   NPC back. While open `boat.talking` is true: `toggle_anchor` does nothing (hub hold, Space) and the hub's ring
   doesn't fill. **While open, every node in the group `hidden_while_talking` is hidden** (Enrico: the

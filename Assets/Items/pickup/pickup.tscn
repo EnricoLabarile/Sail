@@ -29,7 +29,7 @@ rings = 1
 [sub_resource type="CylinderShape3D" id="Shape_sensor"]
 resource_local_to_scene = true
 height = 4.0
-radius = 2.4
+radius = 3.5
 
 [node name="Pickup" type="Node3D"]
 script = ExtResource("1_item")

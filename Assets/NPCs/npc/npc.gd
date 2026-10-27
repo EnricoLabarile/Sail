@@ -6,7 +6,8 @@ extends Node3D
 ## How it works:
 ##   1. the boat comes within `talk_radius`: a speech bubble fades in above it and bobs up and down, to catch
 ##      the eye; she sails away without stopping: it fades out and nothing happens;
-##   2. she drops anchor inside the radius: the talk starts. The talk box at the top of the screen
+##   2. the moment she comes in, the anchor drops by itself (Enrico: no button to press) and the talk
+##      starts. The talk box at the top of the screen
 ##      (Assets/UI/talk_box) shows `portrait`, `speaker_name` and the `lines`, one page at a time, typed out
 ##      letter by letter; a quick tap on the wheel's hub (the anchor button) goes on to the next page;
 ##   3. after the last page a tap closes it. Dropping anchor here again starts it again from the top.
@@ -92,6 +93,20 @@ func _on_sensor_entered(area: Area3D) -> void:
 		boat_near = true
 		boat.set_near_npc(self, true)     # the wheel's hub shows the speech bubble
 		set_process(true)                 # the bubble fades in (and bobs) every frame from now
+		_start_talk_on_arrival.call_deferred(boat)   # after the physics step, not inside it
+
+
+## She came in (Enrico): no need to press the anchor, it drops by itself and the talk starts
+## (dropping it sends anchor_dropped, which starts the talk: _on_anchor_dropped). Already at anchor: just talk.
+func _start_talk_on_arrival(boat: Node) -> void:
+	if not boat_near or talking or _talked_to() or lines.is_empty():
+		return
+	if boat.berth != null or boat.sinking:
+		return                            # tied up at a pier, or going down: no talk
+	if boat.anchored:
+		_on_anchor_dropped()
+	else:
+		boat.toggle_anchor()              # the anchor goes down (its sound too), and the talk starts
 
 
 func _on_sensor_exited(area: Area3D) -> void:
