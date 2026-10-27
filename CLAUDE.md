@@ -580,7 +580,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (Enrico: one spread, not a page per marker): `PLACE_SLOTS` 9 square slots in a 3 × 3 grid (`PLACE_COLUMNS`,
   `PLACE_GAP` 8) as big as fit, centred on the spine, title and "n/9" above (`_draw_places`); the active markers with a
   `picture` fill them in turn (`_places`, read in `refresh`, at most 9): the picture stretched to the slot, an ink
-  frame, an X (paper under ink) in the middle and the square's name ("F4") on a paper tab top left (`_draw_place`);
+  frame and an X (paper under ink) in the middle, no square's name (Enrico: the player finds it from the land) (`_draw_place`);
   empty slots dashed and faint, as the hold's. Page dots at the bottom (`_draw_page_dots`, `DOTS_HEIGHT`).
   **Swipe** to turn (`_gui_input`: where the finger came down is kept; lifted ≥ `SWIPE` 40 px sideways → `turn_page`,
   left = next; less = a tap, which on page 0 equips a bomb or trap slot as before). It remembers its page.
@@ -591,21 +591,21 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   north, the shut logbook icon, the open book (`unfold` = 1, the hold empty), three full hearts, the bomb button (always shown there). Their places and sizes
   are the Controls' in their .tscn (anchors and offsets), except the open book's, which `logbook.gd` works out
   every frame (`BOOK_MAX`, `TOP_GAP`, centred).
-- **The start screen** (`Assets/UI/start_screen.tscn` + `.gd`, CanvasLayer 130, in Overworld): a card with the title, "Build
-  N" and the build's start time, and the line "Hold the anchor to set sail". **No button and no pause** (Enrico): she
-  starts at anchor and **weighing the anchor** (the hub held, as always) starts the game: the boat's signal
-  `anchor_weighed` (sent by `toggle_anchor` when it comes up; connected `CONNECT_ONE_SHOT`) hides the card. Until
-  then everything in the group `hidden_at_start` is hidden (`WindVane`, `Health`, the logbook's `IconLayer`,
-  `BombButton`; groups set in their .tscn), so only the hub shows (the wheel is faded away at anchor). The numbers
-  come from `Assets/UI/build_info.gd` ("local" in the repo); `web.yml` rewrites it before exporting with
-  `github.run_number` and the time (Europe/Rome). **Level list** (Enrico): under "Levels", a button per `.tscn` in
-  `LEVELS_FOLDER` `res://Assets/Scenes` (`level_names()`: `ResourceLoader.list_directory`, which also works in the web
-  export; `Overworld` first, the rest A–Z, `_` shown as spaces), the level being played inked; a tap
-  `change_scene_to_file` (autoloads carry over: hold, fog, wind). Card 300 × 340. A new level saved there gets its button by itself. **Black curtain** (Enrico: loading a level stutters, hide it): `start_screen.gd` makes a black ColorRect in its own
-  CanvasLayer `CURTAIN_LAYER` 140 (over everything, catching taps). Every level starts black (`lift_curtain`: held
-  `curtain_hold` 0.6 s, so the loading's last hitches and the shader warm-up happen behind it, then faded out over
-  `curtain_fade` 0.3 s with a Tween); a level button first drops it (`load_level`: black, two frames so it's drawn,
-  then `change_scene_to_file`).
+- **The start screen** (`Assets/UI/start_screen.tscn` + `.gd`, CanvasLayer 130, process_mode Always, in every level): a card
+  with the title, "Build N" and the build's start time, the **level list** and a **"Set sail"** button (inked).
+  **Black until "Set sail"** (Enrico): a black ColorRect in its own CanvasLayer `CURTAIN_LAYER` 129 (over the whole
+  game, under the card) from the first frame, and the game **paused** (`get_tree().paused`: the boat, wind and imps
+  wait; her coming up out of the water plays only after). "Set sail" (`_on_start`): the card hides, the controls come
+  back, unpause, the black fades over `curtain_fade` 0.3 s (`lift_curtain`). **She starts at anchor** (Enrico: the
+  start and the anchor are separate again): the hub weighs it as always. Until then everything in the group
+  `hidden_at_start` is hidden (`WindVane`, `Health`, the logbook's `IconLayer`, `BombButton`; groups set in their
+  .tscn). The numbers come from `Assets/UI/build_info.gd` ("local" in the repo); `web.yml` rewrites it before
+  exporting with `github.run_number` and the time (Europe/Rome). **Level list** (Enrico): under "Levels", a button per
+  `.tscn` in `LEVELS_FOLDER` `res://Assets/Scenes` (`level_names()`: `ResourceLoader.list_directory`, which also works
+  in the web export; `Overworld` first, the rest A–Z, `_` shown as spaces), the loaded one inked; a tap on another
+  `change_scene_to_file` at once, behind the black (`load_level`), so the switch doesn't show: the new level comes up
+  with its own card, waiting for "Set sail" (autoloads carry over: hold, fog, wind). A new level saved there gets its
+  button by itself.
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
   ```
   res://

@@ -16,7 +16,8 @@ extends Control
 ##
 ## THE SECOND SPREAD (Enrico): "Marked places", 9 slots in a grid of 3 x 3 across both pages. Each active map
 ## marker that has its printed map (map_marker.gd print_map) fills one, in turn: the picture of the area round
-## it, framed, a small X in the middle where the marker is, and the name of its square ("F4") in the corner.
+## it, framed, and a small X in the middle where the marker is; not which square it's in (Enrico: the player
+## finds the place from the shape of the land).
 ## Slots with no marker are empty squares, dashed and faint (as the hold's). Up to 9 markers: more aren't shown.
 ## A swipe across the open book turns the page (finger to the left: the next one; to the right: the one
 ## before). Dots at the bottom say which page this is. The book remembers the page it was left on.
@@ -429,10 +430,9 @@ func _draw_places(area: Rect2) -> void:
 
 
 ## One marked place in its slot: the printed map filling it, an ink frame, a small X in the middle (where the
-## marker is) and the name of its square ("F4") on a paper tab in the top left corner.
+## marker is). No square's name (Enrico): the player works out where it is from the shape of the land.
 func _draw_place(r: Rect2, entry: Dictionary) -> void:
 	var picture: Texture2D = entry["picture"]
-	var square: Vector2i = entry["square"]
 	_half_texture(picture, r)
 	_half_frame(r, INK, 2.0, false)
 	# The X where the marker is, paper under ink so it reads on land and sea alike.
@@ -441,12 +441,6 @@ func _draw_place(r: Rect2, entry: Dictionary) -> void:
 	for width_and_colour in [[4.0, PAPER], [2.0, INK]]:
 		_half_line(middle + Vector2(-arm, -arm), middle + Vector2(arm, arm), width_and_colour[1], width_and_colour[0], false)
 		_half_line(middle + Vector2(arm, -arm), middle + Vector2(-arm, arm), width_and_colour[1], width_and_colour[0], false)
-	# The square's name: column A..I, row 1..9, ink on a little paper tab with an ink frame.
-	var square_name := char(65 + square.x) + str(square.y + 1)
-	var tab := Rect2(r.position + Vector2(2.0, 2.0), Vector2(22.0, 15.0))
-	_half_rect(tab, PAPER)
-	_half_frame(tab, INK, 1.0, false)
-	_half_text(Vector2(tab.get_center().x, tab.end.y - 3.5), square_name, 10, INK, HORIZONTAL_ALIGNMENT_CENTER)
 
 
 ## A dot for every page at the bottom of the spread, the one showing filled.

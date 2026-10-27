@@ -2,22 +2,24 @@ extends CanvasLayer
 ## THE START SCREEN: a card shown before the game starts, saying which build this is
 ## (its number and when it was built), so on the phone you can tell you're playing the latest one.
 ##
-## There's no "start" button (Enrico): the boat starts at anchor, and weighing the anchor (holding the wheel's hub,
-## as always) is what starts the game. Until then every control but the hub is hidden: everything in the group
-## "hidden_at_start" (the wind vane, the hearts, the logbook button, the bomb button). To hide something else at
-## the start too, add its node to that group (Node dock → Groups; like an Actor Tag in Unreal).
-## The game isn't paused meanwhile: she simply waits at anchor while the clouds and gulls go by.
+## HOW IT STARTS (Enrico): the screen is BLACK behind the card until "Set sail" is pressed, so nothing of the level
+## shows, not even a level being switched. Meanwhile the game is paused (get_tree().paused: the boat, the wind and
+## the imps wait; she comes up out of the water only once it goes). "Set sail" takes the card and the black away,
+## the controls come back and the game goes; the boat is still at anchor: holding the wheel's hub weighs it, as always.
+## This node keeps working while paused (process_mode = Always, set in start_screen.tscn), otherwise its own
+## buttons would be paused too. Until "Set sail" every node in the group "hidden_at_start" is hidden (the wind
+## vane, the hearts, the logbook button, the bomb button); to hide something else too, add its node to that group
+## (Node dock → Groups; like an Actor Tag in Unreal).
 ##
 ## THE LEVELS (Enrico): under the build, a button for every level in LEVELS_FOLDER (the Overworld, the gyms…).
 ## The list is read from the folder every time the card shows, so a new level saved there gets its button by
-## itself. A tap loads that level (in Unreal: Open Level). The one being played is drawn inked, like a pressed key.
-## (The autoloads stay as they were: the hold, the fog's seen sea and the wind carry over to the new level.)
+## itself. The level that's loaded now is drawn inked, like a pressed key. A tap on another one loads it at once
+## (in Unreal: Open Level), behind the black: the new level comes up with this same card, its button inked, and
+## waits for "Set sail" too. (The autoloads stay as they were: the hold, the fog's seen sea and the wind carry over.)
 ##
-## THE BLACK CURTAIN (Enrico: loading a level stutters for a moment, hide it): a black sheet over everything
-## (its own CanvasLayer, CURTAIN_LAYER, above the card). A tap on a level drops it first (black, then the loading
-## starts); in the new level it's there from the first frame, stays black for curtain_hold seconds (the loading's
-## last hitches and the shader warm-up happen behind it) and then fades away over curtain_fade.
-## (In Unreal: a fade-to-black on the camera manager around Open Level.)
+## THE BLACK (the "curtain"): a black sheet over the whole game, in its own CanvasLayer (CURTAIN_LAYER) just under
+## the card. It fades away over curtain_fade when "Set sail" is pressed. (In Unreal: a fade from black on the
+## camera manager when the player presses Play.)
 
 const BuildInfo := preload("res://Assets/UI/build_info.gd")   # the build's number and time
 const LEVELS_FOLDER := "res://Assets/Scenes"                  # where the levels are
@@ -25,37 +27,33 @@ const FIRST_LEVEL := "Overworld"                              # this one comes f
 
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
-const CURTAIN_LAYER := 140                                    # above everything, the card (130) too
+const CURTAIN_LAYER := 129                                    # above the whole game, just under the card (130)
 
-@export var curtain_hold := 0.6     # seconds the new level stays black before it shows (its loading hitches hide there)
-@export var curtain_fade := 0.3     # seconds the black takes to fade away
+@export var curtain_fade := 0.3     # seconds the black takes to fade away after "Set sail"
 
 var curtain: ColorRect              # the black sheet (made in code, in its own layer above everything)
 
 @onready var build_label: Label = $Card/Margin/Lines/Build
 @onready var levels_box: VBoxContainer = $Card/Margin/Lines/Levels
+@onready var start_button: Button = $Card/Margin/Lines/Start
 
 
 func _ready() -> void:
-	make_curtain()
-	lift_curtain()                             # the level starts black, then shows (see lift_curtain)
+	make_curtain()                             # black from the very first frame
 	build_label.text = "Build %s\n%s" % [BuildInfo.NUMBER, BuildInfo.STARTED]
 	add_level_buttons()
+	style_button(start_button, true)           # "Set sail" inked, so it stands out from the level list
+	start_button.pressed.connect(_on_start)    # when it's pressed, call _on_start
+	get_tree().paused = true                   # everything waits for "Set sail"
 	_show_controls.call_deferred(false)        # after every node is ready (and in its group): hide the controls
-	_listen_to_boat.call_deferred()
 
 
-## Waits for the boat to weigh anchor for the first time (boat.gd sends anchor_weighed).
-func _listen_to_boat() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat")
-	if boat:
-		boat.anchor_weighed.connect(_on_start, CONNECT_ONE_SHOT)   # ONE_SHOT: only the first time
-
-
-## The anchor came up: the card goes away and the controls come back.
+## "Set sail": the card goes, the black fades away, the controls come back and the game goes (still at anchor).
 func _on_start() -> void:
-	hide()
+	$Card.hide()
 	_show_controls(true)
+	get_tree().paused = false
+	lift_curtain()
 
 
 ## Hides (or shows) every node in the group "hidden_at_start".
@@ -90,7 +88,8 @@ func add_level_buttons() -> void:
 		button.text = level.replace("_", " ")                  # "Gym_Imp" → "Gym Imp"
 		button.focus_mode = Control.FOCUS_NONE                 # no keyboard focus ring (Space works the anchor)
 		style_button(button, path == playing)
-		button.pressed.connect(load_level.bind(path))          # bind: the button hands its own path to load_level
+		if path != playing:                                    # the one loaded now does nothing: it's already there
+			button.pressed.connect(load_level.bind(path))      # bind: the button hands its own path to load_level
 		levels_box.add_child(button)
 
 
@@ -110,13 +109,10 @@ func style_button(button: Button, is_playing: bool) -> void:
 	button.add_theme_font_size_override("font_size", 15)
 
 
-## Loads that level, in place of this one: first the curtain comes down (black), and only once the black has
-## been drawn (two frames later) does the loading start, so its stutter happens on a black screen.
+## Loads that level, in place of this one. The screen is already black behind the card, so the switch doesn't
+## show: the new level starts with its own card on black, waiting for "Set sail".
+## (The paused state carries over; the new level's card pauses it again anyway.)
 func load_level(path: String) -> void:
-	curtain.modulate.a = 1.0
-	curtain.visible = true
-	await get_tree().process_frame
-	await get_tree().process_frame
 	get_tree().change_scene_to_file(path)
 
 
@@ -135,12 +131,11 @@ func make_curtain() -> void:
 	layer.add_child(curtain)
 
 
-## The level has just started, black: wait curtain_hold seconds, then fade the black away (a Tween on its
-## see-through-ness, like a Timeline in Blueprints) and hide it.
+## "Set sail" was pressed: fade the black away (a Tween on its see-through-ness, like a Timeline in Blueprints),
+## then hide the whole start screen.
 func lift_curtain() -> void:
-	curtain.visible = true
-	curtain.modulate.a = 1.0
-	await get_tree().create_timer(curtain_hold).timeout
 	var fade := create_tween()
 	fade.tween_property(curtain, "modulate:a", 0.0, curtain_fade)
-	fade.tween_callback(func(): curtain.visible = false)
+	fade.tween_callback(func():
+		curtain.visible = false
+		hide())
