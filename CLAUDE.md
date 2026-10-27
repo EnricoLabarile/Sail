@@ -592,7 +592,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   are the Controls' in their .tscn (anchors and offsets), except the open book's, which `logbook.gd` works out
   every frame (`BOOK_MAX`, `TOP_GAP`, centred).
 - **The start screen** (`Assets/UI/start_screen.tscn` + `.gd`, CanvasLayer 130, process_mode Always, in every level): a card
-  with the title, "Build N" and the build's start time, the **level list** and a **"Set sail"** button (inked).
+  with the title, "Build N" and the build's start time, the **level list** and a **"Set sail"** button (inked, shorter than the level buttons: 130 px, centred, Enrico: so it doesn't look like the selected level).
   **Black until "Set sail"** (Enrico): a black ColorRect in its own CanvasLayer `CURTAIN_LAYER` 129 (over the whole
   game, under the card) from the first frame, and the game **paused** (`get_tree().paused`: the boat, wind and imps
   wait; her coming up out of the water plays only after). "Set sail" (`_on_start`): the card hides, the controls come
