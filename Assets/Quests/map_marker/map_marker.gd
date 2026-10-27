@@ -43,7 +43,7 @@ const CAMERA_HEIGHT := 200.0         # metres up the camera prints from: above a
 @export_tool_button("Print map", "ImageTexture") var print_button := print_map
 ## Where the printed map is saved. Empty = PRINTS_FOLDER/<level>_<marker>.png.
 @export_file("*.png") var print_path := ""
-@export var area_size := 60.0        # metres across the area printed (the marker is in the middle)
+@export var area_size := 120        # metres across the area printed (the marker is in the middle)
 @export var picture_size := 140      # pixels a side of the picture (the book draws it at a whole multiple: 2 x on a phone)
 ## The nodes whose meshes are the land (as the shore baker's): looked for by name anywhere in the level if the
 ## path doesn't lead anywhere.

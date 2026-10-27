@@ -1,6 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://ej7rs2ta81hm"]
 
-[ext_resource type="Script" path="res://Assets/Quests/map_marker/map_marker.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://co32sge1ip08f" path="res://Assets/Quests/map_marker/map_marker.gd" id="1_script"]
 
-[node name="MapMarker" type="Node3D"]
+[node name="MapMarker" type="Node3D" unique_id=1014403933]
 script = ExtResource("1_script")
+area_size = 120.0

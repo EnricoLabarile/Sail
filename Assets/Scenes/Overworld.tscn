@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cfpjn7myu4ohs"]
 
-[ext_resource type="PackedScene" path="res://Assets/Landscape/world/sea.tscn" id="1_sea"]
+[ext_resource type="PackedScene" uid="uid://cnu0m3427cdln" path="res://Assets/Landscape/world/sea.tscn" id="1_sea"]
 [ext_resource type="PackedScene" uid="uid://dhestvacwpffc" path="res://Assets/Boat/boat.tscn" id="2_boat"]
 [ext_resource type="PackedScene" path="res://Assets/UI/helm.tscn" id="3_helm"]
 [ext_resource type="PackedScene" uid="uid://bba4hwropmrh4" path="res://Assets/Post_Process/dither/dither.tscn" id="4_dither"]
@@ -20,10 +20,10 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="25_health"]
 [ext_resource type="PackedScene" uid="uid://c83avpy373bev" path="res://Assets/Landscape/fishing_spots/fishing_spot.tscn" id="26_fishing_spot"]
 [ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="27_game_over"]
-[ext_resource type="PackedScene" path="res://Assets/Dangers/sea_imp/sea_imp_zone.tscn" id="28_sea_imp_zone"]
+[ext_resource type="PackedScene" uid="uid://85hj3herq30r" path="res://Assets/Dangers/sea_imp/sea_imp_zone.tscn" id="28_sea_imp_zone"]
 [ext_resource type="PackedScene" uid="uid://b5lqfu2xq0o10" path="res://Assets/Dangers/maelstrom/maelstrom.tscn" id="28_ubo31"]
-[ext_resource type="PackedScene" path="res://Assets/Quests/map_marker/map_marker.tscn" id="29_map_marker"]
-[ext_resource type="PackedScene" path="res://Assets/Landscape/pier/pier.tscn" id="30_pier"]
+[ext_resource type="PackedScene" uid="uid://ej7rs2ta81hm" path="res://Assets/Quests/map_marker/map_marker.tscn" id="29_map_marker"]
+[ext_resource type="PackedScene" uid="uid://cw2t2edse5qr" path="res://Assets/Landscape/pier/pier.tscn" id="30_pier"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/big_waves/wave_zone.tscn" id="31_wave_zone"]
 [ext_resource type="PackedScene" uid="uid://v3vso8b52t23" path="res://Assets/NPCs/npc/npc.tscn" id="32_npc"]
 [ext_resource type="PackedScene" path="res://Assets/UI/talk_box/talk_box.tscn" id="33_talk_box"]
@@ -42,55 +42,6 @@ land_roots = Array[NodePath]([NodePath("../../Gameplay/Islands"), NodePath("../C
 
 [node name="Boat" parent="Core" unique_id=1762906152 instance=ExtResource("2_boat")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -131.20982, -0.043405533, 1.083374)
-top_speed = null
-accel = null
-anchor_bite = null
-turn_rate = null
-bow_reach = null
-heel_max_deg = null
-sail_fill_rate = null
-boom_max_deg = null
-turn_lean_deg = null
-bow_lift_deg = null
-bow_lift_curve = null
-sail_trail_threshold = null
-surf_boost = null
-surf_time = null
-wave_push = null
-wave_slowdown = null
-wave_slew_deg = null
-dock_speed = null
-cast_off_calm_time = null
-cast_off_push = null
-roll_stiffness = null
-roll_damping = null
-pitch_stiffness = null
-pitch_damping = null
-anchor_rode = null
-furl_rate = null
-unfurl_rate = null
-furled_height = null
-wave_roll_deg = null
-wave_pitch_deg = null
-wave_period = null
-shallows_width = null
-shallows_sail = null
-bow_wave_fps = null
-bow_wave_min_size = null
-shallows_check_time = null
-current_ease = null
-shore_calm_distance = null
-bounce_kick = null
-bounce_extra = null
-bounce_fade = null
-bounce_slowdown = null
-bounce_min_speed = null
-bounce_cooldown = null
-max_hearts = null
-hit_damage = null
-sink_time = null
-sink_depth = null
-sink_lean_deg = null
 
 [node name="Sea" parent="Core" unique_id=1750240136 instance=ExtResource("1_sea")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26995945, 0.0868597, -0.12084007)
@@ -104,8 +55,16 @@ metadata/_edit_lock_ = true
 [node name="Maelstrom" parent="Dangers" unique_id=455210000 instance=ExtResource("28_ubo31")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -124.03313, 0, -16.866133)
 outer_radius = 4
+core_radius = 2
 shown_time = 5
+hidden_time = 3
+fade_time = 3
 pull_strength = 5
+hold_time = 1.5
+hold_spin = 8.0
+core_damage = 2.0
+fling_speed = 12.0
+fling_time = 1.2
 
 [node name="SeaImps" type="Node3D" parent="Dangers" unique_id=690468872]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1220932, -3.8146973e-06, -0.06600571)
@@ -150,11 +109,15 @@ reach = 4
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -156.14967, 0, -90.93315)
 active = true
 picture = ExtResource("35_print1")
+print_path = "uid://cei37ab08l387"
+area_size = 120
 
 [node name="MapMarker2" parent="Gameplay/MapMarkers" unique_id=1657906072 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.41281, 0, -108.172035)
 active = true
 picture = ExtResource("36_print2")
+print_path = "uid://cv7nfuhqh5jj8"
+area_size = 120
 
 [node name="Piers" type="Node3D" parent="Gameplay" unique_id=788276141]
 
