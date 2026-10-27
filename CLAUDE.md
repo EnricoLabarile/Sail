@@ -569,7 +569,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (Texture2D, Enrico paints it), `lines` (`@export_multiline Array[String]`: an entry = a page, new lines inside it),
   `talk_radius` 8 m (a yellow disc in the editor), `bob_height` 0.4, `bob_speed` 1.5, `fade_time` 0.3. `Sensor` (Area3D,
   mask layer 4, the boat's `SpotSensor`: event-driven) sets `boat_near` and tells the boat (`set_near_npc`: the hub
-  shows a speech bubble); `Bubble` (a flat PlaneMesh 5 × 3.75 m lying
+  shows a speech bubble, and **her top speed is capped at `npc_speed_limit` 0.2 of `top_speed`** while `npcs_near` isn't
+  empty, Enrico; she eases down to it at `accel`); `Bubble` (a flat PlaneMesh 5 × 3.75 m lying
   level 5 m up, StandardMaterial3D unshaded, alpha, render_priority 2, duplicated per NPC; Enrico tilts it if he wants:
   no billboards) fades in while she's near and not talking and bobs up and down, fades out when she leaves. On the
   boat's `anchor_dropped` with her near: `talk_box.open(speaker_name, portrait, lines, _on_talk_finished)`; it starts

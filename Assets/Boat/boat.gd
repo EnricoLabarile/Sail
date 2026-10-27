@@ -63,6 +63,8 @@ extends Node3D
 # The shallows: near the coast there's less wind, so the sail gives less.
 @export var shallows_width := 3.0   # metres from the land that count as shallows
 @export var shallows_sail := 0.5    # what the sail gives there, as a share of the usual (0.3 = 30%)
+# Near an NPC (inside its talk radius, Enrico): she slows down, so it's easy to stop by and talk.
+@export var npc_speed_limit := 0.2  # her top speed there, as a share of top_speed (0.2 = 20%)
 # The bow wave (boat.tscn: BowWaveRight / BowWaveLeft, bow_wave.png, a 4 x 4 flipbook).
 @export var bow_wave_fps := 12.0        # frames a second it plays at top speed (slower when slower)
 @export var bow_wave_min_size := 0.4    # its size at a crawl, as a share of full size (full at top speed)
@@ -539,6 +541,10 @@ func _physics_process(dt: float) -> void:
 		if not anchored:
 			target += surf_boost * minf(1.0, surfing_left / 0.8)
 			rate = 3.0
+	# Inside an NPC's radius (npcs_near, told by npc.gd): never faster than npc_speed_limit of her top speed.
+	# She slows down to it smoothly, at her usual rate (the line below): she doesn't stop dead.
+	if not npcs_near.is_empty():
+		target = minf(target, top_speed * npc_speed_limit)
 	speed += (target - speed) * minf(1.0, dt * rate)
 
 	# She turns at the same rate whatever her speed, as in the prototype; not at anchor.
