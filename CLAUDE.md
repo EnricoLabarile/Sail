@@ -569,11 +569,11 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `_marked_squares`; `_draw_map` draws an ink X (arms 0.3 of a square, width 2) in the middle of each.
   **Printed maps** (Enrico: an editor tool, not something done while playing): `picture` (Texture2D export) is the
   marker's page in the logbook; **"Print map"** (`@export_tool_button`, group "Print map" in the Inspector,
-  `print_map`) makes it, like the shore baker: a SubViewport with its own World3D holding copies (`_copy_mesh`, with
-  their materials) of only the level's `Sea` and the meshes under `land_roots` (`../../Islands`, `../../Coast`, found
-  by name if the path fails), an orthographic Camera3D `area_size` 60 m across, straight above the marker looking down (`CAMERA_HEIGHT` 200 m, a constant: in orthographic the height changes nothing, it only has to be above everything; Enrico: a map is always printed from above, no tilt), one render of
-  `picture_size` 140²; made 1-bit with the game's dither sums and the level's Dither settings (`to_one_bit`,
-  `dither_settings`); saved to `print_path` (empty = `Assets/Quests/map_marker/prints/<level>_<marker>.png`), then
+  `print_map`) makes it, like the shore baker: a SubViewport with its own World3D (see-through background) holding plain white
+  unshaded copies (`_copy_mesh`) of only the meshes under `land_roots` (`../../Islands`, `../../Coast`, found
+  by name if the path fails), an orthographic Camera3D `area_size` 120 m across, straight above the marker looking down (`CAMERA_HEIGHT` 200 m, a constant: in orthographic the height changes nothing, it only has to be above everything; Enrico: a map is always printed from above, no tilt), one render of
+  `picture_size` 140²; in **two colours, no shading** (Enrico: easy to read; `to_two_colours`): land
+  (not see-through) = paper, sea = ink; the camera's far plane is at the sea's level, so only what's above the water counts; saved to `print_path` (empty = `Assets/Quests/map_marker/prints/<level>_<marker>.png`), then
   reimported and put in `picture` (`use_new_picture`, the scene marked unsaved: save it). Print again after changing
   the coasts. Nothing of it runs in the game. The Overworld's two markers have theirs (`Overworld_MapMarker*.png`).
   **The logbook's pages** (`book.gd`): `page` 0 = the hold and the map; one

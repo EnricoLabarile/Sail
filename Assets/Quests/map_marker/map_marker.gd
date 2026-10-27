@@ -18,18 +18,17 @@ extends Node3D
 ## texture asset.)
 ##
 ## How it's printed, like the shore baker's photo (shore_baker.gd):
-##   1. A little world of its own with copies of only the sea and the land (the meshes under `land_roots`), each
-##      with its own material: so nothing else gets in (no boat, imps, clouds, fog or editor discs).
+##   1. A little world of its own with copies of only the land (the meshes under `land_roots`), all painted plain
+##      white: so nothing else gets in (no sea, boat, imps, clouds, fog or editor discs).
 ##   2. An orthographic camera (no perspective, like a map) straight above the marker, looking down, area_size
 ##      metres across. North is at the top of the picture. (In orthographic how high it is changes nothing in the
 ##      picture: CAMERA_HEIGHT only has to be above everything.)
-##   3. One picture of picture_size pixels a side, made 1-bit with the game's own dither (the same sums, and the
-##      settings read from the level's Dither: brightness, contrast, levels), so it looks like the game in ink.
+##   3. One picture of picture_size pixels a side in just two colours (Enrico: neat, easy to read, no shading):
+##      wherever land was drawn it's PAPER, everywhere else (the sea) it's INK.
 
 const ICON := preload("res://Assets/Quests/map_marker/map_marker_icon.svg")
-const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]   # the 4 x 4 dot pattern (as dither.gdshader)
-const PAPER := Color("ebe7dc")
-const INK := Color("1b1a17")
+const PAPER := Color("ebe7dc")       # the land's colour on the printed map
+const INK := Color("1b1a17")         # the sea's colour on the printed map
 const PRINTS_FOLDER := "res://Assets/Quests/map_marker/prints"   # where the printed maps go if print_path is empty
 const CAMERA_HEIGHT := 200.0         # metres up the camera prints from: above any island (any height gives the same picture)
 
@@ -81,7 +80,7 @@ func square() -> Vector2i:
 ## the picture to be drawn, so it's an `await` function: it finishes by itself a frame or two later.
 func print_map() -> void:
 	var image := await take_photo()
-	image = to_one_bit(image)
+	image = to_two_colours(image)
 	var path := where_to_save()
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	var error := image.save_png(path)
@@ -121,22 +120,23 @@ func use_new_picture(path: String) -> void:
 	print("Map marker: ", name, " now shows ", path, " (save the level)")
 
 
-## The photo: copies of the sea and the land in a world of their own, seen from straight above by an orthographic camera.
+## The photo: white copies of the land in a world of their own, on a see-through background, seen from straight
+## above by an orthographic camera. Where the picture isn't see-through, there's land.
 func take_photo() -> Image:
 	var view := SubViewport.new()
 	view.size = Vector2i(picture_size, picture_size)
 	view.own_world_3d = true
 	view.world_3d = World3D.new()
+	view.transparent_bg = true           # nothing drawn = see-through: that's the sea
 	view.render_target_update_mode = SubViewport.UPDATE_ONCE
 	add_child(view)
-	# The sea: a copy of the level's Sea (with the material it wears, shore waves and all).
+	# One plain white material for all the land (unshaded: no light needed, every land pixel the same white).
+	var white := StandardMaterial3D.new()
+	white.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	white.albedo_color = Color.WHITE
+	white.cull_mode = BaseMaterial3D.CULL_DISABLED
+	# The land: a white copy of every mesh under the land roots.
 	var level := owner if owner else get_tree().current_scene
-	var sea := level.find_child("Sea", true, false) as MeshInstance3D
-	if sea:
-		_copy_mesh(sea, view)
-	else:
-		print("Map marker: no Sea found in the level, printed without it")
-	# The land: a copy of every mesh under the land roots.
 	for path in land_roots:
 		var root := get_node_or_null(path)
 		if root == null:
@@ -145,12 +145,14 @@ func take_photo() -> Image:
 			print("Map marker: no ", path, " found, skipped")
 			continue
 		for found in root.find_children("*", "MeshInstance3D", true, false):
-			_copy_mesh(found, view)
+			_copy_mesh(found, view, white)
 	# The camera: straight above the marker, looking down (turned -90 degrees round x), north (-Z) at the top.
+	# Its far plane is at the sea's level, so only what stands above the water is printed (as the shore baker).
 	var camera := Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.size = area_size
-	camera.far = CAMERA_HEIGHT + 50.0                # down to a little below the sea
+	camera.near = 0.05
+	camera.far = CAMERA_HEIGHT
 	view.add_child(camera)
 	camera.global_position = Vector3(global_position.x, CAMERA_HEIGHT, global_position.z)
 	camera.global_rotation = Vector3(-PI / 2.0, 0.0, 0.0)
@@ -163,51 +165,25 @@ func take_photo() -> Image:
 	return image
 
 
-## A copy of a mesh where it stands, with the materials it's drawn with (its override, or each surface's).
-func _copy_mesh(original: MeshInstance3D, into: Node) -> void:
+## A copy of a mesh where it stands, wearing `material`.
+func _copy_mesh(original: MeshInstance3D, into: Node, material: Material) -> void:
 	if original.mesh == null:
 		return
 	var copy := MeshInstance3D.new()
 	copy.mesh = original.mesh
-	copy.material_override = original.material_override
-	for i in original.mesh.get_surface_count():
-		copy.set_surface_override_material(i, original.get_active_material(i))
+	copy.material_override = material
 	into.add_child(copy)
 	copy.global_transform = original.global_transform
 
 
-## The game's dither settings (the Dither's material: brightness, contrast, levels), so the picture gets the
-## same look. If the level has no Dither, the plain values.
-func dither_settings() -> Dictionary:
-	var settings := {"brightness": 0.0, "contrast": 1.0, "black_point": 0.0, "white_point": 1.0, "gamma": 1.0}
-	var level := owner if owner else get_tree().current_scene
-	var dither := level.find_child("Dither", true, false)
-	if dither:
-		for rect in dither.find_children("*", "ColorRect", true, false):
-			var material := rect.material as ShaderMaterial
-			if material:
-				for key in settings:
-					var value = material.get_shader_parameter(key)
-					if value != null:
-						settings[key] = value
-	return settings
-
-
-## The picture in two colours, with the same sums as the game's dither (dither.gdshader): each pixel's grey,
-## then brightness and contrast, then the levels, then compared with the 4 x 4 pattern's number for its place
-## (it repeats every 4 x 4 pixels): brighter = paper, darker = ink.
-func to_one_bit(image: Image) -> Image:
-	var d := dither_settings()
+## The picture in two colours, nothing in between: a pixel where land was drawn (not see-through) becomes PAPER,
+## any other pixel (the sea) becomes INK.
+func to_two_colours(image: Image) -> Image:
 	image.convert(Image.FORMAT_RGBA8)
 	for y in image.get_height():
 		for x in image.get_width():
-			var c := image.get_pixel(x, y)
-			var grey := c.r * 0.299 + c.g * 0.587 + c.b * 0.114
-			grey = clampf((grey - 0.5) * d.contrast + 0.5 + d.brightness, 0.0, 1.0)
-			grey = clampf((grey - d.black_point) / maxf(d.white_point - d.black_point, 0.001), 0.0, 1.0)
-			grey = pow(grey, 1.0 / d.gamma)
-			var threshold: float = (BAYER[(y % 4) * 4 + (x % 4)] + 0.5) / 16.0
-			image.set_pixel(x, y, PAPER if grey > threshold else INK)
+			var is_land := image.get_pixel(x, y).a > 0.5
+			image.set_pixel(x, y, PAPER if is_land else INK)
 	return image
 
 
