@@ -580,8 +580,12 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   sweeps left to right in `shimmer_time` 0.5 s every `shimmer_every` 1.6 s; redrawn every frame only then); `Bubble` (a flat PlaneMesh 5 × 3.75 m lying
   level 5 m up, StandardMaterial3D unshaded, alpha, render_priority 2, duplicated per NPC; Enrico tilts it if he wants:
   no billboards) fades in while she's near and not talking and bobs up and down, fades out when she leaves. On the
-  boat's `anchor_dropped` with her near: `talk_box.open(speaker_name, portrait, lines, _on_talk_finished)`; it starts
-  again from the top each time she anchors there.
+  boat's `anchor_dropped` with her near: `talk_box.open(speaker_name, portrait, lines, _on_talk_finished)`. **When the talk ends**
+  (Enrico) the NPC calls `boat.done_talking_with(self)`: the boat keeps `npcs_talked_to`, and until she leaves its radius
+  (`set_near_npc(…, false)` drops it) that NPC no longer counts for `talk_hint()` (= talking or `npcs_waiting()`): the hub shows
+  the anchor again (so it's clear she can sail on), no shimmer, its 3D bubble fades out, and anchoring there again doesn't
+  restart the talk (`has_talked_to`); out and back in, it's as new. While the hub shows the speech bubble **the wheel is drawn
+  darker** (`helm.gd` `talk_wheel_shade` 0.6, a modulate on the wheel's picture).
 - **The talk box** (`Assets/UI/talk_box/`: `talk_box.tscn` (CanvasLayer 115, crisp, not in `DITHERED`; Control `Box`
   at the top, full width less 12 px, y 92–222) + `talk_box.gd`; in Overworld as `TalkBox`, group `talk_box`): a paper
   panel, 2 px ink border, 3 px ink shadow (as the hearts'); on the left `Portrait` (TextureRect 86 px, a double ink

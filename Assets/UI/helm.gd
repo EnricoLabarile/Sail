@@ -31,6 +31,7 @@ signal hub_tapped                # a quick tap on the hub (let go before hub_hol
 # The shimmer on the hub's speech bubble while she's in an NPC's radius (Enrico: to catch the eye).
 @export var shimmer_every := 1.6     # s from one glint to the next
 @export var shimmer_time := 0.5      # s a glint takes to sweep across the hub
+@export var talk_wheel_shade := 0.6  # while the hub shows the speech bubble the wheel is drawn darker (1 = as usual)
 
 # The prototype's measures (in its pixels): the drawing's size, its middle, how much the wheel is scaled up.
 const DRAW_W := 221.0
@@ -226,7 +227,7 @@ func _on_talk_hint_changed() -> void:
 	var b := _boat()
 	talk_hint = b != null and b.talk_hint()
 	# The shimmer only while she's by an NPC and the talk hasn't started (it's an invitation to drop anchor).
-	var shimmer_now: bool = b != null and not b.npcs_near.is_empty() and not b.talking
+	var shimmer_now: bool = b != null and b.npcs_waiting() and not b.talking
 	if shimmer_now and not shimmer_on:
 		shimmer_t = 0.0                          # start with a glint right away
 	shimmer_on = shimmer_now
@@ -386,7 +387,9 @@ func _draw() -> void:
 	if wheel_shown > 0.0:
 		var wheel := _wheel_picture.get_texture()
 		draw_set_transform(middle, wheel_angle, Vector2.ONE)
-		draw_texture(wheel, -Vector2(wheel.get_size()) * 0.5, Color(1.0, 1.0, 1.0, wheel_shown))
+		# Darker while the hub shows the speech bubble (Enrico): the hub stands out, the wheel steps back.
+		var shade := talk_wheel_shade if talk_hint else 1.0
+		draw_texture(wheel, -Vector2(wheel.get_size()) * 0.5, Color(shade, shade, shade, wheel_shown))
 		# 2. The rim is darker at the bottom right: the light comes from the top left, so this shade doesn't
 		#    turn with the wheel. Drawn here, over the turning picture.
 		draw_set_transform(middle, 0.0, Vector2(s, s))

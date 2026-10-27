@@ -64,7 +64,7 @@ func _process(dt: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	# The bubble shows while the boat is near and no talk is going on; it fades in and out.
-	var want := 1.0 if (boat_near and not talking) else 0.0
+	var want := 1.0 if (boat_near and not talking and not _talked_to()) else 0.0
 	bubble_alpha = move_toward(bubble_alpha, want, dt / fade_time)
 	if bubble_alpha <= 0.0:
 		bubble.visible = false
@@ -106,6 +106,8 @@ func _on_sensor_exited(area: Area3D) -> void:
 func _on_anchor_dropped() -> void:
 	if not boat_near or talking or lines.is_empty():
 		return
+	if _talked_to():
+		return                            # already talked since she came in: she has to leave and come back
 	var talk_box := get_tree().get_first_node_in_group("talk_box")
 	if talk_box == null:
 		return
@@ -113,10 +115,20 @@ func _on_anchor_dropped() -> void:
 	talk_box.open(speaker_name, portrait, lines, _on_talk_finished)
 
 
-## The talk box was closed after the last page: the bubble may show again.
+## The talk box was closed after the last page: tell the boat (Enrico: her hub turns back into the anchor until
+## she leaves our radius), and let the bubble over our head fade out (we've had our say).
 func _on_talk_finished() -> void:
 	talking = false
-	set_process(true)                     # the bubble fades back in
+	var boat := get_tree().get_first_node_in_group("player_boat")
+	if boat:
+		boat.done_talking_with(self)
+	set_process(true)                     # the bubble fades out
+
+
+## Has the boat already talked to us since she came into our radius? (boat.gd keeps the list.)
+func _talked_to() -> bool:
+	var boat := get_tree().get_first_node_in_group("player_boat")
+	return boat != null and boat.has_talked_to(self)
 
 
 # ---- helpers ----

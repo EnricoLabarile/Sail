@@ -126,6 +126,7 @@ var talking := false:
 		if talk_hint() != had_hint:
 			talk_hint_changed.emit()
 var npcs_near: Array[Node3D] = []   # the NPCs whose radius she's in now (they tell her: npc.gd)
+var npcs_talked_to: Array[Node3D] = []   # of those, the ones she has already talked to since she came in (npc.gd tells her)
 
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
 const POLAR := [[10, 0.4], [20, 1.0], [45.0, 1.0 ], [90.0, 1.0], [180.0, 1.0]]
@@ -477,14 +478,39 @@ func set_near_npc(npc: Node3D, near: bool) -> void:
 		npcs_near.append(npc)
 	if not near:
 		npcs_near.erase(npc)
+		npcs_talked_to.erase(npc)        # gone out of its radius: coming back, she can talk to it again
 	if talk_hint() != had_hint:
 		talk_hint_changed.emit()
 
 
-## Should the wheel's hub show the speech bubble? While she's in an NPC's radius (dropping anchor will start the
-## talk) or while someone is talking (a tap goes on).
+## An NPC tells her their talk is over (npc.gd, when the talk box closes). Until she leaves its radius it counts as
+## talked to: the hub shows the anchor again (Enrico: so it's clear she can sail on) and anchoring there again
+## doesn't start the same talk over. (In Unreal: the NPC calling an interface function on the pawn.)
+func done_talking_with(npc: Node3D) -> void:
+	var had_hint := talk_hint()
+	if not npcs_talked_to.has(npc):
+		npcs_talked_to.append(npc)
+	if talk_hint() != had_hint:
+		talk_hint_changed.emit()
+
+
+## Has she already talked to this NPC since she came into its radius?
+func has_talked_to(npc: Node3D) -> bool:
+	return npcs_talked_to.has(npc)
+
+
+## Is there an NPC near her she hasn't talked to yet? (Then dropping anchor starts a talk.)
+func npcs_waiting() -> bool:
+	for npc in npcs_near:
+		if not npcs_talked_to.has(npc):
+			return true
+	return false
+
+
+## Should the wheel's hub show the speech bubble? While she's in the radius of an NPC she hasn't talked to yet
+## (dropping anchor will start the talk) or while someone is talking (a tap goes on).
 func talk_hint() -> bool:
-	return talking or not npcs_near.is_empty()
+	return talking or npcs_waiting()
 
 
 ## Where her bow is now, on the water.
