@@ -12,6 +12,12 @@ extends CanvasLayer
 ## The list is read from the folder every time the card shows, so a new level saved there gets its button by
 ## itself. A tap loads that level (in Unreal: Open Level). The one being played is drawn inked, like a pressed key.
 ## (The autoloads stay as they were: the hold, the fog's seen sea and the wind carry over to the new level.)
+##
+## THE BLACK CURTAIN (Enrico: loading a level stutters for a moment, hide it): a black sheet over everything
+## (its own CanvasLayer, CURTAIN_LAYER, above the card). A tap on a level drops it first (black, then the loading
+## starts); in the new level it's there from the first frame, stays black for curtain_hold seconds (the loading's
+## last hitches and the shader warm-up happen behind it) and then fades away over curtain_fade.
+## (In Unreal: a fade-to-black on the camera manager around Open Level.)
 
 const BuildInfo := preload("res://Assets/UI/build_info.gd")   # the build's number and time
 const LEVELS_FOLDER := "res://Assets/Scenes"                  # where the levels are
@@ -19,12 +25,20 @@ const FIRST_LEVEL := "Overworld"                              # this one comes f
 
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
+const CURTAIN_LAYER := 140                                    # above everything, the card (130) too
+
+@export var curtain_hold := 0.6     # seconds the new level stays black before it shows (its loading hitches hide there)
+@export var curtain_fade := 0.3     # seconds the black takes to fade away
+
+var curtain: ColorRect              # the black sheet (made in code, in its own layer above everything)
 
 @onready var build_label: Label = $Card/Margin/Lines/Build
 @onready var levels_box: VBoxContainer = $Card/Margin/Lines/Levels
 
 
 func _ready() -> void:
+	make_curtain()
+	lift_curtain()                             # the level starts black, then shows (see lift_curtain)
 	build_label.text = "Build %s\n%s" % [BuildInfo.NUMBER, BuildInfo.STARTED]
 	add_level_buttons()
 	_show_controls.call_deferred(false)        # after every node is ready (and in its group): hide the controls
@@ -96,6 +110,37 @@ func style_button(button: Button, is_playing: bool) -> void:
 	button.add_theme_font_size_override("font_size", 15)
 
 
-## Loads that level, in place of this one.
+## Loads that level, in place of this one: first the curtain comes down (black), and only once the black has
+## been drawn (two frames later) does the loading start, so its stutter happens on a black screen.
 func load_level(path: String) -> void:
+	curtain.modulate.a = 1.0
+	curtain.visible = true
+	await get_tree().process_frame
+	await get_tree().process_frame
 	get_tree().change_scene_to_file(path)
+
+
+# ---------- The black curtain ----------
+
+## The black sheet over the whole screen, in its own layer above everything. It also catches taps while it shows
+## (mouse_filter STOP), so nothing is pressed through the black.
+func make_curtain() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = CURTAIN_LAYER
+	add_child(layer)
+	curtain = ColorRect.new()
+	curtain.color = Color.BLACK
+	curtain.set_anchors_preset(Control.PRESET_FULL_RECT)
+	curtain.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(curtain)
+
+
+## The level has just started, black: wait curtain_hold seconds, then fade the black away (a Tween on its
+## see-through-ness, like a Timeline in Blueprints) and hide it.
+func lift_curtain() -> void:
+	curtain.visible = true
+	curtain.modulate.a = 1.0
+	await get_tree().create_timer(curtain_hold).timeout
+	var fade := create_tween()
+	fade.tween_property(curtain, "modulate:a", 0.0, curtain_fade)
+	fade.tween_callback(func(): curtain.visible = false)

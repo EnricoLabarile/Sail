@@ -582,7 +582,11 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `github.run_number` and the time (Europe/Rome). **Level list** (Enrico): under "Levels", a button per `.tscn` in
   `LEVELS_FOLDER` `res://Assets/Scenes` (`level_names()`: `ResourceLoader.list_directory`, which also works in the web
   export; `Overworld` first, the rest A–Z, `_` shown as spaces), the level being played inked; a tap
-  `change_scene_to_file` (autoloads carry over: hold, fog, wind). Card 300 × 340. A new level saved there gets its button by itself.
+  `change_scene_to_file` (autoloads carry over: hold, fog, wind). Card 300 × 340. A new level saved there gets its button by itself. **Black curtain** (Enrico: loading a level stutters, hide it): `start_screen.gd` makes a black ColorRect in its own
+  CanvasLayer `CURTAIN_LAYER` 140 (over everything, catching taps). Every level starts black (`lift_curtain`: held
+  `curtain_hold` 0.6 s, so the loading's last hitches and the shader warm-up happen behind it, then faded out over
+  `curtain_fade` 0.3 s with a Tween); a level button first drops it (`load_level`: black, two frames so it's drawn,
+  then `change_scene_to_file`).
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
   ```
   res://
