@@ -18,12 +18,19 @@
 [ext_resource type="Script" uid="uid://dte3lbhusmsjc" path="res://Assets/Post_Process/game_view.gd" id="21_uvb2l"]
 [ext_resource type="PackedScene" path="res://Assets/UI/talk_box/talk_box.tscn" id="22_m7mlc"]
 [ext_resource type="PackedScene" uid="uid://bba4hwropmrh4" path="res://Assets/Post_Process/dither/dither.tscn" id="23_d8mco"]
+[ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="23_qh02w"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/bomb.tres" id="24_cq4ad"]
 [ext_resource type="PackedScene" path="res://Assets/UI/helm.tscn" id="24_l7bnf"]
+[ext_resource type="PackedScene" uid="uid://v3vso8b52t23" path="res://Assets/NPCs/npc/npc.tscn" id="25_k7sby"]
 [ext_resource type="PackedScene" uid="uid://bhqupmdfm8my" path="res://Assets/UI/wind_vane.tscn" id="25_v60ju"]
+[ext_resource type="Material" uid="uid://cfl5fdc0jlu4t" path="res://Assets/Landscape/islands/island.tres" id="26_7qsuj"]
+[ext_resource type="Texture2D" uid="uid://brjrx6b5udnhy" path="res://Assets/NPCs/npc/NPC_Portrait_01.png" id="26_eel5a"]
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="26_jqmww"]
 [ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="27_35spf"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="28_f8m4f"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_8ksrx"]
+size = Vector3(1.2509766, 1, 0.4716797)
 
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
@@ -35,7 +42,7 @@ save_path = "uid://cc1dk2viasrhn"
 land_roots = Array[NodePath]([NodePath("../../Gameplay/Islands"), NodePath("../Coast")])
 
 [node name="Boat" parent="Core" unique_id=1762906152 instance=ExtResource("2_56yd8")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.457729, -0.043405533, 136.63055)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72.4917, -0.043405533, 214.93608)
 
 [node name="Sea" parent="Core" unique_id=1750240136 instance=ExtResource("3_igu3s")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26995945, 0.0868597, -0.12084007)
@@ -52,12 +59,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1220932, -3.8146973e-06, -0
 
 [node name="SeaImpZone2" parent="Dangers/SeaImps" unique_id=1741884461 instance=ExtResource("5_t2wju")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.355698, 1.5258789e-05, -60.483482)
+fireball_speed = 8
+fireball_life = 3
 
 [node name="SeaImpZone4" parent="Dangers/SeaImps" unique_id=1880735035 instance=ExtResource("5_t2wju")]
 transform = Transform3D(0.6198008, 0, -0.78475916, 0, 1, 0, 0.78475916, 0, 0.6198008, -104.32108, 1.5258789e-05, 26.1834)
+fireball_speed = 8
+fireball_life = 3
 
 [node name="SeaImpZone5" parent="Dangers/SeaImps" unique_id=1429137121 instance=ExtResource("5_t2wju")]
 transform = Transform3D(0.6198008, 0, -0.78475916, 0, 1, 0, 0.78475916, 0, 0.6198008, -127.24325, 1.5258789e-05, 37.090282)
+fireball_speed = 8
+fireball_life = 3
 
 [node name="Decorative" type="Node" parent="." unique_id=958528587]
 
@@ -166,17 +179,50 @@ transform = Transform3D(0.75953186, 0, -0.65047, 0, 1, 0, 0.65047, 0, 0.75953186
 [node name="sm_island_02_a37" parent="Gameplay/Islands" unique_id=935133906 instance=ExtResource("14_663nb")]
 transform = Transform3D(-0.0006631017, 0, -0.9999997, 0, 1, 0, 0.9999997, 0, -0.0006631017, -87.40392, 0, 183.6729)
 
+[node name="sm_island_02_a11" parent="Gameplay/Islands" unique_id=122966438 instance=ExtResource("14_663nb")]
+transform = Transform3D(-0.8350936, 0, -0.5501079, 0, 1, 0, 0.5501079, 0, -0.8350936, 30.440208, 0, 257.22626)
+
+[node name="sm_island_02_a42" parent="Gameplay/Islands" unique_id=883877163 instance=ExtResource("14_663nb")]
+transform = Transform3D(-0.13665843, 0, -0.9906181, 0, 1, 0, 0.9906181, 0, -0.13665843, 14.731195, 0, 234.33458)
+
+[node name="sm_island_02_a43" parent="Gameplay/Islands" unique_id=291050930 instance=ExtResource("14_663nb")]
+transform = Transform3D(-0.8416566, 0, -0.5400131, 0, 1, 0, 0.5400131, 0, -0.8416566, -10.49534, 0, 203.37149)
+
+[node name="sm_island_02_a12" parent="Gameplay/Islands" unique_id=1943948215 instance=ExtResource("14_663nb")]
+transform = Transform3D(0.21606979, 0, -0.97637784, 0, 1, 0, 0.97637784, 0, 0.21606979, 118.01826, 0, 253.32538)
+
+[node name="sm_island_02_a44" parent="Gameplay/Islands" unique_id=330579665 instance=ExtResource("14_663nb")]
+transform = Transform3D(0.8767214, 0, -0.48099867, 0, 1, 0, 0.48099867, 0, 0.8767214, 91.02918, 0, 259.8363)
+
+[node name="sm_island_02_a45" parent="Gameplay/Islands" unique_id=1840727111 instance=ExtResource("14_663nb")]
+transform = Transform3D(0.20429805, 0, -0.9789088, 0, 1, 0, 0.9789088, 0, 0.20429805, 53.1049, 0, 272.35992)
+
+[node name="sm_island_02_a46" parent="Gameplay/Islands" unique_id=327240652 instance=ExtResource("14_663nb")]
+transform = Transform3D(0.9990721, 0, -0.04306853, 0, 1, 0, 0.04306853, 0, 0.9990721, 140.47607, 0, 169.24641)
+
+[node name="sm_island_02_a47" parent="Gameplay/Islands" unique_id=383227032 instance=ExtResource("14_663nb")]
+transform = Transform3D(0.690849, 0, 0.72299916, 0, 1, 0, -0.72299916, 0, 0.690849, 139.80566, 0, 197.00163)
+
+[node name="sm_island_02_a48" parent="Gameplay/Islands" unique_id=57701843 instance=ExtResource("14_663nb")]
+transform = Transform3D(0.9984811, 0, -0.05509475, 0, 1, 0, 0.05509475, 0, 0.9984811, 142.12411, 0, 236.87288)
+
+[node name="sm_island_02_a49" parent="Gameplay/Islands" unique_id=830369501 instance=ExtResource("14_663nb")]
+transform = Transform3D(0.55847687, 0, 0.82952005, 0, 1, 0, -0.82952005, 0, 0.55847687, 74.05221, 0, 100.89346)
+
+[node name="sm_island_02_a52" parent="Gameplay/Islands" unique_id=607602299 instance=ExtResource("14_663nb")]
+transform = Transform3D(-0.61185163, 0, 0.7909725, 0, 1, 0, -0.7909725, 0, -0.61185163, 55.981323, -1.5258789e-05, 122.783676)
+
+[node name="sm_island_02_a50" parent="Gameplay/Islands" unique_id=825833889 instance=ExtResource("14_663nb")]
+transform = Transform3D(-0.25579217, 0, 0.9667319, 0, 1, 0, -0.9667319, 0, -0.25579217, 97.37184, 0, 115.95987)
+
+[node name="sm_island_02_a51" parent="Gameplay/Islands" unique_id=717433756 instance=ExtResource("14_663nb")]
+transform = Transform3D(0.5684243, 0, 0.82273567, 0, 1, 0, -0.82273567, 0, 0.5684243, 132.58493, 0, 134.80475)
+
 [node name="sm_island_02_a38" parent="Gameplay/Islands" unique_id=1882152446 instance=ExtResource("14_663nb")]
 transform = Transform3D(-0.6352558, 0, -0.7018758, 0, 0.8512968, 0, 0.4000696, 0, -1.1144826, -161.60052, 0, 117.23723)
 
 [node name="sm_island_02_a39" parent="Gameplay/Islands" unique_id=1310704405 instance=ExtResource("14_663nb")]
 transform = Transform3D(-0.29062104, 0, -1.2143899, 0, 0.8512968, 0, 0.692203, 0, -0.5098608, -128.0998, 0, 156.73718)
-
-[node name="sm_island_02_a11" parent="Gameplay/Islands" unique_id=1559623630 instance=ExtResource("14_663nb")]
-transform = Transform3D(-0.5169904, 0, 0.8559911, 0, 1, 0, -0.8559911, 0, -0.5169904, 0.44094467, 1.5258789e-05, 179.50635)
-
-[node name="sm_island_02_a12" parent="Gameplay/Islands" unique_id=677401585 instance=ExtResource("14_663nb")]
-transform = Transform3D(0.973335, 0, -0.229388, 0, 1, 0, 0.229388, 0, 0.973335, 38.111416, 1.5258789e-05, 150.16681)
 
 [node name="sm_island_02_a13" parent="Gameplay/Islands" unique_id=683157782 instance=ExtResource("14_663nb")]
 transform = Transform3D(-0.92273694, 0, 0.3854301, 0, 1, 0, -0.3854301, 0, -0.92273694, 50.57458, 1.5258789e-05, 103.05604)
@@ -281,3 +327,23 @@ script = ExtResource("21_uvb2l")
 [node name="BombButton" parent="UI and PostProcess" unique_id=1236485803 instance=ExtResource("27_35spf")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("28_f8m4f")]
+
+[node name="NPC" parent="." unique_id=103699983 instance=ExtResource("25_k7sby")]
+transform = Transform3D(0.6681644, 0, 0.7440137, 0, 1, 0, -0.7440137, 0, 0.6681644, 28.608526, 9.536743e-06, 154.49773)
+portrait = ExtResource("26_eel5a")
+talk_radius = 35.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=657642694]
+transform = Transform3D(14.386583, 0, 19.71599, 0, 1, 0, -16.019733, 0, 17.70602, 31.938585, 7.6293945e-06, 144.49828)
+material_override = ExtResource("26_7qsuj")
+mesh = SubResource("BoxMesh_8ksrx")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=951061584]
+transform = Transform3D(15.88108, 0, 17.894217, 0, 1, 0, -14.539496, 0, 19.545345, 3.1692753, 7.6293945e-06, 172.46912)
+material_override = ExtResource("26_7qsuj")
+mesh = SubResource("BoxMesh_8ksrx")
+
+[node name="Pickup" parent="." unique_id=105254636 instance=ExtResource("23_qh02w")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.78404, 1.0472765, 160.06471)
+item = ExtResource("24_cq4ad")
+count = 99
