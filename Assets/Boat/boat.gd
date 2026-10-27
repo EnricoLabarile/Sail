@@ -203,8 +203,17 @@ func _ready() -> void:
 	home_position = global_position   # home: where she was placed in Overworld
 	home_turn = rotation.y
 	add_water_mask()
+	# Whatever comes into the hold, from wherever (a pickup, an imp, a haul of fish, a buy), the boat makes the
+	# same sound: it's her taking it aboard (Enrico). The Inventory tells her (like an Event Dispatcher).
+	Inventory.came_aboard.connect(_on_came_aboard)
 	if emerge_on_start:
 		start_emerging()
+
+
+## Something came into the hold (Inventory.came_aboard): the "came aboard" sound. One sound for everything, for
+## now (Enrico); `item` says what it was, if one day each kind gets its own.
+func _on_came_aboard(_item: String, _count: int) -> void:
+	Sfx.came_aboard()
 
 
 ## Puts the boat's mask (Assets/Boat/boat_mask.gdshader) on the INSIDE of the hull only, as a

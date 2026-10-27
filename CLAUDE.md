@@ -254,6 +254,15 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   full lock, `thunk(WHEEL_VOL)`; `Sfx.wheel_stop(strength)` when the wheel reaches full lock turning faster than 0.3
   rad/s, strength min(1, 0.5 + spin / 10)). The spokes' knocks stay off, as in the prototype (`WHEEL_KNOCKS` false).
   The players are nodes in `sfx.tscn` (their Volume dB = the level); nothing plays while the game is paused.
+  **Enrico's sound pass** (Oct 2026): **"came aboard"** (`pickup.ogg`, player `Pickup`, `Sfx.came_aboard()`): played
+  by the BOAT for anything going into the hold (Enrico: an item or an imp's body, it's all something brought aboard):
+  `Inventory.add` sends `came_aboard(item, count)` (not for the start items, added before the boat listens),
+  `boat.gd` `_on_came_aboard` plays it: pickups, a caught imp, a fishing haul, a buy at the counter. **Imp killed**
+  (`imp_death.ogg`, `ImpDeath`, `Sfx.imp_death()`, from `sea_imp_zone.gd` `defeat()`): a low buzzy growl falling
+  110 → 38 Hz with a wobble, a bubbling gurgle of low noise, soft overdrive, 1.1 s. **Bomb** (`bomb_blast.ogg`,
+  `BombBlast`, `Sfx.bomb_blast()`, from `bomb.gd` `explode()`): a short crack, a boom falling 80 → 28 Hz, a low
+  rumble, overdriven, 1.6 s. Both made by `art_src/audio/make_danger_sounds.py` (numpy, scipy, ffmpeg); both keep
+  overtones above 200 Hz on purpose, as a phone's speaker can't play their deep part.
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
   Bayer 4×4 to paper/ink, one dot per pixel of the game view (below; `pixel_size` > 1 only makes the grain coarser).
   Its handles (the ColorRect's material in `dither.tscn`): `brightness`, `contrast`, then **levels** (Enrico):
@@ -484,7 +493,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   facing south, not a billboard: Enrico tilts it), `Slot1..3` (Marker3D pivots), `GreetArea` (Area3D, mask layer 4,
   `greet_radius` 20; a green editor disc). Inspector: `for_sale` (up to 3 ItemData, one per slot in order),
   `welcome_line`, `no_money_line`, `hold_full_line`, `greet_radius` (30, Enrico), `pickup_radius` 2.4, `bounce_push` 12 (Enrico: more), `line_time` 3.
-  **Buy feedback** (Enrico; made by the pickup itself now): `Sfx.pickup()` (`Assets/SFX/pickup.ogg`, a snappy two-note blip made by
+  **Buy feedback** (Enrico; the shake made by the pickup, the sound by the boat for anything coming aboard): `Sfx.came_aboard()` (`Assets/SFX/pickup.ogg`, a snappy two-note blip made by
   `art_src/audio/make_pickup.py`, numpy + ffmpeg; player `Pickup` in sfx.tscn), `camera.shake_hard(take_shake_strength 0.25,
   take_shake_time 0.18)` (the pickup's exports), and **the purse on screen** (`Talk/Purse`, a paper label "Coins  n" top left under the hearts,
   only while she's in the greet area) counting down to what's left: a Tween of `coins_shown` over `coin_count_time` 0.6 s.
@@ -507,7 +516,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `price` 0 (coins; 0 = free), `reach` 2.4, `auto_take` (on), `bob_height` / `bob_speed`, `take_shake_strength` /
   `take_shake_time`. Her SpotSensor entering → signal `touched(pickup, boat)`; with `auto_take`, `why_not()` ("" /
   "hold_full" / "no_money") "" → `take(boat)`: `Inventory.add(id, count)`, coins out if priced, `Sfx.pickup()`, the shake,
-  signal `taken`, freed; no room: it stays. Placed by hand anywhere, made by the floating shop, and **dropped by a killed
+  signal `taken`, freed; no room: it stays. (Its sound is the boat's "came aboard", see Sound.) Placed by hand anywhere, made by the floating shop, and **dropped by a killed
   sea imp** (`sea_imp_zone.gd` `defeat()` → `drop_loot()`: `drop_min`–`drop_max` 1–2 pickups of `drop_item` (bomb.tres)
   within `drop_spread` 3 m of it, on water (`loot_spot`), added next to the zone so they stay put).
 - **Bombs** (Enrico; `Assets/Items/bomb/`: `bomb.tscn` + `bomb.gd`, `bomb.png` a 2 × 1 sheet (dark, fuse lit), stand-in;

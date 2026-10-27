@@ -200,6 +200,7 @@ func defeat() -> void:
 	time = 0.0
 	patch.visible = false
 	imp.visible = true
+	Sfx.imp_death()
 	drop_loot()
 
 

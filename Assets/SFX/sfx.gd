@@ -5,7 +5,9 @@ extends Node
 ##   anchor_up.ogg    the anchor weighed: the chain rattling in
 ##   wheel_rub.ogg    the ship's wheel: a soft wooden rub while it turns (a short loop)
 ##   wheel_thunk.ogg  the ship's wheel: a muted thud when it reaches full lock
-##   pickup.ogg       a snappy two-note blip: a thing taken at the floating shop (made by art_src/audio/make_pickup.py)
+##   pickup.ogg       a snappy two-note blip: something came aboard, anything (made by art_src/audio/make_pickup.py)
+##   imp_death.ogg    a sea imp killed: a low falling growl with a gurgle of noise   } made by
+##   bomb_blast.ogg   a bomb going off: a crack, a deep boom, a rumble               } art_src/audio/make_danger_sounds.py
 ## (The sea, the wind and the water along the hull were removed by Enrico; bake.html can still make them.)
 ## The players are nodes in sfx.tscn: open it to change a sound's loudness (Volume dB in the Inspector).
 ## Nothing plays while the game is paused (the game over card).
@@ -16,6 +18,8 @@ extends Node
 @onready var wheel_rub: AudioStreamPlayer = $WheelRub
 @onready var wheel_thunk: AudioStreamPlayer = $WheelThunk
 @onready var pickup_sound: AudioStreamPlayer = $Pickup
+@onready var imp_death_sound: AudioStreamPlayer = $ImpDeath
+@onready var bomb_blast_sound: AudioStreamPlayer = $BombBlast
 
 var rub_db := 0.0       # the rub's loudness as set in sfx.tscn (read at start): the code turns it down from there
 var thunk_db := 0.0     # the same for the thud
@@ -59,8 +63,19 @@ func wheel_stop(strength: float) -> void:
 
 
 ## A thing taken at the floating shop (store_alternative.gd).
-func pickup() -> void:
+## Something came aboard (the boat calls it for anything going into the hold).
+func came_aboard() -> void:
 	pickup_sound.play()
+
+
+## A sea imp killed (sea_imp_zone.gd, defeat).
+func imp_death() -> void:
+	imp_death_sound.play()
+
+
+## A bomb going off (bomb.gd, explode).
+func bomb_blast() -> void:
+	bomb_blast_sound.play()
 
 
 ## A loudness share (0..1) in decibels, as volume_db wants: 1 = 0 dB (as set), 0.5 = -6 dB, 0 = -80 dB (silent).

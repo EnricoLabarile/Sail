@@ -72,6 +72,7 @@ func drift_with_current(dt: float) -> void:
 ## Boom: the bomb's picture goes, the flash shows, and everything in reach is hit.
 func explode() -> void:
 	exploded = true
+	Sfx.bomb_blast()
 	picture.visible = false
 	blast.visible = true
 	# The sea imps (each zone looks after its own imp).

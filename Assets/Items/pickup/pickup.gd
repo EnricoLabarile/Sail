@@ -75,12 +75,12 @@ func why_not() -> String:
 	return ""
 
 
-## Into the hold (and the coins out of the purse, if it has a price), a blip and a shake, and it's gone.
+## Into the hold (and the coins out of the purse, if it has a price), a shake, and it's gone. (The sound is the
+## boat's: anything coming aboard makes it, see boat.gd _on_came_aboard.)
 func take(boat: Node3D) -> void:
 	Inventory.add(item.id, count)
 	if price > 0:
 		Inventory.add_coins(-price)
-	Sfx.pickup()
 	boat.camera.shake_hard(take_shake_strength, take_shake_time)
 	taken.emit(self)
 	queue_free()

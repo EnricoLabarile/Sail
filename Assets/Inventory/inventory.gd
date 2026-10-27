@@ -19,6 +19,9 @@ extends Node
 signal changed
 ## Sent when what's equipped changes (the bomb button and the logbook listen).
 signal equipped_changed
+## Sent when something comes aboard (anything: a pickup, a caught imp, the fish from a haul, a buy at a counter).
+## The boat listens and plays the "came aboard" sound (boat.gd). Not sent for the things she sets out with.
+signal came_aboard(item: String, count: int)
 
 const SLOTS := 9   # how many slots the hold has
 const ITEMS_FOLDER := "res://Assets/Inventory/items"   # one ItemData .tres per kind of item
@@ -91,6 +94,7 @@ func add(item: String, count := 1) -> int:
 		added += 1
 	if added > 0:
 		changed.emit()
+		came_aboard.emit(item, added)
 	return added
 
 
