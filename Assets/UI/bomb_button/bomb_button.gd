@@ -7,6 +7,8 @@ extends Control
 ## After each bomb the button rests for `cooldown` seconds (Enrico): taps do nothing, and a see-through ink pie
 ## covers the share of the wait still left, shrinking clockwise from the top until it's gone (like a cooldown in
 ## any action game).
+## When a bomb is equipped (Enrico): two rings pulse out round the button, quickly (equip_anim_time, under a
+## second), and a snappy click-clack plays, like a gun being loaded (Sfx.equip_bomb).
 ## Drawn with code under the dither (CanvasLayer 95, like the wheel), so it's 1-bit.
 ## @tool: drawn in the editor too (always shown there), so you can place and size it; there it only draws.
 
@@ -17,17 +19,34 @@ const INK := Color("1b1a17")
 
 @export var bow_offset := 2.2        # metres ahead of the boat's middle the bomb is dropped (about her bow)
 @export var cooldown := 2.0          # seconds after a bomb before the next one can be dropped
+@export var equip_anim_time := 0.6   # seconds the rings pulse out when a bomb is equipped
+@export var equip_ring_grow := 22.0  # pixels each ring grows past the button's edge before it fades away
 
 var pressed_time := 0.0              # > 0 for a moment after a tap: the button is drawn pushed in
 var cooldown_left := 0.0             # seconds before it can drop another bomb (0 = ready)
+var equip_anim_left := 0.0           # seconds left of the equip rings (0 = none)
+var was_equipped := false            # was a bomb equipped a moment ago? (to notice the moment it gets equipped)
 
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
-	Inventory.equipped_changed.connect(_update_shown)
+	Inventory.equipped_changed.connect(_on_equipped_changed)
 	Inventory.changed.connect(_update_shown)          # bombs coming aboard or going out
 	_update_shown()
+	was_equipped = Inventory.equipped == "bomb"
+
+
+## Something was equipped or unequipped (Inventory.equipped_changed): show or hide the button, and if a bomb has
+## just been equipped, the rings and the click-clack.
+func _on_equipped_changed() -> void:
+	_update_shown()
+	var is_equipped := Inventory.equipped == "bomb"
+	if is_equipped and not was_equipped:
+		equip_anim_left = equip_anim_time
+		Sfx.equip_bomb()
+		queue_redraw()
+	was_equipped = is_equipped
 
 
 ## Shown only while a bomb is equipped AND there's at least one aboard (Enrico: with 0 bombs it's hidden and does
@@ -50,6 +69,10 @@ func _process(dt: float) -> void:
 		return
 	if pressed_time > 0.0:
 		pressed_time = maxf(0.0, pressed_time - dt)
+		queue_redraw()
+	# The equip rings: drawn again every frame while they pulse out.
+	if equip_anim_left > 0.0:
+		equip_anim_left = maxf(0.0, equip_anim_left - dt)
 		queue_redraw()
 	# The cooldown counts down, and the pie is drawn again every frame meanwhile (it shrinks).
 	if cooldown_left > 0.0:
@@ -91,6 +114,24 @@ func _draw() -> void:
 	# Resting after a bomb: the pie of what's left of the wait, in see-through ink (the dither turns it to dots).
 	if cooldown_left > 0.0:
 		_draw_pie(middle, radius, cooldown_left / cooldown)
+	# Just equipped: the rings pulsing out.
+	if equip_anim_left > 0.0:
+		_draw_equip_rings(middle, radius)
+
+
+## Two rings, one after the other, growing out from the button's edge by equip_ring_grow pixels and thinning and
+## fading as they go (ink over a paper edge, so they read on the sea). `share` runs 0 → 1 over equip_anim_time.
+func _draw_equip_rings(middle: Vector2, radius: float) -> void:
+	var share := 1.0 - equip_anim_left / equip_anim_time
+	for ring in 2:
+		var ring_share := clampf((share - ring * 0.3) / 0.7, 0.0, 1.0)   # the second ring starts a little later
+		if ring_share <= 0.0 or ring_share >= 1.0:
+			continue
+		var r := radius + 4.0 + equip_ring_grow * ring_share
+		var width := lerpf(4.0, 1.0, ring_share)
+		var fade := 1.0 - ring_share
+		draw_arc(middle, r, 0.0, TAU, 48, Color(PAPER, fade), width + 2.0)
+		draw_arc(middle, r, 0.0, TAU, 48, Color(INK, fade), width)
 
 
 ## A pie slice in see-through ink: `share` of the circle (1 = all of it, 0 = nothing), starting at the top and

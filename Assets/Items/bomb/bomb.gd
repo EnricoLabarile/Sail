@@ -1,5 +1,6 @@
 extends Node3D
-## ONE BOMB, dropped off the boat's bow (the bomb button, Assets/UI/bomb_button). It floats where it fell, carried by the current (drift_with_current), its
+## ONE BOMB, dropped off the boat's bow (the bomb button, Assets/UI/bomb_button). It floats where it fell, carried by the current (drift_with_current),
+## leaving a trail of white dots on the water behind it (the Trail particles, Enrico: so the player sees which way it drifts), its
 ## fuse burning (the picture blinks, quicker and quicker, and swells and shrinks once a second), and after `fuse_time` seconds it blows up: everything
 ## within `blast_radius` loses `damage` hearts, and the screen shakes hard. The sea imps (sea_imp_zone.gd hit_imp_at, only while they're out
 ## of the water) and the boat too, if she's still that close: drop it ahead of an enemy's path, then get away.
@@ -18,6 +19,7 @@ extends Node3D
 
 @onready var picture: MeshInstance3D = $Picture   # the bomb, facing the camera (a 2-frame sheet: dark, fuse lit)
 @onready var blast: MeshInstance3D = $Blast       # the flash on the water when it goes off
+@onready var trail: CPUParticles3D = $Trail       # white dots it leaves on the water as it drifts (Enrico: shows which way it goes)
 
 var time := 0.0          # seconds since it was dropped
 var exploded := false
@@ -74,6 +76,7 @@ func explode() -> void:
 	exploded = true
 	Sfx.bomb_blast()
 	picture.visible = false
+	trail.emitting = false            # no more dots once it's gone off
 	blast.visible = true
 	# The sea imps (each zone looks after its own imp).
 	for zone in get_tree().get_nodes_in_group("sea_imps"):

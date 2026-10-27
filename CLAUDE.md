@@ -546,12 +546,16 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   break animation yet (not asked).
 - **Bombs** (Enrico; `Assets/Items/bomb/`: `bomb.tscn` + `bomb.gd`, `bomb.png` a 2 × 1 sheet (dark, fuse lit), stand-in;
   the button `Assets/UI/bomb_button/`: `bomb_button.tscn` (CanvasLayer 95, in `DITHERED`; Control `Button` bottom right,
-  80 px, where the slingshot was) + `bomb_button.gd` (`@tool`)): the button shows only while a bomb is equipped **and at least one is aboard** (Enrico: 0 bombs = hidden, so no taps; `_update_shown` on `equipped_changed` and `Inventory.changed`); a tap
+  80 px, where the slingshot was) + `bomb_button.gd` (`@tool`)): the button shows only while a bomb is equipped **and at least one is aboard** (Enrico: 0 bombs = hidden, so no taps; `_update_shown` on `equipped_changed` and `Inventory.changed`); **when a bomb gets equipped**
+  (`_on_equipped_changed`, `was_equipped`) two rings pulse out round it (`_draw_equip_rings`, ink over paper, `equip_anim_time` 0.6 s,
+  `equip_ring_grow` 22 px) and `Sfx.equip_bomb()` plays (`equip_bomb.ogg`, player `EquipBomb` −4 dB: two dry metallic clicks 70 ms
+  apart, like a gun being loaded, made by `art_src/audio/make_equip.py`); a tap
   (touch) takes one bomb out of the hold (then the button rests `cooldown` 2 s, Enrico: taps do nothing, a see-through ink pie of the wait still left shrinking clockwise from the top, `cooldown_left`, `_draw_pie`) and drops it `bow_offset` 2.2 m ahead of her middle (Enrico: off the bow), on the water, into the
   world. The bomb: a 1.6 m camera-facing picture (`stone.gdshader`, render_priority 2) whose spark blinks quicker and
   quicker (2 → 8 a second) and **pulses** (Enrico: shrinks and swells, `pulse_time` 1 s a cycle, ±`pulse_amount` 0.15
   round the `Picture`'s own scale from bomb.tscn, `pulse()`), **carried by the current** while the fuse burns (Enrico; `drift_with_current`, as the dead
-  imp: `Wind.current()` × dt, no step onto land); after `fuse_time` 2 s it blows: `Blast`, a flat disc growing to `blast_radius` 4 m and fading
+  imp: `Wind.current()` × dt, no step onto land), leaving a **white trail** on the water (Enrico: shows which way it drifts; `Trail`, a
+  CPUParticles3D in bomb.tscn, local_coords off, 30 white discs r 0.4 m, life 1.5 s, shrinking to 0.3 and fading; off at the blast); after `fuse_time` 2 s it blows: `Blast`, a flat disc growing to `blast_radius` 4 m and fading
   over `blast_time` 0.4 s; every zone's `hit_imp_at(pos, blast_radius, damage 1)`, and the boat too
   (`take_damage(1)`) if her middle is within the radius; then a **powerful screen shake** wherever she is (Enrico:
   `boat.camera.shake_hard(shake_strength 1.5, shake_time 0.6)`, the bomb's exports; `boat_camera.gd` `shake_hard`: a
