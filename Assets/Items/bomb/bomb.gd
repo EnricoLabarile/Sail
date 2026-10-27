@@ -78,6 +78,9 @@ func explode() -> void:
 	# The sea imps (each zone looks after its own imp).
 	for zone in get_tree().get_nodes_in_group("sea_imps"):
 		zone.hit_imp_at(global_position, blast_radius, damage)
+	# The barrels in reach break open (barrel.gd), leaving what was inside.
+	for barrel in get_tree().get_nodes_in_group("barrels"):
+		barrel.blast_at(global_position, blast_radius)
 	# The boat, if she's still too close.
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if boat:

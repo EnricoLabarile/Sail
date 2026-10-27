@@ -30,6 +30,8 @@
 [ext_resource type="Script" uid="uid://dkpkc26vqp16v" path="res://Assets/Landscape/shore/shore_baker.gd" id="34_shore_baker"]
 [ext_resource type="Texture2D" uid="uid://cei37ab08l387" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker.png" id="35_print1"]
 [ext_resource type="Texture2D" uid="uid://cv7nfuhqh5jj8" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker2.png" id="36_print2"]
+[ext_resource type="PackedScene" path="res://Assets/Items/barrel/barrel.tscn" id="37_barrel"]
+[ext_resource type="Resource" path="res://Assets/Inventory/items/bomb.tres" id="38_bomb_item"]
 
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
@@ -232,3 +234,10 @@ script = ExtResource("21_game_view")
 [node name="BombButton" parent="UI and PostProcess" unique_id=1236485803 instance=ExtResource("24_bomb_button")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("25_health")]
+
+[node name="Barrels" type="Node3D" parent="Gameplay"]
+
+[node name="Barrel" parent="Gameplay/Barrels" instance=ExtResource("37_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -56)
+contents = ExtResource("38_bomb_item")
+count = 2

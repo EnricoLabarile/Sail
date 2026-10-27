@@ -521,6 +521,19 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   signal `taken`, freed; no room: it stays. (Its sound is the boat's "came aboard", see Sound.) Placed by hand anywhere, made by the floating shop, and **dropped by a killed
   sea imp** (`sea_imp_zone.gd` `defeat()` → `drop_loot()`: `drop_min`–`drop_max` 1–2 pickups of `drop_item` (bomb.tres)
   within `drop_spread` 3 m of it, on water (`loot_spot`), added next to the zone so they stay put).
+- **Barrels** (Enrico, like Zelda's pots; `Assets/Items/barrel/`: `barrel.tscn` + `barrel.gd` (`@tool`),
+  `barrel.gdshader`, `barrel.png` a 4 × 4 flipbook (frames 64², a big barrel lying on its side, rocking, a foam ring;
+  a stand-in for Enrico to redraw, made by `art_src/items/make_barrel.py`); under `Gameplay/Barrels` in Overworld, for
+  now one at (−4, 0, −56) holding 2 bombs): `Picture` a 4 m PlaneMesh lying 0.1 m up, the shader unshaded, nearest,
+  alpha-cut, no depth (no outline), render_priority 2, its own `phase`. Inspector: **`contents`** (ItemData: what's
+  inside, Enrico picks it; empty = nothing), `count`, `radius` 1.6 m (its size as a collider), `push_fade` 3.5.
+  **Solid**: `Sensor` (Area3D, mask layer 4, 4.5 m) switches `_physics_process` on while the boat's SpotSensor is in
+  it; her middle closer than `radius` is put back on its edge (`keep_boat_out`), and if her own way took her into it,
+  `boat.bump(out, into)` (her push back, lost way, half a heart, as a shore) and the barrel gets the same push the other
+  way (`push`, fading at `push_fade`, stopping at land: `slide`). **Broken only by a bomb**: `bomb.gd` `explode()`
+  calls `blast_at(point, blast_radius)` on the group `barrels`; within reach + `radius` it breaks (`break_open`): an
+  ordinary **pickup** (`pickup.tscn`, `item` = `contents`, `count`) left where it was, the barrel gone. No sound or
+  break animation yet (not asked).
 - **Bombs** (Enrico; `Assets/Items/bomb/`: `bomb.tscn` + `bomb.gd`, `bomb.png` a 2 × 1 sheet (dark, fuse lit), stand-in;
   the button `Assets/UI/bomb_button/`: `bomb_button.tscn` (CanvasLayer 95, in `DITHERED`; Control `Button` bottom right,
   80 px, where the slingshot was) + `bomb_button.gd` (`@tool`)): the button shows only while a bomb is equipped; a tap
