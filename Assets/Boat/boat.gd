@@ -244,8 +244,10 @@ func set_rudder(v: float) -> void:
 	rudder = clampf(v, -1.0, 1.0)
 
 func toggle_anchor() -> void:
-	if sinking or emerging:
-		return                       # going down or coming up: nothing to work
+	if sinking:
+		return                       # going down: nothing to work
+	# Coming up out of the water (Enrico): the anchor can be weighed already, so one press after "Set sail" is
+	# enough; she sets off as soon as she's up (update_emerging lets her go).
 	if talking:
 		return                       # someone is talking (Assets/UI/talk_box): the hub's taps go on with the talk
 	if caught_eye != null:
