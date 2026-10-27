@@ -28,6 +28,8 @@
 [ext_resource type="PackedScene" uid="uid://v3vso8b52t23" path="res://Assets/NPCs/npc/npc.tscn" id="32_npc"]
 [ext_resource type="PackedScene" path="res://Assets/UI/talk_box/talk_box.tscn" id="33_talk_box"]
 [ext_resource type="Script" uid="uid://dkpkc26vqp16v" path="res://Assets/Landscape/shore/shore_baker.gd" id="34_shore_baker"]
+[ext_resource type="Texture2D" uid="uid://cei37ab08l387" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker.png" id="35_print1"]
+[ext_resource type="Texture2D" uid="uid://cv7nfuhqh5jj8" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker2.png" id="36_print2"]
 
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
@@ -147,10 +149,12 @@ reach = 4
 [node name="MapMarker" parent="Gameplay/MapMarkers" unique_id=499004719 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -156.14967, 0, -90.93315)
 active = true
+picture = ExtResource("35_print1")
 
 [node name="MapMarker2" parent="Gameplay/MapMarkers" unique_id=1657906072 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.41281, 0, -108.172035)
 active = true
+picture = ExtResource("36_print2")
 
 [node name="Piers" type="Node3D" parent="Gameplay" unique_id=788276141]
 

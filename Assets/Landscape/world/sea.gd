@@ -107,7 +107,6 @@ func add_fog() -> void:
 	quad.material = fog
 	var screen := MeshInstance3D.new()
 	screen.mesh = quad
-	screen.layers = 4                    # render layer 3 "screen effects": the map markers' cameras don't see it (map_marker.gd)
 	screen.extra_cull_margin = 16384.0   # never skipped as "out of view" (the shader moves it)
 	add_child(screen)
 
