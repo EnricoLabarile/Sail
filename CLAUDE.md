@@ -344,7 +344,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `pressed`; `logbook.gd` tweens `drop` (the shut book comes down, 0.26 s) then `book.unfold` (the cover swings open on
   the spine while the book re-centres, 0.33 s), the reverse to close. `book.gd` (CanvasLayer 120, crisp) draws the
   leather (a 15 px tile of dots), stitching, metal corners, the pages with the edges beneath, and only spread 0 for
-  now (Enrico): the two pages meet with no gap and no line down the middle (one sheet: no more pages for now). Top half:
+  now (Enrico): the two pages meet with no gap and no line down the middle (one sheet); more spreads, one per map marker's close-up, see Map markers. Top half:
   the hold (see The inventory), "Cargo" and "n/9" over a 3-across grid of slots (`SLOT_MAX` 40 px), each thing in a solid
   frame with its icon at its own pixel size (a pile with its number bottom right; the equipped one with a second, thick
   frame inside), empty slots dashed and faint. **A tap on a bomb's or trap's slot equips it** (`_gui_input`, touch, only
@@ -567,6 +567,20 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `activate()` / `deactivate()` (for future quests: an NPC will call them), `square()` = its 9 × 9 square (as the
   boat's). Group `map_markers`: `book.gd` `refresh()` (on opening) reads the squares of the active ones into
   `_marked_squares`; `_draw_map` draws an ink X (arms 0.3 of a square, width 2) in the middle of each.
+  **Close-ups** (Enrico): an active marker takes a picture of the area round it (`take_picture`, at the level's
+  start after `start_delay` 0.3 s, as earlier pictures came out wrong while GameView was still setting up; and on
+  `activate()`): a SubViewport `picture_size` 140² with an orthographic Camera3D `area_size` 60 m across,
+  `picture_height` 100 m up along the game camera's tilt (`boat.camera.tilt_deg`, from the south, so the islands'
+  standing drawings show as in the game), `cull_mask` 1 only (not the clouds and gulls, layer 2, nor the screen
+  effects: the fog, the outline and the cloud shadows' quads now sit on render layer 3, value 4, which the game
+  camera still sees); rendered once (`UPDATE_ONCE`, two `frame_post_draw`), copied, the viewport freed; made 1-bit
+  in GDScript with the game's dither sums and settings (`to_one_bit`, `dither_settings` read from the level's Dither
+  material) → `picture` (ImageTexture). **The logbook's pages** (`book.gd`): `page` 0 = the hold and the map; one
+  more spread per active marker with a picture (`_marker_pages`, read in `refresh`): "Marked place F4" top left and
+  the picture centred on the spine at a whole number of book pixels per picture pixel (2× on the phone), framed,
+  an X (paper under ink) in the middle (`_draw_close_up`); page dots at the bottom (`_draw_page_dots`, `DOTS_HEIGHT`).
+  **Swipe** to turn (`_gui_input`: where the finger came down is kept; lifted ≥ `SWIPE` 40 px sideways → `turn_page`,
+  left = next; less = a tap, which on page 0 equips a bomb or trap slot as before). It remembers its page.
 - **The UI is drawn in the editor too** (Enrico: to place and arrange it himself): `helm.gd`, `wind_vane.gd`,
   `book_icon.gd`, `book.gd`, `health.gd` and `bomb_button.gd` are `@tool`; in the editor (`Engine.is_editor_hint()`) `_gui_input`
   and `_process` return at once (no touches, keys, boat, wind or sounds), so they only draw: the wheel with the

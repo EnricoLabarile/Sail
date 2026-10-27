@@ -14,6 +14,12 @@ extends Control
 ##     home in E5), with the square she's in shaded.
 ## What the pages show is read when the book opens (and when the hold changes): it isn't redrawn every frame.
 ##
+## MORE PAGES (Enrico): after that first spread, one spread for every active map marker that has its close-up
+## (map_marker.gd take_picture): the square it's in ("F4") and the picture of the area round it, 1-bit, across
+## both pages, with a small X in the middle where the marker is. A swipe across the open book turns the page
+## (finger to the left: the next one; to the right: the one before). Dots at the bottom say which page this is.
+## The book remembers the page it was left on.
+##
 ## `unfold` (0..1) is changed by logbook.gd with a Tween:
 ##   0 = shut: only the right half shows, the front cover lying over the right page (leather up);
 ##   1 = open flat: the front cover has swung over on the spine and its inside is the left page.
@@ -43,6 +49,10 @@ const SLOT_MAX := 40.0        # a slot's largest size, in pixels (smaller if the
 const SLOT_GAP := 6.0         # the space between two slots
 const HEADING_HEIGHT := 20.0  # room above the slots for "Cargo" and the count
 
+# Turning the pages
+const SWIPE := 40.0           # pixels a finger must slide sideways for a swipe (less is a tap)
+const DOTS_HEIGHT := 12.0     # room at the bottom of the pages for the page dots
+
 ## How open the book is, 0..1. Every change redraws it (see book_icon.gd for how "set(value)" works).
 var unfold := 0.0:
 	set(value):
@@ -56,6 +66,9 @@ var _slot_count := 9            # how many slots the hold has (Inventory.SLOTS, 
 var _slots: Array = []          # the hold's slots as Inventory.slots() gives them ({item, count}), read on opening
 var _equipped := ""             # what's equipped (Inventory.equipped), read on opening
 var _slot_rects: Array[Rect2] = []   # where each slot is drawn on the book (worked out in _draw_hold), for taps
+var page := 0                   # the spread showing: 0 = the hold and the map, 1.. = the markers' close-ups
+var _marker_pages: Array = []   # one entry per close-up page: {"picture": the texture, "square": its square}, read on opening
+var _touch_start := Vector2(-1, -1)   # where the finger came down (to tell a swipe from a tap)
 
 # The part of the spread being drawn right now, from x = _half_from to x = _half_to (see _draw_half):
 # the helpers below (_half_line, _half_rect, _half_texture, _half_text) draw only what falls inside it.
@@ -85,9 +98,14 @@ func refresh() -> void:
 		_boat_square = Vector2i(clampi(col, 0, ROOMS - 1), clampi(row, 0, ROOMS - 1))
 	# The squares marked with an X: every active map marker (Assets/Quests/map_marker) says which square it's in.
 	_marked_squares.clear()
+	# Each active marker with its picture taken also gets a page of its own (after the first).
+	_marker_pages.clear()
 	for marker in get_tree().get_nodes_in_group("map_markers"):
 		if marker.active and not _marked_squares.has(marker.square()):
 			_marked_squares.append(marker.square())
+		if marker.active and marker.picture != null:
+			_marker_pages.append({"picture": marker.picture, "square": marker.square()})
+	page = mini(page, _marker_pages.size())   # a marker switched off: its page has gone
 	# The hold: how many slots, and the picture of each thing aboard (in the order it came in).
 	_slot_count = Inventory.SLOTS
 	_slots = Inventory.slots()
@@ -143,35 +161,65 @@ func _draw_half(from: float, to: float, squeeze: float) -> void:
 	if squeeze < 1.0:
 		draw_set_transform(Vector2(spine * (1.0 - squeeze), 0.0), 0.0, Vector2(squeeze, 1.0))
 
-	# The writing area of the open spread (both pages, inside the paper margin), cut in two halves:
-	# the hold on top, the map below.
-	var page_h := size.y - PAD_TOP - PAD_BOTTOM
-	var half_h := page_h * 0.5
+	# The writing area of the open spread (both pages, inside the paper margin, above the page dots).
+	var page_h := size.y - PAD_TOP - PAD_BOTTOM - DOTS_HEIGHT
 	var area_x := PAD_SIDE + PAGE_PAD
 	var area_w := size.x - 2.0 * area_x
-	var hold_area := Rect2(area_x, PAD_TOP + PAGE_PAD, area_w, half_h - PAGE_PAD)
-	var map_area := Rect2(area_x, PAD_TOP + half_h, area_w, half_h - PAGE_PAD)
-	_draw_hold(hold_area)
-	_draw_map(map_area)
+	if page == 0:
+		# The first spread, cut in two halves: the hold on top, the map below.
+		var half_h := page_h * 0.5
+		var hold_area := Rect2(area_x, PAD_TOP + PAGE_PAD, area_w, half_h - PAGE_PAD)
+		var map_area := Rect2(area_x, PAD_TOP + half_h, area_w, half_h - PAGE_PAD)
+		_draw_hold(hold_area)
+		_draw_map(map_area)
+	else:
+		# A marker's page: its close-up.
+		_draw_close_up(Rect2(area_x, PAD_TOP + PAGE_PAD, area_w, page_h - PAGE_PAD), _marker_pages[page - 1])
+	_draw_page_dots()
 
 	draw_set_transform(Vector2.ZERO)   # back to normal for whatever is drawn next
 
 
 # ---- taps ----
 
-## A finger on the open book: on a slot holding a bomb or a trap, it's equipped (or unequipped, if it already
-## was: Inventory.toggle_equip). Only while the book is fully open. The pages are drawn again by `refresh`,
-## which the Inventory's signal calls.
+## A finger on the open book (only while it's fully open). Where it comes down is kept; when it lifts:
+##   - it slid sideways SWIPE pixels or more: a swipe, the page turns (to the left: the next page; to the
+##     right: the one before);
+##   - otherwise it's a tap: on the first spread, on a slot holding a bomb or a trap, that thing is equipped (or
+##     unequipped, if it already was: Inventory.toggle_equip; the pages are drawn again by `refresh`, which the
+##     Inventory's signal calls).
 func _gui_input(event: InputEvent) -> void:
 	if Engine.is_editor_hint() or unfold < 1.0:
 		return
-	if not (event is InputEventScreenTouch and event.pressed):
+	if not event is InputEventScreenTouch:
 		return
-	for i in _slot_rects.size():
-		if i < _slots.size() and _slot_rects[i].has_point(event.position):
-			Inventory.toggle_equip(_slots[i]["item"])
-			accept_event()
-			return
+	if event.pressed:
+		_touch_start = event.position
+		accept_event()
+		return
+	if _touch_start.x < 0.0:
+		return                                     # it came down somewhere else
+	var slide: float = event.position.x - _touch_start.x
+	var tapped_at := _touch_start
+	_touch_start = Vector2(-1, -1)
+	accept_event()
+	if absf(slide) >= SWIPE:
+		turn_page(1 if slide < 0.0 else -1)
+		return
+	if page == 0:
+		for i in _slot_rects.size():
+			if i < _slots.size() and _slot_rects[i].has_point(tapped_at):
+				Inventory.toggle_equip(_slots[i]["item"])
+				return
+
+
+## Turns the page by `step` (1 = next, -1 = back), if there is one that way.
+func turn_page(step: int) -> void:
+	var last := _marker_pages.size()               # the last page's number (0 = only the first spread)
+	var new_page := clampi(page + step, 0, last)
+	if new_page != page:
+		page = new_page
+		queue_redraw()
 
 
 # ---- the leather ----
@@ -340,6 +388,51 @@ func _draw_map(area: Rect2) -> void:
 		var arm := ROOM_SIZE * 0.3 * k
 		_half_line(middle + Vector2(-arm, -arm), middle + Vector2(arm, arm), INK, 2.0, false)
 		_half_line(middle + Vector2(arm, -arm), middle + Vector2(-arm, arm), INK, 2.0, false)
+
+
+# ---- a marker's page ----
+
+## A marker's close-up: the name of its square ("F4") at the top left, then its picture as big as fits, centred
+## on the spine across both pages, drawn at a whole number of book pixels per picture pixel (so the dots stay even),
+## with an ink frame and a small X in the middle, where the marker is.
+func _draw_close_up(area: Rect2, entry: Dictionary) -> void:
+	var picture: Texture2D = entry["picture"]
+	var square: Vector2i = entry["square"]
+	var square_name := char(65 + square.x) + str(square.y + 1)      # column A..I, row 1..9
+	_half_text(area.position + Vector2(0.0, 12.0), "Marked place  " + square_name, 13, INK, HORIZONTAL_ALIGNMENT_LEFT)
+	var room := Vector2(area.size.x, area.size.y - 22.0)       # under the title
+	var picture_px := picture.get_size().x
+	var fit := minf(room.x, room.y) / picture_px
+	var zoom := maxf(1.0, floorf(fit)) if fit >= 1.0 else fit   # book pixels per picture pixel
+	var side := picture_px * zoom
+	var corner := Vector2(size.x * 0.5 - side * 0.5, area.position.y + 22.0 + (room.y - side) * 0.5).round()
+	var r := Rect2(corner, Vector2(side, side))
+	_half_texture(picture, r)
+	_half_frame(r, INK, 2.0, false)
+	# The X where the marker is (the middle of the picture), paper under ink so it reads on any ground.
+	var middle := r.get_center()
+	var arm := side * 0.04
+	for width_and_colour in [[5.0, PAPER], [2.5, INK]]:
+		_half_line(middle + Vector2(-arm, -arm), middle + Vector2(arm, arm), width_and_colour[1], width_and_colour[0], false)
+		_half_line(middle + Vector2(arm, -arm), middle + Vector2(-arm, arm), width_and_colour[1], width_and_colour[0], false)
+
+
+## A dot for every page at the bottom of the spread, the one showing filled. Only when there's more than one.
+func _draw_page_dots() -> void:
+	var count := _marker_pages.size() + 1
+	if count < 2:
+		return
+	var gap := 12.0
+	var y := size.y - PAD_BOTTOM - DOTS_HEIGHT * 0.5
+	var first_x := size.x * 0.5 - (count - 1) * gap * 0.5
+	for i in count:
+		var x := first_x + i * gap
+		if x < _half_from or x >= _half_to:
+			continue                                     # this dot is on the other page
+		if i == page:
+			draw_circle(Vector2(x, y), 3.0, INK)
+		else:
+			draw_arc(Vector2(x, y), 3.0, 0.0, TAU, 12, INK, 1.0)
 
 
 ## A line of the map: the frame's edge solid, the seams between squares dotted and paler.

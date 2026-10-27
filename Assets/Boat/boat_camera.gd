@@ -148,6 +148,7 @@ func add_outline() -> void:
 	quad.material = outline
 	var screen := MeshInstance3D.new()
 	screen.mesh = quad
+	screen.layers = 4                    # render layer 3 "screen effects": the map markers' cameras don't see it (map_marker.gd)
 	screen.extra_cull_margin = 16384.0         # never skipped as "out of view" (the shader moves it)
 	screen.position = Vector3(0.0, 0.0, -1.0)  # just in front of the camera
 	add_child(screen)
