@@ -26,12 +26,14 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	Inventory.equipped_changed.connect(_update_shown)
+	Inventory.changed.connect(_update_shown)          # bombs coming aboard or going out
 	_update_shown()
 
 
-## Shown only while a bomb is equipped.
+## Shown only while a bomb is equipped AND there's at least one aboard (Enrico: with 0 bombs it's hidden and does
+## nothing; a hidden Control gets no taps, so hiding it also switches it off).
 func _update_shown() -> void:
-	visible = Inventory.equipped == "bomb"
+	visible = Inventory.equipped == "bomb" and Inventory.count("bomb") > 0
 
 
 func _gui_input(event: InputEvent) -> void:

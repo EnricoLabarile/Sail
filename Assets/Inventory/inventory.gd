@@ -26,13 +26,13 @@ signal came_aboard(item: String, count: int)
 const SLOTS := 9   # how many slots the hold has
 const ITEMS_FOLDER := "res://Assets/Inventory/items"   # one ItemData .tres per kind of item
 
-## What she sets out with (Enrico: 9 bombs and 9 traps, to try them).
-const START_ITEMS := {"bomb": 9, "trap": 9}
+## What she sets out with (Enrico: no bombs, she finds them; 9 traps, to try them).
+const START_ITEMS := {"trap": 9}
 const START_COINS := 10             # coins in the purse at the start (10 for now, Enrico: to try the floating shop)
 
 var catalogue := {}                 # every kind of item: its name → its ItemData (read from ITEMS_FOLDER)
 var items: Array[String] = []   # what's aboard, one entry per thing, in the order it came in
-var equipped := "bomb"              # the item equipped now ("" = nothing)
+var equipped := ""                  # the item equipped now ("" = nothing)
 var coins := START_COINS            # the purse
 
 
