@@ -67,6 +67,12 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   lives here too** (Enrico: a force on many things): `CURRENT_SPEED` 1.5 m/s, `Wind.current()` = downwind × it, read
   by the boat (eased in with her `drift_amount`), a burning bomb and a dead imp.
   `Sfx` (`Assets/SFX/sfx.tscn` + `sfx.gd`, the sounds, see Sound below). `Inventory` (`Assets/Inventory/inventory.gd`, the hold, see The inventory).
+  **`Hud`** (`Assets/UI/hud.gd`): whether the icons (the groups `hidden_at_start`: wind vane, hearts, logbook button,
+  bomb button; `hidden_while_talking`: vane and hearts) show. Each wish to hide them is a **reason**
+  (`Hud.set_hidden(reason, groups, hidden)`): "start" (until Set sail), **"anchor"** (Enrico: **at anchor or tied up only
+  the hub shows**: `boat.gd`'s `anchored` setter, and in its `_ready`), "talk" (talk box), "store" (the counter); an icon
+  shows only when no reason hides it, so a talk or trade ending at anchor doesn't bring them back. Nothing else should set
+  those nodes' `visible`.
   `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` shoots a physics ray straight down (y 100 → -20,
   `intersect_ray`): anything solid hit = land; outside the map counts as land, so the map's edge is a wall. **`Land.WORLD_SIZE`** (1008 m a side; Enrico doubled it from 504,
   the prototype's 5040 px) is the one number for the world's size: `fog.gd`, `clouds.gd`, `book.gd` and `sea.gd` (the

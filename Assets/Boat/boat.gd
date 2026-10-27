@@ -134,7 +134,13 @@ var bow_wave_strength := 0.0   # how solid the bow wave is now, 0..1 (eased towa
 var bow_wave_frame := 0.0      # the bow wave's flipbook frame, counting up
 var in_shallows := false     # land within shallows_width? (looked again every shallows_check_time seconds)
 var shallows_wait := 0.0     # seconds left before the next look
-var anchored := true   # she starts at anchor: hold the wheel's hub (or press Space) to weigh it
+## At anchor (or tied up at a pier)? She starts at anchor: hold the wheel's hub (or press Space) to weigh it.
+## Whenever it changes, the icons on the screen hide or come back (Enrico: at anchor only the hub shows;
+## the Hud autoload, Assets/UI/hud.gd). (A setter: like a Blueprint "Set" node that also runs some code.)
+var anchored := true:
+	set(value):
+		anchored = value
+		Hud.set_hidden("anchor", ["hidden_at_start"], anchored)
 var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +1 full to starboard (right)
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
 var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her motion
@@ -190,6 +196,7 @@ var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over n
 
 func _ready() -> void:
 	add_to_group("player_boat")
+	Hud.set_hidden("anchor", ["hidden_at_start"], anchored)   # she starts at anchor: the icons hidden
 	# PHYSICS INTERPOLATION (Project Settings > Physics > Common, on): she moves in _physics_process, 60 times a
 	# second, but the phone draws the screen at its own uneven pace; Godot draws her where she'd be between two
 	# ticks, so she glides instead of jumping. Only she (and what's inside her) is smoothed: everything else in the

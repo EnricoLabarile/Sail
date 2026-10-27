@@ -23,6 +23,7 @@ Land="*res://Assets/Landscape/world/land.gd"
 Fog="*res://Assets/Landscape/world/fog.gd"
 Sfx="*res://Assets/SFX/sfx.tscn"
 Inventory="*res://Assets/Inventory/inventory.gd"
+Hud="*res://Assets/UI/hud.gd"
 
 [display]
 

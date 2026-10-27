@@ -45,6 +45,9 @@ func _ready() -> void:
 	style_button(start_button, true)           # "Set sail" inked, so it stands out from the level list
 	start_button.pressed.connect(_on_start)    # when it's pressed, call _on_start
 	get_tree().paused = true                   # everything waits for "Set sail"
+	# A level loaded in the middle of a talk or a trade: those reasons to hide the icons are gone (Hud autoload).
+	Hud.set_hidden("talk", [], false)
+	Hud.set_hidden("store", [], false)
 	_show_controls.call_deferred(false)        # after every node is ready (and in its group): hide the controls
 
 
@@ -56,10 +59,10 @@ func _on_start() -> void:
 	lift_curtain()
 
 
-## Hides (or shows) every node in the group "hidden_at_start".
+## Hides (or shows) every node in the group "hidden_at_start", through the Hud autoload (Assets/UI/hud.gd): after
+## "Set sail" they still stay hidden while she's at anchor (Enrico: at anchor only the hub shows).
 func _show_controls(show: bool) -> void:
-	for node in get_tree().get_nodes_in_group("hidden_at_start"):
-		node.visible = show
+	Hud.set_hidden("start", ["hidden_at_start"], not show)
 
 
 # ---------- The levels ----------

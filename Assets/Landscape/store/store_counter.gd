@@ -62,9 +62,9 @@ func close() -> void:
 ## While the counter is open: no wheel, wind vane, hearts, logbook or bomb button (the prototype hid them too),
 ## and the anchor can't be worked (boat.talking, as during a talk), so she can't sail off with it open.
 func set_game_controls(on: bool) -> void:
-	for group in ["hidden_while_talking", "hidden_at_start"]:
-		for node in get_tree().get_nodes_in_group(group):
-			node.visible = on
+	# The icons through the Hud autoload (Assets/UI/hud.gd), so closing the counter while tied up doesn't bring
+	# them back: she's still at a pier, which counts as at anchor.
+	Hud.set_hidden("store", ["hidden_while_talking", "hidden_at_start"], not on)
 	var helm := get_tree().get_first_node_in_group("helm") as CanvasItem
 	if helm:
 		helm.visible = on

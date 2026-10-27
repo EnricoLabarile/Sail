@@ -93,9 +93,10 @@ func _close() -> void:
 
 
 ## Hides (or shows again) every node in the group "hidden_while_talking": the wind vane and the hearts.
+## (Through the Hud autoload, Assets/UI/hud.gd: at the end of a talk they come back only if nothing else, like the
+## anchor, still hides them.)
 func _show_hud(show: bool) -> void:
-	for node in get_tree().get_nodes_in_group("hidden_while_talking"):
-		node.visible = show
+	Hud.set_hidden("talk", ["hidden_while_talking"], not show)
 
 
 ## The boat ignores the anchor button's long press while someone is talking (boat.gd toggle_anchor).
