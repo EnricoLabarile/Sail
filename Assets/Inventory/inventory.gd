@@ -93,6 +93,10 @@ func add(item: String, count := 1) -> int:
 		items.append(item)
 		added += 1
 	if added > 0:
+		# Bombs coming aboard are equipped at once (Enrico), so the bomb button shows without opening the logbook.
+		if item == "bomb" and equipped != "bomb":
+			equipped = "bomb"
+			equipped_changed.emit()
 		changed.emit()
 		came_aboard.emit(item, added)
 	return added
