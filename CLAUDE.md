@@ -104,7 +104,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   Static Body, or name it with the `-col` suffix in Blender), which is what `Land` hits. When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
   `impact()`, in `boat.gd`: `move_and_bounce`, `bump`; knobs `bounce_*`): only moving into the shore at ≥ 0.4 m/s,
   0.6 s cooldown; a push `knock` along `Land.way_to_sea()` of 2 + 0.9 × the hit speed, fading at 3.5/s; speed × 0.25;
-  the bow swung off up to 0.3 rad toward the open side; the hull loses `hit_damage` (half a heart, see Health). No wobble (Enrico removed it), no sound or buzz yet. In the **shallows** (land within
+  the bow swung off up to 0.3 rad toward the open side; the hull loses `hit_damage` (half a heart, see Health) and the hull knocks (`Sfx.hull_bump`, see Sound). No wobble (Enrico removed it), no buzz yet. In the **shallows** (land within
   `shallows_width` 6 m of her middle, `Land.is_near_land`: 3 rings × 16 rays, looked again only every `shallows_check_time`
   0.2 s, `in_shallows`) the sail's drive is ×
   `shallows_sail` 0.3 (Enrico: less wind by the coast). **The current** (prototype's `CURRENT_DRIFT`): `drift` =
@@ -265,6 +265,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   −6 dB (half) in sfx.tscn. The imp's death plays `imp_death_delay` 0.25 s late (an export on sfx.gd), as an imp is
   usually killed by a bomb, whose blast covered it. Both made by `art_src/audio/make_danger_sounds.py` (numpy, scipy, ffmpeg); both keep
   overtones above 200 Hz on purpose, as a phone's speaker can't play their deep part.
+  **Hull bump** (Enrico: when she bounces off a surface; `hull_bump.ogg`, player `HullBump`, `Sfx.hull_bump(strength)`,
+  from `boat.gd` `bump()`, so shores and barrels alike, only for a real bump, after its cooldown and minimum speed):
+  a dull thud 150 → 75 Hz with overtones, a woody knock (noise round 700 Hz), a little scrape, 0.55 s, made by
+  `art_src/audio/make_bump.py`; loudness 0.4 + 0.6 × hit speed / `top_speed`.
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
   Bayer 4×4 to paper/ink, one dot per pixel of the game view (below; `pixel_size` > 1 only makes the grain coarser).
   Its handles (the ColorRect's material in `dither.tscn`): `brightness`, `contrast`, then **levels** (Enrico):

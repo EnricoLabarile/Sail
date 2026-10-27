@@ -805,6 +805,8 @@ func bump(out: Vector3, into: float) -> void:
 		return                                           # just a nudge, or the same bump as a moment ago
 	bump_wait = bounce_cooldown
 	take_damage(hit_damage)                              # the same whatever her speed (as in the prototype)
+	# The knock of the hull (Assets/SFX): louder the harder she hit, never quieter than 40%.
+	Sfx.hull_bump(clampf(0.4 + 0.6 * into / top_speed, 0.0, 1.0))
 
 	# 1. The push away from the shore: a bit more the harder she hit.
 	knock += out * (bounce_kick + into * bounce_extra)

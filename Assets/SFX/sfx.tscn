@@ -8,6 +8,7 @@
 [ext_resource type="AudioStream" path="res://Assets/SFX/pickup.ogg" id="9_pickup"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/imp_death.ogg" id="10_imp"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/bomb_blast.ogg" id="11_bomb"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/hull_bump.ogg" id="12_bump"]
 
 [node name="Sfx" type="Node"]
 script = ExtResource("1_sfx")
@@ -34,3 +35,6 @@ stream = ExtResource("10_imp")
 stream = ExtResource("11_bomb")
 volume_db = -6.0
 pitch_scale = 1.5
+
+[node name="HullBump" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("12_bump")

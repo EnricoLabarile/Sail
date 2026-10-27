@@ -9,6 +9,8 @@ extends Node
 ##   imp_death.ogg    a sea imp killed: a low falling growl with a gurgle of noise   } made by
 ##   bomb_blast.ogg   a bomb going off: a crack, a deep boom, a rumble               } art_src/audio/make_danger_sounds.py
 ##                    (played higher and quieter: BombBlast's Pitch Scale 1.5 and Volume -6 dB in sfx.tscn, Enrico)
+##   hull_bump.ogg    the hull knocking against a shore or a barrel: a dull thud, a woody knock, a little scrape
+##                    (made by art_src/audio/make_bump.py)
 ## (The sea, the wind and the water along the hull were removed by Enrico; bake.html can still make them.)
 ## The players are nodes in sfx.tscn: open it to change a sound's loudness (Volume dB in the Inspector).
 ## Nothing plays while the game is paused (the game over card).
@@ -21,6 +23,7 @@ extends Node
 @onready var pickup_sound: AudioStreamPlayer = $Pickup
 @onready var imp_death_sound: AudioStreamPlayer = $ImpDeath
 @onready var bomb_blast_sound: AudioStreamPlayer = $BombBlast
+@onready var hull_bump_sound: AudioStreamPlayer = $HullBump
 
 ## Seconds the imp's death sound waits before it plays. An imp is usually killed by a bomb, whose blast starts in
 ## the same instant and would cover it (Enrico couldn't hear it): a moment later, it's heard after the bang.
@@ -28,12 +31,14 @@ extends Node
 
 var rub_db := 0.0       # the rub's loudness as set in sfx.tscn (read at start): the code turns it down from there
 var thunk_db := 0.0     # the same for the thud
+var bump_db := 0.0      # the same for the hull's bump
 var rub_share := 0.0    # how loud the rub is now, 0..1 (it follows the wheel's speed smoothly)
 
 
 func _ready() -> void:
 	rub_db = wheel_rub.volume_db
 	thunk_db = wheel_thunk.volume_db
+	bump_db = hull_bump_sound.volume_db
 	# The rub goes round and round, silent until the wheel turns.
 	wheel_rub.stream.loop = true
 	wheel_rub.volume_db = -80.0
@@ -82,6 +87,13 @@ func imp_death() -> void:
 ## A bomb going off (bomb.gd, explode).
 func bomb_blast() -> void:
 	bomb_blast_sound.play()
+
+
+## The boat bounced off something solid, a shore or a barrel (boat.gd, bump): strength 0..1, softer for a gentle
+## knock, full for a hit at top speed.
+func hull_bump(strength: float) -> void:
+	hull_bump_sound.volume_db = bump_db + loudness_db(strength)
+	hull_bump_sound.play()
 
 
 ## A loudness share (0..1) in decibels, as volume_db wants: 1 = 0 dB (as set), 0.5 = -6 dB, 0 = -80 dB (silent).
