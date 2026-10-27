@@ -28,6 +28,9 @@ signal hub_tapped                # a quick tap on the hub (let go before hub_hol
 @export var return_min := 0.8    # …but at least this many rad/s, so it gets all the way back (as in the prototype)
 @export var key_rate := PI * 1.1 # rad/s the arrow keys turn it
 @export var wheel_fade_time := 0.3   # s for the wheel to fade out as the anchor goes down (and back in as it comes up)
+# The shimmer on the hub's speech bubble while she's in an NPC's radius (Enrico: to catch the eye).
+@export var shimmer_every := 1.6     # s from one glint to the next
+@export var shimmer_time := 0.5      # s a glint takes to sweep across the hub
 
 # The prototype's measures (in its pixels): the drawing's size, its middle, how much the wheel is scaled up.
 const DRAW_W := 221.0
@@ -58,6 +61,8 @@ var hub_shake := 0.0             # 1 right after the anchor goes down or comes u
 var shown_anchor := true         # the anchor state the hub was last drawn with
 var over_spot := false           # is the boat over a fishing spot? (then the hub shows a question mark)
 var talk_hint := false           # in an NPC's radius, or talking? (then the hub shows a speech bubble)
+var shimmer_on := false          # in an NPC's radius and not talking yet: the hub glints now and then
+var shimmer_t := 0.0             # seconds since the shimmer started (the glint's place in its cycle)
 var wheel_shown := 1.0           # 1 = the wheel fully there, 0 = faded away (at anchor: only the hub)
 var last_angle := 0.0            # the wheel's angle a frame ago (for its speed, for the sounds)
 var at_lock := false             # true while the wheel is hard over, at full lock
@@ -190,6 +195,11 @@ func _process(dt: float) -> void:
 		wheel_shown = move_toward(wheel_shown, wheel_target, dt / wheel_fade_time)
 		queue_redraw()
 
+	# 3b. The shimmer: while it's on, the hub is drawn again every frame so the glint moves.
+	if shimmer_on:
+		shimmer_t += dt
+		queue_redraw()
+
 	# 4. The hub's face changes with the anchor: redraw when it does.
 	if anchored != shown_anchor:
 		shown_anchor = anchored
@@ -215,6 +225,11 @@ func _on_over_fishing_spot(over: bool) -> void:
 func _on_talk_hint_changed() -> void:
 	var b := _boat()
 	talk_hint = b != null and b.talk_hint()
+	# The shimmer only while she's by an NPC and the talk hasn't started (it's an invitation to drop anchor).
+	var shimmer_now: bool = b != null and not b.npcs_near.is_empty() and not b.talking
+	if shimmer_now and not shimmer_on:
+		shimmer_t = 0.0                          # start with a glint right away
+	shimmer_on = shimmer_now
 	queue_redraw()
 
 
@@ -382,6 +397,9 @@ func _draw() -> void:
 	var hub := _hub_picture().get_texture()
 	draw_set_transform(hub_middle, 0.0, Vector2.ONE)
 	draw_texture(hub, -Vector2(hub.get_size()) * 0.5)
+	# 3b. The shimmer (by an NPC): now and then a glint sweeps across the hub.
+	if shimmer_on:
+		_draw_shimmer(hub_middle, s * HUB_SCALE)
 	# 4. Holding the hub: a ring fills round it (ink, with a paper edge so it reads anywhere).
 	if hub_index != -1:
 		var hs := s * HUB_SCALE
@@ -391,6 +409,31 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, 16.5, -PI / 2.0, end, 32, grey(255), 4.8)
 		draw_arc(Vector2.ZERO, 16.5, -PI / 2.0, end, 32, grey(0), 2.8)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)    # back to normal
+
+
+## The glint: a slanted band of paper with thin ink edges, sweeping from left to right across the hub's face,
+## once every shimmer_every seconds (taking shimmer_time). It's cut to the hub's round shape: the band and the
+## circle are polygons, and Geometry2D.intersect_polygons gives the part they share (like a mask in a material).
+func _draw_shimmer(hub_middle: Vector2, hub_size: float) -> void:
+	var share := fmod(shimmer_t, shimmer_every) / shimmer_time   # 0 → 1 while sweeping; more = resting
+	if share >= 1.0:
+		return
+	var r := 15.0                                       # the hub face's radius, in the hub's units
+	var x := lerpf(-r * 1.8, r * 1.8, share)            # where the band is now, left to right
+	var half := 2.6                                     # half its width
+	var lean := r * 0.5                                 # how far it slants (top to the right)
+	var band := PackedVector2Array([
+		Vector2(x - half + lean, -r * 1.2), Vector2(x + half + lean, -r * 1.2),
+		Vector2(x + half - lean, r * 1.2), Vector2(x - half - lean, r * 1.2)])
+	var circle := PackedVector2Array()
+	for i in 32:
+		circle.append(Vector2(cos(TAU * i / 32.0), sin(TAU * i / 32.0)) * r)
+	draw_set_transform(hub_middle, 0.0, Vector2(hub_size, hub_size))
+	for piece in Geometry2D.intersect_polygons(circle, band):
+		draw_colored_polygon(piece, grey(255))                 # the glint itself, paper
+		var edge := piece.duplicate()
+		edge.append(piece[0])
+		draw_polyline(edge, grey(0), 0.6)                      # a thin ink edge, so it shows on a light face too
 
 
 ## Which of the hub pictures to show: sailing or at anchor, with the anchor, a question mark (over a fishing

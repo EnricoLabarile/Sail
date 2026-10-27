@@ -793,6 +793,8 @@ func update_current(dt: float) -> void:
 	var target := 1.0                                     # out at sea: the full current
 	if Land.distance_to_shore(global_position) < shore_calm_distance:
 		target = 0.0                                      # close to the shore: none
+	if not npcs_near.is_empty():
+		target = 0.0                                      # in an NPC's radius: none either (Enrico), so she can stop by
 	# Eased, not switched: drift_amount slides toward the target a little every frame, so she isn't jolted.
 	drift_amount += (target - drift_amount) * minf(1.0, dt * current_ease)
 	drift = Wind.current() * drift_amount

@@ -570,7 +570,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `talk_radius` 8 m (a yellow disc in the editor), `bob_height` 0.4, `bob_speed` 1.5, `fade_time` 0.3. `Sensor` (Area3D,
   mask layer 4, the boat's `SpotSensor`: event-driven) sets `boat_near` and tells the boat (`set_near_npc`: the hub
   shows a speech bubble, and **her top speed is capped at `npc_speed_limit` 0.2 of `top_speed`** while `npcs_near` isn't
-  empty, Enrico; she eases down to it at `accel`); `Bubble` (a flat PlaneMesh 5 × 3.75 m lying
+  empty, Enrico; she eases down to it at `accel`; and **no current** there either, `update_current` target 0, Enrico); while she's in the
+  radius and not talking the hub's speech bubble **shimmers** (Enrico: to catch the eye; `helm.gd` `shimmer_on`,
+  `_draw_shimmer`: a slanted paper band with thin ink edges, cut to the hub's circle with `Geometry2D.intersect_polygons`,
+  sweeps left to right in `shimmer_time` 0.5 s every `shimmer_every` 1.6 s; redrawn every frame only then); `Bubble` (a flat PlaneMesh 5 × 3.75 m lying
   level 5 m up, StandardMaterial3D unshaded, alpha, render_priority 2, duplicated per NPC; Enrico tilts it if he wants:
   no billboards) fades in while she's near and not talking and bobs up and down, fades out when she leaves. On the
   boat's `anchor_dropped` with her near: `talk_box.open(speaker_name, portrait, lines, _on_talk_finished)`; it starts
