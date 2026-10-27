@@ -32,6 +32,7 @@
 [ext_resource type="Texture2D" uid="uid://cv7nfuhqh5jj8" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker2.png" id="36_print2"]
 [ext_resource type="PackedScene" path="res://Assets/Items/barrel/barrel.tscn" id="37_barrel"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/bomb.tres" id="38_bomb_item"]
+[ext_resource type="PackedScene" path="res://Assets/Landscape/wind_zone/wind_zone.tscn" id="39_wind_zone"]
 
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
@@ -217,6 +218,18 @@ Not all of them are fish."])
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.385603, 0, -35.2494)
 contents = ExtResource("38_bomb_item")
 count = 2
+
+[node name="WindZones" type="Node3D" parent="Gameplay"]
+
+[node name="WindZoneEast" parent="Gameplay/WindZones" instance=ExtResource("39_wind_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -45)
+blow_toward_deg = 90.0
+size = Vector2(40, 6)
+
+[node name="WindZoneRandom" parent="Gameplay/WindZones" instance=ExtResource("39_wind_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -90)
+mode = 1
+size = Vector2(40, 6)
 
 [node name="UI and PostProcess" type="Node" parent="." unique_id=58599448]
 
