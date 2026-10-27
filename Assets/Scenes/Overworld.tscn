@@ -43,7 +43,7 @@ save_path = "uid://c3dbbk3u8rxjp"
 land_roots = Array[NodePath]([NodePath("../../Gameplay/Islands"), NodePath("../Coast")])
 
 [node name="Boat" parent="Core" unique_id=1762906152 instance=ExtResource("2_boat")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -131.20982, -0.043405533, 1.083374)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4081421, -0.043405533, -13.855667)
 
 [node name="Sea" parent="Core" unique_id=1750240136 instance=ExtResource("1_sea")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26995945, 0.0868597, -0.12084007)
@@ -212,6 +212,13 @@ lines = Array[String](["Ahoy there! You're the monster hunter, aren't you?", "Th
 Fish hide, and something burns in the water at night.", "Mind the patches of dark water.
 Not all of them are fish."])
 
+[node name="Barrels" type="Node3D" parent="Gameplay" unique_id=1915003965]
+
+[node name="Barrel" parent="Gameplay/Barrels" unique_id=431411337 instance=ExtResource("37_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.385603, 0, -35.2494)
+contents = ExtResource("38_bomb_item")
+count = 2
+
 [node name="UI and PostProcess" type="Node" parent="." unique_id=58599448]
 
 [node name="StartScreen" parent="UI and PostProcess" unique_id=2112618694 instance=ExtResource("7_start")]
@@ -234,10 +241,3 @@ script = ExtResource("21_game_view")
 [node name="BombButton" parent="UI and PostProcess" unique_id=1236485803 instance=ExtResource("24_bomb_button")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("25_health")]
-
-[node name="Barrels" type="Node3D" parent="Gameplay"]
-
-[node name="Barrel" parent="Gameplay/Barrels" instance=ExtResource("37_barrel")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -56)
-contents = ExtResource("38_bomb_item")
-count = 2

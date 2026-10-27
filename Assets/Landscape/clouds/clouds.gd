@@ -13,8 +13,8 @@ extends Node3D
 
 @export var cloud_textures: Array[Texture2D] = []   # the pictures: the clouds use them in turn
 @export var cloud_count := 256       # how many clouds over the whole map (64 when it was half as wide)
-@export var size_min := 25         # metres: the smallest cloud, a side…
-@export var size_max := 30.0         # …and the biggest
+@export var size_min := 10         # metres: the smallest cloud, a side…
+@export var size_max := 15         # …and the biggest
 @export var height := 35.0           # metres above the sea
 @export var speed := 1            # metres a second they drift downwind
 @export var clear_radius := 80.0     # metres round the boat with no clouds at the start
