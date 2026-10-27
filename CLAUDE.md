@@ -571,8 +571,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   marker's page in the logbook; **"Print map"** (`@export_tool_button`, group "Print map" in the Inspector,
   `print_map`) makes it, like the shore baker: a SubViewport with its own World3D holding copies (`_copy_mesh`, with
   their materials) of only the level's `Sea` and the meshes under `land_roots` (`../../Islands`, `../../Coast`, found
-  by name if the path fails), an orthographic Camera3D `area_size` 60 m across, `camera_distance` 100 m back along
-  `tilt_deg` 20 (the game camera's tilt, from the south, so the islands' standing drawings show), one render of
+  by name if the path fails), an orthographic Camera3D `area_size` 60 m across, straight above the marker looking down (`CAMERA_HEIGHT` 200 m, a constant: in orthographic the height changes nothing, it only has to be above everything; Enrico: a map is always printed from above, no tilt), one render of
   `picture_size` 140²; made 1-bit with the game's dither sums and the level's Dither settings (`to_one_bit`,
   `dither_settings`); saved to `print_path` (empty = `Assets/Quests/map_marker/prints/<level>_<marker>.png`), then
   reimported and put in `picture` (`use_new_picture`, the scene marked unsaved: save it). Print again after changing

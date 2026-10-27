@@ -20,9 +20,9 @@ extends Node3D
 ## How it's printed, like the shore baker's photo (shore_baker.gd):
 ##   1. A little world of its own with copies of only the sea and the land (the meshes under `land_roots`), each
 ##      with its own material: so nothing else gets in (no boat, imps, clouds, fog or editor discs).
-##   2. An orthographic camera (no perspective, like a map) above the marker, area_size metres across, looking
-##      down from the south with the game camera's tilt (`tilt_deg`): the islands are drawings standing up toward
-##      that camera, and straight from above they'd be seen edge on. North is at the top of the picture.
+##   2. An orthographic camera (no perspective, like a map) straight above the marker, looking down, area_size
+##      metres across. North is at the top of the picture. (In orthographic how high it is changes nothing in the
+##      picture: CAMERA_HEIGHT only has to be above everything.)
 ##   3. One picture of picture_size pixels a side, made 1-bit with the game's own dither (the same sums, and the
 ##      settings read from the level's Dither: brightness, contrast, levels), so it looks like the game in ink.
 
@@ -31,6 +31,7 @@ const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]   # the 4 
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
 const PRINTS_FOLDER := "res://Assets/Quests/map_marker/prints"   # where the printed maps go if print_path is empty
+const CAMERA_HEIGHT := 200.0         # metres up the camera prints from: above any island (any height gives the same picture)
 
 ## Is it shown on the logbook's map (and its page in the logbook)?
 @export var active := false
@@ -44,8 +45,6 @@ const PRINTS_FOLDER := "res://Assets/Quests/map_marker/prints"   # where the pri
 @export_file("*.png") var print_path := ""
 @export var area_size := 60.0        # metres across the area printed (the marker is in the middle)
 @export var picture_size := 140      # pixels a side of the picture (the book draws it at a whole multiple: 2 x on a phone)
-@export var tilt_deg := 20.0         # the view's tilt from straight down: as the game camera's (boat_camera.gd)
-@export var camera_distance := 100.0 # metres from the marker to the camera, along the tilt
 ## The nodes whose meshes are the land (as the shore baker's): looked for by name anywhere in the level if the
 ## path doesn't lead anywhere.
 @export var land_roots: Array[NodePath] = [NodePath("../../Islands"), NodePath("../../Coast")]
@@ -122,7 +121,7 @@ func use_new_picture(path: String) -> void:
 	print("Map marker: ", name, " now shows ", path, " (save the level)")
 
 
-## The photo: copies of the sea and the land in a world of their own, seen by the tilted orthographic camera.
+## The photo: copies of the sea and the land in a world of their own, seen from straight above by an orthographic camera.
 func take_photo() -> Image:
 	var view := SubViewport.new()
 	view.size = Vector2i(picture_size, picture_size)
@@ -147,15 +146,14 @@ func take_photo() -> Image:
 			continue
 		for found in root.find_children("*", "MeshInstance3D", true, false):
 			_copy_mesh(found, view)
-	# The camera: up and back to the south along the tilt, looking at the marker (the same sums as boat_camera.gd).
+	# The camera: straight above the marker, looking down (turned -90 degrees round x), north (-Z) at the top.
 	var camera := Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.size = area_size
-	camera.far = camera_distance + 100.0
+	camera.far = CAMERA_HEIGHT + 50.0                # down to a little below the sea
 	view.add_child(camera)
-	var tilt := deg_to_rad(tilt_deg)
-	camera.global_position = global_position + Vector3(0.0, cos(tilt), sin(tilt)) * camera_distance
-	camera.global_rotation = Vector3(-(PI / 2.0 - tilt), 0.0, 0.0)
+	camera.global_position = Vector3(global_position.x, CAMERA_HEIGHT, global_position.z)
+	camera.global_rotation = Vector3(-PI / 2.0, 0.0, 0.0)
 	camera.current = true
 	# Wait for it to be drawn (twice: the frame it's drawn, and the one it's ready to read), keep it, tidy up.
 	await RenderingServer.frame_post_draw
