@@ -526,11 +526,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   a stand-in for Enrico to redraw, made by `art_src/items/make_barrel.py`); under `Gameplay/Barrels` in Overworld, for
   now one at (−4, 0, −56) holding 2 bombs): `Picture` a 4 m PlaneMesh lying 0.1 m up, the shader unshaded, nearest,
   alpha-cut, no depth (no outline), render_priority 2, its own `phase`. Inspector: **`contents`** (ItemData: what's
-  inside, Enrico picks it; empty = nothing), `count`, `radius` 1.6 m (its size as a collider), `push_fade` 3.5.
-  **Solid**: `Sensor` (Area3D, mask layer 4, 4.5 m) switches `_physics_process` on while the boat's SpotSensor is in
+  inside, Enrico picks it; empty = nothing), `count`, `radius` (its size as a collider; Enrico set 5 m).
+  **Solid**: `Sensor` (Area3D, mask layer 4, sized in `_ready` to `radius` + `SENSOR_MARGIN` 3 m) switches `_physics_process` on while the boat's SpotSensor is in
   it; her middle closer than `radius` is put back on its edge (`keep_boat_out`), and if her own way took her into it,
-  `boat.bump(out, into)` (her push back, lost way, half a heart, as a shore) and the barrel gets the same push the other
-  way (`push`, fading at `push_fade`, stopping at land: `slide`). **Broken only by a bomb**: `bomb.gd` `explode()`
+  `boat.bump(out, into)` (her push back, lost way, half a heart, as a shore); **the barrel never moves** (Enrico). **Broken only by a bomb**: `bomb.gd` `explode()`
   calls `blast_at(point, blast_radius)` on the group `barrels`; within reach + `radius` it breaks (`break_open`): an
   ordinary **pickup** (`pickup.tscn`, `item` = `contents`, `count`) left where it was, the barrel gone. No sound or
   break animation yet (not asked).
