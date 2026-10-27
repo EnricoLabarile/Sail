@@ -8,6 +8,9 @@ extends Control
 ## (Like a UMG widget that reads a value on tick and rotates an image.)
 ## @tool: the script also runs in the editor, so it's drawn there too and you can place and size it yourself.
 ## In the editor it only draws: the wind blowing south (from the north).
+## HIDDEN FOR NOW (Enrico): wind_vane.tscn's CanvasLayer has Visible off and is in no Hud group, so nothing shows
+## it. To bring it back: tick Visible on WindVane in wind_vane.tscn and put it back in the groups
+## "hidden_at_start" and "hidden_while_talking" (Node dock → Groups).
 
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
@@ -20,6 +23,8 @@ var blows_to := 180.0            # compass angle the wind blows toward: 0 = nort
 func _process(_dt: float) -> void:
 	if Engine.is_editor_hint():
 		return                       # in the editor: only the drawing
+	if not is_visible_in_tree():
+		return                       # hidden (Enrico, for now): nothing to keep up to date
 	# Wind.from_deg is where the wind comes FROM; it blows the opposite way, 180° round.
 	var angle := wrapf(Wind.from_deg + 180.0, 0.0, 360.0)
 	if absf(wrapf(angle - blows_to, -180.0, 180.0)) > 0.5:

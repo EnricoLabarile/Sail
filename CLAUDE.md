@@ -346,7 +346,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `talk_hint_changed` (`set_near_npc`, `npcs_near`, `talking`'s setter, `talk_hint()`). Its sounds:
   see Sound (the rub and the thud at full lock). No buzz yet.
 - **The wind vane** (`Assets/UI/wind_vane.tscn` + `wind_vane.gd`, `@tool`; CanvasLayer 110, crisp, top right, 68 px;
-  groups `hidden_while_talking`, `hidden_at_start`): **just an arrow** (Enrico, simple; it was Valheim's dial with the
+  **hidden for now** (Enrico): Visible off in wind_vane.tscn and out of the Hud groups (it was in `hidden_while_talking`, `hidden_at_start`; put it back in them to show it again), `_process` does nothing while hidden): **just an arrow** (Enrico, simple; it was Valheim's dial with the
   boat and the bad-wind ring): ink with a paper edge (`edge_width` 2 px), pointing the way the wind BLOWS on the screen
   (`blows_to` = `Wind.from_deg` + 180; the camera looks north, so up = north). Redrawn only when it turns by 0.5° or more.
 - **The logbook** (`Assets/UI/logbook/`: `logbook.tscn` + `logbook.gd`, `book_icon.gd`, `book.gd`; in Overworld): as the
