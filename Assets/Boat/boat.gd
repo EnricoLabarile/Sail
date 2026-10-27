@@ -190,6 +190,13 @@ var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over n
 
 func _ready() -> void:
 	add_to_group("player_boat")
+	# PHYSICS INTERPOLATION (Project Settings > Physics > Common, on): she moves in _physics_process, 60 times a
+	# second, but the phone draws the screen at its own uneven pace; Godot draws her where she'd be between two
+	# ticks, so she glides instead of jumping. Only she (and what's inside her) is smoothed: everything else in the
+	# level moves itself every drawn frame, which needs no smoothing (and would lag behind with it), so the rest of
+	# the tree is switched off here, once.
+	get_tree().root.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
 	anchor_point = bow_point()   # she starts at anchor: it lies off her bow
 	model_height = model.position.y   # how deep she sits: wherever Model was placed in boat.tscn
 	health = max_hearts               # she sets out with the hull whole
@@ -384,6 +391,7 @@ func respawn() -> void:
 	pitch_velocity = 0.0
 	model.position.y = model_height
 	model.rotation = Vector3.ZERO
+	reset_physics_interpolation()    # a jump, not a glide: no smoothing from where she sank to home
 	camera.jump_to_boat()            # the camera jumps there too, no glide across the map
 	health_changed.emit(false)
 	start_emerging()                 # and she comes up out of the water

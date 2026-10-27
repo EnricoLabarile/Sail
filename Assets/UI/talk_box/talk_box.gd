@@ -33,6 +33,7 @@ var on_finished: Callable                 # who to tell when it's over (the NPC)
 func _ready() -> void:
 	add_to_group("talk_box")              # so an NPC finds it (npc.gd)
 	visible = false
+	set_process(false)                    # the typewriter runs only while the box shows (open / _close)
 	_listen_to_helm.call_deferred()
 
 
@@ -56,6 +57,7 @@ func open(speaker: String, picture: Texture2D, lines: Array[String], when_done: 
 	_set_boat_talking(true)
 	_show_hud(false)
 	visible = true
+	set_process(true)                     # the typewriter, every frame while it shows
 	_show_page()
 
 
@@ -82,6 +84,7 @@ func _show_page() -> void:
 
 func _close() -> void:
 	visible = false
+	set_process(false)
 	_set_boat_talking(false)
 	_show_hud(true)
 	finished.emit()

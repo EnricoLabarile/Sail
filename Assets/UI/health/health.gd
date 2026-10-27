@@ -10,6 +10,13 @@ extends Control
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
 
+## How tall the panel is on screen, in pixels (Enrico: as big as the wind arrow top right, 60). Everything in it
+## (the word, the hearts, the border and the shadow) is drawn at its own small size and then scaled up to this.
+@export var panel_height := 60.0:
+	set(value):
+		panel_height = value
+		queue_redraw()
+
 const HURT_FLASH := 0.35          # seconds the panel stays ink after a hit
 const HEART_SIZE := 17.0          # one heart, in pixels
 const HEART_GAP := 3.0            # the space between two hearts
@@ -42,22 +49,26 @@ var _left_half: PackedVector2Array     # its left half (the first three curves),
 func _ready() -> void:
 	_full_heart = _heart_shape(6)
 	_left_half = _heart_shape(3)
-
-
-## Every frame: find the boat once (and listen to her), then only count down the hurt flash.
-func _process(dt: float) -> void:
 	if Engine.is_editor_hint():
 		return
-	if _boat == null:
-		_boat = get_tree().get_first_node_in_group("player_boat") as Node3D
-		if _boat:
-			_boat.health_changed.connect(_on_health_changed)
-			_on_health_changed(false)
-		return
-	if _flash > 0.0:
-		_flash -= dt
-		if _flash <= 0.0:
-			queue_redraw()             # the flash is over: back to paper
+	set_process(false)                 # nothing to do every frame: only while the hurt flash counts down
+	_find_boat.call_deferred()         # deferred: after the boat's own _ready (she joins her group there)
+
+
+## Find the boat once and listen to her: from then on it's drawn again only when her health changes.
+func _find_boat() -> void:
+	_boat = get_tree().get_first_node_in_group("player_boat") as Node3D
+	if _boat:
+		_boat.health_changed.connect(_on_health_changed)
+		_on_health_changed(false)
+
+
+## Only while the hurt flash is on (switched on by _on_health_changed): count it down, then rest again.
+func _process(dt: float) -> void:
+	_flash -= dt
+	if _flash <= 0.0:
+		queue_redraw()                 # the flash is over: back to paper
+		set_process(false)
 
 
 ## The boat's health changed: read it, flash if she was hurt, draw again.
@@ -66,6 +77,7 @@ func _on_health_changed(hurt: bool) -> void:
 	health = _boat.health
 	if hurt:
 		_flash = HURT_FLASH
+		set_process(true)              # count the flash down (see _process)
 	queue_redraw()
 
 
@@ -75,6 +87,9 @@ func _draw() -> void:
 	var label_w := font.get_string_size("Hull", HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x
 	var hearts_w := count * HEART_SIZE + (count - 1) * HEART_GAP
 	var panel := Rect2(Vector2.ZERO, PADDING * 2.0 + Vector2(label_w + LABEL_GAP + hearts_w, HEART_SIZE))
+	# Drawn at its small size, then everything scaled up so the panel is panel_height tall (like a widget's scale).
+	var grow := panel_height / panel.size.y
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(grow, grow))
 
 	# Hurt: the panel turns ink and what's on it paper, for HURT_FLASH seconds.
 	var hurt := _flash > 0.0
@@ -89,7 +104,13 @@ func _draw() -> void:
 	# 2. "Hull", in the middle of the panel's height.
 	var middle_y := PADDING.y + HEART_SIZE * 0.5
 	var baseline := middle_y + (font.get_ascent(FONT_SIZE) - font.get_descent(FONT_SIZE)) * 0.5
-	draw_string(font, Vector2(PADDING.x, baseline), "Hull", HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, front)
+	# The word is drawn at its real big size (a scaled-up small word would be blurry): no scaling for it, its
+	# place and font size multiplied by `grow` instead; then the scaling back on for the hearts.
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var big_size := roundi(FONT_SIZE * grow)
+	var big_baseline := middle_y * grow + (font.get_ascent(big_size) - font.get_descent(big_size)) * 0.5
+	draw_string(font, Vector2(PADDING.x * grow, big_baseline), "Hull", HORIZONTAL_ALIGNMENT_LEFT, -1, big_size, front)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(grow, grow))
 
 	# 3. The hearts: each one full, half or empty, depending on how much health is left for it.
 	var heart_scale := HEART_SIZE / 16.0

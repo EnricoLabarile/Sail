@@ -27,6 +27,7 @@ var _tween: Tween             # the animation running now, if any
 func _ready() -> void:
 	icon.pressed.connect(toggle)          # when the icon says "pressed", call toggle()
 	book.visible = false
+	set_process(false)                    # the book is placed every frame only while it shows (set_open)
 
 
 ## Open the book if it's shut, shut it if it's open.
@@ -43,14 +44,21 @@ func set_open(open: bool) -> void:
 	if open:
 		book.refresh()                    # the pages read where she is and what's in the hold, once
 		book.visible = true
+		set_process(true)                 # place it every frame while it moves and shows
 		_tween.tween_property(self, "drop", 1.0, DROP_TIME)        # 1. down…
 		_tween.tween_property(book, "unfold", 1.0, UNFOLD_TIME)    # 2. …then open
 	else:
 		_tween.tween_property(book, "unfold", 0.0, UNFOLD_TIME)    # 1. fold shut…
 		_tween.tween_property(self, "drop", 0.0, DROP_TIME)        # 2. …then up
-		_tween.tween_callback(func(): book.visible = false)        # 3. and hide it
+		_tween.tween_callback(_hide_book)                          # 3. and hide it
 	# the button's own little animation (cover opening on the icon), at the same time
 	create_tween().tween_property(icon, "open_amount", 1.0 if open else 0.0, 0.3)
+
+
+## The book is shut and up out of sight: hide it, and stop placing it every frame.
+func _hide_book() -> void:
+	book.visible = false
+	set_process(false)
 
 
 ## Every frame: work out the book's size and place it from `drop` and `unfold`.

@@ -33,6 +33,8 @@ const CLOUD_LAYER := 2   # the clouds are on render layer 2 (value 2): the cloud
 
 
 var clouds: Array[MeshInstance3D] = []
+var drift: Node3D                   # all the clouds are inside it: moving it moves them all at once
+var wrap_wait := 0.0                # seconds left before the clouds past the map's edge are brought round
 var map_camera: Camera3D            # the camera looking down on the clouds (makes the cloud map)
 var map_wait := 0.0                 # seconds left before the cloud map is drawn again
 var shadow_material: ShaderMaterial # the screen effect that draws the shadows (cloud_shadow.gdshader)
@@ -47,10 +49,13 @@ func _ready() -> void:
 	var materials: Array[StandardMaterial3D] = []
 	for texture in cloud_textures:
 		materials.append(make_material(texture))
-	# The clouds, using the pictures in turn.
+	# The clouds, using the pictures in turn, all inside one node (drift) that carries them downwind together.
+	drift = Node3D.new()
+	drift.name = "Drift"
+	add_child(drift)
 	for i in cloud_count:
 		var cloud := make_cloud(materials[i % materials.size()])
-		add_child(cloud)
+		drift.add_child(cloud)
 		clouds.append(cloud)
 	if shadows_on:
 		add_cloud_map()
@@ -147,16 +152,17 @@ func make_cloud(material: StandardMaterial3D) -> MeshInstance3D:
 	return cloud
 
 
-## Every frame: move every cloud downwind, and wrap it round at the map's edges.
+## Every frame: move the clouds downwind, all together (one node moves: drift, not each cloud on its own); once
+## a second, any cloud that has drifted past the map's edge is brought round to the other side.
 func _process(dt: float) -> void:
+	if drift == null:
+		return
 	# Downwind: the opposite of where the wind comes from.
-	var step := -Wind.from_vector() * speed * dt
-	var half := Land.WORLD_SIZE / 2.0
-	for cloud in clouds:
-		cloud.position += step
-		# wrapf keeps a number inside a range: past one edge, it comes back from the other.
-		cloud.position.x = wrapf(cloud.position.x, -half, half)
-		cloud.position.z = wrapf(cloud.position.z, -half, half)
+	drift.position += -Wind.from_vector() * speed * dt
+	wrap_wait -= dt
+	if wrap_wait <= 0.0:
+		wrap_wait = 1.0
+		wrap_clouds()
 	# The cloud map: a few times a second it moves over the boat and is drawn once more (UPDATE_ONCE). Not every
 	# frame: it's a second picture of the world, and drawing it costs about as much as a small scene.
 	if map_camera != null:
@@ -165,8 +171,25 @@ func _process(dt: float) -> void:
 			map_wait = 1.0 / shadow_updates_per_second
 			follow_boat()
 			map_camera.get_viewport().render_target_update_mode = SubViewport.UPDATE_ONCE
-			
-			## At the start: any cloud closer than clear_radius to the boat is moved to another random place.
+
+
+## The clouds that drifted past the map's edge come back on the other side (a cloud's place on the map is
+## drift's place + its own; past one edge by a little, it's moved a whole map's width back).
+func wrap_clouds() -> void:
+	var half := Land.WORLD_SIZE / 2.0
+	for cloud in clouds:
+		var on_map := drift.position + cloud.position
+		if on_map.x > half:
+			cloud.position.x -= Land.WORLD_SIZE
+		elif on_map.x < -half:
+			cloud.position.x += Land.WORLD_SIZE
+		if on_map.z > half:
+			cloud.position.z -= Land.WORLD_SIZE
+		elif on_map.z < -half:
+			cloud.position.z += Land.WORLD_SIZE
+
+
+## At the start: any cloud closer than clear_radius to the boat is moved to another random place.
 func clear_start_area() -> void:
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if boat == null:

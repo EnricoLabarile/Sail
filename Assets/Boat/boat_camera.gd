@@ -38,6 +38,9 @@ var shake_now_time := 0.3            # how long the shake going on now lasts
 
 func _ready() -> void:
 	top_level = true                 # it follows her position by itself, not her turning
+	# It moves itself every drawn frame (here, in _process), so the physics interpolation is off for it: it
+	# follows her smoothed position instead (boat_position()). See boat.gd's _ready.
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	focus = boat.global_position     # it starts right over her
 	distance = target_distance()     # it starts at the right distance, no easing at the very start
 	add_outline()
@@ -78,15 +81,24 @@ func jump_to_boat() -> void:
 	focus = boat.global_position
 
 
+## Where she is ON SCREEN this frame: her position smoothed between two physics ticks (physics interpolation).
+## She moves 60 times a second (in the physics); the screen is drawn at whatever pace the phone manages. Following
+## her raw position, the view jumps forward two ticks on one frame and none on the next: choppy. Her smoothed
+## position moves evenly with the time that really went by. (In Unreal: the Character Movement's smoothing.)
+func boat_position() -> Vector3:
+	return boat.get_global_transform_interpolated().origin
+
+
 # ---- inside the camera ----
 
 ## The point it looks at trails after her: inside the dead zone it stays still, outside it glides toward her
 ## until she's back on the zone's edge.
 func follow(dt: float) -> void:
-	var off := boat.global_position - focus   # from the camera's point to her
+	var her := boat_position()
+	var off := her - focus   # from the camera's point to her
 	off.y = 0.0
 	if off.length() > dead_zone:
-		var goal := boat.global_position - off.normalized() * dead_zone   # puts her right on the edge
+		var goal := her - off.normalized() * dead_zone   # puts her right on the edge
 		focus = focus.lerp(goal, minf(1.0, follow_speed * dt))
 
 

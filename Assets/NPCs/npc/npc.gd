@@ -51,6 +51,7 @@ func _ready() -> void:
 		return
 	bubble.material_override = bubble.material_override.duplicate()   # its own copy: each NPC fades on its own
 	_set_bubble_alpha(0.0)
+	set_process(false)    # nothing to do until the boat comes near (the sensor switches it on: see _wake)
 	# The boat's SpotSensor (a small Area3D on the "sensors" layer) entering or leaving the radius tells us,
 	# as with the fishing spots: no checks every frame.
 	sensor.area_entered.connect(_on_sensor_entered)
@@ -67,6 +68,8 @@ func _process(dt: float) -> void:
 	bubble_alpha = move_toward(bubble_alpha, want, dt / fade_time)
 	if bubble_alpha <= 0.0:
 		bubble.visible = false
+		if want == 0.0:
+			set_process(false)    # faded away and nobody near: rest until the sensor wakes it again
 		return
 	bubble.visible = true
 	_set_bubble_alpha(bubble_alpha)
@@ -88,6 +91,7 @@ func _on_sensor_entered(area: Area3D) -> void:
 	if boat != null and boat.is_in_group("player_boat"):
 		boat_near = true
 		boat.set_near_npc(self, true)     # the wheel's hub shows the speech bubble
+		set_process(true)                 # the bubble fades in (and bobs) every frame from now
 
 
 func _on_sensor_exited(area: Area3D) -> void:
@@ -95,6 +99,7 @@ func _on_sensor_exited(area: Area3D) -> void:
 	if boat != null and boat.is_in_group("player_boat"):
 		boat_near = false
 		boat.set_near_npc(self, false)
+		set_process(true)                 # the bubble fades out, then _process switches itself off
 
 
 ## The anchor went down somewhere: if it was inside our radius, start talking.
@@ -111,6 +116,7 @@ func _on_anchor_dropped() -> void:
 ## The talk box was closed after the last page: the bubble may show again.
 func _on_talk_finished() -> void:
 	talking = false
+	set_process(true)                     # the bubble fades back in
 
 
 # ---- helpers ----

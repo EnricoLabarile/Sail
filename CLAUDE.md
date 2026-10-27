@@ -142,7 +142,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `height` 35 m up (Enrico); `cloud_count` 256 made at start (64 on the half-size map: same density) from `cloud_textures` (in turn; stand-ins `cloud_1..3.png`, soft
   white blobs, to be replaced by Enrico's; imported Lossless, no VRAM compression), random place, size
   `size_min`–`size_max` 30–50 m and turn; every frame moved downwind (`-Wind.from_vector()` × `speed` 2 m/s) and
-  wrapped round the map. Static pictures for now (flipbooks later, maybe). **Shadows** (they darken sea, land and boat alike):
+  wrapped round the map (moved together inside `Drift`, wrapped once a second: see Nothing runs every frame). Static pictures for now (flipbooks later, maybe). **Shadows** (they darken sea, land and boat alike):
   a **cloud map**, a `SubViewport` (`shadow_resolution` 256², transparent background, drawn again `shadow_updates_per_second`
   10 times a second with `UPDATE_ONCE`, the camera moved over the boat at the same moment: not every frame) whose
   orthographic camera looks straight down on the clouds alone (`cull_mask` = `CLOUD_LAYER` 2), `shadow_area` 160 m a
@@ -273,6 +273,22 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   on the picture are passed into the view (`_pass_input`: `push_input`, scaled to its pixels). In the editor the
   scene looks as always. (Before: the 3D at 1/3 with `scaling_3d_scale`, the dither at full resolution; `dither.gd`
   is gone.) The 3D world is shared (the SubViewport uses the root's World3D: `Land`'s rays still work).
+- **Smooth movement: physics interpolation** (Enrico: choppy on the phone; Project Settings > Physics > Common >
+  Physics Interpolation, on): she moves in `_physics_process` (60 Hz) but the phone draws at its own uneven pace, so
+  her drawn position jumped 0 or 2 ticks a frame (measured with real frame times: 2.5–4.5 m/s on screen for a steady
+  3.5). Now Godot draws her between ticks. Only the boat is interpolated: `boat.gd` `_ready` sets the tree's root
+  `physics_interpolation_mode` OFF and hers ON (everything else moves itself in `_process` and must not be smoothed);
+  the camera is OFF too and follows `boat_position()` = `get_global_transform_interpolated()`; `respawn()` calls
+  `reset_physics_interpolation()` (a jump, not a glide). Anything new moved in `_physics_process` that must look
+  smooth: set its mode ON (or put it inside the boat).
+- **Nothing runs every frame without a reason** (Enrico's optimisation pass, Oct 2026; measured: the scripts' own cost
+  was tiny, the choppiness was the above): `set_process(false)` while idle, switched on by events: NPCs (sensor in/out,
+  talk end; off once the bubble has faded), fishing spots (`try_fishing`; off when nobody fishes), wave zones (while she's
+  inside), the logbook (while the book shows; `_hide_book`), the talk box (open / close), the floating shop (greet area,
+  `say`; off when she's gone and he's quiet), the hearts (only during the hurt flash). The clouds move as one node
+  (`clouds.gd` `drift`, all 256 inside it) and are wrapped round the map once a second (`wrap_clouds`), not each cloud
+  every frame. `sea.gd` sends the texture's angle only while it turns to a new wind (steady wind: nothing; it lands on
+  the target within 0.001 rad), keeps the boat once found, and sends `fog_falloff` from its setter.
 - **Turning** (as the prototype): `turn_rate` 2.25 rad/s (Enrico: between the old 1.5 and the doubled 3) at full rudder whatever her speed (no slower with less way);
   none at anchor. (Paddle wheels and the crank were added, then removed for now by Enrico.)
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
@@ -328,10 +344,14 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
 - **Health** (Enrico, the prototype's hull as Zelda's hearts): on the boat (`boat.gd`): `max_hearts` 3, `health` in hearts
   (0.5 = half), `hit_damage` 0.5 a bump (in `bump()`, after its cooldown and minimum speed), `take_damage(hearts)`,
   `add_heart_container()` (one more heart and the hull whole), signal `health_changed(hurt)`. **At 0 she sinks** (Enrico): `start_sinking()` (no sailing, anchor or bumps; the water mask off so the sea covers her inside; no wake or bow wave), `update_sinking` takes `Model` down `sink_depth` 2.5 m and over `sink_lean_deg` 25° in `sink_time` 2 s (eased in), then signal `sank`; `respawn()` puts her back home (`home_position` / `home_turn`, where she was placed in Overworld) at anchor, hull whole, keeping the hold and heart containers. **She spawns by coming up out of the water** (Enrico: the sinking played backwards): `start_emerging()` at the level's start (`emerge_on_start`, on) and at the end of `respawn()`; `update_emerging` raises `Model` from `sink_depth` under and `sink_lean_deg` over to its place in `sink_time` ((1 − share)², quick at first, slowing at the surface), the water mask off till she's up; while `emerging` no sailing, anchor or damage, but the fog clears round her. **The game over card** (`Assets/UI/game_over.tscn` + `.gd`, made like the start screen: CanvasLayer 130, process_mode Always, hidden): on `sank` it pauses the game and shows "Shipwrecked", "The hull gave way. Back home to mend it." and "Set sail again", which calls `respawn()` and unpauses.
-  Shown top left by `Assets/UI/health/` (`health.tscn`: CanvasLayer 110, crisp; Control `Hearts` 12, 12; `health.gd`,
+  Shown top left by `Assets/UI/health/` (`health.tscn`: CanvasLayer 110, crisp; Control `Hearts` 12, 20; `health.gd`,
   `@tool`): a paper panel, 2 px ink border, a hard 3 px ink shadow, "Hull" and a 17 px heart a heart (the prototype's SVG
   path as Béziers), full, half (its left half) or empty; drawn again only on `health_changed`; hurt, the panel is ink
-  for `HURT_FLASH` 0.35 s.
+  for `HURT_FLASH` 0.35 s (`_process` runs only then). **As big as the wind arrow** (Enrico): drawn at that small size
+  and scaled up (`draw_set_transform`) so it's `panel_height` 60 px tall, its top at 20 like the arrow's tip; "Hull" is
+  drawn at the real big font size (scaled up it was blurry). With 4+ hearts it reaches the arrow. **FPS counter** under
+  it (`Fps`, a Label in health.tscn, `fps_counter.gd`: "n fps" from `Engine.get_frames_per_second()`, refreshed by its
+  own Timer every `update_every` 0.5 s, not every frame); the floating shop's purse moved below it (top 124).
 - **Fishing spots** (Enrico; `Assets/Landscape/fishing_spots/`: `fishing_spot.tscn` + `fishing_spot.gd` (`@tool`),
   `fishing_spot.gdshader`, `fishing_spot.png`; instanced by hand under `FishingSpots` in Overworld, for now `FishSpot`
   (−12, 0, −50) and `HeartSpot` (20, 0, −62)): the prototype's drawSpot (a dark soft patch, rings welling up), a

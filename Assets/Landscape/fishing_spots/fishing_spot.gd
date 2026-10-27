@@ -48,6 +48,7 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	_material().set_shader_parameter("phase", randf() * 16.0)   # its own place in the flipbook
+	set_process(false)    # nothing to do every frame until she fishes here (try_fishing switches it on)
 	# The physics engine calls these when the boat's sensor comes in or goes out (like OnBeginOverlap /
 	# OnEndOverlap in Unreal).
 	$Sensor.area_entered.connect(_on_sensor_entered)
@@ -119,6 +120,7 @@ func try_fishing(boat: Node3D) -> void:
 	_boat = boat
 	_player = boat
 	_fishing_left = fishing_time
+	set_process(true)                             # count the fishing time down, every frame
 	_update_boat_here()
 
 
@@ -133,7 +135,8 @@ func _process(dt: float) -> void:
 			queue_free()
 		return
 	if _fishing_left < 0.0:
-		return                                    # nobody fishing here
+		set_process(false)                        # nobody fishing here: rest until try_fishing
+		return
 	# She weighed anchor (or sank) before the haul: the nets come back empty.
 	if not _boat.anchored or _boat.sinking:
 		_fishing_left = -1.0

@@ -32,11 +32,17 @@ extends MeshInstance3D
 		use_shore_picture()
 
 # The fog of war's soft edge (fog.gdshader's falloff): metres it shades off over. 0 = as it comes (about one cell).
-@export var fog_falloff := 0.0
+# Sent to the fog when it changes (also while the game runs, from the Inspector), not every frame.
+@export var fog_falloff := 0.0:
+	set(value):
+		fog_falloff = value
+		if fog_material:
+			fog_material.set_shader_parameter("falloff", fog_falloff)
 
 var fog_material: ShaderMaterial      # the fog's material (to send it the falloff)
 var texture_angle := 0.0              # where the texture is turned now (radians, clockwise from north)
 var texture_offset := Vector2.ZERO    # a shift that keeps the water under the boat still while it turns
+var boat: Node3D                      # the boat (found the first time it's needed)
 var sea_material: ShaderMaterial      # this sea's own copy of the material (the shore picture, the angle and the shift)
 
 
@@ -49,6 +55,8 @@ func _ready() -> void:
 	sea_material.set_shader_parameter("cell_size", Land.WORLD_SIZE / 9.0)   # 9 x 9 squares, as the logbook's map
 	Land.set_shore_picture(shore_texture)   # Land reads this level's picture too (how far the coast is: the shallows)
 	texture_angle = deg_to_rad(Wind.from_deg + texture_turn_deg)   # start already facing the wind
+	sea_material.set_shader_parameter("wind_angle", texture_angle)   # and tell the shader so (_process sends it
+	sea_material.set_shader_parameter("wind_offset", texture_offset) # again only when the wind turns)
 	add_fog()
 	match_deep_water_to_shallows.call_deferred()   # deferred: after the boat's _ready (she joins her group there)
 
@@ -107,19 +115,24 @@ func add_fog() -> void:
 func _process(dt: float) -> void:
 	if Engine.is_editor_hint():
 		return                       # in the editor the sea stays still
-	# 0. The fog's soft edge, sent every frame so a change in the Inspector while the game runs shows at once.
-	fog_material.set_shader_parameter("falloff", fog_falloff)
 	# 1. Where the texture should face: where the wind comes from (+ the extra turn).
 	var target := deg_to_rad(Wind.from_deg + texture_turn_deg)
+	#    Already facing it (the wind is steady most of the time): nothing to turn, nothing to send.
+	if texture_angle == target:
+		return
 	# 2. Turn toward it a bit each frame, so it gets there about follow_time seconds later.
 	#    lerp_angle takes the short way round (from 350 to 10 degrees it goes through 0, not back).
+	#    Within a thousandth of a radian it just lands on it (so the check above stops the work).
 	var new_angle := lerp_angle(texture_angle, target, minf(1.0, dt / follow_time))
+	if absf(angle_difference(new_angle, target)) < 0.001:
+		new_angle = target
 	# 3. Turn round the boat, not round the middle of the map: far from home a small turn round the middle
 	#    would make the water slide a long way. So the point of the sea under the boat must stay where it is:
 	#    work out where that point is in the texture with the old angle and with the new one, and shift the
 	#    texture by the difference. (When the angle doesn't change, the shift doesn't either: as she sails,
 	#    the drawing stays fixed on the water.)
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	if boat == null:
+		boat = get_tree().get_first_node_in_group("player_boat")   # found once, then kept
 	if boat:
 		var under_boat := Vector2(boat.global_position.x, boat.global_position.z)
 		texture_offset += under_boat.rotated(-texture_angle) - under_boat.rotated(-new_angle)

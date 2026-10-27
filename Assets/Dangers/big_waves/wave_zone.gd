@@ -52,16 +52,19 @@ func _ready() -> void:
 		return
 	$Sensor.area_entered.connect(_on_sensor_entered)
 	$Sensor.area_exited.connect(_on_sensor_exited)
+	set_process(false)    # waves only while she's in the zone: the sensor switches it on and off
 
 
 func _on_sensor_entered(area: Area3D) -> void:
 	if area.get_parent().is_in_group("player_boat"):
 		boat_inside = true
+		set_process(true)
 
 
 func _on_sensor_exited(area: Area3D) -> void:
 	if area.get_parent().is_in_group("player_boat"):
 		boat_inside = false
+		set_process(false)
 
 
 func _process(dt: float) -> void:

@@ -9,7 +9,7 @@ extends Node3D
 ##
 ## The goods are ordinary pickups (Assets/Items/pickup/pickup.tscn, the same thing that can lie anywhere in the
 ## world), each with a price and `auto_take` off: the shop listens to their `touched` and decides.
-## While she's at the shop her purse shows on screen (Purse, top left under the hearts); after a buy it counts down to
+## While she's at the shop her purse shows on screen (Purse, top left under the hearts and the fps counter); after a buy it counts down to
 ## what's left (the pickup itself makes the blip and the little screen shake).
 ## The bubble and the price tags are drawn crisp, pinned to where the merchant and the goods are on screen
 ## (Talk, a CanvasLayer), so the words stay readable through the dither.
@@ -54,6 +54,7 @@ func _ready() -> void:
 	$GreetArea.area_entered.connect(_on_greet_entered)
 	$GreetArea.area_exited.connect(_on_greet_exited)
 	put_out_goods()
+	set_process(false)    # every frame only while she's at the shop or he speaks (_on_greet_entered, say)
 
 
 ## One pickup on each slot, for the first three things in for_sale (an empty entry leaves its slot empty).
@@ -113,6 +114,7 @@ func _on_greet_entered(area: Area3D) -> void:
 	var boat := area.get_parent() as Node3D
 	if boat and boat.is_in_group("player_boat") and not boat_near:
 		boat_near = true
+		set_process(true)                      # pin the tags, the purse and the bubble every frame
 		boat.camera.ask_close_up(true)
 		coins_shown = Inventory.coins          # the purse on screen starts at what she has
 		say(welcome_line)
@@ -131,6 +133,7 @@ func say(line: String) -> void:
 	bubble_text.text = line
 	bubble.visible = true
 	line_left = line_time
+	set_process(true)
 
 
 ## Every frame: count the bubble down, and pin the bubble and the price tags to where the merchant and the goods
@@ -148,6 +151,7 @@ func _process(dt: float) -> void:
 	purse.visible = boat_near
 	purse.text = "Coins  %d" % roundi(coins_shown)
 	if not boat_near and not bubble.visible:
+		set_process(false)                     # she's gone and he's quiet: rest until she comes back
 		return
 	var camera := get_boat_camera()
 	if camera == null:
