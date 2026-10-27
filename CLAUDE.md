@@ -289,6 +289,17 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (`clouds.gd` `drift`, all 256 inside it) and are wrapped round the map once a second (`wrap_clouds`), not each cloud
   every frame. `sea.gd` sends the texture's angle only while it turns to a new wind (steady wind: nothing; it lands on
   the target within 0.001 rad), keeps the boat once found, and sends `fog_falloff` from its setter.
+- **Shader warm-up** (Enrico: frame drops while sailing round; `Assets/Post_Process/shader_warmup.gd`,
+  `class_name ShaderWarmup`, added by `game_view.gd` at the level's start, so every level has it): the first time a
+  material is drawn its shader compiles, and on WebGL that stops a frame (measured sailing round the Overworld, real
+  frame times under xvfb: 6–9 hitches of 80–320 ms on a first lap, where an island, the fishing spot or the first
+  fireball first came into view; on a second lap only where something new showed; with the warm-up 1, unrelated to
+  anything). At start it collects every 3D material in the tree (hidden ones too: the imp, the NPC's bubble; islands
+  out of view) plus those of the scenes in `LATER` (fireball with its debug ring, bomb and blast, trap, pickup, big
+  wave: made once, hidden and disabled, to read their materials), skips the full-screen effects (shader code with
+  `POSITION =`: fog, outline, cloud shadows), and draws each once on a 1 cm square 2 m in front of the camera, plus a
+  tiny-dotted copy of each CPUParticles3D, for `FRAMES` 3 frames; then it all goes (59 materials, 2 emitters in the
+  Overworld). Something new made later in code with a new kind of material: add its scene to `LATER`.
 - **Turning** (as the prototype): `turn_rate` 2.25 rad/s (Enrico: between the old 1.5 and the doubled 3) at full rudder whatever her speed (no slower with less way);
   none at anchor. (Paddle wheels and the crank were added, then removed for now by Enrico.)
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,

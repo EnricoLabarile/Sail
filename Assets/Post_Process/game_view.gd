@@ -66,6 +66,13 @@ func _build() -> void:
 	get_tree().root.size_changed.connect(_fit)
 	_fit()
 
+	# 5. Every material drawn once now, so none stutters the first time it comes into view (shader_warmup.gd).
+	var boat := get_tree().get_first_node_in_group("player_boat")
+	if boat:
+		var warmup := ShaderWarmup.new()
+		add_child(warmup)
+		warmup.run(boat.camera)
+
 
 ## The view's size: the screen's real pixels divided by the dot scale. The dot scale: real pixels across the
 ## screen / dots_across, rounded (whole real pixels a dot, so every dot is the same size).
