@@ -38,3 +38,4 @@ pitch_scale = 1.5
 
 [node name="HullBump" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("12_bump")
+volume_db = -8.0

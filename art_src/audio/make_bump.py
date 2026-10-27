@@ -1,6 +1,8 @@
 """Makes Assets/SFX/hull_bump.ogg: the boat's wooden hull knocking against a shore or a barrel (Enrico's sound pass):
-a dull thud of the hull (a tone sliding down from 150 to 75 Hz, with overtones a phone's speaker can play), a short
-woody knock (noise band-passed round 700 Hz) and a little scrape of grit after it; about half a second.
+a thud of the hull (a tone sliding down from 260 to 120 Hz, with overtones: high enough for a phone's speaker), a short
+woody knock (noise band-passed round 700 Hz) right at the start, and a little scrape dying away; about half a second.
+Everything starts at once (Enrico heard a delay: the first version's deep thud was too low for the phone, and its
+scrape peaked 80 ms in, so the part you could hear came late).
 Run:  python art_src/audio/make_bump.py  (needs numpy, scipy and ffmpeg)."""
 import subprocess, wave
 import numpy as np
@@ -22,16 +24,16 @@ def low_pass(sound, cutoff):
 
 length = 0.55
 t = np.arange(int(RATE * length)) / RATE
-# the hull's thud: a tone falling 150 → 75 Hz, dying away quickly
-freq = 75 + 75 * np.exp(-t / 0.05)
+# the hull's thud: a tone falling 260 → 120 Hz, dying away quickly
+freq = 120 + 140 * np.exp(-t / 0.04)
 phase = 2 * np.pi * np.cumsum(freq) / RATE
 thud = (np.sin(phase) + 0.35 * np.sin(2 * phase) + 0.2 * np.sin(3 * phase)) * np.exp(-t / 0.09)
 # the woody knock: a short burst of noise round 700 Hz (the planks)
 knock = band_pass(rng.uniform(-1, 1, t.size), 450, 1100) * np.exp(-t / 0.025)
-# a little scrape after it: low grainy noise, a bit later and longer
-scrape = low_pass(rng.uniform(-1, 1, t.size), 1800) * np.exp(-((t - 0.08) / 0.12) ** 2) * 0.35
+# a little scrape: grainy noise starting with the knock and dying away more slowly
+scrape = low_pass(rng.uniform(-1, 1, t.size), 1800) * np.exp(-t / 0.1) * 0.3
 attack = np.minimum(1, t / 0.002)
-sound = np.tanh(1.8 * (thud * 1.0 + knock * 1.4 + scrape) * attack)   # tanh: a soft overdrive, for body on a phone
+sound = np.tanh(1.8 * (thud * 1.0 + knock * 2.0 + scrape) * attack)   # tanh: a soft overdrive, for body on a phone
 sound = sound / np.max(np.abs(sound)) * 0.7
 path = "/tmp/hull_bump.wav"
 with wave.open(path, "wb") as f:

@@ -267,8 +267,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   overtones above 200 Hz on purpose, as a phone's speaker can't play their deep part.
   **Hull bump** (Enrico: when she bounces off a surface; `hull_bump.ogg`, player `HullBump`, `Sfx.hull_bump(strength)`,
   from `boat.gd` `bump()`, so shores and barrels alike, only for a real bump, after its cooldown and minimum speed):
-  a dull thud 150 → 75 Hz with overtones, a woody knock (noise round 700 Hz), a little scrape, 0.55 s, made by
-  `art_src/audio/make_bump.py`; loudness 0.4 + 0.6 × hit speed / `top_speed`.
+  a thud 260 → 120 Hz with overtones, a woody knock (noise round 700 Hz) and a scrape, all from the first instant
+  (Enrico heard a delay: the first version's deep thud was too low for a phone and its scrape peaked 80 ms in), 0.55 s,
+  made by `art_src/audio/make_bump.py`; `HullBump` Volume −8 dB (Enrico: quieter); loudness 0.4 + 0.6 × hit speed / `top_speed`.
 - **The dither** (`Assets/Post_Process/dither/`: `dither.tscn`, a CanvasLayer 100 with a ColorRect, `dither.gdshader`):
   Bayer 4×4 to paper/ink, one dot per pixel of the game view (below; `pixel_size` > 1 only makes the grain coarser).
   Its handles (the ColorRect's material in `dither.tscn`): `brightness`, `contrast`, then **levels** (Enrico):
