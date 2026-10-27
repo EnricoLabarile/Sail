@@ -567,16 +567,18 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `activate()` / `deactivate()` (for future quests: an NPC will call them), `square()` = its 9 × 9 square (as the
   boat's). Group `map_markers`: `book.gd` `refresh()` (on opening) reads the squares of the active ones into
   `_marked_squares`; `_draw_map` draws an ink X (arms 0.3 of a square, width 2) in the middle of each.
-  **Close-ups** (Enrico): an active marker takes a picture of the area round it (`take_picture`, at the level's
-  start after `start_delay` 0.3 s, as earlier pictures came out wrong while GameView was still setting up; and on
-  `activate()`): a SubViewport `picture_size` 140² with an orthographic Camera3D `area_size` 60 m across,
-  `picture_height` 100 m up along the game camera's tilt (`boat.camera.tilt_deg`, from the south, so the islands'
-  standing drawings show as in the game), `cull_mask` 1 only (not the clouds and gulls, layer 2, nor the screen
-  effects: the fog, the outline and the cloud shadows' quads now sit on render layer 3, value 4, which the game
-  camera still sees); rendered once (`UPDATE_ONCE`, two `frame_post_draw`), copied, the viewport freed; made 1-bit
-  in GDScript with the game's dither sums and settings (`to_one_bit`, `dither_settings` read from the level's Dither
-  material) → `picture` (ImageTexture). **The logbook's pages** (`book.gd`): `page` 0 = the hold and the map; one
-  more spread per active marker with a picture (`_marker_pages`, read in `refresh`): "Marked place F4" top left and
+  **Printed maps** (Enrico: an editor tool, not something done while playing): `picture` (Texture2D export) is the
+  marker's page in the logbook; **"Print map"** (`@export_tool_button`, group "Print map" in the Inspector,
+  `print_map`) makes it, like the shore baker: a SubViewport with its own World3D holding copies (`_copy_mesh`, with
+  their materials) of only the level's `Sea` and the meshes under `land_roots` (`../../Islands`, `../../Coast`, found
+  by name if the path fails), an orthographic Camera3D `area_size` 60 m across, `camera_distance` 100 m back along
+  `tilt_deg` 20 (the game camera's tilt, from the south, so the islands' standing drawings show), one render of
+  `picture_size` 140²; made 1-bit with the game's dither sums and the level's Dither settings (`to_one_bit`,
+  `dither_settings`); saved to `print_path` (empty = `Assets/Quests/map_marker/prints/<level>_<marker>.png`), then
+  reimported and put in `picture` (`use_new_picture`, the scene marked unsaved: save it). Print again after changing
+  the coasts. Nothing of it runs in the game. The Overworld's two markers have theirs (`Overworld_MapMarker*.png`).
+  **The logbook's pages** (`book.gd`): `page` 0 = the hold and the map; one
+  more spread per active marker with a `picture` (`_marker_pages`, read in `refresh`): "Marked place F4" top left and
   the picture centred on the spine at a whole number of book pixels per picture pixel (2× on the phone), framed,
   an X (paper under ink) in the middle (`_draw_close_up`); page dots at the bottom (`_draw_page_dots`, `DOTS_HEIGHT`).
   **Swipe** to turn (`_gui_input`: where the finger came down is kept; lifted ≥ `SWIPE` 40 px sideways → `turn_page`,
