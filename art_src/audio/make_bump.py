@@ -1,8 +1,7 @@
 """Makes Assets/SFX/hull_bump.ogg: the boat's wooden hull knocking against a shore or a barrel (Enrico's sound pass):
-a thud of the hull (a tone sliding down from 260 to 120 Hz, with overtones: high enough for a phone's speaker), a short
+a dull thud of the hull (a tone sliding down from 150 to 75 Hz, with overtones), a short
 woody knock (noise band-passed round 700 Hz) right at the start, and a little scrape dying away; about half a second.
-Everything starts at once (Enrico heard a delay: the first version's deep thud was too low for the phone, and its
-scrape peaked 80 ms in, so the part you could hear came late).
+Everything starts at once (the first version's scrape peaked 80 ms in).
 Run:  python art_src/audio/make_bump.py  (needs numpy, scipy and ffmpeg)."""
 import subprocess, wave
 import numpy as np
@@ -24,8 +23,8 @@ def low_pass(sound, cutoff):
 
 length = 0.55
 t = np.arange(int(RATE * length)) / RATE
-# the hull's thud: a tone falling 260 → 120 Hz, dying away quickly
-freq = 120 + 140 * np.exp(-t / 0.04)
+# the hull's thud: a tone falling 150 → 75 Hz, dying away quickly (Enrico: keep this pitch)
+freq = 75 + 75 * np.exp(-t / 0.05)
 phase = 2 * np.pi * np.cumsum(freq) / RATE
 thud = (np.sin(phase) + 0.35 * np.sin(2 * phase) + 0.2 * np.sin(3 * phase)) * np.exp(-t / 0.09)
 # the woody knock: a short burst of noise round 700 Hz (the planks)
