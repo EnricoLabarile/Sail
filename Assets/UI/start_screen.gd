@@ -13,9 +13,11 @@ extends CanvasLayer
 ##
 ## THE LEVELS (Enrico): under the build, a button for every level in LEVELS_FOLDER (the Overworld, the gyms…).
 ## The list is read from the folder every time the card shows, so a new level saved there gets its button by
-## itself. The level that's loaded now is drawn inked, like a pressed key. A tap on another one loads it at once
-## (in Unreal: Open Level), behind the black: the new level comes up with this same card, its button inked, and
-## waits for "Set sail" too. (The autoloads stay as they were: the hold, the fog's seen sea and the wind carry over.)
+## itself. The level picked is drawn inked, like a pressed key (at first, the one loaded now). A tap on another one
+## only PICKS it (Enrico: the menu stays quick, nothing is loaded yet); "Set sail" then loads it (in Unreal: Open
+## Level), behind the black, with "Loading…" on the button meanwhile, and the new level starts by itself, with no
+## second card (start_right_away). Picking the level that's already loaded just sets sail.
+## (The autoloads stay as they were: the hold, the fog's seen sea and the wind carry over.)
 ##
 ## THE BLACK (the "curtain"): a black sheet over the whole game, in its own CanvasLayer (CURTAIN_LAYER) just under
 ## the card. It fades away over curtain_fade when "Set sail" is pressed. (In Unreal: a fade from black on the
@@ -32,6 +34,13 @@ const CURTAIN_LAYER := 129                                    # above the whole 
 @export var curtain_fade := 0.3     # seconds the black takes to fade away after "Set sail"
 
 var curtain: ColorRect              # the black sheet (made in code, in its own layer above everything)
+var picked_level := ""              # the level picked in the list (its path): "Set sail" loads it
+var level_buttons := {}             # each level's path → its button (to ink the one picked)
+
+## True while a level loaded by "Set sail" is coming up: its start screen then sets sail at once, with no card.
+## A static var belongs to the script, not to one start screen, so it survives the change of level (the old start
+## screen is gone by then, the new one reads it).
+static var start_right_away := false
 
 @onready var build_label: Label = $Card/Margin/Lines/Build
 @onready var levels_box: VBoxContainer = $Card/Margin/Lines/Levels
@@ -43,12 +52,27 @@ func _ready() -> void:
 	build_label.text = "Build %s\n%s" % [BuildInfo.NUMBER, BuildInfo.STARTED]
 	add_level_buttons()
 	style_button(start_button, true)           # "Set sail" inked, so it stands out from the level list
-	start_button.pressed.connect(_on_start)    # when it's pressed, call _on_start
+	start_button.pressed.connect(_on_set_sail) # when it's pressed, call _on_set_sail
 	get_tree().paused = true                   # everything waits for "Set sail"
 	# A level loaded in the middle of a talk or a trade: those reasons to hide the icons are gone (Hud autoload).
 	Hud.set_hidden("talk", [], false)
 	Hud.set_hidden("store", [], false)
 	_show_controls.call_deferred(false)        # after every node is ready (and in its group): hide the controls
+	# This level was loaded by "Set sail" on the last one's card: go at once (after the line above, so the
+	# controls are hidden first and then shown again), with no card.
+	if start_right_away:
+		start_right_away = false
+		$Card.hide()
+		_on_start.call_deferred()
+
+
+## "Set sail" pressed: if the level picked is the one loaded, go; otherwise load it first.
+func _on_set_sail() -> void:
+	var playing := get_tree().current_scene.scene_file_path
+	if picked_level == playing:
+		_on_start()
+	else:
+		load_level(picked_level)
 
 
 ## "Set sail": the card goes, the black fades away, the controls come back and the game goes (still at anchor).
@@ -84,16 +108,23 @@ func level_names() -> Array[String]:
 
 ## One button per level, inside the Levels box of the card.
 func add_level_buttons() -> void:
-	var playing := get_tree().current_scene.scene_file_path   # the level open now
+	picked_level = get_tree().current_scene.scene_file_path   # at first, the level open now
 	for level in level_names():
 		var path := LEVELS_FOLDER + "/" + level + ".tscn"
 		var button := Button.new()
 		button.text = level.replace("_", " ")                  # "Gym_Imp" → "Gym Imp"
 		button.focus_mode = Control.FOCUS_NONE                 # no keyboard focus ring (Space works the anchor)
-		style_button(button, path == playing)
-		if path != playing:                                    # the one loaded now does nothing: it's already there
-			button.pressed.connect(load_level.bind(path))      # bind: the button hands its own path to load_level
+		style_button(button, path == picked_level)
+		button.pressed.connect(pick_level.bind(path))          # bind: the button hands its own path to pick_level
 		levels_box.add_child(button)
+		level_buttons[path] = button
+
+
+## A tap on a level: it becomes the one picked (inked), nothing is loaded yet.
+func pick_level(path: String) -> void:
+	picked_level = path
+	for level_path in level_buttons:
+		style_button(level_buttons[level_path], level_path == picked_level)
 
 
 ## Ink on paper like the rest of the card; the level being played is the other way round (paper on ink).
@@ -112,10 +143,18 @@ func style_button(button: Button, is_playing: bool) -> void:
 	button.add_theme_font_size_override("font_size", 15)
 
 
-## Loads that level, in place of this one. The screen is already black behind the card, so the switch doesn't
-## show: the new level starts with its own card on black, waiting for "Set sail".
-## (The paused state carries over; the new level's card pauses it again anyway.)
+## Loads that level, in place of this one ("Set sail" with another level picked). "Loading…" shows on the button
+## first: it waits two frames so the button is really drawn like that before the loading holds the screen still.
+## The new level then sets sail by itself (start_right_away). The screen is black behind the card, so the switch
+## doesn't show. (The paused state carries over; the new level's start screen unpauses it.)
 func load_level(path: String) -> void:
+	start_button.text = "Loading…"
+	start_button.disabled = true
+	for button in level_buttons.values():
+		button.disabled = true
+	await get_tree().process_frame
+	await get_tree().process_frame
+	start_right_away = true
 	get_tree().change_scene_to_file(path)
 
 
