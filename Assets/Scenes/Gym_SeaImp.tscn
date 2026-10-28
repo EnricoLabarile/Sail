@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="9_dr6ve"]
 [ext_resource type="PackedScene" uid="uid://d0sdk8o8wvfxe" path="res://Assets/Items/barrel/barrel.tscn" id="9_qh02w"]
 [ext_resource type="PackedScene" uid="uid://46d6jucney4i" path="res://Assets/Landscape/islands/sm_island_01_a.fbx" id="13_ug3rh"]
+[ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="14_56yd8"]
 [ext_resource type="PackedScene" uid="uid://w4l1206j8gt3" path="res://Assets/Landscape/islands/sm_island_02_a.fbx" id="14_663nb"]
 [ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="19_wqlgv"]
 [ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="20_m3onn"]
@@ -355,6 +356,11 @@ transform = Transform3D(0.5200575, 0, -0.85413134, 0, 1, 0, 0.85413134, 0, 0.520
 
 [node name="sm_island_02_a29" parent="Gameplay/Islands" unique_id=1824218790 instance=ExtResource("14_663nb")]
 transform = Transform3D(-0.11718717, 0, -0.99310976, 0, 1, 0, 0.99310976, 0, -0.11718717, 46.72939, 1.5258789e-05, -62.18459)
+
+[node name="Pickup" parent="Gameplay" unique_id=2007699666 instance=ExtResource("23_qh02w")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.636604, 0, -31.785479)
+item = ExtResource("14_56yd8")
+count = 99
 
 [node name="UI and PostProcess" type="Node" parent="." unique_id=58599448]
 
