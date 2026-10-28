@@ -21,6 +21,9 @@ extends Node3D
 @export var boost_accel := 4.0          # how quickly she picks up the extra speed (her usual is boat.gd's accel, 1)
 @export var shake_strength := 0.2       # the little screen shake when she catches it (metres)…
 @export var shake_time := .15          # …and how long it lasts (seconds)
+## The picture is turned so that its TOP points the way the wind blows (Enrico). If your drawing points another
+## way, turn it here: degrees added on top (90 = the drawing's right side points downwind).
+@export var picture_turn_deg := 0.0
 
 @onready var picture: MeshInstance3D = $Picture
 
@@ -35,6 +38,17 @@ func _ready() -> void:
 	picture.material_override.set_shader_parameter("phase", randf() * 16.0)
 	# The physics engine calls this when the boat's sensor comes in (OnBeginOverlap in Unreal).
 	$Sensor.area_entered.connect(_on_sensor_entered)
+	# Turn with the wind: now, and every time it changes (Wind sends direction_changed; no check every frame).
+	Wind.direction_changed.connect(face_the_wind)
+	face_the_wind()
+
+
+## Turns the picture so its top points the way the wind blows (downwind), whatever way the gust node is turned.
+## Compass angles: 0 = north, 90 = east; Godot turns anticlockwise seen from above, the compass clockwise, hence
+## the minus. The node's own turn is taken off, so only the picture's direction on the map matters.
+func face_the_wind() -> void:
+	var blows_to := Wind.from_deg + 180.0 + picture_turn_deg   # the wind blows the opposite way it comes from
+	picture.rotation.y = wrapf(-deg_to_rad(blows_to) - global_rotation.y, -PI, PI)
 
 
 ## The boat came in: the boost, the shake and the whoosh.

@@ -17,6 +17,11 @@ extends Node
 ## carries what floats on it downwind. Anything can ask `Wind.current()` for that push: the boat, a bomb, a dead imp.
 
 
+## Sent every time the wind's direction changes (at a wind zone, a jar, a new level, and every frame while it
+## turns). Things drawn along the wind listen to it instead of checking every frame (the gusts, gust.gd).
+signal direction_changed
+
+
 # ---- Knobs (constants: values you set here by hand, they never change while playing) ----
 
 const START_FROM_DEG := 180.0             # where the wind comes from when a level starts: 180 = from the south, so it blows north
@@ -27,7 +32,10 @@ const CURRENT_SPEED := 1.5                # m/s the current carries floating thi
 
 ## Where the wind blows FROM, in degrees: 0 = from the north (top of the screen), 90 = from the east,
 ## 180 = from the south, 270 = from the west.
-var from_deg := START_FROM_DEG
+var from_deg := START_FROM_DEG:
+	set(value):
+		from_deg = value
+		direction_changed.emit()      # tell whoever listens (the setter runs whenever from_deg is given a value)
 
 
 # ---- Internal state (the "_" in front of a name means: only this script uses it) ----
