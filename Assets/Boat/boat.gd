@@ -129,7 +129,7 @@ var npcs_near: Array[Node3D] = []   # the NPCs whose radius she's in now (they t
 var npcs_talked_to: Array[Node3D] = []   # of those, the ones she has already talked to since she came in (npc.gd tells her)
 
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
-const POLAR := [[10, 0.0], [20, 0.0], [45.0, 1.0 ], [90.0, 1.0], [180.0, 1.0]]
+const POLAR := [[10, 0.0], [0, 0.7], [45.0, 1.0 ], [90.0, 1.0], [180.0, 1.0]]
 
 var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0
