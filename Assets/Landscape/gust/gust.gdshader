@@ -10,7 +10,7 @@ stencil_mode read, compare_not_equal, 1;
 uniform sampler2D gust_tex : source_color, filter_nearest, repeat_disable;   // the flipbook picture
 uniform int frames_x = 4;       // frames across the picture…
 uniform int frames_y = 4;       // …and down
-uniform float fps = 12.0;       // frames a second
+uniform float fps = 6.0;       // frames a second
 uniform float phase = 0.0;      // where in the flipbook this gust starts (a frame number, set by gust.gd)
 uniform float alpha_cut = 0.5;  // see-through below this, solid above
 

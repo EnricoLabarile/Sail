@@ -42,7 +42,7 @@ save_path = "uid://cc1dk2viasrhn"
 land_roots = Array[NodePath]([NodePath("../../Gameplay/Islands"), NodePath("../Coast")])
 
 [node name="Boat" parent="Core" unique_id=1762906152 instance=ExtResource("2_56yd8")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72.4917, -0.043405533, 214.93608)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.06123, -0.043405533, 230.97981)
 
 [node name="Sea" parent="Core" unique_id=1750240136 instance=ExtResource("3_igu3s")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26995945, 0.0868597, -0.12084007)
@@ -197,8 +197,17 @@ transform = Transform3D(0.7404473, 0, -0.67211443, 0, 1, 0, 0.67211443, 0, 0.740
 [node name="sm_island_01_a6" parent="Gameplay/Islands" unique_id=718306156 instance=ExtResource("13_ug3rh")]
 transform = Transform3D(0.40877545, 0, -0.53016984, 0, 0.34781027, 0, 0.37105122, 0, 0.5840714, 31.229252, 3.8146973e-06, 141.80948)
 
-[node name="sm_island_01_a7" parent="Gameplay/Islands" unique_id=124415752 instance=ExtResource("13_ug3rh")]
-transform = Transform3D(0.34724292, 0, -0.230051, 0, 0.34781027, 0, 0.31519726, 0, 0.2534399, 49.269104, -11.344791, 180.48267)
+[node name="sm_island_01_a14" parent="Gameplay/Islands" unique_id=124415752 instance=ExtResource("13_ug3rh")]
+transform = Transform3D(-0.10602808, 0, 0.77412426, 0, 0.34781024, 0, -0.5417882, 0, -0.15149629, 65.13872, 3.8146973e-06, 158.30357)
+
+[node name="sm_island_01_a16" parent="Gameplay/Islands" unique_id=1309182434 instance=ExtResource("13_ug3rh")]
+transform = Transform3D(0.47633156, 0, 0.9527301, 0, 0.34781024, 0, -0.8263649, 0, 0.5491708, 45.945602, 3.8146973e-06, 148.90022)
+
+[node name="sm_island_01_a15" parent="Gameplay/Islands" unique_id=6926606 instance=ExtResource("13_ug3rh")]
+transform = Transform3D(-0.17647645, 0, -0.74742043, 0, 0.34781024, 0, 0.52309895, 0, -0.25215518, 81.82507, 3.8146973e-06, 157.88396)
+
+[node name="sm_island_01_a7" parent="Gameplay/Islands" unique_id=1883715021 instance=ExtResource("13_ug3rh")]
+transform = Transform3D(0.34724292, 0, -0.230051, 0, 0.34781027, 0, 0.31519726, 0, 0.2534399, 86.18802, -11.344795, 192.93726)
 
 [node name="sm_island_01_a9" parent="Gameplay/Islands" unique_id=121440182 instance=ExtResource("13_ug3rh")]
 transform = Transform3D(0.40877545, 0, -0.53016984, 0, 0.34781027, 0, 0.37105122, 0, 0.5840714, 2.466179, 3.8146973e-06, 173.49686)
@@ -373,10 +382,10 @@ script = ExtResource("21_uvb2l")
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("28_f8m4f")]
 
 [node name="NPC" parent="." unique_id=103699983 instance=ExtResource("25_k7sby")]
-transform = Transform3D(0.6681644, 0, 0.7440137, 0, 1, 0, -0.7440137, 0, 0.6681644, 49.650894, 9.536743e-06, 180.62125)
+transform = Transform3D(0.6681644, 0, 0.7440137, 0, 1, 0, -0.7440137, 0, 0.6681644, 86.161095, 9.536743e-06, 193.20988)
 portrait = ExtResource("26_eel5a")
 lines = Array[String](["Are you here to get rid of the monsters?", "I would do it myself, but as you can see I have no boat.", "Please sail north west. I left something for you"])
-talk_radius = 8.0
+talk_radius = 16
 
 [node name="MeshInstance3D4" type="MeshInstance3D" parent="." unique_id=1212285365]
 transform = Transform3D(0.45271015, 0, 9.985553, 0, 0.9999988, 0, -9.308323, 0, 0.4856472, -84.449356, 1.5258789e-05, 135.0614)
@@ -387,10 +396,9 @@ mesh = SubResource("BoxMesh_eel5a")
 transform = Transform3D(0.6681644, 0, 0.7440137, 0, 1, 0, -0.7440137, 0, 0.6681644, -84.78551, 5.722046e-06, 134.50787)
 portrait = ExtResource("26_eel5a")
 lines = Array[String](["Oh Hi! Are you here to help? That fills me with joy.", "Have you already cleared up the barricade east of here? You might have an easier time there, not as many monsters.", "Just wanted to warn you, you do you!"])
-talk_radius = 8.0
 
 [node name="MeshInstance3D5" type="MeshInstance3D" parent="." unique_id=753877513]
-transform = Transform3D(6.226841, 0, 7.4381695, 0, 0.9999988, 0, -6.9337063, 0, 6.6798763, 49.6412, 7.6293945e-06, 180.50069)
+transform = Transform3D(6.226841, 0, 7.4381695, 0, 0.9999988, 0, -6.9337063, 0, 6.6798763, 85.88973, 7.6293945e-06, 192.87268)
 material_override = ExtResource("26_7qsuj")
 mesh = SubResource("BoxMesh_eel5a")
 
@@ -402,4 +410,4 @@ count = 99
 [node name="Gust_Scatter" type="Node3D" parent="." unique_id=370826456]
 script = ExtResource("28_eel5a")
 spacing = 30.0
-min_coast_distance = 8.0
+min_coast_distance = 15.0
