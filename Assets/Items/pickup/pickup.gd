@@ -21,7 +21,12 @@ signal taken(pickup: Node3D)                   # it went into the hold (just bef
 		_show_icon()
 @export var count := 1                 # how many of it she gets
 @export var price := 0                 # coins it costs (0 = free; the shop sets its own prices)
-@export var reach := 5.0               # metres from it her middle must come to take it (Enrico: easier; was 2.4, then 3.5)
+## Metres from it her middle must come to take it (Enrico: easier; was 2.4, then 3.5). Change it here or in the
+## Inspector: the sensor follows by itself (_fit_sensor), in the editor too.
+@export var reach := 5.0:
+	set(value):
+		reach = value
+		_fit_sensor()
 @export var auto_take := true          # off when a shop decides instead (it listens to `touched`)
 @export var bob_height := 0.1          # metres it bobs up and down
 @export var bob_speed := 8.0           # how fast
@@ -36,12 +41,20 @@ var picture: MeshInstance3D            # the icon, made in code (so it's never s
 
 func _ready() -> void:
 	_make_picture()
+	_fit_sensor()
 	if Engine.is_editor_hint():
 		return
-	# The sensor as wide as `reach` (each pickup has its own copy of the shape: local to scene in pickup.tscn).
-	var shape := $Sensor/Shape.shape as CylinderShape3D
-	shape.radius = reach
 	$Sensor.area_entered.connect(_on_sensor_entered)
+
+
+## The sensor's cylinder is as wide as `reach`: `reach` is the one number to change, the shape just follows it.
+## (Each pickup has its own copy of the shape: local to scene in pickup.tscn, so one's reach doesn't change the
+## others'.) Called when `reach` changes and at start; get_node_or_null because the setter can run before the
+## nodes exist (while the scene is being loaded).
+func _fit_sensor() -> void:
+	var shape_node := get_node_or_null("Sensor/Shape") as CollisionShape3D
+	if shape_node and shape_node.shape:
+		shape_node.shape.radius = reach
 
 
 func _process(dt: float) -> void:

@@ -8,6 +8,11 @@
   editor gets `render_priority` 10 or more (after the sea, which is a see-through pass and would otherwise cover it
   when it's further away than the sea's middle) and `no_depth_test = true` (over the land). Done for the sea imp,
   wave zone, pier, NPC and map marker helpers.
+- **A sensor's size lives in the script, never only in the shape** (Enrico's rule): every Area3D sensor is sized by
+  an export on its script (`reach`, `radius`, `talk_radius`, `size`…) with a setter that calls `_fit_sensor()` (also
+  from `_ready`, before the editor return; the script is `@tool`, the shape `resource_local_to_scene`), so changing the
+  export resizes the shape at once, in the editor too, and the value stored on the shape in the .tscn never matters.
+  Done for pickups, barrels, fishing spots, piers, NPCs, wave zones, wind zones and the floating shop's greet area.
 - **No camera-facing (billboard) shaders or nodes** (Enrico's rule, Oct 2026): pictures in the world are plain
   planes/quads that keep the node's own rotation; Enrico decides himself whether and how to tilt an element to the
   camera's angle. (Already made before the rule: `stone.gdshader`, used by the bomb and the fireball, and

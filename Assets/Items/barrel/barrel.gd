@@ -18,7 +18,12 @@ const SENSOR_MARGIN := 3.0          # metres the sensor reaches past the barrel'
 ## What's inside (drag a .tres from Assets/Inventory/items here). Empty = the barrel breaks and leaves nothing.
 @export var contents: ItemData
 @export var count := 1              # how many of it
-@export var radius := 5           # metres: how close her middle can come to its middle (its size as a collider)
+## Metres: how close her middle can come to its middle (its size as a collider). The sensor follows it by
+## itself (radius + SENSOR_MARGIN, _fit_sensor), in the editor too.
+@export var radius := 5:
+	set(value):
+		radius = value
+		_fit_sensor()
 var boat: Node3D                    # the boat, while she's inside the sensor (else null)
 var broken := false
 
@@ -26,16 +31,24 @@ var broken := false
 
 
 func _ready() -> void:
+	_fit_sensor()
 	if Engine.is_editor_hint():
 		return
 	add_to_group("barrels")                              # so a bomb finds every barrel (bomb.gd explode)
 	picture.material_override = picture.material_override.duplicate()   # its own phase
 	picture.material_override.set_shader_parameter("phase", randf() * 16.0)
-	# The sensor always a little wider than the barrel, whatever `radius` is, so she's felt before she touches it.
-	($Sensor/Shape.shape as CylinderShape3D).radius = radius + SENSOR_MARGIN
 	$Sensor.area_entered.connect(_on_sensor_entered)
 	$Sensor.area_exited.connect(_on_sensor_exited)
 	set_physics_process(false)                           # nothing to do until she's near
+
+
+## The sensor always a little wider than the barrel, whatever `radius` is, so she's felt before she touches it.
+## (Its own copy of the shape: local to scene in barrel.tscn.) get_node_or_null: the setter can run while the scene
+## is still being loaded, before the nodes exist.
+func _fit_sensor() -> void:
+	var shape_node := get_node_or_null("Sensor/Shape") as CollisionShape3D
+	if shape_node and shape_node.shape:
+		shape_node.shape.radius = radius + SENSOR_MARGIN
 
 
 ## Her SpotSensor came near: start checking her every physics frame.
