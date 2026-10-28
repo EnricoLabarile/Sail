@@ -11,6 +11,7 @@
 [ext_resource type="AudioStream" path="res://Assets/SFX/hull_bump.ogg" id="12_bump"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/equip_bomb.ogg" id="13_equip"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/talk_blip.ogg" id="14_talk"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/gust_whoosh.ogg" id="15_whoosh"]
 
 [node name="Sfx" type="Node"]
 script = ExtResource("1_sfx")
@@ -50,3 +51,7 @@ volume_db = -4.0
 stream = ExtResource("14_talk")
 volume_db = -8.0
 max_polyphony = 3
+
+[node name="GustWhoosh" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("15_whoosh")
+volume_db = -12.0

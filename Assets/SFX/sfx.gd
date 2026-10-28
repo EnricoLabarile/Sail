@@ -12,6 +12,7 @@ extends Node
 ##   hull_bump.ogg    the hull knocking against a shore or a barrel: a dull thud, a woody knock, a little scrape
 ##                    (made by art_src/audio/make_bump.py)
 ##   equip_bomb.ogg   the bomb equipped: two dry metallic clicks, like a gun being loaded (art_src/audio/make_equip.py)
+##   gust_whoosh.ogg  a very mild whoosh: the boat caught a wind gust (art_src/audio/make_whoosh.py)
 ##   talk_blip.ogg    one syllable of a talking NPC, Animal Crossing style: a plain little dot of sound, 240 Hz (art_src/audio/make_talk_blip.py)
 ## (The sea, the wind and the water along the hull were removed by Enrico; bake.html can still make them.)
 ## The players are nodes in sfx.tscn: open it to change a sound's loudness (Volume dB in the Inspector).
@@ -28,6 +29,7 @@ extends Node
 @onready var hull_bump_sound: AudioStreamPlayer = $HullBump
 @onready var equip_bomb_sound: AudioStreamPlayer = $EquipBomb
 @onready var talk_blip_sound: AudioStreamPlayer = $TalkBlip
+@onready var gust_whoosh_sound: AudioStreamPlayer = $GustWhoosh
 
 ## The talk blips' pitch: each one picked at random between these (1 = as made), so a page babbles like a voice.
 @export var talk_pitch_min := 0.96    # Enrico: only a little change of pitch (was 0.7–0.95, before 0.9–1.25)
@@ -119,3 +121,8 @@ func talk_blip() -> void:
 ## (linear_to_db(0) would be minus infinity, so it never goes below 0.0001.)
 func loudness_db(share: float) -> float:
 	return linear_to_db(maxf(share, 0.0001))
+
+
+## The boat caught a wind gust (gust.gd): a very mild whoosh.
+func gust_whoosh() -> void:
+	gust_whoosh_sound.play()

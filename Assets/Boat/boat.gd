@@ -4,7 +4,7 @@ extends Node3D
 ## her rudder; Space works the anchor. Her camera (boat_camera.gd, on the Camera3D node) follows her.
 ## 1 unit = 10 px of the HTML prototype.
 
-@export var top_speed := 7        # m/s with the sail at its best (doubled by Enrico; the prototype had ~4.2)
+@export var top_speed := 3.5      # m/s with the sail at its best (Enrico: halved from 7, the gusts boost it; the prototype had ~4.2)
 @export var accel := 1.0            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
@@ -161,6 +161,9 @@ var roll_velocity := 0.0
 var pitch := 0.0            # the bow's angle now (radians, + = up), and how quickly it's changing
 var pitch_velocity := 0.0
 var surfing_left := 0.0     # seconds of surf left (0 = not surfing)
+var boost_left := 0.0       # seconds left of a wind gust's boost (0 = none; gust.gd calls boost())
+var boost_multiplier := 1.0 # her top speed × this while the boost lasts
+var boost_accel := 1.0      # how quickly she picks up speed while the boost lasts
 var berth: Node3D = null     # the pier's berth she's tied up at (null = not tied up)
 var calm_left := 0.0         # seconds left of the calm after casting off (no wind, no current)
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
@@ -283,6 +286,14 @@ func surf_wave() -> void:
 	surfing_left = surf_time
 
 
+## She sailed through a wind gust (Assets/Landscape/gust/gust.gd): for `time` seconds her top speed is
+## × `multiplier`, and she gathers way at `rate` (quicker than usual), whichever way she's heading.
+func boost(multiplier: float, time: float, rate: float) -> void:
+	boost_multiplier = multiplier
+	boost_left = time
+	boost_accel = rate
+
+
 ## A big wave reached her head-on or broadside (big_wave.gd): half a heart (the zone's `damage`), a shove the
 ## wave's way, her speed cut, her bow slewed round to one side or the other. `strength` (0..1) is how big the
 ## wave is now, `badly` (0..1) how badly she took it (head-on and broadside are the worst).
@@ -395,6 +406,7 @@ func respawn() -> void:
 	sinking = false
 	berth = null
 	surfing_left = 0.0
+	boost_left = 0.0
 	global_position = home_position
 	rotation.y = home_turn
 	health = max_hearts
@@ -561,6 +573,12 @@ func _physics_process(dt: float) -> void:
 	# speed eases toward what the sail gives; the anchor takes her way off quickly
 	var target := top_speed * drive
 	var rate := anchor_bite if anchored else accel
+	# A wind gust's boost (gust.gd): her top speed × boost_multiplier while it lasts, picked up at boost_accel.
+	if boost_left > 0.0:
+		boost_left = maxf(0.0, boost_left - dt)
+		if not anchored:
+			target *= boost_multiplier
+			rate = boost_accel
 	# Surfing a big wave: a push on top, fading over its last 0.8 s; she picks it up quickly (rate 3).
 	if surfing_left > 0.0:
 		surfing_left = maxf(0.0, surfing_left - dt)

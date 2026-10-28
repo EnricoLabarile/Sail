@@ -36,6 +36,7 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
 [ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="91_pickup"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
+[ext_resource type="PackedScene" path="res://Assets/Landscape/gust/gust.tscn" id="93_gust"]
 
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
@@ -227,6 +228,11 @@ count = 2
 [node name="AeolusJarPickup" parent="Gameplay/Pickups" instance=ExtResource("91_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -28)
 item = ExtResource("92_jar_item")
+
+[node name="Gusts" type="Node3D" parent="Gameplay"]
+
+[node name="Gust" parent="Gameplay/Gusts" instance=ExtResource("93_gust")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -24)
 
 [node name="WindZones" type="Node3D" parent="Gameplay"]
 
