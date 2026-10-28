@@ -87,7 +87,7 @@ extends Node3D
 # Her health (the prototype's hull), counted in hearts like Zelda's; the hearts top left (Assets/UI/health)
 # show it. A bump against anything solid (a shore, an island) takes hit_damage off.
 @export var max_hearts := 3         # how many hearts she has when the hull is whole (a heart container adds one)
-@export var hit_damage := 0.5       # hearts lost in a bump (0.5 = half a heart, as in the prototype)
+@export var hit_damage := 0.0       # hearts lost in a bump (Enrico: 0, no damage; the shake stays. The prototype had 0.5)
 
 ## Sent whenever her health or her number of hearts changes (the hearts top left listen, to draw again).
 ## `hurt` is true when she has just lost some (the hearts flash).
@@ -857,7 +857,7 @@ func push_away(from_point: Vector3, push: float) -> void:
 
 ## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).
 ## As in the HTML prototype: a push back out, much less speed, the bow swung off a little, and the hull
-## takes hit_damage (half a heart).
+## takes hit_damage (0 now, Enrico: the shake stays, no heart is lost).
 func bump(out: Vector3, into: float) -> void:
 	speed *= bounce_slowdown                             # she loses most of her way
 	if bump_wait > 0.0 or into < bounce_min_speed:
