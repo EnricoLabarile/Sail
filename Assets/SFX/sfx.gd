@@ -30,8 +30,8 @@ extends Node
 @onready var talk_blip_sound: AudioStreamPlayer = $TalkBlip
 
 ## The talk blips' pitch: each one picked at random between these (1 = as made), so a page babbles like a voice.
-@export var talk_pitch_min := 0.9
-@export var talk_pitch_max := 1.25
+@export var talk_pitch_min := 0.7     # Enrico: lower voice (was 0.9)
+@export var talk_pitch_max := 0.95    # (was 1.25)
 
 ## Seconds the imp's death sound waits before it plays. An imp is usually killed by a bomb, whose blast starts in
 ## the same instant and would cover it (Enrico couldn't hear it): a moment later, it's heard after the bang.

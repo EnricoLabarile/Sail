@@ -525,7 +525,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (`@tool`)): an item floating on the water, the old shop item's look (`Float`, which bobs: a paper `Disc` r 1.8 with an
   ink `Rim` r 2, the icon on a 2.6 m plane made in code with no owner, so it shows in the editor and is never saved),
   `Sensor` (Area3D, mask layer 4, a cylinder of `reach`, local to scene). Inspector: `item` (ItemData), `count` 1,
-  `price` 0 (coins; 0 = free), `reach` 3.5 (Enrico: easier to pick up; was 2.4), `auto_take` (on), `bob_height` / `bob_speed`, `take_shake_strength` /
+  `price` 0 (coins; 0 = free), `reach` 5 (Enrico: easier to pick up; was 2.4, then 3.5), `auto_take` (on), `bob_height` / `bob_speed`, `take_shake_strength` /
   `take_shake_time`. Her SpotSensor entering → signal `touched(pickup, boat)`; with `auto_take`, `why_not()` ("" /
   "hold_full" / "no_money") "" → `take(boat)`: `Inventory.add(id, count)`, coins out if priced, `Sfx.pickup()`, the shake,
   signal `taken`, freed; no room: it stays. (Its sound is the boat's "came aboard", see Sound.) Placed by hand anywhere, made by the floating shop, and **dropped by a killed
@@ -589,7 +589,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   at the top, full width less 12 px, y 92–222) + `talk_box.gd`; in Overworld as `TalkBox`, group `talk_box`): a paper
   panel, 2 px ink border, 3 px ink shadow (as the hearts'); on the left `Portrait` (TextureRect 86 px, a double ink
   frame), on the right `Name` (14) and `Text` (13, autowrap), ink. Each page typed out at `letters_per_second` 30
-  (`visible_characters`). **Its voice** (Enrico, like Animal Crossing): every `letters_per_blip` 2 spoken letters (letters and digits; `_is_spoken`, the first of a page at once) `Sfx.talk_blip()`: `talk_blip.ogg` (player `TalkBlip` −8 dB, polyphony 3; a 70 ms voiced blip, 330 Hz gliding down through two vowel formants, made by `art_src/audio/make_talk_blip.py`) at a random pitch `talk_pitch_min/max` 0.9–1.25 (sfx.gd exports). **A quick tap on the wheel's hub** (`helm.gd` signal `hub_tapped`: let go before `hub_hold`;
+  (`visible_characters`). **Its voice** (Enrico, like Animal Crossing): every `letters_per_blip` 2 spoken letters (letters and digits; `_is_spoken`, the first of a page at once) `Sfx.talk_blip()`: `talk_blip.ogg` (player `TalkBlip` −8 dB, polyphony 3; a 70 ms voiced blip, 330 Hz gliding down through two vowel formants, made by `art_src/audio/make_talk_blip.py`) at a random pitch `talk_pitch_min/max` 0.7–0.95 (Enrico: lower; was 0.9–1.25) (sfx.gd exports). **A quick tap on the wheel's hub** (`helm.gd` signal `hub_tapped`: let go before `hub_hold`;
   helm in group `helm`): while typing → the whole page; then the next page; after the last → closes and calls the
   NPC back. While open `boat.talking` is true: `toggle_anchor` does nothing (hub hold, Space) and the hub's ring
   doesn't fill. **While open, every node in the group `hidden_while_talking` is hidden** (Enrico: the
