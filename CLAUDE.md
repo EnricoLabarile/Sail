@@ -263,7 +263,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   under 0.05, eased over 0.08 s, pitch 0.8..1 for the prototype's filter 320..520 Hz) and `wheel_thunk.ogg` (the thud at
   full lock, `thunk(WHEEL_VOL)`; `Sfx.wheel_stop(strength)` when the wheel reaches full lock turning faster than 0.3
   rad/s, strength min(1, 0.5 + spin / 10)). The spokes' knocks stay off, as in the prototype (`WHEEL_KNOCKS` false).
-  The players are nodes in `sfx.tscn` (their Volume dB = the level); nothing plays while the game is paused.
+  The players are nodes in `sfx.tscn` (their Volume dB = the level); nothing plays while the game is paused. **The wheel's sounds quieter** (Enrico): `WheelRub` and `WheelThunk` at −14 dB in sfx.tscn. **In the background** (Enrico: the browser in the background still played the game): `sfx.gd` `_notification` on `NOTIFICATION_APPLICATION_FOCUS_OUT` / `_PAUSED` → `go_to_background()`: the Master bus muted and the game paused (remembering if it already was, `paused_before_background`); on `_FOCUS_IN` / `_RESUMED` → `come_back()` puts both back. On the PC it also happens when another window is clicked.
   **Enrico's sound pass** (Oct 2026): **"came aboard"** (`pickup.ogg`, player `Pickup`, `Sfx.came_aboard()`): played
   by the BOAT for anything going into the hold (Enrico: an item or an imp's body, it's all something brought aboard):
   `Inventory.add` sends `came_aboard(item, count)` (not for the start items, added before the boat listens),

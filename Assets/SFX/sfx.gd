@@ -126,3 +126,39 @@ func loudness_db(share: float) -> float:
 ## The boat caught a wind gust (gust.gd): a very mild whoosh.
 func gust_whoosh() -> void:
 	gust_whoosh_sound.play()
+
+
+# ---------- In the background: silent and paused ----------
+# Enrico: with the browser in the background (another tab, another app, the phone's screen off) the game went on
+# playing its sounds. Godot tells every node when the game loses or gets back the focus (a notification, like
+# Unreal's "application will deactivate" delegates): then the sound is muted (the Master bus) and the game paused,
+# and both come back as they were when it returns. (On the PC this also happens when you click another window.)
+
+var paused_before_background := false   # was the game already paused (start screen, game over) when it went away?
+var in_background := false
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
+		go_to_background()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN or what == NOTIFICATION_APPLICATION_RESUMED:
+		come_back()
+
+
+## The game went into the background: mute every sound and pause the game.
+func go_to_background() -> void:
+	if in_background:
+		return
+	in_background = true
+	paused_before_background = get_tree().paused
+	AudioServer.set_bus_mute(0, true)        # bus 0 = Master: everything goes through it
+	get_tree().paused = true
+
+
+## The game is back in front: sound on, and the game goes on (unless it was already paused before).
+func come_back() -> void:
+	if not in_background:
+		return
+	in_background = false
+	AudioServer.set_bus_mute(0, false)
+	get_tree().paused = paused_before_background
