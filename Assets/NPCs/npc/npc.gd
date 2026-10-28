@@ -25,7 +25,7 @@ extends Node3D
 ## What it says: each entry is one page, shown one after the other (a tap on the hub for the next).
 @export_multiline var lines: Array[String] = ["Hello, sailor."]
 ## How close the boat must come, in metres, for the bubble to show and for the anchor to start the talk.
-@export var talk_radius := 8.0:
+@export var talk_radius := 15:
 	set(value):
 		talk_radius = value
 		_fit_radius()

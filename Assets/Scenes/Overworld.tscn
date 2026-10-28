@@ -30,14 +30,13 @@
 [ext_resource type="Script" uid="uid://dkpkc26vqp16v" path="res://Assets/Landscape/shore/shore_baker.gd" id="34_shore_baker"]
 [ext_resource type="Texture2D" uid="uid://cei37ab08l387" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker.png" id="35_print1"]
 [ext_resource type="Texture2D" uid="uid://cv7nfuhqh5jj8" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker2.png" id="36_print2"]
-[ext_resource type="PackedScene" path="res://Assets/Items/barrel/barrel.tscn" id="37_barrel"]
+[ext_resource type="PackedScene" uid="uid://d0sdk8o8wvfxe" path="res://Assets/Items/barrel/barrel.tscn" id="37_barrel"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/bomb.tres" id="38_bomb_item"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/wind_zone/wind_zone.tscn" id="39_wind_zone"]
 [ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
 [ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="91_pickup"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
-[ext_resource type="PackedScene" path="res://Assets/Landscape/gust/gust.tscn" id="93_gust"]
-[ext_resource type="Script" path="res://Assets/Landscape/gust/gust_scatter.gd" id="94_gust_scatter"]
+[ext_resource type="Script" uid="uid://csnh1fxrth4po" path="res://Assets/Landscape/gust/gust_scatter.gd" id="94_gust_scatter"]
 
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
@@ -224,28 +223,27 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.385603, 0, -35.2494)
 contents = ExtResource("38_bomb_item")
 count = 2
 
-[node name="Pickups" type="Node3D" parent="Gameplay"]
+[node name="Pickups" type="Node3D" parent="Gameplay" unique_id=1786065463]
 
-[node name="AeolusJarPickup" parent="Gameplay/Pickups" instance=ExtResource("91_pickup")]
+[node name="AeolusJarPickup" parent="Gameplay/Pickups" unique_id=297391498 instance=ExtResource("91_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -28)
 item = ExtResource("92_jar_item")
 
-[node name="Gusts" type="Node3D" parent="Gameplay"]
+[node name="Gusts" type="Node3D" parent="Gameplay" unique_id=2139431003]
 
-[node name="Gust" parent="Gameplay/Gusts" instance=ExtResource("93_gust")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -24)
-
-[node name="GustScatter" type="Node3D" parent="Gameplay/Gusts"]
+[node name="GustScatter" type="Node3D" parent="Gameplay/Gusts" unique_id=218168352]
 script = ExtResource("94_gust_scatter")
+spacing = 30.0
+min_coast_distance = 16.0
 
-[node name="WindZones" type="Node3D" parent="Gameplay"]
+[node name="WindZones" type="Node3D" parent="Gameplay" unique_id=1357286071]
 
-[node name="WindZoneEast" parent="Gameplay/WindZones" instance=ExtResource("39_wind_zone")]
+[node name="WindZoneEast" parent="Gameplay/WindZones" unique_id=1096036563 instance=ExtResource("39_wind_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -45)
 blow_toward_deg = 90.0
 size = Vector2(40, 6)
 
-[node name="WindZoneRandom" parent="Gameplay/WindZones" instance=ExtResource("39_wind_zone")]
+[node name="WindZoneRandom" parent="Gameplay/WindZones" unique_id=1098995573 instance=ExtResource("39_wind_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -90)
 mode = 1
 size = Vector2(40, 6)
@@ -271,6 +269,6 @@ script = ExtResource("21_game_view")
 
 [node name="BombButton" parent="UI and PostProcess" unique_id=1236485803 instance=ExtResource("24_bomb_button")]
 
-[node name="JarButton" parent="UI and PostProcess" instance=ExtResource("90_jar_button")]
+[node name="JarButton" parent="UI and PostProcess" unique_id=1744983952 instance=ExtResource("90_jar_button")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("25_health")]

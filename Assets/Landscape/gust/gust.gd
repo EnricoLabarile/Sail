@@ -16,11 +16,11 @@ extends Node3D
 		radius = value
 		_fit_sensor()
 		_fit_picture()
-@export var speed_multiplier := 2.0     # her top speed × this while the boost lasts (2 = double)
-@export var boost_time := 1.0           # seconds the boost lasts
+@export var speed_multiplier := 2     # her top speed × this while the boost lasts (2 = double)
+@export var boost_time := 1           # seconds the boost lasts
 @export var boost_accel := 4.0          # how quickly she picks up the extra speed (her usual is boat.gd's accel, 1)
 @export var shake_strength := 0.2       # the little screen shake when she catches it (metres)…
-@export var shake_time := 0.15          # …and how long it lasts (seconds)
+@export var shake_time := .15          # …and how long it lasts (seconds)
 
 @onready var picture: MeshInstance3D = $Picture
 

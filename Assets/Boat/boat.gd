@@ -4,8 +4,8 @@ extends Node3D
 ## her rudder; Space works the anchor. Her camera (boat_camera.gd, on the Camera3D node) follows her.
 ## 1 unit = 10 px of the HTML prototype.
 
-@export var top_speed := 3.5      # m/s with the sail at its best (Enrico: halved from 7, the gusts boost it; the prototype had ~4.2)
-@export var accel := 1.0            # how quickly she gathers way (higher = quicker)
+@export var top_speed := 7.0      # m/s with the sail at its best (Enrico: halved from 7, the gusts boost it; the prototype had ~4.2)
+@export var accel := 3.0            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
@@ -64,7 +64,7 @@ extends Node3D
 @export var shallows_width := 3.0   # metres from the land that count as shallows
 @export var shallows_sail := 0.5    # what the sail gives there, as a share of the usual (0.3 = 30%)
 # Near an NPC (inside its talk radius, Enrico): she slows down, so it's easy to stop by and talk.
-@export var npc_speed_limit := 0.2  # her top speed there, as a share of top_speed (0.2 = 20%)
+@export var npc_speed_limit := 1  # her top speed there, as a share of top_speed (0.2 = 20%)
 # The bow wave (boat.tscn: BowWaveRight / BowWaveLeft, bow_wave.png, a 4 x 4 flipbook).
 @export var bow_wave_fps := 12.0        # frames a second it plays at top speed (slower when slower)
 @export var bow_wave_min_size := 0.4    # its size at a crawl, as a share of full size (full at top speed)
@@ -87,7 +87,7 @@ extends Node3D
 # Her health (the prototype's hull), counted in hearts like Zelda's; the hearts top left (Assets/UI/health)
 # show it. A bump against anything solid (a shore, an island) takes hit_damage off.
 @export var max_hearts := 3         # how many hearts she has when the hull is whole (a heart container adds one)
-@export var hit_damage := 0.0       # hearts lost in a bump (Enrico: 0, no damage; the shake stays. The prototype had 0.5)
+@export var hit_damage := 0.0       # hearts lost in a bump (0.5 = half a heart, as in the prototype)
 
 ## Sent whenever her health or her number of hearts changes (the hearts top left listen, to draw again).
 ## `hurt` is true when she has just lost some (the hearts flash).
@@ -129,7 +129,7 @@ var npcs_near: Array[Node3D] = []   # the NPCs whose radius she's in now (they t
 var npcs_talked_to: Array[Node3D] = []   # of those, the ones she has already talked to since she came in (npc.gd tells her)
 
 # The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
-const POLAR := [[10, 0.4], [20, 1.0], [45.0, 1.0 ], [90.0, 1.0], [180.0, 1.0]]
+const POLAR := [[10, 0.0], [20, 0.0], [45.0, 1.0 ], [90.0, 1.0], [180.0, 1.0]]
 
 var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0
@@ -857,7 +857,7 @@ func push_away(from_point: Vector3, push: float) -> void:
 
 ## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).
 ## As in the HTML prototype: a push back out, much less speed, the bow swung off a little, and the hull
-## takes hit_damage (0 now, Enrico: the shake stays, no heart is lost).
+## takes hit_damage (half a heart).
 func bump(out: Vector3, into: float) -> void:
 	speed *= bounce_slowdown                             # she loses most of her way
 	if bump_wait > 0.0 or into < bounce_min_speed:

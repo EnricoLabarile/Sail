@@ -25,6 +25,7 @@
 [ext_resource type="Texture2D" uid="uid://brjrx6b5udnhy" path="res://Assets/NPCs/npc/NPC_Portrait_01.png" id="26_eel5a"]
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="26_jqmww"]
 [ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="27_35spf"]
+[ext_resource type="Script" uid="uid://csnh1fxrth4po" path="res://Assets/Landscape/gust/gust_scatter.gd" id="28_eel5a"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="28_f8m4f"]
 [ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
 
@@ -102,6 +103,54 @@ contents = ExtResource("24_cq4ad")
 transform = Transform3D(0.7871656, 0, 0.6167418, 0, 1, 0, -0.6167418, 0, 0.7871656, -13.490868, 0, 101.24263)
 contents = ExtResource("24_cq4ad")
 
+[node name="Barrel15" parent="Gameplay" unique_id=1507824021 instance=ExtResource("9_qh02w")]
+transform = Transform3D(-0.64216167, 0, 0.7665692, 0, 1, 0, -0.7665692, 0, -0.64216167, 61.434364, -3.8146973e-06, -14.8378315)
+contents = ExtResource("24_cq4ad")
+
+[node name="Barrel16" parent="Gameplay" unique_id=1529400178 instance=ExtResource("9_qh02w")]
+transform = Transform3D(-0.8911003, 0, -0.45380646, 0, 1, 0, 0.45380646, 0, -0.8911003, 57.144283, -3.8146973e-06, -9.536039)
+contents = ExtResource("24_cq4ad")
+
+[node name="Barrel17" parent="Gameplay" unique_id=1103490286 instance=ExtResource("9_qh02w")]
+transform = Transform3D(0.30726758, 0, 0.9516231, 0, 1, 0, -0.9516231, 0, 0.30726758, 56.422127, -3.8146973e-06, -17.00766)
+contents = ExtResource("24_cq4ad")
+
+[node name="Barrel18" parent="Gameplay" unique_id=1925728972 instance=ExtResource("9_qh02w")]
+transform = Transform3D(-0.4002961, 0, 0.9163859, 0, 1, 0, -0.9163859, 0, -0.4002961, 51.47459, -3.8146973e-06, -13.990394)
+contents = ExtResource("24_cq4ad")
+
+[node name="Barrel24" parent="Gameplay" unique_id=237907378 instance=ExtResource("9_qh02w")]
+transform = Transform3D(-0.9218058, 0, -0.38765216, 0, 1, 0, 0.38765216, 0, -0.9218058, 40.96899, -3.8146973e-06, -0.3440752)
+contents = ExtResource("24_cq4ad")
+
+[node name="Barrel25" parent="Gameplay" unique_id=200669531 instance=ExtResource("9_qh02w")]
+transform = Transform3D(0.11802581, 0, -0.9930106, 0, 1, 0, 0.9930106, 0, 0.11802581, 2.864071, -3.8146973e-06, -27.034698)
+contents = ExtResource("24_cq4ad")
+
+[node name="Barrel26" parent="Gameplay" unique_id=1642267213 instance=ExtResource("9_qh02w")]
+transform = Transform3D(0.11802581, 0, -0.9930106, 0, 1, 0, 0.9930106, 0, 0.11802581, 1.2620468, 3.8146973e-06, 11.654808)
+contents = ExtResource("24_cq4ad")
+
+[node name="Barrel19" parent="Gameplay" unique_id=1147238845 instance=ExtResource("9_qh02w")]
+transform = Transform3D(-0.9528027, 0, 0.30359033, 0, 1, 0, -0.30359033, 0, -0.9528027, 51.383812, -3.8146973e-06, -20.55654)
+contents = ExtResource("24_cq4ad")
+
+[node name="Barrel21" parent="Gameplay" unique_id=1991961085 instance=ExtResource("9_qh02w")]
+transform = Transform3D(-0.63504964, 0, -0.7724714, 0, 1, 0, 0.7724714, 0, -0.63504964, 49.5022, -3.8146973e-06, -26.776852)
+contents = ExtResource("24_cq4ad")
+
+[node name="Barrel22" parent="Gameplay" unique_id=1677384962 instance=ExtResource("9_qh02w")]
+transform = Transform3D(0.9348941, 0, -0.35492715, 0, 1, 0, 0.35492715, 0, 0.9348941, 52.578358, -3.8146973e-06, -32.153225)
+contents = ExtResource("24_cq4ad")
+
+[node name="Barrel23" parent="Gameplay" unique_id=701991572 instance=ExtResource("9_qh02w")]
+transform = Transform3D(-0.28615192, 0, -0.9581844, 0, 1, 0, 0.9581844, 0, -0.28615192, 47.209003, -3.8146973e-06, -35.28093)
+contents = ExtResource("24_cq4ad")
+
+[node name="Barrel20" parent="Gameplay" unique_id=2142123553 instance=ExtResource("9_qh02w")]
+transform = Transform3D(0.52423596, 0, -0.8515731, 0, 1, 0, 0.8515731, 0, 0.52423596, 55.28863, -3.8146973e-06, -25.145777)
+contents = ExtResource("24_cq4ad")
+
 [node name="Barrel13" parent="Gameplay" unique_id=484789509 instance=ExtResource("9_qh02w")]
 transform = Transform3D(-0.76593745, 0, 0.642915, 0, 1, 0, -0.642915, 0, -0.76593745, -9.943339, 0, 95.61912)
 contents = ExtResource("24_cq4ad")
@@ -148,10 +197,13 @@ transform = Transform3D(0.7404473, 0, -0.67211443, 0, 1, 0, 0.67211443, 0, 0.740
 [node name="sm_island_01_a6" parent="Gameplay/Islands" unique_id=718306156 instance=ExtResource("13_ug3rh")]
 transform = Transform3D(0.40877545, 0, -0.53016984, 0, 0.34781027, 0, 0.37105122, 0, 0.5840714, 31.229252, 3.8146973e-06, 141.80948)
 
+[node name="sm_island_01_a7" parent="Gameplay/Islands" unique_id=124415752 instance=ExtResource("13_ug3rh")]
+transform = Transform3D(0.34724292, 0, -0.230051, 0, 0.34781027, 0, 0.31519726, 0, 0.2534399, 49.269104, -11.344791, 180.48267)
+
 [node name="sm_island_01_a9" parent="Gameplay/Islands" unique_id=121440182 instance=ExtResource("13_ug3rh")]
 transform = Transform3D(0.40877545, 0, -0.53016984, 0, 0.34781027, 0, 0.37105122, 0, 0.5840714, 2.466179, 3.8146973e-06, 173.49686)
 
-[node name="sm_island_01_a10" parent="Gameplay/Islands" unique_id=124415752 instance=ExtResource("13_ug3rh")]
+[node name="sm_island_01_a10" parent="Gameplay/Islands" unique_id=1883217901 instance=ExtResource("13_ug3rh")]
 transform = Transform3D(0.40877545, 0, -0.53016984, 0, 0.34781027, 0, 0.37105122, 0, 0.5840714, -30.918102, 3.8146973e-06, 155.11946)
 
 [node name="sm_island_01_a11" parent="Gameplay/Islands" unique_id=1549658568 instance=ExtResource("13_ug3rh")]
@@ -316,7 +368,7 @@ script = ExtResource("21_uvb2l")
 
 [node name="BombButton" parent="UI and PostProcess" unique_id=1236485803 instance=ExtResource("27_35spf")]
 
-[node name="JarButton" parent="UI and PostProcess" instance=ExtResource("90_jar_button")]
+[node name="JarButton" parent="UI and PostProcess" unique_id=598415816 instance=ExtResource("90_jar_button")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("28_f8m4f")]
 
@@ -324,6 +376,7 @@ script = ExtResource("21_uvb2l")
 transform = Transform3D(0.6681644, 0, 0.7440137, 0, 1, 0, -0.7440137, 0, 0.6681644, 49.650894, 9.536743e-06, 180.62125)
 portrait = ExtResource("26_eel5a")
 lines = Array[String](["Are you here to get rid of the monsters?", "I would do it myself, but as you can see I have no boat.", "Please sail north west. I left something for you"])
+talk_radius = 8.0
 
 [node name="MeshInstance3D4" type="MeshInstance3D" parent="." unique_id=1212285365]
 transform = Transform3D(0.45271015, 0, 9.985553, 0, 0.9999988, 0, -9.308323, 0, 0.4856472, -84.449356, 1.5258789e-05, 135.0614)
@@ -334,6 +387,7 @@ mesh = SubResource("BoxMesh_eel5a")
 transform = Transform3D(0.6681644, 0, 0.7440137, 0, 1, 0, -0.7440137, 0, 0.6681644, -84.78551, 5.722046e-06, 134.50787)
 portrait = ExtResource("26_eel5a")
 lines = Array[String](["Oh Hi! Are you here to help? That fills me with joy.", "Have you already cleared up the barricade east of here? You might have an easier time there, not as many monsters.", "Just wanted to warn you, you do you!"])
+talk_radius = 8.0
 
 [node name="MeshInstance3D5" type="MeshInstance3D" parent="." unique_id=753877513]
 transform = Transform3D(6.226841, 0, 7.4381695, 0, 0.9999988, 0, -6.9337063, 0, 6.6798763, 49.6412, 7.6293945e-06, 180.50069)
@@ -344,3 +398,8 @@ mesh = SubResource("BoxMesh_eel5a")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.78404, 1.0472765, 160.06471)
 item = ExtResource("24_cq4ad")
 count = 99
+
+[node name="Gust_Scatter" type="Node3D" parent="." unique_id=370826456]
+script = ExtResource("28_eel5a")
+spacing = 30.0
+min_coast_distance = 8.0
