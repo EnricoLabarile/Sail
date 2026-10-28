@@ -1,7 +1,7 @@
 @tool
 extends Node3D
 ## A BARREL: a big wooden barrel floating on the water, with something inside (like the pots in Zelda).
-## Only a bomb can break it: when one goes off within its reach (bomb.gd calls blast_at on every barrel), it breaks
+## Only a bomb can break it: when one goes off with an arm of its blast on it (bomb.gd calls blast_at on every barrel), it breaks
 ## and leaves what was inside floating where it was, as an ordinary pickup (Assets/Items/pickup) for her to sail over.
 ## YOU decide what's inside: `contents` and `count` in the Inspector (empty `contents` = nothing inside).
 ##
@@ -94,13 +94,11 @@ func keep_boat_out() -> void:
 	boat.global_position = place
 
 
-## A bomb went off at `point`, reaching `reach` metres: if the barrel is in reach, it breaks.
-func blast_at(point: Vector3, reach: float) -> void:
+## A bomb went off: if one of its arms touches the barrel (bomb.gd in_blast, its radius added), it breaks.
+func blast_at(bomb: Node3D) -> void:
 	if broken:
 		return
-	var off := global_position - point
-	off.y = 0.0
-	if off.length() <= reach + radius:                   # the blast touches any part of it
+	if bomb.in_blast(global_position, radius):           # an arm of the blast touches any part of it (bomb.gd)
 		break_open()
 
 

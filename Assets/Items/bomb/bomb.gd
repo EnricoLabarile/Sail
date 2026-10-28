@@ -1,13 +1,21 @@
 extends Node3D
 ## ONE BOMB, dropped off the boat's bow (the bomb button, Assets/UI/bomb_button). It floats where it fell, carried by the current (drift_with_current),
 ## leaving a trail of white dots on the water behind it (the Trail particles, Enrico: so the player sees which way it drifts), its
-## fuse burning (the picture blinks, quicker and quicker, and swells and shrinks once a second), and after `fuse_time` seconds it blows up: everything
-## within `blast_radius` loses `damage` hearts, and the screen shakes hard. The sea imps (sea_imp_zone.gd hit_imp_at, only while they're out
-## of the water) and the boat too, if she's still that close: drop it ahead of an enemy's path, then get away.
-## (In Unreal: a small actor with a timer that does a radial damage, then destroys itself.)
+## fuse burning (the picture blinks, quicker and quicker, and swells and shrinks once a second), and after `fuse_time` seconds it blows up.
+## The blast is NOT a circle (Enrico, like Bomberman): it runs out along straight lines, the ARMS, `arm_length` metres long and
+## `arm_width` wide: a CROSS (4 arms: north, east, south, west) or a DOUBLE_CROSS (8: the diagonals too), set by `pattern`
+## (a basic bomb and an advanced one). Whatever is on an arm (or right on the bomb) loses `damage` hearts: the sea imps
+## (sea_imp_zone.gd hit_imp_at, only while they're out of the water), the barrels, and the boat too; between two arms she's safe,
+## even close by. While the fuse burns the arms show faintly on the water (where it will hit); at the blast they shoot out white.
+## The screen shakes hard wherever she is.
+## (In Unreal: a small actor with a timer that does a few line traces for damage, then destroys itself.)
 
 @export var fuse_time := 2.0         # seconds from dropping it to the blast
-@export var blast_radius := 8      # metres the blast reaches
+enum Pattern { CROSS, DOUBLE_CROSS }   # 4 arms, or 8 (the diagonals too)
+@export var pattern := Pattern.CROSS   # CROSS = the basic bomb, DOUBLE_CROSS = the advanced one
+@export var arm_length := 8.0        # metres each arm of the blast reaches, from the bomb's middle
+@export var arm_width := 2.0         # metres wide each arm is (what's within half of it from the arm's line is hit)
+@export var warning_opacity := 0.25  # how strongly the arms show on the water while the fuse burns (0 = not at all)
 @export var damage := 1.0            # hearts it takes off whatever is in reach
 @export var blast_time := 0.4        # seconds the blast's flash lasts (it grows and fades)
 @export var shake_strength := 1.5    # metres the view jumps about when it goes off (being hurt shakes 0.5)
@@ -18,12 +26,13 @@ extends Node3D
 
 
 @onready var picture: MeshInstance3D = $Picture   # the bomb, facing the camera (a 2-frame sheet: dark, fuse lit)
-@onready var blast: MeshInstance3D = $Blast       # the flash on the water when it goes off
+@onready var blast: MeshInstance3D = $Blast       # the flash on the water right where it goes off (the arms' middle)
 @onready var trail: CPUParticles3D = $Trail       # white dots it leaves on the water as it drifts (Enrico: shows which way it goes)
 
 var time := 0.0          # seconds since it was dropped
 var exploded := false
 var picture_scale := Vector3.ONE   # the Picture's own scale, as set in bomb.tscn (the pulse goes round it)
+var arms: Array[MeshInstance3D] = []   # the white strips on the water, one per arm (made in make_arms)
 
 
 func _ready() -> void:
@@ -31,6 +40,7 @@ func _ready() -> void:
 	blast.material_override = blast.material_override.duplicate()       # its own fade
 	blast.visible = false
 	picture_scale = picture.scale    # whatever size it was given in the scene is its middle size
+	make_arms()
 
 
 func _process(dt: float) -> void:
@@ -45,13 +55,81 @@ func _process(dt: float) -> void:
 		if time >= fuse_time:
 			explode()
 		return
-	# The blast: a disc on the water growing to blast_radius and fading out, then the bomb is gone.
+	# The blast: the arms shoot out to their full length in the first third of blast_time, the whole thing fading
+	# out meanwhile; a little disc in the middle. Then the bomb is gone.
 	var share := minf(1.0, (time - fuse_time) / blast_time)
-	blast.scale = Vector3.ONE * blast_radius * (0.3 + 0.7 * share)
+	var reach := arm_length * minf(1.0, share * 3.0)
+	set_arms(reach, 1.0 - share)
+	blast.scale = Vector3.ONE * arm_width * (0.6 + 0.4 * share)
 	var material: StandardMaterial3D = blast.material_override
 	material.albedo_color.a = 1.0 - share
 	if share >= 1.0:
 		queue_free()
+
+
+## The directions the arms point, flat on the water: 4 (north, east, south, west) or 8 (the diagonals too).
+## Each is a one-metre-long arrow; a step of a quarter turn (4 arms) or an eighth (8 arms) between them.
+func arm_directions() -> Array[Vector3]:
+	var count := 4
+	if pattern == Pattern.DOUBLE_CROSS:
+		count = 8
+	var directions: Array[Vector3] = []
+	for i in count:
+		var angle := TAU * i / count
+		directions.append(Vector3(sin(angle), 0.0, -cos(angle)))   # angle 0 = north (−Z), then clockwise seen from above
+	return directions
+
+
+## Is this point in the blast? It is if it's on one of the arms (no further along it than arm_length, and no further
+## to its side than half arm_width), or right on the bomb. `extra` makes everything that much bigger: a barrel is hit
+## if any part of it is touched, so it passes its own radius.
+func in_blast(point: Vector3, extra := 0.0) -> bool:
+	var off := point - global_position
+	off.y = 0.0
+	var half_width := arm_width * 0.5 + extra
+	if off.length() <= half_width:
+		return true                                   # right where the bomb was
+	for direction in arm_directions():
+		var along := off.dot(direction)               # how far along this arm the point is
+		if along < 0.0 or along > arm_length + extra:
+			continue                                  # behind the arm, or past its end
+		var aside := (off - direction * along).length()   # how far from the arm's line, sideways
+		if aside <= half_width:
+			return true
+	return false
+
+
+## The arms' pictures: a flat white strip on the water per arm (made here in code, so changing `pattern` or the
+## sizes in the Inspector is all it takes). Each strip is one metre long and starts at the bomb; set_arms stretches it.
+func make_arms() -> void:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.render_priority = 2
+	material.albedo_color = Color(0.92, 0.9, 0.86, warning_opacity)   # the blast's paper white
+	var mesh := PlaneMesh.new()
+	mesh.size = Vector2(arm_width, 1.0)
+	mesh.center_offset = Vector3(0.0, 0.0, -0.5)      # from the bomb (z 0) out to z −1: forward, so its far end is the arm's tip
+	for direction in arm_directions():
+		var arm := MeshInstance3D.new()
+		arm.mesh = mesh
+		arm.material_override = material              # one material for all the arms: they fade together
+		arm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		arm.position.y = 0.08                         # just above the water
+		arm.rotation.y = atan2(-direction.x, -direction.z)   # turn its forward (−Z) to the arm's direction
+		add_child(arm)
+		arms.append(arm)
+	set_arms(arm_length, warning_opacity)
+
+
+## Stretch every arm to `length` metres and set how see-through they are (1 = solid white).
+func set_arms(length: float, opacity: float) -> void:
+	for arm in arms:
+		arm.scale = Vector3(1.0, 1.0, maxf(0.01, length))
+		arm.visible = opacity > 0.0
+	if not arms.is_empty():
+		var material: StandardMaterial3D = arms[0].material_override
+		material.albedo_color.a = opacity
 
 
 ## While the fuse burns it swells and shrinks: one full cycle every pulse_time seconds. sin() goes smoothly from
@@ -71,25 +149,26 @@ func drift_with_current(dt: float) -> void:
 		global_position = next_place
 
 
-## Boom: the bomb's picture goes, the flash shows, and everything in reach is hit.
+## Boom: the bomb's picture goes, the arms flash out, and everything on them is hit (in_blast).
 func explode() -> void:
 	exploded = true
 	Sfx.bomb_blast()
 	picture.visible = false
 	trail.emitting = false            # no more dots once it's gone off
 	blast.visible = true
-	# The sea imps (each zone looks after its own imp).
+	# The sea imps (each zone looks after its own imp): one standing on an arm is hit. hit_imp_at is given the
+	# imp's own place, so its own distance check always passes; it still checks the imp is out of the water.
 	for zone in get_tree().get_nodes_in_group("sea_imps"):
-		zone.hit_imp_at(global_position, blast_radius, damage)
-	# The barrels in reach break open (barrel.gd), leaving what was inside.
+		var imp_place: Vector3 = zone.imp.global_position
+		if in_blast(imp_place):
+			zone.hit_imp_at(imp_place, 0.1, damage)
+	# The barrels an arm touches break open (barrel.gd), leaving what was inside.
 	for barrel in get_tree().get_nodes_in_group("barrels"):
-		barrel.blast_at(global_position, blast_radius)
-	# The boat, if she's still too close.
+		barrel.blast_at(self)
+	# The boat, if she's on an arm (between two arms she's safe, however close).
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if boat:
-		var off := boat.global_position - global_position
-		off.y = 0.0
-		if off.length() <= blast_radius:
+		if in_blast(boat.global_position):
 			boat.take_damage(damage)
 		# A powerful screen shake, wherever she is (the camera is the boat's: boat_camera.gd).
 		boat.camera.shake_hard(shake_strength, shake_time)
