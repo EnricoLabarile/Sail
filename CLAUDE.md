@@ -60,6 +60,9 @@ speed. (Alternative to ram and traps: a **bomb**, dropped (now off the bow) with
 For now (Enrico): bombs AND traps both in, to see which plays better; **the slingshot is gone**.
 
 ## Keeping the project folder clean (Enrico's rules)
+- **Before creating any new file, show Enrico where it will go and wait for his ok** (Enrico's rule, Oct 2026): list
+  each new file with its full `res://` path (and any new folder) first, so he can check the folder structure; create
+  them only after his yes. (Files outside the game, e.g. `art_src/` scripts, too.)
 - **The layout now (Enrico chose it, Oct 2026)**: everything under `Assets/`, by part: `Assets/Boat/` (`boat/boat.tscn`,
   `boat.gd`; `boat_test.tscn`, the test scene), `Assets/Landscape/world/` (the sea), `Assets/Post_Process/dither/`,
   `Assets/UI/` (`helm.tscn`, the wheel), `Assets/Scenes/` (`Overworld.tscn`, the main scene, which `run/main_scene`
