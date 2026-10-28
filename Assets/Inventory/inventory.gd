@@ -10,8 +10,10 @@ extends Node
 ## Most things take a slot each (two fish = two slots). Stackable things (bombs, traps) pile up in ONE slot,
 ## however many there are, with their number drawn on it. When all the slots are taken, nothing new fits.
 ##
-## Equippable things (a bomb or a trap) are equipped by tapping their slot in the logbook; one at a time
-## (equipping one unequips the other); tapping it again unequips it. `equipped` says which ("" = nothing).
+## Equippable things are equipped by tapping their slot in the logbook; tapping it again unequips it. There are two
+## equip slots (ItemData.equip_slot): "main", the bomb or the trap, one at a time (equipping one unequips the
+## other), kept in `equipped`; and "wind", the Aeolus Jar, kept in `equipped_wind`, with its own button.
+## Things with ItemData.equip_on_pickup (the bomb, the jar) are equipped by themselves when they come aboard.
 ##
 ## The purse: `coins`, taken in and spent at the stores. It takes no slot.
 
@@ -26,13 +28,14 @@ signal came_aboard(item: String, count: int)
 const SLOTS := 9   # how many slots the hold has
 const ITEMS_FOLDER := "res://Assets/Inventory/items"   # one ItemData .tres per kind of item
 
-## What she sets out with (Enrico: no bombs, she finds them; 9 traps, to try them).
-const START_ITEMS := {"trap": 9}
+## What she sets out with (Enrico: no bombs, she finds them; 9 traps, to try them; 10 Aeolus Jars).
+const START_ITEMS := {"trap": 9, "aeolus_jar": 10}   # Enrico: 10 Aeolus Jars too
 const START_COINS := 10             # coins in the purse at the start (10 for now, Enrico: to try the floating shop)
 
 var catalogue := {}                 # every kind of item: its name → its ItemData (read from ITEMS_FOLDER)
 var items: Array[String] = []   # what's aboard, one entry per thing, in the order it came in
-var equipped := ""                  # the item equipped now ("" = nothing)
+var equipped := ""                  # the bomb or trap equipped now (the "main" slot; "" = nothing)
+var equipped_wind := ""             # the Aeolus Jar, if equipped (the "wind" slot; "" = nothing)
 var coins := START_COINS            # the purse
 
 
@@ -93,10 +96,11 @@ func add(item: String, count := 1) -> int:
 		items.append(item)
 		added += 1
 	if added > 0:
-		# Bombs coming aboard are equipped at once (Enrico), so the bomb button shows without opening the logbook.
-		if item == "bomb" and equipped != "bomb":
-			equipped = "bomb"
-			equipped_changed.emit()
+		# Bombs and jars coming aboard are equipped at once (Enrico: equip_on_pickup in their .tres), so their
+		# button shows without opening the logbook.
+		var info := data(item)
+		if info and info.equippable and info.equip_on_pickup and not is_equipped(item):
+			_set_equipped(info.equip_slot, item)
 		changed.emit()
 		came_aboard.emit(item, added)
 	return added
@@ -110,9 +114,8 @@ func remove(item: String) -> bool:
 		return false
 	items.remove_at(index)
 	changed.emit()
-	if item == equipped and not items.has(item):
-		equipped = ""
-		equipped_changed.emit()
+	if is_equipped(item) and not items.has(item):
+		_set_equipped(slot_of(item), "")
 	return true
 
 
@@ -151,8 +154,27 @@ func is_full() -> bool:
 func toggle_equip(item: String) -> void:
 	if not is_equippable(item) or count(item) == 0:
 		return
-	if equipped == item:
-		equipped = ""
+	if is_equipped(item):
+		_set_equipped(slot_of(item), "")
+	else:
+		_set_equipped(slot_of(item), item)
+
+
+## Is `item` equipped now (in either slot)?
+func is_equipped(item: String) -> bool:
+	return item != "" and (equipped == item or equipped_wind == item)
+
+
+## Which equip slot `item` goes in: "main" or "wind" (its ItemData.equip_slot).
+func slot_of(item: String) -> String:
+	var info := data(item)
+	return info.equip_slot if info else "main"
+
+
+## Puts `item` in the equip slot `slot` ("" = empty it), and tells whoever listens.
+func _set_equipped(slot: String, item: String) -> void:
+	if slot == "wind":
+		equipped_wind = item
 	else:
 		equipped = item
 	equipped_changed.emit()

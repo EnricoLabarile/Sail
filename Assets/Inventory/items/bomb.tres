@@ -12,3 +12,4 @@ buy_price = 5
 sell_price = 2
 stackable = true
 equippable = true
+equip_on_pickup = true

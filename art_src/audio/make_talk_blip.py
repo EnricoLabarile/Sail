@@ -1,30 +1,20 @@
 """Makes Assets/SFX/talk_blip.ogg: one syllable of the talk box's "voice" (Enrico: like Animal Crossing).
-A short voiced blip, ~70 ms: a buzzy tone at 330 Hz (a few harmonics, like a voice) gliding a little down,
-shaped through two vowel formants (an "ah"/"oh" between 700 and 1200 Hz), quick attack, quick fade.
-The talk box plays it every other letter at a slightly different pitch each time, so a page "babbles".
-Run:  python art_src/audio/make_talk_blip.py  (needs numpy, scipy and ffmpeg)."""
+Second version (Enrico: the first was whiny, too much change of pitch): a plain little "dot" of sound, 50 ms,
+a round tone at 240 Hz that holds its pitch (no glide), with just a touch of its 2nd and 3rd harmonics so it
+isn't a bare beep; quick attack, quick fade. The talk box plays it every other letter, and sfx.gd changes its pitch
+only a little each time (talk_pitch_min / talk_pitch_max).
+Run:  python art_src/audio/make_talk_blip.py  (needs numpy and ffmpeg)."""
 import subprocess, wave
 import numpy as np
-from scipy.signal import butter, lfilter
 
 RATE = 44100
-
-
-def band_pass(sound, low, high):
-    b, a = butter(2, [low / (RATE / 2), high / (RATE / 2)], "band")
-    return lfilter(b, a, sound)
-
-
-length = 0.07
+length = 0.05
 t = np.arange(int(RATE * length)) / RATE
-pitch = 330 * (1.0 - 0.12 * t / length)                 # a little glide down, like a spoken syllable
-phase = 2 * np.pi * np.cumsum(pitch) / RATE
-voice = sum(np.sin(phase * k) / k for k in range(1, 9))  # a buzzy tone: the first eight harmonics
-vowel = band_pass(voice, 600, 900) + 0.7 * band_pass(voice, 1000, 1400) + 0.25 * voice
-envelope = np.minimum(t / 0.006, 1.0) * np.exp(-np.clip(t - 0.006, 0, None) / 0.025)
-sound = np.tanh(1.5 * vowel * envelope)
-fade = np.minimum(1.0, (length - t) / 0.01)              # no click at the very end
-sound = sound * fade
+phase = 2 * np.pi * 240 * t
+tone = np.sin(phase) + 0.3 * np.sin(2 * phase) + 0.12 * np.sin(3 * phase)
+envelope = np.minimum(t / 0.004, 1.0) * np.exp(-np.clip(t - 0.004, 0, None) / 0.018)
+fade = np.minimum(1.0, (length - t) / 0.008)              # no click at the very end
+sound = tone * envelope * fade
 sound = sound / np.max(np.abs(sound)) * 0.6
 path = "/tmp/talk_blip.wav"
 with wave.open(path, "wb") as f:

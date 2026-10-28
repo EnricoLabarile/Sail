@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="26_jqmww"]
 [ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="27_35spf"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="28_f8m4f"]
+[ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
 
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
@@ -177,5 +178,7 @@ script = ExtResource("21_uvb2l")
 [node name="Logbook" parent="UI and PostProcess" unique_id=1838272232 instance=ExtResource("26_jqmww")]
 
 [node name="BombButton" parent="UI and PostProcess" unique_id=1236485803 instance=ExtResource("27_35spf")]
+
+[node name="JarButton" parent="UI and PostProcess" instance=ExtResource("90_jar_button")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("28_f8m4f")]

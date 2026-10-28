@@ -72,7 +72,6 @@ var _boat_square := Vector2i(-1, -1)   # the square she's in (column 0..8 = A..I
 var _marked_squares: Array[Vector2i] = []   # the squares with an X: those of the active map markers, read on opening
 var _slot_count := 9            # how many slots the hold has (Inventory.SLOTS, read on opening)
 var _slots: Array = []          # the hold's slots as Inventory.slots() gives them ({item, count}), read on opening
-var _equipped := ""             # what's equipped (Inventory.equipped), read on opening
 var _slot_rects: Array[Rect2] = []   # where each slot is drawn on the book (worked out in _draw_hold), for taps
 var page := 0                   # the spread showing: 0 = the hold and the map, 1 = the marked places
 var _places: Array = []         # one entry per marked place (at most PLACE_SLOTS): {"picture": the texture, "square": its square}, read on opening
@@ -116,7 +115,6 @@ func refresh() -> void:
 	# The hold: how many slots, and the picture of each thing aboard (in the order it came in).
 	_slot_count = Inventory.SLOTS
 	_slots = Inventory.slots()
-	_equipped = Inventory.equipped
 	queue_redraw()
 
 
@@ -334,7 +332,7 @@ func _draw_hold(area: Rect2) -> void:
 			var item: String = _slots[i]["item"]
 			var amount: int = _slots[i]["count"]
 			_half_frame(r, INK, 1.5, false)
-			if item == _equipped:
+			if Inventory.is_equipped(item):
 				_half_frame(r.grow(-3.0), INK, 2.0, false)      # equipped: a second, thick frame inside
 			var icon := Inventory.icon_of(item)
 			if icon:

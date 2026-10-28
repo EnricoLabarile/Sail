@@ -21,7 +21,7 @@ const DESIGN_WIDTH := 360.0   # the game's width in the project settings: the co
 ## size on the screen whatever this is: only the grain changes. (On a narrower screen it can't go finer than
 ## a dot per real pixel.)
 @export var dots_across := 360
-const DITHERED := ["Sea", "Coast", "Clouds", "WindLines", "Gulls", "Boat", "Dither", "Helm", "BombButton"]   # nodes of the level moved into the view (by name, anywhere in it)
+const DITHERED := ["Sea", "Coast", "Clouds", "WindLines", "Gulls", "Boat", "Dither", "Helm", "BombButton", "JarButton"]   # nodes of the level moved into the view (by name, anywhere in it)
 
 var view: SubViewport         # where the dithered part of the game is drawn
 var screen: TextureRect       # the view's picture, stretched over the screen

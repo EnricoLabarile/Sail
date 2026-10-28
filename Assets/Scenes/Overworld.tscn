@@ -33,6 +33,9 @@
 [ext_resource type="PackedScene" path="res://Assets/Items/barrel/barrel.tscn" id="37_barrel"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/bomb.tres" id="38_bomb_item"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/wind_zone/wind_zone.tscn" id="39_wind_zone"]
+[ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
+[ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="91_pickup"]
+[ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
 
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
@@ -219,6 +222,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.385603, 0, -35.2494)
 contents = ExtResource("38_bomb_item")
 count = 2
 
+[node name="Pickups" type="Node3D" parent="Gameplay"]
+
+[node name="AeolusJarPickup" parent="Gameplay/Pickups" instance=ExtResource("91_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -28)
+item = ExtResource("92_jar_item")
+
 [node name="WindZones" type="Node3D" parent="Gameplay"]
 
 [node name="WindZoneEast" parent="Gameplay/WindZones" instance=ExtResource("39_wind_zone")]
@@ -251,5 +260,7 @@ script = ExtResource("21_game_view")
 [node name="Logbook" parent="UI and PostProcess" unique_id=1838272232 instance=ExtResource("6_logbook")]
 
 [node name="BombButton" parent="UI and PostProcess" unique_id=1236485803 instance=ExtResource("24_bomb_button")]
+
+[node name="JarButton" parent="UI and PostProcess" instance=ExtResource("90_jar_button")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("25_health")]
