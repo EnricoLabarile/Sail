@@ -28,12 +28,12 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="27_35spf"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="28_f8m4f"]
 [ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
-
 [ext_resource type="Script" path="res://Assets/Landscape/gust/gust_spawner.gd" id="99_gust_spawner"]
+[ext_resource type="Script" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
+
 [sub_resource type="BoxMesh" id="BoxMesh_eel5a"]
 size = Vector3(0.53808594, 1, 0.4716797)
 
-[ext_resource type="Script" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
 [node name="World_Origin2" type="Node3D" unique_id=1254907948]
 
 [node name="Core" type="Node" parent="." unique_id=70268906]
