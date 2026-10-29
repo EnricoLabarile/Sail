@@ -37,10 +37,10 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
 [ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="91_pickup"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
-
-[ext_resource type="Script" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
+[ext_resource type="Script" uid="uid://droldh1rpljoo" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
 [ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
+
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
 [node name="Core" type="Node" parent="." unique_id=70268906]
@@ -50,9 +50,8 @@ script = ExtResource("34_shore_baker")
 save_path = "uid://c3dbbk3u8rxjp"
 land_roots = Array[NodePath]([NodePath(""), NodePath("")])
 
-[node name="SeaZoneBaker" type="Node3D" parent="Core"]
+[node name="SeaZoneBaker" type="Node3D" parent="Core" unique_id=534618351]
 script = ExtResource("100_zone_baker")
-save_path = "res://Assets/Landscape/sea_zones/SeaZones_Overworld.png"
 
 [node name="Boat" parent="Core" unique_id=1762906152 instance=ExtResource("2_boat")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4081421, -0.043405533, 39.818703)
@@ -196,6 +195,17 @@ transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 7.64
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -28)
 item = ExtResource("92_jar_item")
 
+[node name="SeaZones" type="Node3D" parent="Gameplay" unique_id=1865303528]
+
+[node name="BoilingTest" parent="Gameplay/SeaZones" unique_id=1568211694 instance=ExtResource("101_sea_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 40)
+strength = 4.0
+
+[node name="CurrentTest" parent="Gameplay/SeaZones" unique_id=1862276956 instance=ExtResource("101_sea_zone")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -30, 0, 68)
+kind = 1
+strength = 100.0
+
 [node name="UI and PostProcess" type="Node" parent="." unique_id=58599448]
 
 [node name="StartScreen" parent="UI and PostProcess" unique_id=2112618694 instance=ExtResource("7_start")]
@@ -266,12 +276,3 @@ transform = Transform3D(-0.8964555, 0, -0.44313383, 0, 1, 0, 0.44313383, 0, -0.8
 transform = Transform3D(0.8726576, 0, 0.48833257, 0, 1, 0, -0.48833257, 0, 0.8726576, 61.742035, 0, -150.92355)
 
 [node name="NPCs" type="Node" parent="." unique_id=392939115]
-
-[node name="SeaZones" type="Node3D" parent="Gameplay"]
-
-[node name="BoilingTest" parent="Gameplay/SeaZones" instance=ExtResource("101_sea_zone")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 40)
-
-[node name="CurrentTest" parent="Gameplay/SeaZones" instance=ExtResource("101_sea_zone")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -30, 0, 68)
-kind = 1

@@ -27,7 +27,7 @@ const MAX_PUSH := 20.0
 		kind = value
 		_draw_helper()
 ## CURRENT only: how many times the usual current (Wind.CURRENT_SPEED, 1.5 m/s) it carries her at. 4 = 6 m/s.
-@export var strength := 4.0
+@export var strength := 15.0
 ## Metres in from the edge over which the zone fades in (0 = a hard edge). It takes hold gradually as she enters.
 @export var edge_softness := 4.0
 
