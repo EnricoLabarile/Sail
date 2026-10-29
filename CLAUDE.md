@@ -13,6 +13,9 @@
   from `_ready`, before the editor return; the script is `@tool`, the shape `resource_local_to_scene`), so changing the
   export resizes the shape at once, in the editor too, and the value stored on the shape in the .tscn never matters.
   Done for pickups, barrels, fishing spots, piers, NPCs, wave zones, wind zones and the floating shop's greet area.
+- **Every new enemy can be hurt by the bomb** (Enrico's rule, Oct 2026): give it health (`max_hearts`, 3 unless
+  told otherwise), put it in the group `bomb_targets` and give it `blast_at(bomb)` (hit if `bomb.in_blast(its place,
+  its size)`: −`bomb.damage`, a black blink; at 0 it dies). `bomb.gd` `explode()` calls `blast_at` on that group.
 - **No camera-facing (billboard) shaders or nodes** (Enrico's rule, Oct 2026): pictures in the world are plain
   planes/quads that keep the node's own rotation; Enrico decides himself whether and how to tilt an element to the
   camera's angle. (Already made before the rule: `stone.gdshader`, used by the bomb and the fireball, and
@@ -483,8 +486,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   n × attack_time / shot_count), each `shoot_round` = 8 spikes N, NE, E… from its middle, 0.3 m up; then WALKING again.
   A spike (`spike.gd`, `launch`): flies straight at `spike_speed` 8 m/s, its 1.2 × 2.4 m picture turned so its top points
   the way it flies, for `spike_range` 15 m; within `spike_hit_radius` 1.2 m of her middle `take_damage(spike_damage 0.5)`
-  and gone; gone on land. All numbers are the urchin's exports. Invulnerable for now (bombs and traps don't touch it); no
-  sounds. `spike.tscn` is in the shader warm-up's `LATER`.
+  and gone; gone on land. All numbers are the urchin's exports. **Bombs kill it** (Enrico): group `bomb_targets`,
+  `blast_at(bomb)`: within `bomb.in_blast(urchin, body_radius 1.5)` it loses `bomb.damage` of `max_hearts` 3 and blinks
+  black (`hurt_time` 0.5 s at `hurt_blinks_per_second` 12: its own copy of the picture's material, `albedo_color` black /
+  white); at 0 → `State.DEAD`: it stops, blinks, and is freed. Traps don't touch it. No sounds. `spike.tscn` is in the shader warm-up's `LATER`.
 - **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
   `.gd` (`@tool`), `big_wave.tscn` + `.gd`, `big_wave.gdshader`, `big_wave.png`; under `BigWaves` in Overworld, for now
   one `WaveZone` at (0, 0, −200), `radius` 60): no sounds, no buzz, no darker sea (Enrico). The zone: a circle (green disc
@@ -616,7 +621,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   fuse burns, at the blast it grows from 60% to full and fades with the arms. The arms are white strips on the water made in code (`make_arms`, `set_arms`: PlaneMesh, unshaded,
   render_priority 2): faint (`warning_opacity` 0.25) while the fuse burns, so she sees where it will hit; at the blast
   they shoot out (first third of `blast_time` 0.4 s) and fade. Hit: an imp
-  on an arm (`hit_imp_at(imp's place, 0.1, damage 1)`), a barrel an arm touches (`blast_at(bomb)` → `in_blast(its
+  on an arm (`hit_imp_at(imp's place, 0.1, damage 1)`), every node of the group `bomb_targets` (`blast_at(bomb)`: the
+  sea urchins), a barrel an arm touches (`blast_at(bomb)` → `in_blast(its
   place, radius)`), the boat (`take_damage(1)`) if her middle is in the circle or on an arm; between two arms, outside the circle, she's safe; then a **powerful screen shake** wherever she is (Enrico:
   `boat.camera.shake_hard(shake_strength 1.5, shake_time 0.6)`, the bomb's exports; `boat_camera.gd` `shake_hard`: a
   weaker shake never cuts a stronger one short; `shake()` = `shake_hard(shake_strength 0.5, shake_time 0.3)`). No sound (not asked).

@@ -13,8 +13,10 @@ extends Node3D
 ##   ATTACKING for `attack_time` seconds, standing still: `shot_count` rounds of 8 spikes, spread evenly over that
 ##             time (the first right away);
 ## then WALKING again.
+## A bomb hurts it (Enrico: every enemy can be bombed): in the blast it loses `damage` hearts of its `max_hearts` and
+## blinks black for `hurt_time`; at 0 it blinks and is gone (bomb.gd calls blast_at on the group "bomb_targets").
 
-enum State { WALKING, ATTACKING }
+enum State { WALKING, ATTACKING, DEAD }
 
 ## Metres round this node it wanders in (it never leaves this circle). The editor disc follows it.
 @export var area_radius := 20.0:
@@ -29,6 +31,10 @@ enum State { WALKING, ATTACKING }
 @export var spike_range := 15.0       # metres a spike flies before it's gone
 @export var spike_damage := 0.5       # hearts a spike takes off the boat (Enrico: half a heart)
 @export var spike_hit_radius := 1.2   # metres from the boat's middle a spike must come to hit her
+@export var max_hearts := 3.0         # how much a bomb must take off it to kill it (Enrico: 3 for now)
+@export var body_radius := 1.5        # metres: a bomb's blast reaching this close to its middle hits it
+@export var hurt_time := 0.5          # seconds it blinks black when hurt (and before it's gone, when killed)
+@export var hurt_blinks_per_second := 12.0
 
 const SPIKE_SCENE := preload("res://Assets/Dangers/sea_urchin/spike.tscn")
 
@@ -36,6 +42,9 @@ var state := State.WALKING
 var timer := 0.0                      # seconds since the state began
 var shots_fired := 0                  # rounds shot in this attack so far
 var target := Vector3.ZERO            # where it's walking to, in the area (this node's space)
+var hearts := 3.0                     # its health now (max_hearts at start)
+var hurt_left := 0.0                  # seconds of blinking left (0 = not blinking)
+var picture_material: StandardMaterial3D   # its own copy of the picture's material (to blink only this one)
 
 @onready var urchin: Node3D = $Urchin
 var _editor_disc: MeshInstance3D = null
@@ -46,12 +55,23 @@ func _ready() -> void:
 		_make_editor_disc()           # in the editor only: the area drawn as a see-through red disc
 		return
 	target = random_point_in_area()
+	hearts = max_hearts
+	add_to_group("bomb_targets")          # so a bomb's blast checks it (bomb.gd explode)
+	# Its own copy of the picture's material, so blinking one urchin doesn't blink the others.
+	var picture := $Urchin/Picture as MeshInstance3D
+	picture_material = (picture.mesh.surface_get_material(0) as StandardMaterial3D).duplicate()
+	picture.material_override = picture_material
 
 
 func _process(dt: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	timer += dt
+	update_blink(dt)
+	if state == State.DEAD:
+		if hurt_left <= 0.0:
+			queue_free()                  # done blinking: it's gone
+		return
 	if state == State.WALKING:
 		walk(dt)
 		if timer >= walk_time:
@@ -115,6 +135,31 @@ func shoot_round() -> void:
 		var start := urchin.global_position
 		start.y = 0.3                                            # just above the water
 		spike.launch(start, direction, spike_speed, spike_damage, spike_hit_radius, spike_range)
+
+
+# ---- hurt by a bomb ----
+
+## A bomb went off (bomb.gd): if its blast reaches the urchin's body, it loses the bomb's damage and blinks black;
+## at 0 hearts it's dead (it stops, blinks, and is gone).
+func blast_at(bomb: Node3D) -> void:
+	if state == State.DEAD:
+		return
+	if not bomb.in_blast(urchin.global_position, body_radius):
+		return
+	hearts = maxf(0.0, hearts - bomb.damage)
+	hurt_left = hurt_time
+	if hearts <= 0.0:
+		state = State.DEAD
+
+
+## The black blink: while hurt_left runs down, the picture switches between black and its own colours (its colour
+## multiplies the picture: black = every pixel black, white = as drawn).
+func update_blink(dt: float) -> void:
+	if hurt_left <= 0.0:
+		return
+	hurt_left = maxf(0.0, hurt_left - dt)
+	var black := int(hurt_left * hurt_blinks_per_second) % 2 == 0 and hurt_left > 0.0
+	picture_material.albedo_color = Color.BLACK if black else Color.WHITE
 
 
 # ---- the editor disc (the area) ----

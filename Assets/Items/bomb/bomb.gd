@@ -5,7 +5,8 @@ extends Node3D
 ## The blast has two parts (Enrico): a tight CIRCLE round the bomb, `blast_radius` metres, and long straight lines, the ARMS
 ## (like Bomberman), `arm_length` metres long and `arm_width` wide: a CROSS (4 arms: north, east, south, west) or a
 ## DOUBLE_CROSS (8: the diagonals too), set by `pattern` (a basic bomb and an advanced one). Whatever is in the circle or on an
-## arm loses `damage` hearts: the sea imps (sea_imp_zone.gd hit_imp_at, only while they're out of the water), the barrels,
+## arm loses `damage` hearts: the sea imps (sea_imp_zone.gd hit_imp_at, only while they're out of the water), the other enemies (group
+## "bomb_targets": blast_at, e.g. the sea urchins), the barrels,
 ## and the boat too; between two arms, outside the circle, she's safe. While the fuse burns the circle and the arms show
 ## faintly on the water (where it will hit); at the blast the circle flashes and the arms shoot out white.
 ## The screen shakes hard wherever she is.
@@ -169,6 +170,10 @@ func explode() -> void:
 		var imp_place: Vector3 = zone.imp.global_position
 		if in_blast(imp_place):
 			zone.hit_imp_at(imp_place, 0.1, damage)
+	# Every other enemy (group "bomb_targets", Enrico: every new enemy can be bombed): each one decides for itself
+	# whether the blast touches it (its own blast_at, e.g. sea_urchin.gd).
+	for target in get_tree().get_nodes_in_group("bomb_targets"):
+		target.blast_at(self)
 	# The barrels the blast touches break open (barrel.gd), leaving what was inside.
 	for barrel in get_tree().get_nodes_in_group("barrels"):
 		barrel.blast_at(self)
