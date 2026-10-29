@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Dangers/sea_urchin/sea_urchin.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://Assets/Dangers/sea_urchin/sea_urchin.png" id="2_tex"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_urchin"]
+render_priority = 2
+transparency = 2
+alpha_scissor_threshold = 0.5
+shading_mode = 0
+albedo_texture = ExtResource("2_tex")
+texture_filter = 0
+
+[sub_resource type="PlaneMesh" id="Mesh_urchin"]
+material = SubResource("Mat_urchin")
+size = Vector2(5, 5)
+
+[node name="SeaUrchin" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Urchin" type="Node3D" parent="."]
+
+[node name="Picture" type="MeshInstance3D" parent="Urchin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_urchin")

@@ -472,6 +472,19 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   the current** (`drift_with_current`: `Wind.current()` × dt, no step onto land, so it washes up on a shore)); the boat's middle within `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) →
   CAPTURED, gone for good. Lost hearts stay lost. In the editor a red disc shows `radius`. No ripples, sounds, popups
   or buzz (not asked).
+- **Sea urchins** (Enrico: an enemy less aggressive than the imp, it never aims at the boat; `Assets/Dangers/sea_urchin/`:
+  `sea_urchin.tscn` + `sea_urchin.gd` (`@tool`), `sea_urchin.png`, `spike.tscn` + `spike.gd`, `spike.png`, stand-ins made
+  by `art_src/items/make_sea_urchin.py`; a test one `Dangers/SeaUrchinTest` at (−60, 0, 100) in Overworld): the node is
+  the middle of its area, a circle of `area_radius` 20 m (red editor disc, render_priority 10, no depth test); the child
+  `Urchin` (a 5 m PlaneMesh `Picture` lying on the water, StandardMaterial3D unshaded, alpha-scissor, nearest,
+  render_priority 2; not a billboard) moves. `State` **WALKING** for `walk_time` 4 s at `walk_speed` 2 m/s toward a
+  random point of the area on water (`random_point_in_area`, 20 tries; a new one on arrival or when the next step would be
+  land), then **ATTACKING** for `attack_time` 2 s standing still: `shot_count` 3 rounds spread evenly over it (round n at
+  n × attack_time / shot_count), each `shoot_round` = 8 spikes N, NE, E… from its middle, 0.3 m up; then WALKING again.
+  A spike (`spike.gd`, `launch`): flies straight at `spike_speed` 8 m/s, its 1.2 × 2.4 m picture turned so its top points
+  the way it flies, for `spike_range` 15 m; within `spike_hit_radius` 1.2 m of her middle `take_damage(spike_damage 0.5)`
+  and gone; gone on land. All numbers are the urchin's exports. Invulnerable for now (bombs and traps don't touch it); no
+  sounds. `spike.tscn` is in the shader warm-up's `LATER`.
 - **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
   `.gd` (`@tool`), `big_wave.tscn` + `.gd`, `big_wave.gdshader`, `big_wave.png`; under `BigWaves` in Overworld, for now
   one `WaveZone` at (0, 0, −200), `radius` 60): no sounds, no buzz, no darker sea (Enrico). The zone: a circle (green disc

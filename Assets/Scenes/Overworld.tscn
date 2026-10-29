@@ -41,6 +41,7 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
 [ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
 
+[ext_resource type="PackedScene" path="res://Assets/Dangers/sea_urchin/sea_urchin.tscn" id="103_sea_urchin"]
 [sub_resource type="Curve3D" id="Curve3D_boiling_test"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0, 0, 0, -10, 0, -10, 0, 0, 0, 0, 0, 0, 10, 0, -10, 0, 0, 0, 0, 0, 0, 10, 0, 10, 0, 0, 0, 0, 0, 0, -10, 0, 10),
@@ -92,6 +93,9 @@ hold_spin = 8.0
 core_damage = 2.0
 fling_speed = 12.0
 fling_time = 1.2
+
+[node name="SeaUrchinTest" parent="Dangers" instance=ExtResource("103_sea_urchin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0, 100)
 
 [node name="SeaImps" type="Node3D" parent="Dangers" unique_id=690468872]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1220932, -3.8146973e-06, -0.06600571)

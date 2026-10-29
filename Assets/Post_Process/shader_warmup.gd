@@ -11,7 +11,7 @@ extends Node3D
 ##
 ## Which materials: everything in the level (also what's hidden or far away: the imp, the NPC's bubble, islands
 ## out of view), plus the things that are only made later, while playing: the scenes in LATER (a fireball, a
-## bomb and its blast, a trap, a pickup, a big wave), made here once, hidden, just to read their materials.
+## bomb and its blast, a trap, a pickup, a big wave, an urchin's spike), made here once, hidden, just to read their materials.
 ## The full-screen effects (fog, outline, cloud shadows) are already drawn from the first frame: skipped.
 ##
 ## GameView adds it when the level starts (game_view.gd).
@@ -22,6 +22,7 @@ const LATER := [
 	preload("res://Assets/Items/trap/trap.tscn"),
 	preload("res://Assets/Items/pickup/pickup.tscn"),
 	preload("res://Assets/Dangers/big_waves/big_wave.tscn"),
+	preload("res://Assets/Dangers/sea_urchin/spike.tscn"),
 ]
 const FRAMES := 3              # frames the squares stay (one is enough to compile; a couple more to be safe)
 const SQUARE := 0.01           # metres a side: at 2 m from the camera that's a few pixels
