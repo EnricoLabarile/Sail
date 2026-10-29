@@ -94,6 +94,10 @@ extends Node3D
 # show it. A bump against anything solid (a shore, an island) takes hit_damage off.
 @export var max_hearts := 3         # how many hearts she has when the hull is whole (a heart container adds one)
 @export var hit_damage := 0.0       # hearts lost in a bump (0.5 = half a heart, as in the prototype)
+# Running into an enemy (Enrico, a rule for every monster: bump_into_enemy, called by the enemy): she bounces back off it
+# like off a shore and loses enemy_touch_damage hearts; then enemy_touch_cooldown seconds before it can happen again.
+@export var enemy_touch_damage := 0.5
+@export var enemy_touch_cooldown := 1.0
 
 ## Sent whenever her health or her number of hearts changes (the hearts top left listen, to draw again).
 ## `hurt` is true when she has just lost some (the hearts flash).
@@ -161,6 +165,7 @@ var fling_left := 0.0                # …and the seconds it still lasts
 var boil_time := 0.0        # seconds she has been in boiling water since the last scald (see update_boiling)
 var drift_amount := 0.0     # 0..1: how much the current has her (eases in and out, see current_ease)
 var bump_wait := 0.0        # seconds left before another bump can count
+var enemy_wait := 0.0       # seconds left before running into an enemy can hurt her again (enemy_touch_cooldown)
 var heel := 0.0             # how far she leans with the wind (radians), without the waves' roll
 var turn_speed := 0.0       # how quickly she is turning now, in rad/s (+ = to the left), measured each frame
 var roll := 0.0             # her lean now (radians, + = to port), and how quickly it's changing (the spring)
@@ -794,6 +799,7 @@ func update_furl(dt: float) -> void:
 ## she bumps (see bump) and bounces back off the shore.
 func move_and_bounce(dt: float) -> void:
 	bump_wait = maxf(0.0, bump_wait - dt)
+	enemy_wait = maxf(0.0, enemy_wait - dt)
 	knock *= exp(-bounce_fade * dt)                      # the push of the last bump dies away
 
 	var fwd := -global_transform.basis.z
@@ -880,6 +886,24 @@ func push_away(from_point: Vector3, push: float) -> void:
 		away = global_transform.basis.z    # right on top of it: back her out astern
 	speed = 0.0
 	knock += away.normalized() * push
+
+
+## She ran into an enemy (or it into her): every monster calls this when she's touching it (sea_urchin.gd,
+## sea_imp_zone.gd). She's knocked back away from `enemy_point` (the shore bump's push, bounce_kick plus a share of her
+## speed), loses most of her way and enemy_touch_damage hearts, with the hull's knock; then nothing for
+## enemy_touch_cooldown seconds, so touching it for a while is one hit, not one every frame.
+func bump_into_enemy(enemy_point: Vector3) -> void:
+	if enemy_wait > 0.0 or sinking or emerging:
+		return
+	enemy_wait = enemy_touch_cooldown
+	var away := global_position - enemy_point
+	away.y = 0.0
+	if away.length() < 0.01:
+		away = global_transform.basis.z      # right on top of it: back her out astern
+	knock += away.normalized() * (bounce_kick + absf(speed) * bounce_extra)
+	speed *= bounce_slowdown
+	Sfx.hull_bump(clampf(0.4 + 0.6 * absf(speed) / top_speed, 0.0, 1.0))
+	take_damage(enemy_touch_damage)
 
 
 ## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).

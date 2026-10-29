@@ -33,6 +33,7 @@ enum State { WALKING, ATTACKING, DEAD }
 @export var spike_hit_radius := 1.2   # metres from the boat's middle a spike must come to hit her
 @export var max_hearts := 3.0         # how much a bomb must take off it to kill it (Enrico: 3 for now)
 @export var body_radius := 1.5        # metres: a bomb's blast reaching this close to its middle hits it
+@export var touch_radius := 3.0       # metres: the boat's middle this close to it = she ran into it (bounce, half a heart)
 @export var hurt_time := 0.5          # seconds it blinks black when hurt (and before it's gone, when killed)
 @export var hurt_blinks_per_second := 12.0
 
@@ -72,6 +73,7 @@ func _process(dt: float) -> void:
 		if hurt_left <= 0.0:
 			queue_free()                  # done blinking: it's gone
 		return
+	check_touch()
 	if state == State.WALKING:
 		walk(dt)
 		if timer >= walk_time:
@@ -135,6 +137,20 @@ func shoot_round() -> void:
 		var start := urchin.global_position
 		start.y = 0.3                                            # just above the water
 		spike.launch(start, direction, spike_speed, spike_damage, spike_hit_radius, spike_range)
+
+
+# ---- running into the boat ----
+
+## The boat's middle within touch_radius of the urchin: she ran into it (or it walked into her). The boat does the
+## rest (boat.gd bump_into_enemy: she bounces back and loses half a heart, once in a while, not every frame).
+func check_touch() -> void:
+	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	if boat == null:
+		return
+	var off := boat.global_position - urchin.global_position
+	off.y = 0.0
+	if off.length() <= touch_radius:
+		boat.bump_into_enemy(urchin.global_position)
 
 
 # ---- hurt by a bomb ----

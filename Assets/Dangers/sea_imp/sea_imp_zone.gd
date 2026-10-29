@@ -38,6 +38,7 @@ const PICKUP_SCENE := preload("res://Assets/Items/pickup/pickup.tscn")
 @export var wake_radius := 25            # metres: the boat this close to the lurking imp wakes it
 @export var lurk_size := 10.8              # metres across the patch of stirred water (Enrico: 3 times the first 3.6)
 @export var max_hearts := 3.0              # its health, in hearts (a bomb or a trap takes one)
+@export var touch_radius := 2.0            # metres: the boat's middle this close to it while it's up = she ran into it (bounce, half a heart)
 @export var collect_radius := 2.5          # metres: defeated, it goes into the hold when the boat's middle comes this close
 @export var emerge_time := 2             # seconds the patch shows before it comes up (the warning)
 @export var idle_before_spit := 1.5        # seconds up before it spits
@@ -115,6 +116,10 @@ func _process(dt: float) -> void:
 	if state != State.LURKING and distance_to(boat, global_position) > radius and not is_seen(boat):
 		lurk()
 		return
+	# Up out of the water (or blinking, hurt), it's solid: the boat running into it bounces back and loses half a
+	# heart (boat.gd bump_into_enemy; Enrico: a rule for every monster).
+	if (state == State.UP or state == State.HURT) and distance_to(boat, imp.global_position) <= touch_radius:
+		boat.bump_into_enemy(imp.global_position)
 	match state:
 		State.LURKING:
 			if not boat.sinking and distance_to(boat, global_position) <= wake_radius:

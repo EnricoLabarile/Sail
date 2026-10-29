@@ -16,6 +16,11 @@
 - **Every new enemy can be hurt by the bomb** (Enrico's rule, Oct 2026): give it health (`max_hearts`, 3 unless
   told otherwise), put it in the group `bomb_targets` and give it `blast_at(bomb)` (hit if `bomb.in_blast(its place,
   its size)`: −`bomb.damage`, a black blink; at 0 it dies). `bomb.gd` `explode()` calls `blast_at` on that group.
+- **Running into any enemy hurts and bounces the boat** (Enrico's rule, Oct 2026, for every monster): the enemy checks
+  each frame whether the boat's middle is within its `touch_radius` (only while it's out of the water / solid) and
+  calls `boat.bump_into_enemy(its place)`: she's knocked back away from it (`bounce_kick` + `bounce_extra` × her
+  speed, into `knock`), her speed × `bounce_slowdown`, the hull's knock, `take_damage(enemy_touch_damage 0.5)`; then
+  `enemy_touch_cooldown` 1 s (`enemy_wait`) before it can happen again. Done for the urchin (3 m) and the imp (2 m, up or hurt).
 - **No camera-facing (billboard) shaders or nodes** (Enrico's rule, Oct 2026): pictures in the world are plain
   planes/quads that keep the node's own rotation; Enrico decides himself whether and how to tilt an element to the
   camera's angle. (Already made before the rule: `stone.gdshader`, used by the bomb and the fireball, and
@@ -473,7 +478,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   imp); left > 0 → **HURT** (up, harmless, blinking; hit while emerging it shows itself) then UNDER; 0 → **DEFEATED** (up,
   harmless, after the same blinking **solid black** for good, dead (Enrico; a different picture later), and **carried by
   the current** (`drift_with_current`: `Wind.current()` × dt, no step onto land, so it washes up on a shore)); the boat's middle within `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) →
-  CAPTURED, gone for good. Lost hearts stay lost. In the editor a red disc shows `radius`. No ripples, sounds, popups
+  CAPTURED, gone for good. Lost hearts stay lost. **Running into it** while UP or HURT (boat's middle within
+  `touch_radius` 2 m) → `boat.bump_into_enemy` (bounce, half a heart). In the editor a red disc shows `radius`. No ripples, sounds, popups
   or buzz (not asked).
 - **Sea urchins** (Enrico: an enemy less aggressive than the imp, it never aims at the boat; `Assets/Dangers/sea_urchin/`:
   `sea_urchin.tscn` + `sea_urchin.gd` (`@tool`), `sea_urchin.png`, `spike.tscn` + `spike.gd`, `spike.png`, stand-ins made
@@ -489,7 +495,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   and gone; gone on land. All numbers are the urchin's exports. **Bombs kill it** (Enrico): group `bomb_targets`,
   `blast_at(bomb)`: within `bomb.in_blast(urchin, body_radius 1.5)` it loses `bomb.damage` of `max_hearts` 3 and blinks
   black (`hurt_time` 0.5 s at `hurt_blinks_per_second` 12: its own copy of the picture's material, `albedo_color` black /
-  white); at 0 → `State.DEAD`: it stops, blinks, and is freed. Traps don't touch it. No sounds. `spike.tscn` is in the shader warm-up's `LATER`.
+  white); at 0 → `State.DEAD`: it stops, blinks, and is freed. Traps don't touch it. **Running into it**: `check_touch`,
+  the boat's middle within `touch_radius` 3 m → `boat.bump_into_enemy` (bounce, half a heart). No sounds. `spike.tscn` is in the shader warm-up's `LATER`.
 - **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
   `.gd` (`@tool`), `big_wave.tscn` + `.gd`, `big_wave.gdshader`, `big_wave.png`; under `BigWaves` in Overworld, for now
   one `WaveZone` at (0, 0, −200), `radius` 60): no sounds, no buzz, no darker sea (Enrico). The zone: a circle (green disc
