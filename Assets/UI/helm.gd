@@ -22,7 +22,7 @@ extends Control
 
 signal hub_tapped                # a quick tap on the hub (let go before hub_hold): the talk box listens
 
-@export var hub_hold := 0.165    # s to hold the hub for the anchor (Enrico: halved from 0.33)
+@export var hub_hold := 0.33     # s to hold the hub for the anchor (Enrico: back from 0.165: the black flash shows the press)
 @export var lock_turn := PI      # how far the wheel turns for full rudder (PI = half a turn)
 @export var return_rate := 3.5   # let go, the wheel spins back to the middle: this share of its angle a second…
 @export var return_min := 0.8    # …but at least this many rad/s, so it gets all the way back (as in the prototype)

@@ -345,10 +345,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   rendered `UPDATE_ONCE`, again only on resize): the wheel at angle 0 (drawn every frame turned by `wheel_angle`, linear
   filter), the hub sailing and the hub at anchor; only the rim's fixed shade, the hub's shake and its hold ring are
   drawn live (draw calls ~290 → ~45: the wheel's discs of 40 triangles each were most of them). Drag to steer (half a turn = full rudder, springs back to the middle); the hub's grip is
-  16.5 sailing / 21 at anchor (× 2.6): held `hub_hold` 0.165 s (Enrico: halved from 0.33; a ring fills) it works the anchor and shakes; a finger
+  16.5 sailing / 21 at anchor (× 2.6): held `hub_hold` 0.33 s (Enrico: halved to 0.165, then back once the press flash showed the press; a ring fills) it works the anchor and shakes; a finger
   moving 9 off the hub turns the wheel instead; at anchor the wheel doesn't steer (drag and arrow keys), and **it fades
   away, only the hub stays** (Enrico, as the prototype; `wheel_shown` 1 → 0 over `wheel_fade_time` 0.3 s, also tied up;
-  `_has_point` then only takes the hub). **Every press on the hub** (Enrico, a rule for buttons: in a talk, to drop or
+  `_has_point` then only takes the hub). **Every press on the hub** (Enrico, a rule for every button: also the bomb and jar buttons, their own `press_flash` 0.12 s, the whole disc ink; in a talk, to drop or
   weigh the anchor) **flashes black and clicks**: its picture tinted black while the finger is down and for at least
   `press_flash` 0.12 s (`press_flash_left`), and `Sfx.button_press()` (`button_press.ogg`, player `ButtonPress` −6 dB: a
   soft low tock, 70 ms, 170 → 130 Hz with a muffled tick, made by `art_src/audio/make_button_press.py`). **The hub's glyph** (`_draw_hub(..., glyph)`: "anchor", "question" over a

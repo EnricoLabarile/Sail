@@ -20,6 +20,9 @@ const INK := Color("1b1a17")
 @export var cooldown := 30.0         # seconds after a jar before the next one can be uncorked
 @export var turn_time := 1.5         # seconds the wind takes to swing round behind her
 
+@export var press_flash := 0.12      # a press turns the button black for this long (s), with a click (Enrico: every button)
+
+var press_flash_left := 0.0          # seconds it stays black after a press (any press, even while it rests)
 var pressed_time := 0.0              # > 0 for a moment after a tap: the button is drawn pushed in
 var cooldown_left := 0.0             # seconds before another jar can be uncorked (0 = ready)
 
@@ -43,6 +46,11 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	# A finger coming down on it (on the PC the mouse counts as a finger: emulate_touch_from_mouse).
 	if event is InputEventScreenTouch and event.pressed:
+		# Every press: a low click and the button black for a moment (Enrico: so she sees it was pressed),
+		# whether it does something or not (still resting after the last one).
+		press_flash_left = press_flash
+		Sfx.button_press()
+		queue_redraw()
 		uncork_jar()
 		accept_event()                # the tap stops here (it doesn't also reach the wheel or the sea)
 
@@ -53,6 +61,9 @@ func _process(dt: float) -> void:
 	if pressed_time > 0.0:
 		pressed_time = maxf(0.0, pressed_time - dt)
 		queue_redraw()
+	if press_flash_left > 0.0:
+		press_flash_left = maxf(0.0, press_flash_left - dt)
+		queue_redraw()                    # once it runs out, it's drawn as usual again
 	# The cooldown counts down, and the pie is drawn again every frame meanwhile (it shrinks).
 	if cooldown_left > 0.0:
 		cooldown_left = maxf(0.0, cooldown_left - dt)
@@ -90,6 +101,10 @@ func _draw() -> void:
 	draw_arc(middle, radius, 0.0, TAU, 48, INK, 3.0)
 	var icon_size := ICON.get_size() * (radius * 1.1 / ICON.get_size().y)
 	draw_texture_rect(ICON, Rect2(middle - icon_size * 0.5, icon_size), false)
+	# Just pressed: the whole button black (as the wheel's hub does).
+	if press_flash_left > 0.0:
+		draw_circle(middle, radius, INK)
+		return
 	# Resting after a jar: the pie of what's left of the wait, in see-through ink (the dither turns it to dots).
 	if cooldown_left > 0.0:
 		_draw_pie(middle, radius, cooldown_left / cooldown)
