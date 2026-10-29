@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="ItemData" format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://brawp83bscqtm"]
 
-[ext_resource type="Script" path="res://Assets/Inventory/item_data.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://cuk7atfycnyit" path="res://Assets/Inventory/item_data.gd" id="1_item"]
 [ext_resource type="Texture2D" uid="uid://c6x5adgpv5duu" path="res://Assets/Inventory/icons/bomb.png" id="2_icon"]
 
 [resource]

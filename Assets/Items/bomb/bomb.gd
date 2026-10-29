@@ -15,10 +15,10 @@ extends Node3D
 @export var fuse_time := 2.0         # seconds from dropping it to the blast
 enum Pattern { CROSS, DOUBLE_CROSS }   # 4 arms, or 8 (the diagonals too)
 @export var pattern := Pattern.CROSS   # CROSS = the basic bomb, DOUBLE_CROSS = the advanced one
-@export var blast_radius := 3.0      # metres round the bomb the blast reaches every way (Enrico: fairly tight)
-@export var arm_length := 16.0       # metres each arm of the blast reaches, from the bomb's middle (Enrico: far)
-@export var arm_width := 2.0         # metres wide each arm is (what's within half of it from the arm's line is hit)
-@export var warning_opacity := 0.25  # how strongly the circle and arms show on the water while the fuse burns (0 = not at all)
+@export var blast_radius := 6.0      # metres round the bomb the blast reaches every way (Enrico: fairly tight)
+@export var arm_length := 10.0       # metres each arm of the blast reaches, from the bomb's middle (Enrico: far)
+@export var arm_width := 4.0	         # metres wide each arm is (what's within half of it from the arm's line is hit)
+@export var warning_opacity := 0.0  # how strongly the circle and arms show on the water while the fuse burns (0 = not at all)
 @export var damage := 1.0            # hearts it takes off whatever is in reach
 @export var blast_time := 0.4        # seconds the blast's flash lasts (it grows and fades)
 @export var shake_strength := 1.5    # metres the view jumps about when it goes off (being hurt shakes 0.5)

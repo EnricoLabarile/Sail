@@ -27,6 +27,7 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="24_bomb_button"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="25_health"]
 [ext_resource type="PackedScene" uid="uid://c83avpy373bev" path="res://Assets/Landscape/fishing_spots/fishing_spot.tscn" id="26_fishing_spot"]
+[ext_resource type="Resource" uid="uid://brawp83bscqtm" path="res://Assets/Inventory/items/bomb.tres" id="27_cra7r"]
 [ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="27_game_over"]
 [ext_resource type="PackedScene" uid="uid://85hj3herq30r" path="res://Assets/Dangers/sea_imp/sea_imp_zone.tscn" id="28_sea_imp_zone"]
 [ext_resource type="PackedScene" uid="uid://b5lqfu2xq0o10" path="res://Assets/Dangers/maelstrom/maelstrom.tscn" id="28_ubo31"]
@@ -40,8 +41,8 @@
 [ext_resource type="Script" uid="uid://droldh1rpljoo" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
 [ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
-
 [ext_resource type="PackedScene" path="res://Assets/Dangers/sea_urchin/sea_urchin.tscn" id="103_sea_urchin"]
+
 [sub_resource type="Curve3D" id="Curve3D_boiling_test"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0, 0, 0, -10, 0, -10, 0, 0, 0, 0, 0, 0, 10, 0, -10, 0, 0, 0, 0, 0, 0, 10, 0, 10, 0, 0, 0, 0, 0, 0, -10, 0, 10),
@@ -68,8 +69,19 @@ land_roots = Array[NodePath]([NodePath(""), NodePath("")])
 [node name="SeaZoneBaker" type="Node3D" parent="Core" unique_id=534618351]
 script = ExtResource("100_zone_baker")
 
+[node name="BoilingTest" parent="Core/SeaZoneBaker" unique_id=1568211694 instance=ExtResource("101_sea_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 40)
+curve = SubResource("Curve3D_boiling_test")
+strength = 4.0
+
+[node name="CurrentTest" parent="Core/SeaZoneBaker" unique_id=1862276956 instance=ExtResource("101_sea_zone")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -30, 0, 68)
+curve = SubResource("Curve3D_current_test")
+kind = 1
+strength = 100.0
+
 [node name="Boat" parent="Core" unique_id=1762906152 instance=ExtResource("2_boat")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4081421, -0.043405533, 39.818703)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110.03998, -0.043405533, 135.289)
 
 [node name="Sea" parent="Core" unique_id=1750240136 instance=ExtResource("1_sea")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26995945, 0.0868597, -0.12084007)
@@ -94,7 +106,7 @@ core_damage = 2.0
 fling_speed = 12.0
 fling_time = 1.2
 
-[node name="SeaUrchinTest" parent="Dangers" instance=ExtResource("103_sea_urchin")]
+[node name="SeaUrchinTest" parent="Dangers" unique_id=1237544682 instance=ExtResource("103_sea_urchin")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0, 100)
 
 [node name="SeaImps" type="Node3D" parent="Dangers" unique_id=690468872]
@@ -210,21 +222,14 @@ transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 7.64
 [node name="Pickups" type="Node3D" parent="Gameplay" unique_id=1786065463]
 
 [node name="AeolusJarPickup" parent="Gameplay/Pickups" unique_id=297391498 instance=ExtResource("91_pickup")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -28)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -112.19768, 0, 121.16945)
+item = ExtResource("27_cra7r")
+count = 99
+
+[node name="AeolusJarPickup2" parent="Gameplay/Pickups" unique_id=891147415 instance=ExtResource("91_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -97.664856, 0, 121.16945)
 item = ExtResource("92_jar_item")
-
-[node name="SeaZones" type="Node3D" parent="Gameplay" unique_id=1865303528]
-
-[node name="BoilingTest" parent="Gameplay/SeaZones" unique_id=1568211694 instance=ExtResource("101_sea_zone")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 40)
-curve = SubResource("Curve3D_boiling_test")
-strength = 4.0
-
-[node name="CurrentTest" parent="Gameplay/SeaZones" unique_id=1862276956 instance=ExtResource("101_sea_zone")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -30, 0, 68)
-curve = SubResource("Curve3D_current_test")
-kind = 1
-strength = 100.0
+count = 99
 
 [node name="UI and PostProcess" type="Node" parent="." unique_id=58599448]
 

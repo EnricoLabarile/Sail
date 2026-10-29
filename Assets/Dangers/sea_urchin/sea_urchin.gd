@@ -24,11 +24,11 @@ enum State { WALKING, ATTACKING, DEAD }
 		area_radius = value
 		_fit_editor_disc()
 @export var walk_speed := 2.0         # metres a second it moves while wandering
-@export var walk_time := 4.0          # seconds it wanders before it stops to shoot
-@export var attack_time := 2.0        # seconds it stands still shooting
-@export var shot_count := 3           # rounds of spikes in each attack (each round = 8 spikes)
-@export var spike_speed := 8.0        # metres a second a spike flies (the boat does 7 at top speed)
-@export var spike_range := 15.0       # metres a spike flies before it's gone
+@export var walk_time := 6.0          # seconds it wanders before it stops to shoot
+@export var attack_time := 3.0        # seconds it stands still shooting
+@export var shot_count := 1           # rounds of spikes in each attack (each round = 8 spikes)
+@export var spike_speed := 6.0        # metres a second a spike flies (the boat does 7 at top speed)
+@export var spike_range := 30.0       # metres a spike flies before it's gone
 @export var spike_damage := 0.5       # hearts a spike takes off the boat (Enrico: half a heart)
 @export var spike_hit_radius := 1.2   # metres from the boat's middle a spike must come to hit her
 @export var max_hearts := 3.0         # how much a bomb must take off it to kill it (Enrico: 3 for now)
