@@ -345,10 +345,13 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   rendered `UPDATE_ONCE`, again only on resize): the wheel at angle 0 (drawn every frame turned by `wheel_angle`, linear
   filter), the hub sailing and the hub at anchor; only the rim's fixed shade, the hub's shake and its hold ring are
   drawn live (draw calls ~290 → ~45: the wheel's discs of 40 triangles each were most of them). Drag to steer (half a turn = full rudder, springs back to the middle); the hub's grip is
-  16.5 sailing / 21 at anchor (× 2.6): held `hub_hold` 0.33 s (a ring fills) it works the anchor and shakes; a finger
+  16.5 sailing / 21 at anchor (× 2.6): held `hub_hold` 0.165 s (Enrico: halved from 0.33; a ring fills) it works the anchor and shakes; a finger
   moving 9 off the hub turns the wheel instead; at anchor the wheel doesn't steer (drag and arrow keys), and **it fades
   away, only the hub stays** (Enrico, as the prototype; `wheel_shown` 1 → 0 over `wheel_fade_time` 0.3 s, also tied up;
-  `_has_point` then only takes the hub). **The hub's glyph** (`_draw_hub(..., glyph)`: "anchor", "question" over a
+  `_has_point` then only takes the hub). **Every press on the hub** (Enrico, a rule for buttons: in a talk, to drop or
+  weigh the anchor) **flashes black and clicks**: its picture tinted black while the finger is down and for at least
+  `press_flash` 0.12 s (`press_flash_left`), and `Sfx.button_press()` (`button_press.ogg`, player `ButtonPress` −6 dB: a
+  soft low tock, 70 ms, 170 → 130 Hz with a muffled tick, made by `art_src/audio/make_button_press.py`). **The hub's glyph** (`_draw_hub(..., glyph)`: "anchor", "question" over a
   fishing spot, "talk" a speech bubble, `_draw_speech_bubble`; talk comes first; six pictures): the speech bubble while
   she's in an NPC's radius or someone talks (Enrico: dropping anchor there starts the talk), from the boat's
   `talk_hint_changed` (`set_near_npc`, `npcs_near`, `talking`'s setter, `talk_hint()`). Its sounds:
@@ -608,7 +611,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   panel, 2 px ink border, 3 px ink shadow (as the hearts'); on the left `Portrait` (TextureRect 86 px, a double ink
   frame), on the right `Name` (14) and `Text` (13, autowrap), ink. Each page typed out at `letters_per_second` 30
   (`visible_characters`). **Its voice** (Enrico, like Animal Crossing): every `letters_per_blip` 2 spoken letters (letters and digits; `_is_spoken`, the first of a page at once) `Sfx.talk_blip()`: `talk_blip.ogg` (player `TalkBlip` −8 dB, polyphony 3; second version, Enrico: the first was whiny: a plain 50 ms dot of sound, 240 Hz holding its pitch, a touch of 2nd/3rd harmonics, made by `art_src/audio/make_talk_blip.py`) at a random pitch `talk_pitch_min/max` 0.96–1.04 (only a little change) (sfx.gd exports). **A quick tap on the wheel's hub** (`helm.gd` signal `hub_tapped`: let go before `hub_hold`;
-  helm in group `helm`; **pressed in a talk the hub goes black**, Enrico: `helm.gd` draws its picture tinted black while the finger is down and for at least `talk_press_flash` 0.12 s, `press_flash_left`): while typing → the whole page; then the next page; after the last → closes and calls the
+  helm in group `helm`; see the wheel for its press flash and click): while typing → the whole page; then the next page; after the last → closes and calls the
   NPC back. While open `boat.talking` is true: `toggle_anchor` does nothing (hub hold, Space) and the hub's ring
   doesn't fill. **While open, every node in the group `hidden_while_talking` is hidden** (Enrico: the
   `WindVane` and `Health` CanvasLayers, group set in their .tscn; `_show_hud`); add a node to it to hide it too.

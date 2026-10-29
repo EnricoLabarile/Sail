@@ -22,7 +22,7 @@ extends Control
 
 signal hub_tapped                # a quick tap on the hub (let go before hub_hold): the talk box listens
 
-@export var hub_hold := 0.33     # s to hold the hub for the anchor
+@export var hub_hold := 0.165    # s to hold the hub for the anchor (Enrico: halved from 0.33)
 @export var lock_turn := PI      # how far the wheel turns for full rudder (PI = half a turn)
 @export var return_rate := 3.5   # let go, the wheel spins back to the middle: this share of its angle a second…
 @export var return_min := 0.8    # …but at least this many rad/s, so it gets all the way back (as in the prototype)
@@ -31,7 +31,7 @@ signal hub_tapped                # a quick tap on the hub (let go before hub_hol
 # The shimmer on the hub's speech bubble while she's in an NPC's radius (Enrico: to catch the eye).
 @export var shimmer_every := 1.6     # s from one glint to the next
 @export var shimmer_time := 0.5      # s a glint takes to sweep across the hub
-@export var talk_press_flash := 0.12 # while someone talks, a press on the hub turns it black: at least this long (s), so a quick tap shows too
+@export var press_flash := 0.12      # a press on the hub turns it black: at least this long (s), so a quick tap shows too
 @export var talk_wheel_shade := 0.6  # while the hub shows the speech bubble the wheel is drawn darker (1 = as usual)
 
 # The prototype's measures (in its pixels): the drawing's size, its middle, how much the wheel is scaled up.
@@ -68,7 +68,7 @@ var shimmer_t := 0.0             # seconds since the shimmer started (the glint'
 var wheel_shown := 1.0           # 1 = the wheel fully there, 0 = faded away (at anchor: only the hub)
 var last_angle := 0.0            # the wheel's angle a frame ago (for its speed, for the sounds)
 var at_lock := false             # true while the wheel is hard over, at full lock
-var press_flash_left := 0.0      # seconds the hub stays black after a press in a talk (see talk_press_flash)
+var press_flash_left := 0.0      # seconds the hub stays black after a press (see press_flash)
 
 
 func _boat() -> Node:
@@ -122,11 +122,11 @@ func _gui_input(e: InputEvent) -> void:
 				hub_index = e.index
 				hub_t = 0.0
 				hub_start = p
-				# In a talk the hub is the "go on" button: it goes black while pressed (Enrico: so she sees it's
-				# being pressed), for at least talk_press_flash seconds.
-				if _is_talking():
-					press_flash_left = talk_press_flash
-					queue_redraw()
+				# Any press on the hub (Enrico: a rule for every button): a low click, and it goes black while
+				# pressed, for at least press_flash seconds, so she sees it's been pressed.
+				press_flash_left = press_flash
+				Sfx.button_press()
+				queue_redraw()
 			accept_event()
 		elif e.index == drag_index:
 			# Let go of the hub before hub_hold: a quick tap (the talk box goes on to its next page).
@@ -409,10 +409,10 @@ func _draw() -> void:
 	var hub_middle := middle + Vector2(shake_x * s, 0.0)
 	var hub := _hub_picture().get_texture()
 	draw_set_transform(hub_middle, 0.0, Vector2.ONE)
-	# Pressed in a talk: the same picture tinted black (a modulate of 0 turns every colour to ink, the
-	# see-through round it stays see-through), while the finger is down and for at least talk_press_flash.
-	var pressed_in_talk := (hub_index != -1 and _is_talking()) or press_flash_left > 0.0
-	var tint := Color.BLACK if pressed_in_talk else Color.WHITE
+	# Pressed: the same picture tinted black (a modulate of 0 turns every colour to ink, the see-through round
+	# it stays see-through), while the finger is down and for at least press_flash seconds.
+	var pressed := hub_index != -1 or press_flash_left > 0.0
+	var tint := Color.BLACK if pressed else Color.WHITE
 	draw_texture(hub, -Vector2(hub.get_size()) * 0.5, tint)
 	# 3b. The shimmer (by an NPC): now and then a glint sweeps across the hub.
 	if shimmer_on:
