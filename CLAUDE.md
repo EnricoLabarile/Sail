@@ -21,6 +21,11 @@
   calls `boat.bump_into_enemy(its place)`: she's knocked back away from it (`bounce_kick` + `bounce_extra` × her
   speed, into `knock`), her speed × `bounce_slowdown`, the hull's knock, `take_damage(enemy_touch_damage 0.5)`; then
   `enemy_touch_cooldown` 1 s (`enemy_wait`) before it can happen again. Done for the urchin (3 m) and the imp (2 m, up or hurt).
+- **Every enemy, when killed, makes the death sound and drops something** (Enrico's rule, Oct 2026): `Sfx.enemy_death()`
+  (`imp_death.ogg`, `enemy_death_delay` 0.25 s after, so the bomb's bang doesn't cover it) and `Pickup.drop_loot(parent,
+  item, place, chance, min, max, spread)` (a static function in `pickup.gd`: with `chance` 0..1 it leaves `min`–`max`
+  pickups of `item` on water within `spread` m, `loot_spot`); each enemy has the exports `drop_item` (default
+  `bomb.tres`; empty = nothing), `drop_chance` (1 = always), `drop_min` 1, `drop_max` 2, `drop_spread` 3 m.
 - **No camera-facing (billboard) shaders or nodes** (Enrico's rule, Oct 2026): pictures in the world are plain
   planes/quads that keep the node's own rotation; Enrico decides himself whether and how to tilt an element to the
   camera's angle. (Already made before the rule: `stone.gdshader`, used by the bomb and the fireball, and
@@ -305,11 +310,11 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   by the BOAT for anything going into the hold (Enrico: an item or an imp's body, it's all something brought aboard):
   `Inventory.add` sends `came_aboard(item, count)` (not for the start items, added before the boat listens),
   `boat.gd` `_on_came_aboard` plays it: pickups, a caught imp, a fishing haul, a buy at the counter. **Imp killed**
-  (`imp_death.ogg`, `ImpDeath`, `Sfx.imp_death()`, from `sea_imp_zone.gd` `defeat()`): a low buzzy growl falling
+  (`imp_death.ogg`, `ImpDeath`, `Sfx.enemy_death()`, now **every enemy's** death sound: `sea_imp_zone.gd` `defeat()`, `sea_urchin.gd` `blast_at`): a low buzzy growl falling
   110 → 38 Hz with a wobble, a bubbling gurgle of low noise, soft overdrive, 1.1 s. **Bomb** (`bomb_blast.ogg`,
   `BombBlast`, `Sfx.bomb_blast()`, from `bomb.gd` `explode()`): a short crack, a boom falling 80 → 28 Hz, a low
   rumble, overdriven, 1.6 s; played less intense (Enrico): `BombBlast` Pitch Scale 1.5 (higher, ~1.1 s) and Volume
-  −6 dB (half) in sfx.tscn. The imp's death plays `imp_death_delay` 0.25 s late (an export on sfx.gd), as an imp is
+  −6 dB (half) in sfx.tscn. An enemy's death plays `enemy_death_delay` 0.25 s late (an export on sfx.gd), as it's
   usually killed by a bomb, whose blast covered it. Both made by `art_src/audio/make_danger_sounds.py` (numpy, scipy, ffmpeg); both keep
   overtones above 200 Hz on purpose, as a phone's speaker can't play their deep part.
   **The logbook** (Enrico: a page turning, opening and closing): `book_open.ogg` / `book_close.ogg` (players `BookOpen` / `BookClose` −8 dB, `Sfx.book(opening)`, from `logbook.gd` `set_open`: opening as the cover starts to swing, after the drop; closing at once): a paper flutter (noise band-passed 1.5–4.5 kHz and a lower rustle, flickering under a rise-and-fall swell), 0.35 s; closing 0.3 s of it and then the cover's soft thump (110 → 70 Hz and low-passed noise) at 0.3 s; made by `art_src/audio/make_page_turn.py`.
@@ -495,7 +500,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   and gone; gone on land. All numbers are the urchin's exports. **Bombs kill it** (Enrico): group `bomb_targets`,
   `blast_at(bomb)`: within `bomb.in_blast(urchin, body_radius 1.5)` it loses `bomb.damage` of `max_hearts` 3 and blinks
   black (`hurt_time` 0.5 s at `hurt_blinks_per_second` 12: its own copy of the picture's material, `albedo_color` black /
-  white); at 0 → `State.DEAD`: it stops, blinks, and is freed. Traps don't touch it. **Running into it**: `check_touch`,
+  white); at 0 → `State.DEAD`: `Sfx.enemy_death()`, `Pickup.drop_loot` (its `drop_item` bomb, `drop_chance` 1, 1–2 within
+  3 m), it stops, blinks, and is freed. Traps don't touch it. **Running into it**: `check_touch`,
   the boat's middle within `touch_radius` 3 m → `boat.bump_into_enemy` (bounce, half a heart). No sounds. `spike.tscn` is in the shader warm-up's `LATER`.
 - **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
   `.gd` (`@tool`), `big_wave.tscn` + `.gd`, `big_wave.gdshader`, `big_wave.png`; under `BigWaves` in Overworld, for now
@@ -595,8 +601,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   speeding up (`pull_speed` + `pull_accel` × t; ~0.4 s from 5 m), and within `collect_distance` → `take(boat)` (no room
   by then: it stops where it got to). The floating shop's goods (`auto_take` off) aren't pulled. `take(boat)`: `Inventory.add(id, count)`, coins out if priced, `Sfx.pickup()`, the shake,
   signal `taken`, freed; no room: it stays. (Its sound is the boat's "came aboard", see Sound.) Placed by hand anywhere, made by the floating shop, and **dropped by a killed
-  sea imp** (`sea_imp_zone.gd` `defeat()` → `drop_loot()`: `drop_min`–`drop_max` 1–2 pickups of `drop_item` (bomb.tres)
-  within `drop_spread` 3 m of it, on water (`loot_spot`), added next to the zone so they stay put).
+  enemy** (`Pickup.drop_loot`, see the rule at the top: the imp's `defeat()`, the urchin's death; `drop_chance`,
+  `drop_min`–`drop_max` 1–2 pickups of `drop_item` (bomb.tres) within `drop_spread` 3 m, on water, added next to the
+  enemy so they stay put).
 - **Barrels** (Enrico, like Zelda's pots; `Assets/Items/barrel/`: `barrel.tscn` + `barrel.gd` (`@tool`),
   `barrel.gdshader`, `barrel.png` a 4 × 4 flipbook (frames 64², a big barrel lying on its side, rocking, a foam ring;
   a stand-in for Enrico to redraw, made by `art_src/items/make_barrel.py`); under `Gameplay/Barrels` in Overworld, for

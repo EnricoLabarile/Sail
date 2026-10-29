@@ -6,7 +6,7 @@ extends Node
 ##   wheel_rub.ogg    the ship's wheel: a soft wooden rub while it turns (a short loop)
 ##   wheel_thunk.ogg  the ship's wheel: a muted thud when it reaches full lock
 ##   pickup.ogg       a snappy two-note blip: something came aboard, anything (made by art_src/audio/make_pickup.py)
-##   imp_death.ogg    a sea imp killed: a low falling growl with a gurgle of noise   } made by
+##   imp_death.ogg    an enemy killed (every enemy, Enrico; made for the sea imp): a low falling growl with a gurgle of noise   } made by
 ##   bomb_blast.ogg   a bomb going off: a crack, a deep boom, a rumble               } art_src/audio/make_danger_sounds.py
 ##                    (played higher and quieter: BombBlast's Pitch Scale 1.5 and Volume -6 dB in sfx.tscn, Enrico)
 ##   hull_bump.ogg    the hull knocking against a shore or a barrel: a dull thud, a woody knock, a little scrape
@@ -40,9 +40,9 @@ extends Node
 @export var talk_pitch_min := 0.96    # Enrico: only a little change of pitch (was 0.7–0.95, before 0.9–1.25)
 @export var talk_pitch_max := 1.04
 
-## Seconds the imp's death sound waits before it plays. An imp is usually killed by a bomb, whose blast starts in
+## Seconds an enemy's death sound waits before it plays. An enemy is usually killed by a bomb, whose blast starts in
 ## the same instant and would cover it (Enrico couldn't hear it): a moment later, it's heard after the bang.
-@export var imp_death_delay := 0.25
+@export var enemy_death_delay := 0.25
 
 var rub_db := 0.0       # the rub's loudness as set in sfx.tscn (read at start): the code turns it down from there
 var thunk_db := 0.0     # the same for the thud
@@ -93,9 +93,10 @@ func came_aboard() -> void:
 	pickup_sound.play()
 
 
-## A sea imp killed (sea_imp_zone.gd, defeat): imp_death_delay seconds later (a timer, like a Delay node).
-func imp_death() -> void:
-	await get_tree().create_timer(imp_death_delay).timeout
+## An enemy killed (Enrico: every enemy makes this sound; sea_imp_zone.gd defeat, sea_urchin.gd blast_at):
+## enemy_death_delay seconds later (a timer, like a Delay node).
+func enemy_death() -> void:
+	await get_tree().create_timer(enemy_death_delay).timeout
 	imp_death_sound.play()
 
 

@@ -28,7 +28,7 @@ extends Node3D
 ## shader and picture, `lurk_size` across), shown while it lurks and while it's emerging.
 
 const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
-const PICKUP_SCENE := preload("res://Assets/Items/pickup/pickup.tscn")
+const Pickup := preload("res://Assets/Items/pickup/pickup.gd")   # for Pickup.drop_loot (every enemy's reward)
 
 ## How far from its place it still hunts her, in metres: further than this, it goes back to lurking.
 @export var radius := 60:
@@ -60,6 +60,7 @@ const PICKUP_SCENE := preload("res://Assets/Items/pickup/pickup.tscn")
 @export var hurt_time := 0.5               # seconds it stays up blinking black when hit, before it goes under
 @export var hurt_blinks_per_second := 12.0 # how fast it blinks black while hurt
 @export var drop_item: ItemData = preload("res://Assets/Inventory/items/bomb.tres")   # what it leaves when killed (none = nothing)
+@export_range(0.0, 1.0) var drop_chance := 1.0   # how likely it drops it: 1 = always, 0.5 = one time in two
 @export var drop_min := 1                  # how many pickups it leaves, at least…
 @export var drop_max := 2                  # …and at most (Enrico: 1 or 2 bombs)
 @export var drop_spread := 3.0             # metres from the imp they land, at most
@@ -205,33 +206,8 @@ func defeat() -> void:
 	time = 0.0
 	patch.visible = false
 	imp.visible = true
-	Sfx.imp_death()
-	drop_loot()
-
-
-## Its reward: between drop_min and drop_max pickups of drop_item, each on its own spot of water round the imp.
-## They go into the world (next to the zone, not inside it), so they stay put whatever the imp does next.
-func drop_loot() -> void:
-	if drop_item == null:
-		return
-	var how_many := randi_range(drop_min, drop_max)
-	for i in how_many:
-		var pickup := PICKUP_SCENE.instantiate()
-		pickup.item = drop_item
-		get_parent().add_child(pickup)
-		pickup.global_position = loot_spot()
-
-
-## A random spot of water within drop_spread of the imp (if 10 tries all land on land: right where the imp is).
-func loot_spot() -> Vector3:
-	var middle := Vector3(imp.global_position.x, 0.0, imp.global_position.z)
-	for attempt in 10:
-		var angle := randf() * TAU
-		var distance := randf_range(1.0, drop_spread)
-		var spot := middle + Vector3(cos(angle), 0.0, sin(angle)) * distance
-		if not Land.is_land(spot):
-			return spot
-	return middle
+	Sfx.enemy_death()
+	Pickup.drop_loot(get_parent(), drop_item, imp.global_position, drop_chance, drop_min, drop_max, drop_spread)
 
 
 # ---- what it does ----

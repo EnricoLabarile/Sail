@@ -127,6 +127,36 @@ func take(boat: Node3D) -> void:
 	queue_free()
 
 
+## EVERY ENEMY'S REWARD (Enrico's rule: when an enemy dies it drops something; sea_imp_zone.gd, sea_urchin.gd).
+## With a chance of `chance` (0..1: 1 = always, 0.5 = one time in two) it leaves between count_min and count_max
+## pickups of `item`, each on its own spot of water within `spread` metres of `middle`, added to `parent` (the level,
+## not the enemy, so they stay put whatever it does next). `item` null = nothing.
+## static: it belongs to the script, not to a pickup, so an enemy calls it as Pickup.drop_loot(…) (like a static
+## function in a Blueprint Function Library).
+static func drop_loot(parent: Node, item: ItemData, middle: Vector3, chance: float, count_min: int, count_max: int,
+		spread: float) -> void:
+	if item == null or randf() >= chance:
+		return
+	var scene: PackedScene = load("res://Assets/Items/pickup/pickup.tscn")
+	for i in randi_range(count_min, count_max):
+		var pickup := scene.instantiate()
+		pickup.item = item
+		parent.add_child(pickup)
+		pickup.global_position = loot_spot(middle, spread)
+
+
+## A random spot of water within `spread` metres of `middle` (if 10 tries all land on land: `middle` itself).
+static func loot_spot(middle: Vector3, spread: float) -> Vector3:
+	middle.y = 0.0
+	for attempt in 10:
+		var angle := randf() * TAU
+		var distance := randf_range(1.0, spread)
+		var spot := middle + Vector3(cos(angle), 0.0, sin(angle)) * distance
+		if not Land.is_land(spot):
+			return spot
+	return middle
+
+
 ## The icon lying on the disc: a flat plane with the item's picture, sharp, see-through round it, unshaded.
 func _make_picture() -> void:
 	if picture == null:
