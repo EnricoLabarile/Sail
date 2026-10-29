@@ -33,6 +33,7 @@
 [sub_resource type="BoxMesh" id="BoxMesh_eel5a"]
 size = Vector3(0.53808594, 1, 0.4716797)
 
+[ext_resource type="Script" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
 [node name="World_Origin2" type="Node3D" unique_id=1254907948]
 
 [node name="Core" type="Node" parent="." unique_id=70268906]
@@ -41,6 +42,10 @@ size = Vector3(0.53808594, 1, 0.4716797)
 script = ExtResource("1_eel5a")
 save_path = "uid://cc1dk2viasrhn"
 land_roots = Array[NodePath]([NodePath("../../Gameplay/Islands"), NodePath("../Coast")])
+
+[node name="SeaZoneBaker" type="Node3D" parent="Core"]
+script = ExtResource("100_zone_baker")
+save_path = "res://Assets/Landscape/sea_zones/SeaZones_Gym_SeaImp.png"
 
 [node name="Boat" parent="Core" unique_id=1762906152 instance=ExtResource("2_56yd8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.06123, -0.043405533, 230.97981)

@@ -38,6 +38,9 @@
 [ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="91_pickup"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
 
+[ext_resource type="Script" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
+[ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
+[ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
 [node name="Core" type="Node" parent="." unique_id=70268906]
@@ -47,12 +50,17 @@ script = ExtResource("34_shore_baker")
 save_path = "uid://c3dbbk3u8rxjp"
 land_roots = Array[NodePath]([NodePath(""), NodePath("")])
 
+[node name="SeaZoneBaker" type="Node3D" parent="Core"]
+script = ExtResource("100_zone_baker")
+save_path = "res://Assets/Landscape/sea_zones/SeaZones_Overworld.png"
+
 [node name="Boat" parent="Core" unique_id=1762906152 instance=ExtResource("2_boat")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4081421, -0.043405533, 39.818703)
 
 [node name="Sea" parent="Core" unique_id=1750240136 instance=ExtResource("1_sea")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26995945, 0.0868597, -0.12084007)
 shore_texture = ExtResource("4_trlql")
+zones_texture = ExtResource("102_zones")
 fog_falloff = 3.0
 metadata/_edit_lock_ = true
 
@@ -258,3 +266,12 @@ transform = Transform3D(-0.8964555, 0, -0.44313383, 0, 1, 0, 0.44313383, 0, -0.8
 transform = Transform3D(0.8726576, 0, 0.48833257, 0, 1, 0, -0.48833257, 0, 0.8726576, 61.742035, 0, -150.92355)
 
 [node name="NPCs" type="Node" parent="." unique_id=392939115]
+
+[node name="SeaZones" type="Node3D" parent="Gameplay"]
+
+[node name="BoilingTest" parent="Gameplay/SeaZones" instance=ExtResource("101_sea_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 40)
+
+[node name="CurrentTest" parent="Gameplay/SeaZones" instance=ExtResource("101_sea_zone")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -30, 0, 68)
+kind = 1

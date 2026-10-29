@@ -124,6 +124,30 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `Wind.current()` (downwind × `Wind.CURRENT_SPEED` 1.5 m/s) × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; also at
   anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
+- **Sea zones: boiling water and strong currents** (Enrico, Oct 2026; `Assets/Landscape/sea_zones/`): **`sea_zone.tscn`**
+  + `sea_zone.gd` (`@tool`, `class_name SeaZone`): a Node3D with a closed `Path3D` child `Outline` (its `Curve3D` local to
+  scene, a 20 × 20 m square to start; edit the points with the Path tools), `kind` BOILING / CURRENT, `strength` 4 (CURRENT:
+  × `Wind.CURRENT_SPEED`, so 6 m/s), `edge_softness` 4 m (it fades in from the edge); a current flows the way the node
+  points (its −Z, `flow_direction`; turn the node). Editor helper: the outline (red / blue) and, for a current, a 10 m
+  arrow (ImmediateMesh lines, no owner, render_priority 10, no depth test). Nothing runs in the game: **`SeaZoneBaker`**
+  (`sea_zone_baker.gd`, `@tool`, a Node3D under `Core` next to the ShoreBaker; button "Bake sea zones", `save_path`
+  `SeaZones_<Level>.png`, `metres_per_pixel` 1) paints every SeaZone of the level (CPU: pixels in its box inside the
+  polygon, `Geometry2D.is_point_in_polygon`, share = distance to the edge / `edge_softness`) into one RGB8 picture of the
+  map: **R** = boiling 0..1 (max of zones), **G / B** = the current's push east / south in m/s as `128 + push /
+  SeaZone.MAX_PUSH (20) × 127` (zones add up); it writes a `.import` (lossless, no mipmaps, no 3D detection) the first
+  time, reimports and gives it to the level's `Sea` (`zones_texture`). **Bake again after changing a zone.**
+  `sea.gd` `zones_texture` → `Land.set_zones_picture` and the material (`zones_tex`, `zones_on`, `max_push`,
+  `usual_current`); `Land.boil_at(pos)` (R) and `Land.current_at(pos)` (the push, Vector3). **The boat**: `update_boiling`
+  (every physics frame not tied up): in boil ≥ `boil_threshold` 0.5, `take_damage(boil_damage 0.5)` every `boil_every`
+  1 s (the first after 1 s; out of it the count restarts); `update_current`: flow = `Wind.current()` × (1 − share) +
+  zone push, share = |push| / `Wind.CURRENT_SPEED` (clamped), so inside a zone only the zone's push, at its edge mixed;
+  still × `drift_amount` (no current near shores, at NPCs, just after casting off). **The look** (`sea.gdshader`): where
+  the picture says so, the sea texture gives way to `boil_tex` (`boiling.png`, × boil) and `current_tex`
+  (`strong_current.png`, × share, turned so its TOP points along the flow, `atan(push.x, -push.z)`, sliding along it
+  at `current_scroll` 2 m/s), both 4 × 4 flipbooks (`zone_frames_x/y`, `boil_tile` 6 m / `boil_fps` 10, `current_tile`
+  8 m / `current_fps` 12), stand-ins made by `art_src/items/make_sea_zone_textures.py` (bubbles welling and popping;
+  streaks and "^" chevrons sliding up), set in `sea.tscn`. Test zones in Overworld: `Gameplay/SeaZones/BoilingTest`
+  (−30, 0, 40) and `CurrentTest` (−30, 0, 68), flowing east. Gym_SeaImp has its baker (`SeaZones_Gym_SeaImp.png` once baked) and no zones yet.
 - **The grid on the sea** (Enrico, as the prototype's room seams `drawRoomSeams`): `sea.gdshader`'s `seam()`
   draws dashed lines along the borders between the logbook's 9 × 9 squares, every `cell_size` (Land.WORLD_SIZE / 9 =
   112 m, sent by `sea.gd` with `world_size`) from the map's edge: `seam_width` 0.3 m, `seam_dash` 0.6 / `seam_gap`

@@ -65,6 +65,28 @@ uniform float deep_from = 3.0;         // metres from the coast where the darken
                                        // sends the boat's shallows_width: it starts where the slow water ends)
 uniform float deep_to = 30.0;          // metres from the coast where it's at its darkest
 
+// SEA ZONES (Enrico): boiling water and strong currents, drawn in the editor (SeaZone nodes) and baked into
+// zones_tex by the SeaZoneBaker (Assets/Landscape/sea_zones/). Red = how much the sea boils (0..1); green and blue =
+// the strong current's push east and south (128/255 = none; see sea_zone_baker.gd). Where they're on, the usual sea
+// texture gives way to their own flipbooks. No picture: the default (black) has no boiling; the push channels then
+// read as "very much west and north", so zones_on stays off until a picture is given (sea.gd).
+uniform sampler2D zones_tex : filter_linear, repeat_disable;
+uniform bool zones_on = false;          // sea.gd: true once the level's Sea has a zones picture
+uniform float max_push = 20.0;          // m/s the picture's push channels reach (SeaZone.MAX_PUSH, sent by sea.gd)
+uniform float usual_current = 1.5;      // m/s of the usual current (Wind.CURRENT_SPEED): a push this strong or more
+                                        // shows the strong current's texture fully
+// The boiling water's flipbook (Enrico redraws it): frames_x x frames_y frames, tiled every boil_tile metres.
+uniform sampler2D boil_tex : source_color, hint_default_white, filter_nearest, repeat_enable;
+uniform float boil_tile = 6.0;
+uniform float boil_fps = 10.0;
+// The strong current's flipbook: its TOP is the way the current flows (the shader turns it to the zone's flow).
+uniform sampler2D current_tex : source_color, hint_default_white, filter_nearest, repeat_enable;
+uniform float current_tile = 8.0;
+uniform float current_fps = 12.0;
+uniform float current_scroll = 2.0;     // metres a second the drawing also slides along the flow
+uniform int zone_frames_x = 4;          // both zone flipbooks are 4 x 4 frames
+uniform int zone_frames_y = 4;
+
 // world_pos: where on the sea this pixel is, in metres. vertex() works it out, fragment() reads it.
 varying vec3 world_pos;
 
@@ -127,6 +149,14 @@ float shore_foam(vec2 p, float from_coast) {
 	return max(on_line, on_foam);
 }
 
+// One frame of a zone flipbook at this point: `p` in metres (already turned and slid), `tile` metres a tile.
+vec3 zone_flipbook(sampler2D sheet, vec2 p, float tile, float frames_a_second) {
+	vec2 in_tile = fract(p / tile);
+	int frame = int(TIME * frames_a_second) % (zone_frames_x * zone_frames_y);
+	vec2 cell = vec2(float(frame % zone_frames_x), float(frame / zone_frames_x));
+	return texture(sheet, (cell + in_tile) / vec2(float(zone_frames_x), float(zone_frames_y))).rgb;
+}
+
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
@@ -146,6 +176,23 @@ void fragment() {
 	// 4. The point of the image: inside that frame's cell (each cell is 1/frames_x wide, 1/frames_y tall).
 	vec2 uv = (frame_cell + in_tile) / vec2(float(frames_x), float(frames_y));
 	vec3 water = texture(sea_tex, uv).rgb * sea_color.rgb;
+
+	// The sea zones (only where the picture says so; most of the sea skips this).
+	vec2 on_map = (world_pos.xz + world_size * 0.5) / world_size;
+	vec3 zone = zones_on ? texture(zones_tex, on_map).rgb : vec3(0.0, 128.0 / 255.0, 128.0 / 255.0);
+	float boil = zone.r;
+	vec2 push = (zone.gb * 255.0 - 128.0) / 127.0 * max_push;      // m/s east (x) and south (y)
+	float current = clamp(length(push) / usual_current, 0.0, 1.0);  // 0 = none, 1 = a strong current fully
+	if (current > 0.05) {
+		// Turn the drawing so its top points the way the current flows: the flow's angle clockwise from north,
+		// and the point read turned back by it; then slide it along the flow (toward the drawing's top).
+		float flow_angle = atan(push.x, -push.y);
+		vec2 p = rotate(world_pos.xz, -flow_angle) + vec2(0.0, TIME * current_scroll);
+		water = mix(water, zone_flipbook(current_tex, p, current_tile, current_fps) * sea_color.rgb, current);
+	}
+	if (boil > 0.01) {
+		water = mix(water, zone_flipbook(boil_tex, world_pos.xz, boil_tile, boil_fps) * sea_color.rgb, boil);
+	}
 
 	// The deep water: darker the further from the coast (0 near it, 1 from deep_to out; smoothstep eases it).
 	float from_coast = distance_from_coast(world_pos.xz);

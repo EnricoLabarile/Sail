@@ -24,6 +24,12 @@ extends MeshInstance3D
 	set(value):
 		shore_texture = value
 		use_shore_picture()          # the waves follow at once, in the editor too
+# This level's sea zones picture (made by its SeaZoneBaker: Bake sea zones): where the sea boils and where the strong
+# currents run. The shader draws them from it (their own flipbooks), and Land reads it (the boat feels them).
+@export var zones_texture: Texture2D:
+	set(value):
+		zones_texture = value
+		use_shore_picture()          # shown at once, in the editor too
 # Untick to hide the shore waves (handy while placing islands: the old waves don't get in the way). Only the look:
 # Land keeps reading the picture (the shallows still work in the game), and the deep water stays.
 @export var show_shore_waves := true:
@@ -38,6 +44,8 @@ extends MeshInstance3D
 		fog_falloff = value
 		if fog_material:
 			fog_material.set_shader_parameter("falloff", fog_falloff)
+
+const WindScript := preload("res://Assets/Landscape/world/wind.gd")   # for CURRENT_SPEED (also in the editor)
 
 var fog_material: ShaderMaterial      # the fog's material (to send it the falloff)
 var texture_angle := 0.0              # where the texture is turned now (radians, clockwise from north)
@@ -54,6 +62,7 @@ func _ready() -> void:
 	sea_material.set_shader_parameter("world_size", Land.WORLD_SIZE)
 	sea_material.set_shader_parameter("cell_size", Land.WORLD_SIZE / 9.0)   # 9 x 9 squares, as the logbook's map
 	Land.set_shore_picture(shore_texture)   # Land reads this level's picture too (how far the coast is: the shallows)
+	Land.set_zones_picture(zones_texture)   # and the sea zones' (the boiling water and the strong currents)
 	texture_angle = deg_to_rad(Wind.from_deg + texture_turn_deg)   # start already facing the wind
 	sea_material.set_shader_parameter("wind_angle", texture_angle)   # and tell the shader so (_process sends it
 	sea_material.set_shader_parameter("wind_offset", texture_offset) # again only when the wind turns)
@@ -72,6 +81,11 @@ func use_shore_picture() -> void:
 	# show_shore_waves only hides the waves: the picture stays, for the deep water.
 	sea_material.set_shader_parameter("shore_tex", shore_texture)
 	sea_material.set_shader_parameter("shore_waves_on", show_shore_waves)
+	# The sea zones: the picture, and the two numbers the shader needs to read the currents in it.
+	sea_material.set_shader_parameter("zones_tex", zones_texture)
+	sea_material.set_shader_parameter("zones_on", zones_texture != null)
+	sea_material.set_shader_parameter("max_push", SeaZone.MAX_PUSH)
+	sea_material.set_shader_parameter("usual_current", WindScript.CURRENT_SPEED)
 	material_override = sea_material
 
 

@@ -4,6 +4,8 @@
 [ext_resource type="Script" uid="uid://dh43s3p0e1f2e" path="res://Assets/Landscape/world/sea.gd" id="5_script"]
 [ext_resource type="Texture2D" uid="uid://cq3g250kg05in" path="res://Assets/Landscape/world/sea_tex.png" id="6_tex"]
 [ext_resource type="Texture2D" uid="uid://ctff4qtpd7y0y" path="res://Assets/Landscape/shore/shore_distance.png" id="7_shore"]
+[ext_resource type="Texture2D" path="res://Assets/Landscape/sea_zones/boiling.png" id="8_boil"]
+[ext_resource type="Texture2D" path="res://Assets/Landscape/sea_zones/strong_current.png" id="9_current"]
 
 [sub_resource type="ShaderMaterial" id="Mat_sea"]
 render_priority = 0
@@ -34,6 +36,8 @@ shader_parameter/wave_speed = 1.2
 shader_parameter/wave_line = 0.5
 shader_parameter/foam_width = 0.8
 shader_parameter/wave_wobble = 1.0
+shader_parameter/boil_tex = ExtResource("8_boil")
+shader_parameter/current_tex = ExtResource("9_current")
 
 [sub_resource type="PlaneMesh" id="Mesh_sea"]
 material = SubResource("Mat_sea")

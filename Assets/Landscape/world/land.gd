@@ -27,6 +27,40 @@ const ShoreBaker := preload("res://Assets/Landscape/shore/shore_baker.gd")
 var shore_image: Image
 
 
+## The picture of the sea zones (boiling water, strong currents) of the level that's open, made by its
+## SeaZoneBaker; handed over by the level's Sea at start (set_zones_picture). null = no zones anywhere.
+var zones_image: Image
+
+
+## The level's Sea calls this at start with its sea zones picture (sea.gd, `zones_texture`).
+func set_zones_picture(texture: Texture2D) -> void:
+	zones_image = texture.get_image() if texture else null
+
+
+## The pixel of the zones picture under this point of the world (black = nothing there, if there's no picture).
+func _zones_pixel(pos: Vector3) -> Color:
+	if zones_image == null:
+		return Color(0.0, 128.0 / 255.0, 128.0 / 255.0)   # no boiling, no push
+	var half := WORLD_SIZE / 2.0
+	var x := clampi(int((pos.x + half) / WORLD_SIZE * zones_image.get_width()), 0, zones_image.get_width() - 1)
+	var y := clampi(int((pos.z + half) / WORLD_SIZE * zones_image.get_height()), 0, zones_image.get_height() - 1)
+	return zones_image.get_pixel(x, y)
+
+
+## How much the sea boils at this point: 0 = not at all, 1 = fully (inside a boiling zone, past its soft edge).
+func boil_at(pos: Vector3) -> float:
+	return _zones_pixel(pos).r
+
+
+## The strong current's push at this point, flat on the water, in m/s (zero outside every current zone).
+## The picture keeps it as 128 = none, more = east / south, less = west / north (sea_zone_baker.gd).
+func current_at(pos: Vector3) -> Vector3:
+	var pixel := _zones_pixel(pos)
+	var east := (pixel.g8 - 128) / 127.0 * SeaZone.MAX_PUSH
+	var south := (pixel.b8 - 128) / 127.0 * SeaZone.MAX_PUSH
+	return Vector3(east, 0.0, south)
+
+
 ## The level's Sea calls this at start with its shore picture (sea.gd, `shore_texture`). null = no picture:
 ## every point counts as far from the coast.
 func set_shore_picture(texture: Texture2D) -> void:

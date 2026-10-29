@@ -76,6 +76,12 @@ extends Node3D
 @export var current_ease := 0.8     # how quickly it takes hold at the start
 @export var shore_calm_distance := 6.0   # metres from the coast where the current stops carrying her
 
+# Boiling water (a SeaZone of kind BOILING, baked into the level's sea zones picture: Land.boil_at): while she's in
+# it she loses boil_damage hearts every boil_every seconds (Enrico: half a heart a second).
+@export var boil_damage := 0.5      # hearts each time
+@export var boil_every := 1.0       # seconds between one and the next
+@export var boil_threshold := 0.5   # how far into the zone's soft edge counts as "in it" (0..1: 0.5 = halfway in)
+
 # Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
 @export var bounce_kick := 7     # m/s of push away from the shore on any bump…
 @export var bounce_extra := 0.9     # …plus this much of the speed she hit it with
@@ -152,6 +158,7 @@ var caught_eye: Node3D = null    # the maelstrom's eye holding her (null = free)
 var caught_spin := 0.0           # how fast she spins while held (radians a second)
 var fling_velocity := Vector3.ZERO   # the push of being spat out of a maelstrom (m/s)…
 var fling_left := 0.0                # …and the seconds it still lasts
+var boil_time := 0.0        # seconds she has been in boiling water since the last scald (see update_boiling)
 var drift_amount := 0.0     # 0..1: how much the current has her (eases in and out, see current_ease)
 var bump_wait := 0.0        # seconds left before another bump can count
 var heel := 0.0             # how far she leans with the wind (radians), without the waves' roll
@@ -407,6 +414,7 @@ func respawn() -> void:
 	berth = null
 	surfing_left = 0.0
 	boost_left = 0.0
+	boil_time = 0.0
 	global_position = home_position
 	rotation.y = home_turn
 	health = max_hearts
@@ -599,6 +607,7 @@ func _physics_process(dt: float) -> void:
 		if not anchored:
 			rotate_y(-rudder * turn_rate * dt)
 		update_current(dt)
+		update_boiling(dt)
 		move_and_bounce(dt)
 		hold_at_anchor()
 	# How quickly she really turned this frame (the rudder, a bump, the anchor line swinging her):
@@ -841,7 +850,25 @@ func update_current(dt: float) -> void:
 		target = 0.0                                      # in an NPC's radius: none either (Enrico), so she can stop by
 	# Eased, not switched: drift_amount slides toward the target a little every frame, so she isn't jolted.
 	drift_amount += (target - drift_amount) * minf(1.0, dt * current_ease)
-	drift = Wind.current() * drift_amount
+	# A strong current zone (SeaZone, kind CURRENT: Land.current_at) takes over from the usual current: its own
+	# direction and strength, whatever the wind. At its soft edge, where its push is still weaker than the usual
+	# current, the two are mixed, so she slides into it rather than being yanked.
+	var zone_push := Land.current_at(global_position)
+	var zone_share := clampf(zone_push.length() / Wind.CURRENT_SPEED, 0.0, 1.0)   # 0 = no zone, 1 = the zone only
+	var flow := Wind.current() * (1.0 - zone_share) + zone_push
+	drift = flow * drift_amount
+
+
+## Boiling water: while she's in it, boil_damage hearts every boil_every seconds (the first one boil_every seconds
+## after she comes in). Out of it, the count starts again. (take_damage does nothing while she sinks or comes up.)
+func update_boiling(dt: float) -> void:
+	if Land.boil_at(global_position) < boil_threshold:
+		boil_time = 0.0
+		return
+	boil_time += dt
+	if boil_time >= boil_every:
+		boil_time -= boil_every
+		take_damage(boil_damage)
 
 
 ## Pushed back by something she can't go over (an item of a floating shop she can't afford): she loses her way and
