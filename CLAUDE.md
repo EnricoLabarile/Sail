@@ -19,7 +19,7 @@
 - **Running into any enemy hurts and bounces the boat** (Enrico's rule, Oct 2026, for every monster): the enemy checks
   each frame whether the boat's middle is within its `touch_radius` (only while it's out of the water / solid) and
   calls `boat.bump_into_enemy(its place)`: she's knocked back away from it (`bounce_kick` + `bounce_extra` × her
-  speed, into `knock`), her speed × `bounce_slowdown`, the hull's knock, `take_damage(enemy_touch_damage 0.5)`; then
+  speed, into `knock`), her speed × `bounce_slowdown`, `take_damage(enemy_touch_damage 0.5)` (its sound: `Sfx.boat_hurt`); then
   `enemy_touch_cooldown` 1 s (`enemy_wait`) before it can happen again. Done for the urchin (3 m) and the imp (2 m, up or hurt).
 - **Every enemy, when killed, makes the death sound and drops something** (Enrico's rule, Oct 2026): `Sfx.enemy_death()`
   (`imp_death.ogg`, `enemy_death_delay` 0.25 s after, so the bomb's bang doesn't cover it) and `Pickup.drop_loot(parent,
@@ -318,6 +318,11 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   usually killed by a bomb, whose blast covered it. Both made by `art_src/audio/make_danger_sounds.py` (numpy, scipy, ffmpeg); both keep
   overtones above 200 Hz on purpose, as a phone's speaker can't play their deep part.
   **The logbook** (Enrico: a page turning, opening and closing): `book_open.ogg` / `book_close.ogg` (players `BookOpen` / `BookClose` −8 dB, `Sfx.book(opening)`, from `logbook.gd` `set_open`: opening as the cover starts to swing, after the drop; closing at once): a paper flutter (noise band-passed 1.5–4.5 kHz and a lower rustle, flickering under a rise-and-fall swell), 0.35 s; closing 0.3 s of it and then the cover's soft thump (110 → 70 Hz and low-passed noise) at 0.3 s; made by `art_src/audio/make_page_turn.py`.
+  **The boat hurt** (Enrico: one sound for every kind of damage): `boat_hurt.ogg` (player `BoatHurt` −6 dB,
+  `Sfx.boat_hurt()`), played by `boat.gd` `take_damage` whenever she loses hearts (> 0; not while sinking or coming
+  up), so fireballs, spikes, bombs, boiling water, maelstroms, waves and enemies all make it with nothing of their own; a
+  splintering crack (4 bursts of noise 1.5–5 kHz in 50 ms) on a heavy thud 110 → 55 Hz and a short creak sliding
+  900 → 400 Hz, 0.42 s, made by `art_src/audio/make_boat_hurt.py`. Running into an enemy plays only this (not the hull bump).
   **Hull bump** (Enrico: when she bounces off a surface; `hull_bump.ogg`, player `HullBump`, `Sfx.hull_bump(strength)`,
   from `boat.gd` `bump()`, so shores and barrels alike, only for a real bump, after its cooldown and minimum speed):
   a dull thud 150 → 75 Hz with overtones (Enrico: keep this pitch), a woody knock (noise round 700 Hz) and a scrape, all

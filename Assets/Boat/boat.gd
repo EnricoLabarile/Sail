@@ -375,6 +375,8 @@ func glide_to_berth(dt: float) -> void:
 func take_damage(hearts: float) -> void:
 	if sinking or emerging:
 		return                       # going down, or still coming up: nothing more can hurt her
+	if hearts > 0.0:
+		Sfx.boat_hurt()              # the one sound for every kind of damage (sfx.gd); not for a 0 (a shore bump: only the shake)
 	health = maxf(0.0, health - hearts)
 	health_changed.emit(true)
 	camera.shake()                   # the screen shakes (boat_camera.gd)
@@ -902,8 +904,7 @@ func bump_into_enemy(enemy_point: Vector3) -> void:
 		away = global_transform.basis.z      # right on top of it: back her out astern
 	knock += away.normalized() * (bounce_kick + absf(speed) * bounce_extra)
 	speed *= bounce_slowdown
-	Sfx.hull_bump(clampf(0.4 + 0.6 * absf(speed) / top_speed, 0.0, 1.0))
-	take_damage(enemy_touch_damage)
+	take_damage(enemy_touch_damage)      # its sound is the damage's (Sfx.boat_hurt), not the hull's knock
 
 
 ## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).

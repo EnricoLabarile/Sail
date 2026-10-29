@@ -15,6 +15,7 @@
 [ext_resource type="AudioStream" path="res://Assets/SFX/button_press.ogg" id="16_button"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/book_open.ogg" id="17_book_open"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/book_close.ogg" id="18_book_close"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/boat_hurt.ogg" id="19_boat_hurt"]
 
 [node name="Sfx" type="Node"]
 script = ExtResource("1_sfx")
@@ -73,3 +74,7 @@ volume_db = -8.0
 [node name="BookClose" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("18_book_close")
 volume_db = -8.0
+
+[node name="BoatHurt" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("19_boat_hurt")
+volume_db = -6.0
