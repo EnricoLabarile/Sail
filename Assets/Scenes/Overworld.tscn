@@ -41,6 +41,20 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
 [ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
 
+[sub_resource type="Curve3D" id="Curve3D_boiling_test"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -10, 0, -10, 0, 0, 0, 0, 0, 0, 10, 0, -10, 0, 0, 0, 0, 0, 0, 10, 0, 10, 0, 0, 0, 0, 0, 0, -10, 0, 10),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+
+[sub_resource type="Curve3D" id="Curve3D_current_test"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -10, 0, -10, 0, 0, 0, 0, 0, 0, 10, 0, -10, 0, 0, 0, 0, 0, 0, 10, 0, 10, 0, 0, 0, 0, 0, 0, -10, 0, 10),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
 [node name="Core" type="Node" parent="." unique_id=70268906]
@@ -199,10 +213,12 @@ item = ExtResource("92_jar_item")
 
 [node name="BoilingTest" parent="Gameplay/SeaZones" unique_id=1568211694 instance=ExtResource("101_sea_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 40)
+curve = SubResource("Curve3D_boiling_test")
 strength = 4.0
 
 [node name="CurrentTest" parent="Gameplay/SeaZones" unique_id=1862276956 instance=ExtResource("101_sea_zone")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -30, 0, 68)
+curve = SubResource("Curve3D_current_test")
 kind = 1
 strength = 100.0
 

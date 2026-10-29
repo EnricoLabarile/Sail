@@ -1,15 +1,18 @@
 @tool
 class_name SeaZone
-extends Node3D
+extends Path3D
 ## A SEA ZONE (Enrico): a stretch of sea, drawn in the editor, that is either
 ##   - BOILING: the boat loses hearts while she's in it (boat.gd boil_damage every boil_every seconds), or
 ##   - CURRENT: a strong current that carries her the way THIS NODE POINTS (its forward, -Z, the blue arrow in the
 ##     editor), whatever the wind: the usual current (Wind.CURRENT_SPEED) times `strength`.
 ## (In Unreal: a Blueprint with a Spline Component that marks out an area.)
 ##
-## How to draw it: the child `Outline` is a Path3D (a spline, like Unreal's). Select it, and in the 3D view's
-## toolbar use the Path tools to add, move or delete points: they are the corners of the zone, joined in order and
-## closed back to the first. Only where the points are on the water counts (their height doesn't matter).
+## How to draw it: the zone IS a Path3D (a spline, like Unreal's Spline Component, but on the node itself). Select
+## the zone, and in the 3D view's toolbar use the Path tools to add, move or delete points: they are the corners of
+## the zone, joined in order and closed back to the first (straight sides: the curve handles are ignored). Only where
+## the points are on the water counts (their height doesn't matter).
+## Each zone placed in a level has ITS OWN outline (Enrico: variations, as with a Blueprint's spline in Unreal): a new
+## one starts as a 20 x 20 m square made here in code, and that curve is saved in the level with the zone.
 ## To turn a current: rotate the SeaZone node (Y) and the arrow and the flow turn with it.
 ##
 ## Nothing here runs in the game: the zones are BAKED (the SeaZoneBaker node, "Bake sea zones") into one picture
@@ -37,11 +40,23 @@ var helper: MeshInstance3D = null     # the editor-only drawing (outline and arr
 func _ready() -> void:
 	if not Engine.is_editor_hint():
 		return                           # in the game a zone does nothing: the baked picture does the work
-	var outline := get_node_or_null("Outline") as Path3D
-	if outline and outline.curve:
-		outline.curve.changed.connect(_draw_helper)   # redraw the helper whenever a point is moved
-	set_notify_transform(true)                      # and when the node is moved or turned
+	# A zone just placed in a level has no outline yet: give it its own (saved in the level with it). Not while
+	# sea_zone.tscn itself is open, or the square would be saved INTO the scene and shared by every zone.
+	if curve == null and get_tree().edited_scene_root != self:
+		curve = default_square()
+	curve_changed.connect(_draw_helper)  # Path3D's signal: a point moved, added or deleted → redraw the helper
+	set_notify_transform(true)           # and when the node is moved or turned
 	_draw_helper()
+
+
+## A new outline: a 20 x 20 m square round the node, as a Curve3D of its own (not shared with any other zone).
+func default_square() -> Curve3D:
+	var square := Curve3D.new()
+	square.add_point(Vector3(-10, 0, -10))
+	square.add_point(Vector3(10, 0, -10))
+	square.add_point(Vector3(10, 0, 10))
+	square.add_point(Vector3(-10, 0, 10))
+	return square
 
 
 func _notification(what: int) -> void:
@@ -49,14 +64,13 @@ func _notification(what: int) -> void:
 		_draw_helper()
 
 
-## The zone's corners on the water, in world metres (x, z), in order: the Path3D's points.
+## The zone's corners on the water, in world metres (x, z), in order: its curve's points.
 func polygon() -> PackedVector2Array:
 	var points := PackedVector2Array()
-	var outline := get_node_or_null("Outline") as Path3D
-	if outline == null or outline.curve == null:
+	if curve == null:
 		return points
-	for i in outline.curve.point_count:
-		var world := outline.global_transform * outline.curve.get_point_position(i)
+	for i in curve.point_count:
+		var world := global_transform * curve.get_point_position(i)
 		points.append(Vector2(world.x, world.z))
 	return points
 

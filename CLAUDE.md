@@ -125,8 +125,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
 - **Sea zones: boiling water and strong currents** (Enrico, Oct 2026; `Assets/Landscape/sea_zones/`): **`sea_zone.tscn`**
-  + `sea_zone.gd` (`@tool`, `class_name SeaZone`): a Node3D with a closed `Path3D` child `Outline` (its `Curve3D` local to
-  scene, a 20 × 20 m square to start; edit the points with the Path tools), `kind` BOILING / CURRENT, `strength` 4 (CURRENT:
+  + `sea_zone.gd` (`@tool`, `class_name SeaZone`): **the zone IS a `Path3D`** (Enrico: each placed zone its own shape, as a
+  Blueprint's spline in Unreal; it was a Node3D with a shared `Outline` child): select it and edit the points with the
+  Path tools; `sea_zone.tscn` has no curve, `_ready` (editor) gives a new zone its own 20 × 20 m square
+  (`default_square`), saved in the level with it (not while sea_zone.tscn itself is open); straight sides (handles ignored), `kind` BOILING / CURRENT, `strength` 4 (CURRENT:
   × `Wind.CURRENT_SPEED`, so 6 m/s), `edge_softness` 4 m (it fades in from the edge); a current flows the way the node
   points (its −Z, `flow_direction`; turn the node). Editor helper: the outline (red / blue) and, for a current, a 10 m
   arrow (ImmediateMesh lines, no owner, render_priority 10, no depth test). Nothing runs in the game: **`SeaZoneBaker`**
