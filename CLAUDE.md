@@ -596,13 +596,15 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   round the `Picture`'s own scale from bomb.tscn, `pulse()`), **carried by the current** while the fuse burns (Enrico; `drift_with_current`, as the dead
   imp: `Wind.current()` × dt, no step onto land), leaving a **white trail** on the water (Enrico: shows which way it drifts; `Trail`, a
   CPUParticles3D in bomb.tscn, local_coords off, 30 white discs r 0.4 m, life 1.5 s, shrinking to 0.3 and fading; off at the blast); after `fuse_time` 2 s it blows. **The blast runs along lines, like Bomberman** (Enrico, Oct 2026; no
-  longer a circle): `pattern` CROSS (4 arms N/E/S/W, the basic bomb) or DOUBLE_CROSS (8, the diagonals too, the advanced
-  one), each `arm_length` 8 m long and `arm_width` 2 m wide (`arm_directions`, `in_blast(point, extra)`: on an arm or
-  right on the bomb). The arms are white strips on the water made in code (`make_arms`, `set_arms`: PlaneMesh, unshaded,
+  longer only a circle): **a tight circle plus a long cross** (Enrico): the circle `blast_radius` 3 m round the bomb, and
+  `pattern` CROSS (4 arms N/E/S/W, the basic bomb) or DOUBLE_CROSS (8, the diagonals too, the advanced one), each
+  `arm_length` 16 m long and `arm_width` 2 m wide (`arm_directions`, `in_blast(point, extra)`: in the circle or on an
+  arm). The circle is the `Blast` disc (1 m, scaled to `blast_radius` by `show_circle(size, opacity)`): faint while the
+  fuse burns, at the blast it grows from 60% to full and fades with the arms. The arms are white strips on the water made in code (`make_arms`, `set_arms`: PlaneMesh, unshaded,
   render_priority 2): faint (`warning_opacity` 0.25) while the fuse burns, so she sees where it will hit; at the blast
-  they shoot out (first third of `blast_time` 0.4 s) and fade, with the `Blast` disc small in the middle. Hit: an imp
+  they shoot out (first third of `blast_time` 0.4 s) and fade. Hit: an imp
   on an arm (`hit_imp_at(imp's place, 0.1, damage 1)`), a barrel an arm touches (`blast_at(bomb)` → `in_blast(its
-  place, radius)`), the boat (`take_damage(1)`) if her middle is on an arm; between two arms she's safe; then a **powerful screen shake** wherever she is (Enrico:
+  place, radius)`), the boat (`take_damage(1)`) if her middle is in the circle or on an arm; between two arms, outside the circle, she's safe; then a **powerful screen shake** wherever she is (Enrico:
   `boat.camera.shake_hard(shake_strength 1.5, shake_time 0.6)`, the bomb's exports; `boat_camera.gd` `shake_hard`: a
   weaker shake never cuts a stronger one short; `shake()` = `shake_hard(shake_strength 0.5, shake_time 0.3)`). No sound (not asked).
 - **The Aeolus Jar** (Enrico; item `aeolus_jar.tres`: stackable, equippable, `equip_slot` "wind", `equip_on_pickup`, buy 8 / sell 3; icon `Assets/Inventory/icons/aeolus_jar.png`, an amphora with a wind swirl, a stand-in made by `art_src/items/make_aeolus_jar.py`; a test pickup `Gameplay/Pickups/AeolusJarPickup` at (−8, 0, −28) in Overworld): a consumable. Its button `Assets/UI/jar_button/` (`jar_button.tscn`, CanvasLayer 95, group `hidden_at_start`, in `DITHERED`; Control `Button` bottom right **under the bomb button**, 80 px, offsets −94/−162/−14/−82; `jar_button.gd`, `@tool`, the bomb button's look and pie): shown only while a jar is equipped and one is aboard (each button has its **own fixed place**: the bomb's above, the jar's below, whether the other shows or not); a tap (`uncork_jar`) takes one out of the hold and turns the wind to blow **from right astern**, the way her bow points (`Wind.turn_to(bow + 180, turn_time 1.5 s)`), where it stays until another jar or a wind zone; then `cooldown` 30 s (the ink pie). Instanced in every level next to `BombButton`.

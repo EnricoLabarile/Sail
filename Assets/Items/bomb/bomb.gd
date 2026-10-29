@@ -2,20 +2,22 @@ extends Node3D
 ## ONE BOMB, dropped off the boat's bow (the bomb button, Assets/UI/bomb_button). It floats where it fell, carried by the current (drift_with_current),
 ## leaving a trail of white dots on the water behind it (the Trail particles, Enrico: so the player sees which way it drifts), its
 ## fuse burning (the picture blinks, quicker and quicker, and swells and shrinks once a second), and after `fuse_time` seconds it blows up.
-## The blast is NOT a circle (Enrico, like Bomberman): it runs out along straight lines, the ARMS, `arm_length` metres long and
-## `arm_width` wide: a CROSS (4 arms: north, east, south, west) or a DOUBLE_CROSS (8: the diagonals too), set by `pattern`
-## (a basic bomb and an advanced one). Whatever is on an arm (or right on the bomb) loses `damage` hearts: the sea imps
-## (sea_imp_zone.gd hit_imp_at, only while they're out of the water), the barrels, and the boat too; between two arms she's safe,
-## even close by. While the fuse burns the arms show faintly on the water (where it will hit); at the blast they shoot out white.
+## The blast has two parts (Enrico): a tight CIRCLE round the bomb, `blast_radius` metres, and long straight lines, the ARMS
+## (like Bomberman), `arm_length` metres long and `arm_width` wide: a CROSS (4 arms: north, east, south, west) or a
+## DOUBLE_CROSS (8: the diagonals too), set by `pattern` (a basic bomb and an advanced one). Whatever is in the circle or on an
+## arm loses `damage` hearts: the sea imps (sea_imp_zone.gd hit_imp_at, only while they're out of the water), the barrels,
+## and the boat too; between two arms, outside the circle, she's safe. While the fuse burns the circle and the arms show
+## faintly on the water (where it will hit); at the blast the circle flashes and the arms shoot out white.
 ## The screen shakes hard wherever she is.
 ## (In Unreal: a small actor with a timer that does a few line traces for damage, then destroys itself.)
 
 @export var fuse_time := 2.0         # seconds from dropping it to the blast
 enum Pattern { CROSS, DOUBLE_CROSS }   # 4 arms, or 8 (the diagonals too)
 @export var pattern := Pattern.CROSS   # CROSS = the basic bomb, DOUBLE_CROSS = the advanced one
-@export var arm_length := 8.0        # metres each arm of the blast reaches, from the bomb's middle
+@export var blast_radius := 3.0      # metres round the bomb the blast reaches every way (Enrico: fairly tight)
+@export var arm_length := 16.0       # metres each arm of the blast reaches, from the bomb's middle (Enrico: far)
 @export var arm_width := 2.0         # metres wide each arm is (what's within half of it from the arm's line is hit)
-@export var warning_opacity := 0.25  # how strongly the arms show on the water while the fuse burns (0 = not at all)
+@export var warning_opacity := 0.25  # how strongly the circle and arms show on the water while the fuse burns (0 = not at all)
 @export var damage := 1.0            # hearts it takes off whatever is in reach
 @export var blast_time := 0.4        # seconds the blast's flash lasts (it grows and fades)
 @export var shake_strength := 1.5    # metres the view jumps about when it goes off (being hurt shakes 0.5)
@@ -26,7 +28,7 @@ enum Pattern { CROSS, DOUBLE_CROSS }   # 4 arms, or 8 (the diagonals too)
 
 
 @onready var picture: MeshInstance3D = $Picture   # the bomb, facing the camera (a 2-frame sheet: dark, fuse lit)
-@onready var blast: MeshInstance3D = $Blast       # the flash on the water right where it goes off (the arms' middle)
+@onready var blast: MeshInstance3D = $Blast       # the circle on the water round the bomb (a 1 m disc scaled to blast_radius)
 @onready var trail: CPUParticles3D = $Trail       # white dots it leaves on the water as it drifts (Enrico: shows which way it goes)
 
 var time := 0.0          # seconds since it was dropped
@@ -38,7 +40,7 @@ var arms: Array[MeshInstance3D] = []   # the white strips on the water, one per 
 func _ready() -> void:
 	picture.material_override = picture.material_override.duplicate()   # its own frame
 	blast.material_override = blast.material_override.duplicate()       # its own fade
-	blast.visible = false
+	show_circle(1.0, warning_opacity)   # the circle shows faintly while the fuse burns, like the arms
 	picture_scale = picture.scale    # whatever size it was given in the scene is its middle size
 	make_arms()
 
@@ -55,16 +57,22 @@ func _process(dt: float) -> void:
 		if time >= fuse_time:
 			explode()
 		return
-	# The blast: the arms shoot out to their full length in the first third of blast_time, the whole thing fading
-	# out meanwhile; a little disc in the middle. Then the bomb is gone.
+	# The blast: the circle flashes white, growing from 60% to its full size, and the arms shoot out to their full
+	# length in the first third of blast_time; all of it fades out meanwhile. Then the bomb is gone.
 	var share := minf(1.0, (time - fuse_time) / blast_time)
 	var reach := arm_length * minf(1.0, share * 3.0)
 	set_arms(reach, 1.0 - share)
-	blast.scale = Vector3.ONE * arm_width * (0.6 + 0.4 * share)
-	var material: StandardMaterial3D = blast.material_override
-	material.albedo_color.a = 1.0 - share
+	show_circle(0.6 + 0.4 * share, 1.0 - share)
 	if share >= 1.0:
 		queue_free()
+
+
+## The circle on the water: `size` of blast_radius (1 = full), `opacity` 0..1 (1 = solid white).
+func show_circle(size: float, opacity: float) -> void:
+	blast.visible = opacity > 0.0
+	blast.scale = Vector3(blast_radius * size, 1.0, blast_radius * size)   # the disc is 1 m across its radius
+	var material: StandardMaterial3D = blast.material_override
+	material.albedo_color.a = opacity
 
 
 ## The directions the arms point, flat on the water: 4 (north, east, south, west) or 8 (the diagonals too).
@@ -80,15 +88,15 @@ func arm_directions() -> Array[Vector3]:
 	return directions
 
 
-## Is this point in the blast? It is if it's on one of the arms (no further along it than arm_length, and no further
-## to its side than half arm_width), or right on the bomb. `extra` makes everything that much bigger: a barrel is hit
+## Is this point in the blast? It is if it's inside the circle (blast_radius round the bomb), or on one of the arms (no
+## further along it than arm_length, and no further to its side than half arm_width). `extra` makes everything that much bigger: a barrel is hit
 ## if any part of it is touched, so it passes its own radius.
 func in_blast(point: Vector3, extra := 0.0) -> bool:
 	var off := point - global_position
 	off.y = 0.0
+	if off.length() <= blast_radius + extra:
+		return true                                   # inside the circle round the bomb
 	var half_width := arm_width * 0.5 + extra
-	if off.length() <= half_width:
-		return true                                   # right where the bomb was
 	for direction in arm_directions():
 		var along := off.dot(direction)               # how far along this arm the point is
 		if along < 0.0 or along > arm_length + extra:
@@ -149,23 +157,22 @@ func drift_with_current(dt: float) -> void:
 		global_position = next_place
 
 
-## Boom: the bomb's picture goes, the arms flash out, and everything on them is hit (in_blast).
+## Boom: the bomb's picture goes, the circle and the arms flash out, and everything in them is hit (in_blast).
 func explode() -> void:
 	exploded = true
 	Sfx.bomb_blast()
 	picture.visible = false
 	trail.emitting = false            # no more dots once it's gone off
-	blast.visible = true
-	# The sea imps (each zone looks after its own imp): one standing on an arm is hit. hit_imp_at is given the
+	# The sea imps (each zone looks after its own imp): one in the circle or on an arm is hit. hit_imp_at is given the
 	# imp's own place, so its own distance check always passes; it still checks the imp is out of the water.
 	for zone in get_tree().get_nodes_in_group("sea_imps"):
 		var imp_place: Vector3 = zone.imp.global_position
 		if in_blast(imp_place):
 			zone.hit_imp_at(imp_place, 0.1, damage)
-	# The barrels an arm touches break open (barrel.gd), leaving what was inside.
+	# The barrels the blast touches break open (barrel.gd), leaving what was inside.
 	for barrel in get_tree().get_nodes_in_group("barrels"):
 		barrel.blast_at(self)
-	# The boat, if she's on an arm (between two arms she's safe, however close).
+	# The boat, if she's in the circle or on an arm (between two arms, outside the circle, she's safe).
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if boat:
 		if in_blast(boat.global_position):
