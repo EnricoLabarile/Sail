@@ -533,9 +533,12 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (`@tool`)): an item floating on the water, the old shop item's look (`Float`, which bobs: a paper `Disc` r 1.8 with an
   ink `Rim` r 2, the icon on a 2.6 m plane made in code with no owner, so it shows in the editor and is never saved),
   `Sensor` (Area3D, mask layer 4, a cylinder of `reach`, local to scene). Inspector: `item` (ItemData), `count` 1,
-  `price` 0 (coins; 0 = free), `reach` 5 (Enrico: easier to pick up; was 2.4, then 3.5), `auto_take` (on), `bob_height` / `bob_speed`, `take_shake_strength` /
+  `price` 0 (coins; 0 = free), `reach` 6 (**the magnet**, Enrico: about twice the boat; was 5, 3.5, 2.4), `auto_take` (on),
+  `pull_speed` 3 m/s, `pull_accel` 25 m/s², `collect_distance` 0.8 m, `bob_height` / `bob_speed`, `take_shake_strength` /
   `take_shake_time`. Her SpotSensor entering → signal `touched(pickup, boat)`; with `auto_take`, `why_not()` ("" /
-  "hold_full" / "no_money") "" → `take(boat)`: `Inventory.add(id, count)`, coins out if priced, `Sfx.pickup()`, the shake,
+  "hold_full" / "no_money") "" → **magnetised** (`pulled_by` = the boat): `fly_to_boat` moves it straight to her middle,
+  speeding up (`pull_speed` + `pull_accel` × t; ~0.4 s from 5 m), and within `collect_distance` → `take(boat)` (no room
+  by then: it stops where it got to). The floating shop's goods (`auto_take` off) aren't pulled. `take(boat)`: `Inventory.add(id, count)`, coins out if priced, `Sfx.pickup()`, the shake,
   signal `taken`, freed; no room: it stays. (Its sound is the boat's "came aboard", see Sound.) Placed by hand anywhere, made by the floating shop, and **dropped by a killed
   sea imp** (`sea_imp_zone.gd` `defeat()` → `drop_loot()`: `drop_min`–`drop_max` 1–2 pickups of `drop_item` (bomb.tres)
   within `drop_spread` 3 m of it, on water (`loot_spot`), added next to the zone so they stay put).
@@ -605,7 +608,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   panel, 2 px ink border, 3 px ink shadow (as the hearts'); on the left `Portrait` (TextureRect 86 px, a double ink
   frame), on the right `Name` (14) and `Text` (13, autowrap), ink. Each page typed out at `letters_per_second` 30
   (`visible_characters`). **Its voice** (Enrico, like Animal Crossing): every `letters_per_blip` 2 spoken letters (letters and digits; `_is_spoken`, the first of a page at once) `Sfx.talk_blip()`: `talk_blip.ogg` (player `TalkBlip` −8 dB, polyphony 3; second version, Enrico: the first was whiny: a plain 50 ms dot of sound, 240 Hz holding its pitch, a touch of 2nd/3rd harmonics, made by `art_src/audio/make_talk_blip.py`) at a random pitch `talk_pitch_min/max` 0.96–1.04 (only a little change) (sfx.gd exports). **A quick tap on the wheel's hub** (`helm.gd` signal `hub_tapped`: let go before `hub_hold`;
-  helm in group `helm`): while typing → the whole page; then the next page; after the last → closes and calls the
+  helm in group `helm`; **pressed in a talk the hub goes black**, Enrico: `helm.gd` draws its picture tinted black while the finger is down and for at least `talk_press_flash` 0.12 s, `press_flash_left`): while typing → the whole page; then the next page; after the last → closes and calls the
   NPC back. While open `boat.talking` is true: `toggle_anchor` does nothing (hub hold, Space) and the hub's ring
   doesn't fill. **While open, every node in the group `hidden_while_talking` is hidden** (Enrico: the
   `WindVane` and `Health` CanvasLayers, group set in their .tscn; `_show_hud`); add a node to it to hide it too.

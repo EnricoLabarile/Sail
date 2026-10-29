@@ -1,8 +1,9 @@
 @tool
 extends Node3D
 ## A PICKUP: one kind of item (an ItemData: bomb, trap, fish…) floating on the water on a paper disc, bobbing.
-## The boat sails over it (its Sensor, an Area3D like a Trigger Volume, feels her SpotSensor) and it goes into
-## the hold, with a blip and a little screen shake. If the hold has no room, it stays where it is.
+## When the boat comes within `reach` (its Sensor, an Area3D like a Trigger Volume, feels her SpotSensor) it's
+## MAGNETISED (Enrico): it flies to her, quicker and quicker, and once it reaches her middle it goes into the
+## hold, with a blip and a little screen shake. If the hold has no room, it stays where it is.
 ## (In Unreal: a pickup actor with an overlap volume, like the coins and hearts of any game.)
 ##
 ## It's a thing on its own: place pickup.tscn anywhere in a level and pick its `item` in the Inspector. Other
@@ -21,13 +22,17 @@ signal taken(pickup: Node3D)                   # it went into the hold (just bef
 		_show_icon()
 @export var count := 1                 # how many of it she gets
 @export var price := 0                 # coins it costs (0 = free; the shop sets its own prices)
-## Metres from it her middle must come to take it (Enrico: easier; was 2.4, then 3.5). Change it here or in the
-## Inspector: the sensor follows by itself (_fit_sensor), in the editor too.
-@export var reach := 5.0:
+## The magnet: metres from it her middle must come for it to fly to her (Enrico: about twice the boat; was 5,
+## when she had to sail onto it). Change it here or in the Inspector: the sensor follows by itself
+## (_fit_sensor), in the editor too. (The floating shop sets its own: store_alternative.gd pickup_radius.)
+@export var reach := 6.0:
 	set(value):
 		reach = value
 		_fit_sensor()
-@export var auto_take := true          # off when a shop decides instead (it listens to `touched`)
+@export var auto_take := true          # off when a shop decides instead (it listens to `touched`): then no magnet
+@export var pull_speed := 3.0          # m/s it sets off toward her when the magnet catches it…
+@export var pull_accel := 25.0         # …gaining this much speed every second (so it's sucked in faster and faster)
+@export var collect_distance := 0.8    # metres from her middle at which it's in: into the hold
 @export var bob_height := 0.1          # metres it bobs up and down
 @export var bob_speed := 8.0           # how fast
 @export var take_shake_strength := 0.25   # the little screen shake when she takes it (metres)…
@@ -35,6 +40,8 @@ signal taken(pickup: Node3D)                   # it went into the hold (just bef
 
 var time := randf() * TAU              # where in its bob it is (each one starts at its own point)
 var picture: MeshInstance3D            # the icon, made in code (so it's never saved into a level)
+var pulled_by: Node3D = null           # the boat it's flying to (null = not pulled, it floats where it is)
+var speed := 0.0                       # how fast it's flying to her now (m/s)
 
 @onready var floating: Node3D = $Float   # the disc and the icon: this bobs, the pickup itself stays put
 
@@ -62,6 +69,26 @@ func _process(dt: float) -> void:
 		return
 	time += dt * bob_speed
 	floating.position.y = sin(time) * bob_height
+	if pulled_by:
+		fly_to_boat(dt)
+
+
+## The magnet: it moves straight toward her middle (wherever she is now: she's moving too), speeding up, and
+## when it's close enough it's taken. If meanwhile the hold has filled up (or the purse emptied), it stops and
+## stays where it got to.
+func fly_to_boat(dt: float) -> void:
+	if not is_instance_valid(pulled_by):
+		pulled_by = null
+		return
+	var target := pulled_by.global_position
+	target.y = global_position.y                     # it stays on the water: only across, never up or down
+	speed += pull_accel * dt
+	global_position = global_position.move_toward(target, speed * dt)
+	if global_position.distance_to(target) <= collect_distance:
+		if why_not() == "":
+			take(pulled_by)
+		else:
+			pulled_by = null                         # no room any more: it just floats here
 
 
 ## Something came over it: if it's the boat, tell whoever listens, and take it if it takes itself.
@@ -70,8 +97,9 @@ func _on_sensor_entered(area: Area3D) -> void:
 	if boat == null or not boat.is_in_group("player_boat"):
 		return
 	touched.emit(self, boat)
-	if auto_take and why_not() == "":
-		take(boat)
+	if auto_take and why_not() == "" and pulled_by == null:
+		pulled_by = boat                             # the magnet: from now on _process flies it to her
+		speed = pull_speed
 
 
 ## Why she can't take it now: "hold_full", "no_money", or "" if she can.
