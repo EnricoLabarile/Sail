@@ -23,6 +23,7 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="28_f8m4f"]
 [ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
 
+[ext_resource type="Script" path="res://Assets/Landscape/gust/gust_spawner.gd" id="99_gust_spawner"]
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
 [node name="Core" type="Node" parent="." unique_id=70268906]
@@ -180,3 +181,6 @@ script = ExtResource("21_uvb2l")
 [node name="JarButton" parent="UI and PostProcess" instance=ExtResource("90_jar_button")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("28_f8m4f")]
+
+[node name="GustSpawner" type="Node3D" parent="."]
+script = ExtResource("99_gust_spawner")

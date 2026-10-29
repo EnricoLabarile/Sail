@@ -1,13 +1,16 @@
 @tool
 extends Node3D
-## A WIND GUST: a booster that stays where you place it (Enrico). A little whirl of wind on the water; when the
+## A WIND GUST: a booster carried along by the wind (Enrico). A little whirl of wind on the water; when the
 ## boat sails through it, her top speed is multiplied by `speed_multiplier` (2 = doubled) for `boost_time`
 ## seconds, whichever way she's heading: it doesn't care where the wind blows, it just lets her go faster for a
-## moment. A little screen shake and a very mild whoosh say she caught it. It stays there and works again every
-## time she sails into it (it's the entering that counts: she has to leave it and come back).
-## (In Unreal: a Trigger Volume that calls a function on the pawn, with a flipbook decal on the water.)
+## moment. A little screen shake and a very mild whoosh say she caught it. It works again every time she sails
+## into it (it's the entering that counts: she has to leave it and come back).
+## It TRAVELS (Enrico): `travel_speed` metres a second the way the wind blows now (if the wind turns, it turns
+## with it). The gust spawner (gust_spawner.gd) makes them at the screen's upwind edge, sets their speed, and
+## frees them once they've crossed the screen. One with travel_speed 0 stays where it is (placed by hand).
+## (In Unreal: a moving Trigger Volume that calls a function on the pawn, with a flipbook decal on the water.)
 ##
-## To place one: instance gust.tscn anywhere (like placing a Blueprint) and set its numbers in the Inspector.
+## To place one by hand: instance gust.tscn anywhere (like placing a Blueprint) and set its numbers in the Inspector.
 ## The picture is a flipbook (gust.png, 4 x 4 frames, a stand-in for Enrico to redraw), drawn as big as `radius`.
 
 ## Metres round its middle the boat must come within to catch it. The picture and the sensor follow it.
@@ -24,6 +27,8 @@ extends Node3D
 ## The picture is turned so that its TOP points the way the wind blows (Enrico). If your drawing points another
 ## way, turn it here: degrees added on top (90 = the drawing's right side points downwind).
 @export var picture_turn_deg := 0.0
+## Metres a second it travels downwind (0 = it stays put). The spawner sets its own (gust_spawner.gd travel_speed).
+@export var travel_speed := 0.0
 
 @onready var picture: MeshInstance3D = $Picture
 
@@ -41,6 +46,17 @@ func _ready() -> void:
 	# Turn with the wind: now, and every time it changes (Wind sends direction_changed; no check every frame).
 	Wind.direction_changed.connect(face_the_wind)
 	face_the_wind()
+	set_process(travel_speed > 0.0)       # only a travelling gust needs to move every frame
+
+
+## A travelling gust moves downwind every frame. Wind.from_vector() is where the wind comes FROM, so downwind is
+## minus that; read every frame, so when the wind turns the gust's path turns with it.
+func _process(dt: float) -> void:
+	if Engine.is_editor_hint():
+		return
+	var downwind: Vector3 = -Wind.from_vector()
+	downwind.y = 0.0
+	global_position += downwind.normalized() * travel_speed * dt
 
 
 ## Turns the picture so its top points the way the wind blows (downwind), whatever way the gust node is turned.

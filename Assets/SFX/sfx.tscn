@@ -13,6 +13,8 @@
 [ext_resource type="AudioStream" path="res://Assets/SFX/talk_blip.ogg" id="14_talk"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/gust_whoosh.ogg" id="15_whoosh"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/button_press.ogg" id="16_button"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/book_open.ogg" id="17_book_open"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/book_close.ogg" id="18_book_close"]
 
 [node name="Sfx" type="Node"]
 script = ExtResource("1_sfx")
@@ -63,3 +65,11 @@ volume_db = -12.0
 stream = ExtResource("16_button")
 volume_db = -6.0
 max_polyphony = 2
+
+[node name="BookOpen" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("17_book_open")
+volume_db = -8.0
+
+[node name="BookClose" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("18_book_close")
+volume_db = -8.0

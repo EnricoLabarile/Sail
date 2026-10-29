@@ -26,10 +26,10 @@
 [ext_resource type="Texture2D" uid="uid://brjrx6b5udnhy" path="res://Assets/NPCs/npc/NPC_Portrait_01.png" id="26_eel5a"]
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="26_jqmww"]
 [ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="27_35spf"]
-[ext_resource type="Script" uid="uid://csnh1fxrth4po" path="res://Assets/Landscape/gust/gust_scatter.gd" id="28_eel5a"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="28_f8m4f"]
 [ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
 
+[ext_resource type="Script" path="res://Assets/Landscape/gust/gust_spawner.gd" id="99_gust_spawner"]
 [sub_resource type="BoxMesh" id="BoxMesh_eel5a"]
 size = Vector3(0.53808594, 1, 0.4716797)
 
@@ -413,7 +413,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.78404, 1.0472765, 160.0647
 item = ExtResource("24_cq4ad")
 count = 99
 
-[node name="Gust_Scatter" type="Node3D" parent="." unique_id=370826456]
-script = ExtResource("28_eel5a")
-spacing = 30.0
-min_coast_distance = 15.0
+[node name="GustSpawner" type="Node3D" parent="."]
+script = ExtResource("99_gust_spawner")

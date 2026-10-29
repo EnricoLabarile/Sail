@@ -46,8 +46,10 @@ func set_open(open: bool) -> void:
 		book.visible = true
 		set_process(true)                 # place it every frame while it moves and shows
 		_tween.tween_property(self, "drop", 1.0, DROP_TIME)        # 1. down…
+		_tween.tween_callback(Sfx.book.bind(true))                 #    (the page-turn sound, as the cover starts to swing)
 		_tween.tween_property(book, "unfold", 1.0, UNFOLD_TIME)    # 2. …then open
 	else:
+		Sfx.book(false)                                            # the page turn and the cover's thump, at once
 		_tween.tween_property(book, "unfold", 0.0, UNFOLD_TIME)    # 1. fold shut…
 		_tween.tween_property(self, "drop", 0.0, DROP_TIME)        # 2. …then up
 		_tween.tween_callback(_hide_book)                          # 3. and hide it
