@@ -18,7 +18,7 @@ const GUST_SCENE := preload("res://Assets/Landscape/gust/gust.tscn")
 @export var max_gusts := 3            # how many gusts can be on the screen at the same time
 @export var spawn_every_min := 0.8    # seconds between one gust and the next, picked at random between these
 @export var spawn_every_max := 1.6
-@export var travel_speed := 9.0       # metres a second they travel downwind (she does 7 at top speed)
+@export var travel_speed := 30      # metres a second they travel downwind (she does 7 at top speed)
 @export var spread := 0.8             # how far across the screen they may appear: 1 = anywhere along the edge, 0.5 = the middle half
 
 var boat: Node3D = null               # found once, then kept

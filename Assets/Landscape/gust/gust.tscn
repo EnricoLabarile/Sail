@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dxaf7qjej12aj"]
 
-[ext_resource type="Script" path="res://Assets/Landscape/gust/gust.gd" id="1_script"]
-[ext_resource type="Shader" path="res://Assets/Landscape/gust/gust.gdshader" id="2_shader"]
-[ext_resource type="Texture2D" path="res://Assets/Landscape/gust/gust.png" id="3_tex"]
+[ext_resource type="Script" uid="uid://2u5mg3qstrpc" path="res://Assets/Landscape/gust/gust.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://1tog2gls5r7g" path="res://Assets/Landscape/gust/gust.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" uid="uid://dd6ook6xvsd3m" path="res://Assets/Landscape/gust/gust.png" id="3_tex"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_gust"]
 resource_local_to_scene = true
@@ -23,19 +23,20 @@ resource_local_to_scene = true
 height = 4.0
 radius = 3.0
 
-[node name="Gust" type="Node3D"]
+[node name="Gust" type="Node3D" unique_id=936435360]
 script = ExtResource("1_script")
 
-[node name="Picture" type="MeshInstance3D" parent="."]
+[node name="Picture" type="MeshInstance3D" parent="." unique_id=405889851]
 transform = Transform3D(6, 0, 0, 0, 1, 0, 0, 0, 6, 0, 0.08, 0)
 material_override = SubResource("ShaderMaterial_gust")
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_gust")
 
-[node name="Sensor" type="Area3D" parent="."]
+[node name="Sensor" type="Area3D" parent="." unique_id=137187681]
 collision_layer = 0
 collision_mask = 8
 monitorable = false
 
-[node name="Shape" type="CollisionShape3D" parent="Sensor"]
+[node name="Shape" type="CollisionShape3D" parent="Sensor" unique_id=333158154]
+transform = Transform3D(2.1071076, 0, 0, 0, 1, 0, 0, 0, 2.1071076, 0, 0, 0)
 shape = SubResource("Shape_sensor")
