@@ -15,6 +15,7 @@ extends Node
 ##   gust_whoosh.ogg  a very mild whoosh: the boat caught a wind gust (art_src/audio/make_whoosh.py)
 ##   button_press.ogg a button pressed: a soft low tock, 70 ms, 170 -> 130 Hz (art_src/audio/make_button_press.py)
 ##   book_open.ogg / book_close.ogg  the logbook: a page turning; closing, also the cover's soft thump (art_src/audio/make_page_turn.py)
+##   boat_hurt.ogg    the boat losing hearts, whatever hurt her: a splintering crack on a heavy thud (art_src/audio/make_boat_hurt.py)
 ##   talk_blip.ogg    one syllable of a talking NPC, Animal Crossing style: a plain little dot of sound, 240 Hz (art_src/audio/make_talk_blip.py)
 ## (The sea, the wind and the water along the hull were removed by Enrico; bake.html can still make them.)
 ## The players are nodes in sfx.tscn: open it to change a sound's loudness (Volume dB in the Inspector).
@@ -33,6 +34,7 @@ extends Node
 @onready var talk_blip_sound: AudioStreamPlayer = $TalkBlip
 @onready var gust_whoosh_sound: AudioStreamPlayer = $GustWhoosh
 @onready var button_press_sound: AudioStreamPlayer = $ButtonPress
+@onready var boat_hurt_sound: AudioStreamPlayer = $BoatHurt
 @onready var book_open_sound: AudioStreamPlayer = $BookOpen
 @onready var book_close_sound: AudioStreamPlayer = $BookClose
 
@@ -121,6 +123,12 @@ func equip_bomb() -> void:
 func talk_blip() -> void:
 	talk_blip_sound.pitch_scale = randf_range(talk_pitch_min, talk_pitch_max)
 	talk_blip_sound.play()
+
+
+## The boat lost hearts (Enrico: one sound for every kind of damage). boat.gd take_damage plays it, so anything
+## that hurts her (fireballs, spikes, bombs, boiling water, maelstroms, waves, enemies) makes it by itself.
+func boat_hurt() -> void:
+	boat_hurt_sound.play()
 
 
 ## A button pressed (Enrico: every press gets it, with the button flashing black; for now the wheel's hub).
