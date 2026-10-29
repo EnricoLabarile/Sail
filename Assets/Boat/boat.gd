@@ -78,7 +78,7 @@ extends Node3D
 
 # Boiling water (a SeaZone of kind BOILING, baked into the level's sea zones picture: Land.boil_at): while she's in
 # it she loses boil_damage hearts every boil_every seconds (Enrico: half a heart a second).
-@export var boil_damage := 0.5      # hearts each time
+@export var boil_damage := 1      # hearts each time
 @export var boil_every := 1.0       # seconds between one and the next
 @export var boil_threshold := 0.5   # how far into the zone's soft edge counts as "in it" (0..1: 0.5 = halfway in)
 

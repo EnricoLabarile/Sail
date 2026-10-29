@@ -45,10 +45,10 @@
 
 [sub_resource type="Curve3D" id="Curve3D_boiling_test"]
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -10, 0, -10, 0, 0, 0, 0, 0, 0, 10, 0, -10, 0, 0, 0, 0, 0, 0, 10, 0, 10, 0, 0, 0, 0, 0, 0, -10, 0, 10),
-"tilts": PackedFloat32Array(0, 0, 0, 0)
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -1.6332397, 0, -26.296879, 0, 0, 0, 0, 0, 0, 335.3788, -7.6293945e-06, -86.70274, 0, 0, 0, 0, 0, 0, 331.5884, 0, 50.45284, 0, 0, 0, 0, 0, 0, 171.15106, 0, 113.83861, 0, 0, 0, 0, 0, 0, 105.620544, 0, 256.86514, 0, 0, 0, 0, 0, 0, -62.920547, 0, 291.04373, 0, 0, 0, 0, 0, 0, -120.126595, 0, 369.39105, 0, 0, 0, 0, 0, 0, -113.35272, 0, 486.9673, 0, 0, 0, 0, 0, 0, -354.88058, 0, 481.63235, 0, 0, 0, 0, 0, 0, -224.18997, 0, 200.90334, 0, 0, 0, 0, 0, 0, -86.22629, 0, 107.87424),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 }
-point_count = 4
+point_count = 11
 
 [sub_resource type="Curve3D" id="Curve3D_current_test"]
 _data = {
@@ -56,6 +56,13 @@ _data = {
 "tilts": PackedFloat32Array(0, 0, 0, 0)
 }
 point_count = 4
+
+[sub_resource type="Curve3D" id="Curve3D_6qrm0"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 116.50046, 0, -158.71643, 0, 0, 0, 0, 0, 0, 215.84778, -1.5258789e-05, -179.74176, 0, 0, 0, 0, 0, 0, 233.16821, 0, 49.514587, 0, 0, 0, 0, 0, 0, -11.264465, 0, 54.813904, 0, 0, 0, 0, 0, 0, -31.056503, 24.182068, 18.118378, 0, 0, 0, 0, 0, 0, -13.452026, 11.10202, -18.710846, 0, 0, 0, 0, 0, 0, 83.70053, -10.114471, -28.564545),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 7
 
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
@@ -70,24 +77,27 @@ land_roots = Array[NodePath]([NodePath(""), NodePath("")])
 script = ExtResource("100_zone_baker")
 
 [node name="BoilingTest" parent="Core/SeaZoneBaker" unique_id=1568211694 instance=ExtResource("101_sea_zone")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 174.89963, 0, 24.658413)
 curve = SubResource("Curve3D_boiling_test")
-strength = 4.0
+edge_softness = 10.0
 
 [node name="CurrentTest" parent="Core/SeaZoneBaker" unique_id=1862276956 instance=ExtResource("101_sea_zone")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -30, 0, 68)
 curve = SubResource("Curve3D_current_test")
 kind = 1
-strength = 100.0
+edge_softness = 10.0
+
+[node name="SeaZone" parent="Core/SeaZoneBaker" unique_id=1768132013 instance=ExtResource("101_sea_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.49805, 57.15921, 458.20477)
+curve = SubResource("Curve3D_6qrm0")
 
 [node name="Boat" parent="Core" unique_id=1762906152 instance=ExtResource("2_boat")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110.03998, -0.043405533, 135.289)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.902954, -0.043397903, 207.60913)
 
 [node name="Sea" parent="Core" unique_id=1750240136 instance=ExtResource("1_sea")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26995945, 0.0868597, -0.12084007)
 shore_texture = ExtResource("4_trlql")
 zones_texture = ExtResource("102_zones")
-fog_falloff = 3.0
 metadata/_edit_lock_ = true
 
 [node name="Dangers" type="Node" parent="." unique_id=959243970]
@@ -108,15 +118,23 @@ fling_time = 1.2
 
 [node name="SeaUrchinTest" parent="Dangers" unique_id=1237544682 instance=ExtResource("103_sea_urchin")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0, 100)
+walk_speed = 0.0
+drop_item = null
+drop_chance = null
+drop_min = null
+drop_max = null
+drop_spread = null
 
 [node name="SeaImps" type="Node3D" parent="Dangers" unique_id=690468872]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1220932, -3.8146973e-06, -0.06600571)
 
 [node name="SeaImpZone" parent="Dangers/SeaImps" unique_id=1040785233 instance=ExtResource("28_sea_imp_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -236.99304, 0, -54.665962)
+drop_chance = null
 
 [node name="SeaImpZone2" parent="Dangers/SeaImps" unique_id=1741884461 instance=ExtResource("28_sea_imp_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 106.96963, 1.5258789e-05, -172.48134)
+drop_chance = null
 
 [node name="Decorative" type="Node" parent="." unique_id=958528587]
 
