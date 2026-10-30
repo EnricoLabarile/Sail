@@ -46,6 +46,7 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
 [ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/sea_urchin/sea_urchin.tscn" id="103_sea_urchin"]
+[ext_resource type="Script" path="res://Assets/Landscape/islands/island_grid.gd" id="95_island_grid"]
 
 [sub_resource type="Curve3D" id="Curve3D_current_test"]
 _data = {
@@ -262,6 +263,8 @@ script = ExtResource("21_game_view")
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("25_health")]
 
 [node name="Islands" type="Node" parent="." unique_id=263895800]
+script = ExtResource("95_island_grid")
+grid_offset = Vector3(0, 0, 0.888885)
 
 [node name="sm_island_center_32x32" parent="Islands" unique_id=1984804689 instance=ExtResource("42_i5cs1")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 120, 0, 48.888885)

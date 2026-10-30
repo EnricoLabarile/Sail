@@ -188,6 +188,12 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   and adds `StaticBody3D` → `CollisionShape3D` (trimesh, `create_trimesh_shape`) under every mesh that has no body yet;
   models from other folders are left untouched (`get_source_file()` checked). Files imported before keep their own
   `.import` settings (to use it: set Import Script in the Import dock, several at once, and Reimport).
+- **Island grid** (Enrico: an absolute grid snap for the modular pieces; `Assets/Landscape/islands/island_grid.gd`,
+  `@tool`, on the `Islands` node in Overworld): in the editor, each selected piece under it (its direct children) is put
+  on the nearest point of a fixed grid, `grid_size` 8 m (the pieces' own step), counted from `grid_offset` (0, 0,
+  0.888885 in Overworld: where the first 365 pieces already sat), and turned to the nearest quarter turn
+  (`snap_rotation`); `snap_on` to place one freely; button **"Snap all pieces"** (`snap_all`). Godot's own snap is
+  relative (how far you move), this one is absolute (where it ends up). Nothing in the game.
 - **Land drawings' material** (`Assets/Landscape/land/`, Enrico's faraglioni: `faraglione_01_a.tscn` + `.png`):
   `land_unlit.gdshader` (unshaded, both faces, `picture` nearest, alpha-scissored at `alpha_cut` 0.5, `tint`),
   used by `island_master.tres` (a ShaderMaterial now, same uid; a StandardMaterial3D came out black: there are no
