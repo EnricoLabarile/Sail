@@ -16,6 +16,9 @@ extends Node3D
 ## A bomb hurts it (Enrico: every enemy can be bombed): in the blast it loses `damage` hearts of its `max_hearts` and
 ## blinks black for `hurt_time`; at 0 it blinks and is gone (bomb.gd calls blast_at on the group "bomb_targets"),
 ## with the enemies' death sound (Sfx.enemy_death) and its reward (drop_item, as every enemy: Pickup.drop_loot).
+## The harpoon can hook it (group "hookable", harpoon.gd): it loses the harpoon's damage (blinking) and is STUNNED,
+## harmless and still, while it's pulled and for the harpoon's stun_time after it's let go; then it wanders again
+## (back into its area, if it was pulled out).
 
 enum State { WALKING, ATTACKING, DEAD }
 
@@ -52,6 +55,8 @@ var shots_fired := 0                  # rounds shot in this attack so far
 var target := Vector3.ZERO            # where it's walking to, in the area (this node's space)
 var hearts := 3.0                     # its health now (max_hearts at start)
 var hurt_left := 0.0                  # seconds of blinking left (0 = not blinking)
+var on_hook := false                  # pulled by the harpoon now
+var stun_left := 0.0                  # seconds of stun left after the harpoon let it go
 var picture_material: StandardMaterial3D   # its own copy of the picture's material (to blink only this one)
 
 @onready var urchin: Node3D = $Urchin
@@ -65,6 +70,7 @@ func _ready() -> void:
 	target = random_point_in_area()
 	hearts = max_hearts
 	add_to_group("bomb_targets")          # so a bomb's blast checks it (bomb.gd explode)
+	add_to_group("hookable")              # so the harpoon can catch it (harpoon.gd)
 	# Its own copy of the picture's material, so blinking one urchin doesn't blink the others.
 	var picture := $Urchin/Picture as MeshInstance3D
 	picture_material = (picture.mesh.surface_get_material(0) as StandardMaterial3D).duplicate()
@@ -79,6 +85,9 @@ func _process(dt: float) -> void:
 	if state == State.DEAD:
 		if hurt_left <= 0.0:
 			queue_free()                  # done blinking: it's gone
+		return
+	if on_hook or stun_left > 0.0:
+		update_stun(dt)                   # stunned: it doesn't move, shoot or hurt
 		return
 	check_touch()
 	if state == State.WALKING:
@@ -169,12 +178,66 @@ func blast_at(bomb: Node3D) -> void:
 		return
 	if not bomb.in_blast(urchin.global_position, body_radius):
 		return
-	hearts = maxf(0.0, hearts - bomb.damage)
+	lose_hearts(bomb.damage)
+
+
+## Loses `amount` hearts (a bomb, the harpoon) and blinks black; at 0 it's dead: the enemies' death sound, its
+## reward, and it blinks and is gone.
+func lose_hearts(amount: float) -> void:
+	if amount <= 0.0:
+		return
+	hearts = maxf(0.0, hearts - amount)
 	hurt_left = hurt_time
 	if hearts <= 0.0:
 		state = State.DEAD
 		Sfx.enemy_death()
 		Pickup.drop_loot(get_parent(), drop_item, urchin.global_position, drop_chance, drop_min, drop_max, drop_spread)
+
+
+# ---- on the harpoon (harpoon.gd: the functions every hookable thing has) ----
+
+func can_be_hooked() -> bool:
+	return state != State.DEAD and not on_hook
+
+
+func hook_point() -> Vector3:
+	return urchin.global_position
+
+
+func hook_size() -> float:
+	return body_radius
+
+
+## Caught: it loses the harpoon's damage and is stunned while it's pulled.
+func hooked(harpoon: Node3D) -> void:
+	on_hook = true
+	lose_hearts(harpoon.damage)
+
+
+## On the hook until it dies.
+func still_hooked() -> bool:
+	return state != State.DEAD
+
+
+func pulled_to(point: Vector3) -> void:
+	urchin.global_position = Vector3(point.x, urchin.global_position.y, point.z)
+
+
+## Let go: the stun lasts the harpoon's stun_time from now.
+func unhooked(harpoon: Node3D) -> void:
+	on_hook = false
+	stun_left = harpoon.stun_time
+
+
+## Stunned: it waits; once the stun is over it starts wandering again, toward a new point of its area.
+func update_stun(dt: float) -> void:
+	if on_hook:
+		return
+	stun_left = maxf(0.0, stun_left - dt)
+	if stun_left <= 0.0:
+		state = State.WALKING
+		timer = 0.0
+		target = random_point_in_area()
 
 
 ## The black blink: while hurt_left runs down, the picture switches between black and its own colours (its colour

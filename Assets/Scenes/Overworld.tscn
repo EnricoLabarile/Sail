@@ -41,6 +41,8 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
 [ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/sea_urchin/sea_urchin.tscn" id="103_sea_urchin"]
+[ext_resource type="PackedScene" path="res://Assets/UI/harpoon_button/harpoon_button.tscn" id="93_harpoon_button"]
+[ext_resource type="Resource" path="res://Assets/Inventory/items/harpoon.tres" id="94_harpoon_item"]
 
 [sub_resource type="Curve3D" id="Curve3D_boiling_test"]
 _data = {
@@ -233,6 +235,11 @@ land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
 
 [node name="Pickups" type="Node3D" parent="Gameplay" unique_id=1786065463]
 
+[node name="HarpoonPickup" parent="Gameplay/Pickups" instance=ExtResource("91_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 30)
+item = ExtResource("94_harpoon_item")
+count = 9
+
 [node name="AeolusJarPickup" parent="Gameplay/Pickups" unique_id=297391498 instance=ExtResource("91_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -112.19768, 0, 121.16945)
 item = ExtResource("27_cra7r")
@@ -265,6 +272,8 @@ script = ExtResource("21_game_view")
 [node name="BombButton" parent="UI and PostProcess" unique_id=1236485803 instance=ExtResource("24_bomb_button")]
 
 [node name="JarButton" parent="UI and PostProcess" unique_id=1744983952 instance=ExtResource("90_jar_button")]
+
+[node name="HarpoonButton" parent="UI and PostProcess" instance=ExtResource("93_harpoon_button")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("25_health")]
 

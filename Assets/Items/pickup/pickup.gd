@@ -11,6 +11,7 @@ extends Node3D
 ##   - the floating shop puts one on each slot, with a `price` (store_alternative.gd decides whether she can
 ##     have it: `auto_take` off, it listens to `touched`);
 ##   - a sea imp leaves some when it's killed (sea_imp_zone.gd, `drop_item`).
+## The harpoon can hook it (group "hookable", harpoon.gd) and pull it close, until the magnet takes it.
 
 signal touched(pickup: Node3D, boat: Node3D)   # the boat came over it (sent always, taken or not)
 signal taken(pickup: Node3D)                   # it went into the hold (just before it's freed)
@@ -52,6 +53,7 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	$Sensor.area_entered.connect(_on_sensor_entered)
+	add_to_group("hookable")                         # the harpoon can pull it in (harpoon.gd)
 
 
 ## The sensor's cylinder is as wide as `reach`: `reach` is the one number to change, the shape just follows it.
@@ -114,6 +116,38 @@ func why_not() -> String:
 	if Inventory.coins < price:
 		return "no_money"
 	return ""
+
+
+# ---- on the harpoon (harpoon.gd: the functions every hookable thing has) ----
+
+## Only a free one that takes itself (not the floating shop's goods) and isn't flying to her already.
+func can_be_hooked() -> bool:
+	return auto_take and price == 0 and pulled_by == null
+
+
+func hook_point() -> Vector3:
+	return global_position
+
+
+func hook_size() -> float:
+	return 1.5                                       # about its disc
+
+
+func hooked(_harpoon: Node3D) -> void:
+	pass                                             # nothing to do: it just comes along
+
+
+## On the hook until the magnet catches it (once close enough to her, as if she'd sailed to it).
+func still_hooked() -> bool:
+	return pulled_by == null
+
+
+func pulled_to(point: Vector3) -> void:
+	global_position = Vector3(point.x, global_position.y, point.z)
+
+
+func unhooked(_harpoon: Node3D) -> void:
+	pass
 
 
 ## Into the hold (and the coins out of the purse, if it has a price), a shake, and it's gone. (The sound is the

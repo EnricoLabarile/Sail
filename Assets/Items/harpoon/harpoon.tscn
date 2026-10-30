@@ -1,0 +1,36 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Items/harpoon/harpoon.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://Assets/Items/harpoon/harpoon.png" id="2_tex"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_head"]
+render_priority = 2
+transparency = 2
+alpha_scissor_threshold = 0.5
+shading_mode = 0
+albedo_texture = ExtResource("2_tex")
+texture_filter = 0
+
+[sub_resource type="PlaneMesh" id="Mesh_head"]
+material = SubResource("Mat_head")
+size = Vector2(1.2, 2.4)
+
+[sub_resource type="StandardMaterial3D" id="Mat_rope"]
+render_priority = 2
+shading_mode = 0
+albedo_color = Color(0.105882, 0.101961, 0.0901961, 1)
+
+[sub_resource type="PlaneMesh" id="Mesh_rope"]
+material = SubResource("Mat_rope")
+size = Vector2(1, 1)
+
+[node name="Harpoon" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Rope" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("Mesh_rope")
+
+[node name="Head" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("Mesh_head")

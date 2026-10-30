@@ -23,6 +23,7 @@ const LATER := [
 	preload("res://Assets/Items/pickup/pickup.tscn"),
 	preload("res://Assets/Dangers/big_waves/big_wave.tscn"),
 	preload("res://Assets/Dangers/sea_urchin/spike.tscn"),
+	preload("res://Assets/Items/harpoon/harpoon.tscn"),
 ]
 const FRAMES := 3              # frames the squares stay (one is enough to compile; a couple more to be safe)
 const SQUARE := 0.01           # metres a side: at 2 m from the camera that's a few pixels

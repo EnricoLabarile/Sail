@@ -18,6 +18,9 @@ extends Node3D
 ## Killed, it also leaves `drop_min`–`drop_max` pickups of `drop_item` (bombs) round it, `drop_spread` metres
 ## apart (Assets/Items/pickup/pickup.tscn: they float where they fell until she sails over them).
 ## Lost hearts stay lost.
+## The harpoon can hook it while it's up (group "hookable", harpoon.gd): it loses the harpoon's damage (blinking) and
+## is STUNNED, up and harmless (no fireball, no bump), while pulled and for the harpoon's stun_time after it's let go;
+## then it goes under as usual. Dead, the harpoon can pull its body to her too.
 ##
 ## To place one: instance sea_imp_zone.tscn under SeaImps in Overworld (like placing a Blueprint) and move it where
 ## it should lurk. In the editor a red disc shows `radius`, and the lurking patch and the imp show at its place.
@@ -65,12 +68,15 @@ const Pickup := preload("res://Assets/Items/pickup/pickup.gd")   # for Pickup.dr
 @export var drop_max := 2                  # …and at most (Enrico: 1 or 2 bombs)
 @export var drop_spread := 3.0             # metres from the imp they land, at most
 
-enum State { LURKING, EMERGING, UP, HURT, UNDER, DEFEATED, CAPTURED }
+enum State { LURKING, EMERGING, UP, HURT, STUNNED, UNDER, DEFEATED, CAPTURED }
 
 var state := State.LURKING
 var time := 0.0            # seconds in the current state
 var has_spat := false      # has it spat since it came up?
 var hearts := 3.0          # hearts it has left
+var on_hook := false       # pulled by the harpoon now
+var stun_time := 0.0       # STUNNED: seconds it stays so once the harpoon lets it go (the harpoon's stun_time)
+var hook_flash_left := 0.0 # seconds left of the black blink after the harpoon hurt it
 var swim_target: Variant = null   # under water: the spot it's swimming to (null = not chosen yet)
 
 @onready var imp: MeshInstance3D = $Imp
@@ -83,6 +89,7 @@ func _ready() -> void:
 		_make_editor_disc()
 		return
 	add_to_group("sea_imps")    # so bombs and traps find it (bomb.gd, trap.gd: hit_imp_at)
+	add_to_group("hookable")    # so the harpoon can catch it (harpoon.gd)
 	imp.material_override = imp.material_override.duplicate()   # its own copy, so only this imp blinks
 	hearts = max_hearts
 	lurk()
@@ -95,11 +102,13 @@ func _process(dt: float) -> void:
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if state == State.CAPTURED:
 		return
+	hook_flash_left = maxf(0.0, hook_flash_left - dt)
 	update_flash()
 	if state == State.DEFEATED:
 		# Beaten: black (update_flash), afloat and harmless, carried by the current (drift_with_current).
 		# The boat sailing over it takes it aboard (if there's room).
-		drift_with_current(dt)
+		if not on_hook:
+			drift_with_current(dt)                     # on the harpoon the rope moves it instead
 		if boat != null and not boat.sinking and distance_to(boat, imp.global_position) <= collect_radius:
 			if Inventory.add("imp") == 1:
 				imp.visible = false
@@ -137,6 +146,9 @@ func _process(dt: float) -> void:
 		State.HURT:
 			if time >= hurt_time:
 				go_under()                                 # done blinking: it vanishes under
+		State.STUNNED:
+			if not on_hook and time >= stun_time:
+				go_under()                                 # the stun is over (it counts from when it was let go)
 		State.UNDER:
 			swim(boat, dt)
 
@@ -281,7 +293,7 @@ func is_downwind(boat: Node3D, spot: Vector3) -> bool:
 ## Only while it's emerging or up and that close: it loses `damage` hearts and blinks black; at 0 it's defeated,
 ## otherwise it goes under once it's done blinking (HURT). Gives back true if it was hit.
 func hit_imp_at(point: Vector3, reach: float, damage: float) -> bool:
-	if state != State.EMERGING and state != State.UP:
+	if state != State.EMERGING and state != State.UP and state != State.STUNNED:
 		return false
 	var off := point - imp.global_position
 	off.y = 0.0
@@ -295,6 +307,57 @@ func hit_imp_at(point: Vector3, reach: float, damage: float) -> bool:
 	return true
 
 
+# ---- on the harpoon (harpoon.gd: the functions every hookable thing has) ----
+
+## Only while it's up out of the water (also stunned or dead, not under or emerging), and not on the hook already.
+func can_be_hooked() -> bool:
+	if on_hook:
+		return false
+	return state == State.UP or state == State.HURT or state == State.STUNNED or state == State.DEFEATED
+
+
+func hook_point() -> Vector3:
+	return imp.global_position
+
+
+func hook_size() -> float:
+	return 1.0
+
+
+## Caught: it loses the harpoon's damage (0 = none) and is stunned; killed by it, it's DEFEATED and comes along dead.
+func hooked(harpoon: Node3D) -> void:
+	on_hook = true
+	if state == State.DEFEATED:
+		return                                        # already dead: just its body pulled in
+	if harpoon.damage > 0.0:
+		hearts = maxf(0.0, hearts - harpoon.damage)
+		if hearts <= 0.0:
+			defeat()
+			return
+		hook_flash_left = hurt_time
+	state = State.STUNNED
+	time = 0.0
+	patch.visible = false
+	imp.visible = true
+
+
+## On the hook while stunned or dead (taken aboard, or hurt by a bomb meanwhile: let go).
+func still_hooked() -> bool:
+	return state == State.STUNNED or state == State.DEFEATED
+
+
+func pulled_to(point: Vector3) -> void:
+	imp.global_position = Vector3(point.x, 0.0, point.z)
+
+
+## Let go: the stun lasts the harpoon's stun_time from now.
+func unhooked(harpoon: Node3D) -> void:
+	on_hook = false
+	stun_time = harpoon.stun_time
+	if state == State.STUNNED:
+		time = 0.0
+
+
 ## The black flash when it's hurt: for hurt_time seconds after a hit (HURT, or just DEFEATED) the picture
 ## blinks between black and its own colours (the shader's `flash`: 1 = black, 0 = as drawn).
 ## Once DEFEATED and done blinking it stays black for good: it's dead (a different picture later, Enrico).
@@ -303,6 +366,8 @@ func update_flash() -> void:
 	var black := 0.0
 	if flashing and int(time * hurt_blinks_per_second) % 2 == 0:
 		black = 1.0
+	if state == State.STUNNED and hook_flash_left > 0.0 and int(hook_flash_left * hurt_blinks_per_second) % 2 == 0:
+		black = 1.0                                   # just hurt by the harpoon
 	if state == State.DEFEATED and time >= hurt_time:
 		black = 1.0                                   # dead: solid black
 	imp.material_override.set_shader_parameter("flash", black)
