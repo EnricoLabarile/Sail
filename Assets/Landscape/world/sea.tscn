@@ -4,8 +4,8 @@
 [ext_resource type="Script" uid="uid://dh43s3p0e1f2e" path="res://Assets/Landscape/world/sea.gd" id="5_script"]
 [ext_resource type="Texture2D" uid="uid://cq3g250kg05in" path="res://Assets/Landscape/world/sea_tex.png" id="6_tex"]
 [ext_resource type="Texture2D" uid="uid://ctff4qtpd7y0y" path="res://Assets/Landscape/shore/shore_distance.png" id="7_shore"]
-[ext_resource type="Texture2D" path="res://Assets/Landscape/sea_zones/boiling.png" id="8_boil"]
-[ext_resource type="Texture2D" path="res://Assets/Landscape/sea_zones/strong_current.png" id="9_current"]
+[ext_resource type="Texture2D" uid="uid://jwi6pwxs6xbw" path="res://Assets/Landscape/sea_zones/boiling.png" id="8_boil"]
+[ext_resource type="Texture2D" uid="uid://ds4k1bhp4hfxf" path="res://Assets/Landscape/sea_zones/strong_current.png" id="9_current"]
 
 [sub_resource type="ShaderMaterial" id="Mat_sea"]
 render_priority = 0
@@ -36,8 +36,23 @@ shader_parameter/wave_speed = 1.2
 shader_parameter/wave_line = 0.5
 shader_parameter/foam_width = 0.8
 shader_parameter/wave_wobble = 1.0
+shader_parameter/shore_waves_on = true
+shader_parameter/deep_color = Color(0.106, 0.102, 0.09, 1)
+shader_parameter/deep_opacity = 0.3
+shader_parameter/deep_from = 3.0
+shader_parameter/deep_to = 30.0
+shader_parameter/zones_on = false
+shader_parameter/max_push = 20.0
+shader_parameter/usual_current = 1.5
 shader_parameter/boil_tex = ExtResource("8_boil")
+shader_parameter/boil_tile = 6.0
+shader_parameter/boil_fps = 10.0
 shader_parameter/current_tex = ExtResource("9_current")
+shader_parameter/current_tile = 8.0
+shader_parameter/current_fps = 12.0
+shader_parameter/current_scroll = 2.0
+shader_parameter/zone_frames_x = 4
+shader_parameter/zone_frames_y = 4
 
 [sub_resource type="PlaneMesh" id="Mesh_sea"]
 material = SubResource("Mat_sea")
@@ -47,3 +62,4 @@ size = Vector2(1008, 1008)
 mesh = SubResource("Mesh_sea")
 script = ExtResource("5_script")
 shore_texture = ExtResource("7_shore")
+fog_falloff = 10.0

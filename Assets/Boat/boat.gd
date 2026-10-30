@@ -11,7 +11,7 @@ extends Node3D
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 5		    # how far she leans with the wind on the sail
 @export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
-@export var boom_max_deg := 90    # the furthest the sail swings out from the boat's middle line, either side
+@export var boom_max_deg := 90    # the furthest the sail swin`gs out from the boat's middle line, either side
 
 # Turning: she leans out of the turn (the prototype's "lean out of a turn"), more the quicker she turns
 # and the faster she goes.

@@ -13,7 +13,7 @@ extends Node
 ## over the whole map, and paints the fogged parts black. (In Unreal: a render target the material reads.)
 
 const CELL := 4.8              # metres a cell, a side (the prototype's 48 px)
-const SIGHT := 22.0            # metres of fog cleared round the boat (the prototype's 220 px)
+const SIGHT := 35.0            # metres of fog cleared round the boat (the prototype's 220 px)
 
 var cells := int(round(Land.WORLD_SIZE / CELL))   # cells a side: 210
 var image: Image               # one pixel a cell
