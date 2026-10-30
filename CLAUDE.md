@@ -182,6 +182,12 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   solid (`Land` hits it). A point h m up the picture is h / cos(tilt) (1.41 h) m north on the water. `island_test.png`
   (270 × 200, 30 × 22 m) is a stand-in. Known: the fog is worked out on the water behind tall things, so a hill's
   top can stay fogged a little longer than its shore.
+- **Island pieces' import** (Enrico's modular island meshes, `.fbx` from Blender, in `Assets/Landscape/islands/` with
+  their shared material `island.tres`): `island_import.gd` (`EditorScenePostImport`, set as the scene importer's default
+  Import Script in project.godot `[importer_defaults]`, so every NEW model gets it) sets `island.tres` on every surface
+  and adds `StaticBody3D` → `CollisionShape3D` (trimesh, `create_trimesh_shape`) under every mesh that has no body yet;
+  models from other folders are left untouched (`get_source_file()` checked). Files imported before keep their own
+  `.import` settings (to use it: set Import Script in the Import dock, several at once, and Reimport).
 - **Land drawings' material** (`Assets/Landscape/land/`, Enrico's faraglioni: `faraglione_01_a.tscn` + `.png`):
   `land_unlit.gdshader` (unshaded, both faces, `picture` nearest, alpha-scissored at `alpha_cut` 0.5, `tint`),
   used by `island_master.tres` (a ShaderMaterial now, same uid; a StandardMaterial3D came out black: there are no
