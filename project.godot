@@ -44,6 +44,12 @@ folder_colors={
 "res://Assets/UI/": "yellow"
 }
 
+[importer_defaults]
+
+scene={
+"import_script/path": "res://Assets/Landscape/islands/island_import.gd"
+}
+
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
