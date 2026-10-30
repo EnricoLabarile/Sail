@@ -9,7 +9,8 @@ extends Control
 ##   - the top half: the hold ("Cargo", the Inventory autoload): its slots in a grid of 3 across, each thing
 ##     aboard drawn in its slot (its picture from its ItemData, Inventory.icon_of; a pile of bombs or traps with its number in
 ##     the corner), the empty slots dashed and faint. Tapping a bomb's or a trap's slot equips it (or unequips
-##     it): the equipped slot has a thick double frame (Inventory.toggle_equip);
+##     it): the equipped slot has a thick double frame and its letter, A or B, in the top left corner
+##     (Inventory.tap_equip, unequip);
 ##   - the bottom half: the map, the world cut into 9 x 9 squares (A..I from the west, 1..9 from the north,
 ##     home in E5), with the square she's in shaded.
 ## What the pages show is read when the book opens (and when the hold changes): it isn't redrawn every frame.
@@ -53,6 +54,8 @@ const HEADING_HEIGHT := 20.0  # room above the slots for "Cargo" and the count
 
 # Turning the pages
 const SWIPE := 40.0           # pixels a finger must slide sideways for a swipe (less is a tap)
+const HOLD_TIME := 0.5        # seconds a finger held on an equipped slot takes the thing off (Enrico)
+const HOLD_SLOP := 10.0       # pixels it may wander meanwhile and still count as held
 const DOTS_HEIGHT := 12.0     # room at the bottom of the pages for the page dots
 const PAGE_COUNT := 2         # the spreads: 0 = the hold and the map, 1 = the marked places
 
@@ -76,6 +79,8 @@ var _slot_rects: Array[Rect2] = []   # where each slot is drawn on the book (wor
 var page := 0                   # the spread showing: 0 = the hold and the map, 1 = the marked places
 var _places: Array = []         # one entry per marked place (at most PLACE_SLOTS): {"picture": the texture, "square": its square}, read on opening
 var _touch_start := Vector2(-1, -1)   # where the finger came down (to tell a swipe from a tap)
+var _touch_now := Vector2(-1, -1)     # where it is now (a hold must stay put)
+var _touch_count := 0                 # counts the touches, so a hold's timer knows if it's still the same one
 
 # The part of the spread being drawn right now, from x = _half_from to x = _half_to (see _draw_half):
 # the helpers below (_half_line, _half_rect, _half_texture, _half_text) draw only what falls inside it.
@@ -190,16 +195,24 @@ func _draw_half(from: float, to: float, squeeze: float) -> void:
 ## A finger on the open book (only while it's fully open). Where it comes down is kept; when it lifts:
 ##   - it slid sideways SWIPE pixels or more: a swipe, the page turns (to the left: the next page; to the
 ##     right: the one before);
-##   - otherwise it's a tap: on the first spread, on a slot holding a bomb or a trap, that thing is equipped (or
-##     unequipped, if it already was: Inventory.toggle_equip; the pages are drawn again by `refresh`, which the
-##     Inventory's signal calls).
+##   - otherwise it's a tap: on the first spread, on a slot holding something equippable, it goes into A, or from
+##     A to B, or from B back to A (Inventory.tap_equip; the pages are drawn again by `refresh`, which the
+##     Inventory's signal calls);
+##   - a finger HELD still on such a slot for HOLD_TIME takes it off (Enrico; Inventory.unequip), while still held;
+##     lifting it then does nothing more.
 func _gui_input(event: InputEvent) -> void:
 	if Engine.is_editor_hint() or unfold < 1.0:
+		return
+	if event is InputEventScreenDrag:
+		_touch_now = event.position                # where the finger is now (to tell a hold from a slide)
 		return
 	if not event is InputEventScreenTouch:
 		return
 	if event.pressed:
 		_touch_start = event.position
+		_touch_now = event.position
+		_touch_count += 1
+		_wait_for_hold(_touch_count)
 		accept_event()
 		return
 	if _touch_start.x < 0.0:
@@ -214,8 +227,25 @@ func _gui_input(event: InputEvent) -> void:
 	if page == 0:
 		for i in _slot_rects.size():
 			if i < _slots.size() and _slot_rects[i].has_point(tapped_at):
-				Inventory.toggle_equip(_slots[i]["item"])
+				Inventory.tap_equip(_slots[i]["item"])
 				return
+
+
+## HOLD_TIME after a finger came down: if it's the same touch (`touch`, not lifted since), still down and hardly
+## moved, on a slot holding an equipped thing, that thing is taken off; the lift that follows does nothing.
+func _wait_for_hold(touch: int) -> void:
+	await get_tree().create_timer(HOLD_TIME).timeout
+	if touch != _touch_count or _touch_start.x < 0.0 or page != 0:
+		return                                     # lifted already, or another touch
+	if _touch_now.distance_to(_touch_start) > HOLD_SLOP:
+		return                                     # it's sliding (a swipe), not holding
+	for i in _slot_rects.size():
+		if i < _slots.size() and _slot_rects[i].has_point(_touch_start):
+			var item: String = _slots[i]["item"]
+			if Inventory.is_equipped(item):
+				Inventory.unequip(item)
+				_touch_start = Vector2(-1, -1)     # done: the lift won't count as a tap
+			return
 
 
 ## Turns the page by `step` (1 = next, -1 = back), if there is one that way.
@@ -333,7 +363,9 @@ func _draw_hold(area: Rect2) -> void:
 			var amount: int = _slots[i]["count"]
 			_half_frame(r, INK, 1.5, false)
 			if Inventory.is_equipped(item):
-				_half_frame(r.grow(-3.0), INK, 2.0, false)      # equipped: a second, thick frame inside
+				_half_frame(r.grow(-3.0), INK, 2.0, false)      # equipped: a second, thick frame inside…
+				# …and its letter, A or B, small in the top left corner
+				_half_text(r.position + Vector2(6.0, 14.0), Inventory.slot_with(item).to_upper(), 10, INK, HORIZONTAL_ALIGNMENT_LEFT)
 			var icon := Inventory.icon_of(item)
 			if icon:
 				_draw_icon(icon, r)

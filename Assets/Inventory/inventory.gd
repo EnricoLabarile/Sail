@@ -10,16 +10,19 @@ extends Node
 ## Most things take a slot each (two fish = two slots). Stackable things (bombs, traps) pile up in ONE slot,
 ## however many there are, with their number drawn on it. When all the slots are taken, nothing new fits.
 ##
-## Equippable things are equipped by tapping their slot in the logbook; tapping it again unequips it. There are two
-## equip slots (ItemData.equip_slot): "main", the bomb or the trap, one at a time (equipping one unequips the
-## other), kept in `equipped`; and "wind", the Aeolus Jar, kept in `equipped_wind`, with its own button.
-## Things with ItemData.equip_on_pickup (the bomb, the jar) are equipped by themselves when they come aboard.
+## EQUIPPING, A and B (Enrico, like Zelda's two item buttons): two equip slots, `equipped_a` and `equipped_b`, each
+## with its own button on the screen (A above, B below: Hud.ITEM_BUTTON_TOP). ANY equippable thing (bomb, trap, Aeolus
+## Jar, harpoon) can go in either. In the logbook a tap on a thing's slot puts it in A; tapping it again moves it to
+## B, and again back to A (tap_equip); holding the finger on it takes it off (unequip). Putting a thing where another
+## one is: if the new one was in the other slot they swap places, otherwise the old one is taken off.
+## Things with ItemData.equip_on_pickup (bomb, jar, harpoon) are equipped by themselves when they come aboard, in the first
+## empty slot (A, then B); with both taken they wait in the hold.
 ##
 ## The purse: `coins`, taken in and spent at the stores. It takes no slot.
 
 ## Sent whenever something comes in or goes out (the open logbook listens, to draw the pages again).
 signal changed
-## Sent when what's equipped changes (the bomb button and the logbook listen).
+## Sent when what's equipped changes (the item buttons and the logbook listen).
 signal equipped_changed
 ## Sent when something comes aboard (anything: a pickup, a caught imp, the fish from a haul, a buy at a counter).
 ## The boat listens and plays the "came aboard" sound (boat.gd). Not sent for the things she sets out with.
@@ -34,8 +37,8 @@ const START_COINS := 10             # coins in the purse at the start (10 for no
 
 var catalogue := {}                 # every kind of item: its name → its ItemData (read from ITEMS_FOLDER)
 var items: Array[String] = []   # what's aboard, one entry per thing, in the order it came in
-var equipped := ""                  # the bomb or trap equipped now (the "main" slot; "" = nothing)
-var equipped_wind := ""             # the Aeolus Jar, if equipped (the "wind" slot; "" = nothing)
+var equipped_a := ""                # what's in the A slot (its button above; "" = nothing)
+var equipped_b := ""                # what's in the B slot (its button below; "" = nothing)
 var coins := START_COINS            # the purse
 
 
@@ -96,11 +99,14 @@ func add(item: String, count := 1) -> int:
 		items.append(item)
 		added += 1
 	if added > 0:
-		# Bombs and jars coming aboard are equipped at once (Enrico: equip_on_pickup in their .tres), so their
-		# button shows without opening the logbook.
+		# Things coming aboard with equip_on_pickup in their .tres are equipped at once, in the first empty slot,
+		# so their button shows without opening the logbook (both slots taken: they just wait in the hold).
 		var info := data(item)
 		if info and info.equippable and info.equip_on_pickup and not is_equipped(item):
-			_set_equipped(info.equip_slot, item)
+			if equipped_a == "":
+				_set_slot("a", item)
+			elif equipped_b == "":
+				_set_slot("b", item)
 		changed.emit()
 		came_aboard.emit(item, added)
 	return added
@@ -115,7 +121,7 @@ func remove(item: String) -> bool:
 	items.remove_at(index)
 	changed.emit()
 	if is_equipped(item) and not items.has(item):
-		_set_equipped(slot_of(item), "")
+		unequip(item)
 	return true
 
 
@@ -149,32 +155,57 @@ func is_full() -> bool:
 	return slots().size() >= SLOTS
 
 
-## Equips `item` (tapping its slot); if it's already equipped, unequips it. Only equippable things that are
-## aboard can be equipped, one at a time.
-func toggle_equip(item: String) -> void:
+## A tap on a thing's slot in the logbook: not equipped → into A; in A → over to B; in B → back to A.
+## Only equippable things that are aboard.
+func tap_equip(item: String) -> void:
 	if not is_equippable(item) or count(item) == 0:
 		return
-	if is_equipped(item):
-		_set_equipped(slot_of(item), "")
+	if slot_with(item) == "a":
+		equip(item, "b")
 	else:
-		_set_equipped(slot_of(item), item)
+		equip(item, "a")
+
+
+## Puts `item` in `slot` ("a" or "b"). If it was in the other slot, the two swap places; if it wasn't equipped,
+## whatever was in `slot` is taken off.
+func equip(item: String, slot: String) -> void:
+	var was_in := slot_with(item)
+	if was_in == slot:
+		return
+	var other := "b" if slot == "a" else "a"
+	var displaced := equipped_a if slot == "a" else equipped_b
+	if was_in == other:
+		_set_slot(other, displaced)           # swap: the one that was here goes where the item was
+	_set_slot(slot, item)
+
+
+## Takes `item` off (holding the finger on its slot, or the last one spent).
+func unequip(item: String) -> void:
+	var slot := slot_with(item)
+	if slot != "":
+		_set_slot(slot, "")
 
 
 ## Is `item` equipped now (in either slot)?
 func is_equipped(item: String) -> bool:
-	return item != "" and (equipped == item or equipped_wind == item)
+	return slot_with(item) != ""
 
 
-## Which equip slot `item` goes in: "main" or "wind" (its ItemData.equip_slot).
-func slot_of(item: String) -> String:
-	var info := data(item)
-	return info.equip_slot if info else "main"
+## Which slot `item` is in: "a", "b", or "" (not equipped).
+func slot_with(item: String) -> String:
+	if item == "":
+		return ""
+	if equipped_a == item:
+		return "a"
+	if equipped_b == item:
+		return "b"
+	return ""
 
 
-## Puts `item` in the equip slot `slot` ("" = empty it), and tells whoever listens.
-func _set_equipped(slot: String, item: String) -> void:
-	if slot == "wind":
-		equipped_wind = item
+## Puts `item` in `slot` ("" = empty it), and tells whoever listens.
+func _set_slot(slot: String, item: String) -> void:
+	if slot == "a":
+		equipped_a = item
 	else:
-		equipped = item
+		equipped_b = item
 	equipped_changed.emit()

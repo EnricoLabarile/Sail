@@ -12,6 +12,11 @@ extends Node
 ## The icons are found by their groups (Node dock → Groups, like Actor Tags in Unreal): "hidden_at_start" (all four)
 ## and "hidden_while_talking" (the wind vane and the hearts).
 
+## Where the A and B item buttons sit (Enrico's Zelda-like slots, Inventory.equipped_a / _b): each button (bomb,
+## jar, harpoon) moves to the place of the slot its thing is in. Their Control's offset_top, from the bottom of the
+## screen (they're 80 px tall): A above, B below it.
+const ITEM_BUTTON_TOP := {"a": -252.0, "b": -162.0}
+
 const GROUPS := ["hidden_at_start", "hidden_while_talking"]   # every group of icons this looks after
 
 var reasons := {}   # reason → the groups it hides, e.g. {"anchor": ["hidden_at_start"]}
@@ -24,6 +29,15 @@ func set_hidden(reason: String, groups: Array, hidden: bool) -> void:
 	else:
 		reasons.erase(reason)
 	refresh()
+
+
+## Puts an item button (its Control) in the place of `slot` ("a" or "b"; "" leaves it where it is).
+func place_item_button(button: Control, slot: String) -> void:
+	if not ITEM_BUTTON_TOP.has(slot):
+		return
+	var height := button.offset_bottom - button.offset_top
+	button.offset_top = ITEM_BUTTON_TOP[slot]
+	button.offset_bottom = button.offset_top + height
 
 
 ## Shows every icon no reason hides, hides the rest.

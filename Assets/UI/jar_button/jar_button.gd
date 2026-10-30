@@ -4,8 +4,8 @@ extends Control
 ## The Aeolus Jar (Enrico) is a consumable: a tap uncorks one and the wind turns to blow from right behind her
 ## sail, the way her bow points now (Wind.turn_to). It then stays like that, as any wind does, until she uncorks
 ## another jar or crosses a wind zone. One jar out of the hold each time.
-## It shows only while a jar is equipped and at least one is aboard (Inventory.equipped_wind: the jar has its own
-## equip slot, "wind", so it's equipped alongside a bomb or a trap; jars coming aboard are equipped by themselves).
+## It shows only while a jar is equipped and at least one is aboard, in the place of the slot it's in (A above, B
+## below: Inventory.equipped_a / _b, Hud.place_item_button; jars coming aboard are equipped by themselves).
 ## After each jar the button rests for `cooldown` seconds (Enrico: long, at least 30): taps do nothing, and a
 ## see-through ink pie of the wait still left shrinks clockwise from the top, as the bomb button's.
 ## Drawn with code under the dither (CanvasLayer 95, like the wheel), so it's 1-bit.
@@ -38,7 +38,8 @@ func _ready() -> void:
 ## Shown only while a jar is equipped AND there's at least one aboard (a hidden Control gets no taps, so hiding
 ## it also switches it off).
 func _update_shown() -> void:
-	visible = Inventory.equipped_wind == JAR and Inventory.count(JAR) > 0
+	visible = Inventory.is_equipped(JAR) and Inventory.count(JAR) > 0
+	Hud.place_item_button(self, Inventory.slot_with(JAR))
 
 
 func _gui_input(event: InputEvent) -> void:

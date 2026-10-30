@@ -1,7 +1,8 @@
 @tool
 extends Control
-## THE BOMB BUTTON (bottom right, where the slingshot was): a round paper button with the bomb on it. It shows
-## only while a bomb is equipped (tap the bombs' slot in the logbook: Inventory.equipped). A tap drops a bomb
+## THE BOMB BUTTON (bottom right, in the place of the slot it's equipped in: A above, B below, Hud.place_item_button):
+## a round paper button with the bomb on it. It shows only while a bomb is equipped (tap the bombs' slot in the
+## logbook: Inventory.equipped_a / _b). A tap drops a bomb
 ## off the boat's bow (Enrico; Assets/Items/bomb/bomb.tscn) and takes one out of the hold; when the last one goes,
 ## nothing is equipped any more and the button hides.
 ## After each bomb the button rests for `cooldown` seconds (Enrico): taps do nothing, and a see-through ink pie
@@ -37,14 +38,14 @@ func _ready() -> void:
 	Inventory.equipped_changed.connect(_on_equipped_changed)
 	Inventory.changed.connect(_update_shown)          # bombs coming aboard or going out
 	_update_shown()
-	was_equipped = Inventory.equipped == "bomb"
+	was_equipped = Inventory.is_equipped("bomb")
 
 
 ## Something was equipped or unequipped (Inventory.equipped_changed): show or hide the button, and if a bomb has
 ## just been equipped, the rings and the click-clack.
 func _on_equipped_changed() -> void:
 	_update_shown()
-	var is_equipped := Inventory.equipped == "bomb"
+	var is_equipped := Inventory.is_equipped("bomb")
 	if is_equipped and not was_equipped:
 		equip_anim_left = equip_anim_time
 		Sfx.equip_bomb()
@@ -55,7 +56,8 @@ func _on_equipped_changed() -> void:
 ## Shown only while a bomb is equipped AND there's at least one aboard (Enrico: with 0 bombs it's hidden and does
 ## nothing; a hidden Control gets no taps, so hiding it also switches it off).
 func _update_shown() -> void:
-	visible = Inventory.equipped == "bomb" and Inventory.count("bomb") > 0
+	visible = Inventory.is_equipped("bomb") and Inventory.count("bomb") > 0
+	Hud.place_item_button(self, Inventory.slot_with("bomb"))   # A above, B below
 
 
 func _gui_input(event: InputEvent) -> void:

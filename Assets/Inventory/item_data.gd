@@ -12,9 +12,6 @@ extends Resource
 @export var buy_price := 0            # coins a merchant asks for one (0 = no merchant sells it)
 @export var sell_price := 0           # coins a merchant pays for one of yours (0 = merchants don't buy it)
 @export var stackable := false        # true: they pile up in ONE slot of the hold, with their number on it
-@export var equippable := false       # true: tapping its slot in the logbook equips it (bombs, traps)
-## Which equip slot it goes in. "main": bombs and traps, one at a time (the bomb button). "wind": the Aeolus Jar,
-## with its own button under the bomb's, so it's equipped alongside a bomb or a trap, not instead of it.
-@export_enum("main", "wind") var equip_slot := "main"
-## Equipped by itself whenever one comes aboard (the bomb, the Aeolus Jar).
+@export var equippable := false       # true: it can go in the A or B slot (a tap on its slot in the logbook)
+## Equipped by itself whenever one comes aboard, in the first empty slot (A, then B).
 @export var equip_on_pickup := false

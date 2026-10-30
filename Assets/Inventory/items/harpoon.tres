@@ -12,5 +12,4 @@ buy_price = 4
 sell_price = 2
 stackable = true
 equippable = true
-equip_slot = "wind"
 equip_on_pickup = true

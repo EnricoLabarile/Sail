@@ -1,7 +1,7 @@
 @tool
 extends Control
-## THE HARPOON BUTTON (bottom right, in the Aeolus Jar's place: the harpoon goes in the same equip slot, "wind",
-## as an alternative to the jar, so only one of the two buttons ever shows). A round paper button with the harpoon.
+## THE HARPOON BUTTON (bottom right, in the place of the slot it's equipped in: A above, B below, Hud.place_item_button).
+## A round paper button with the harpoon.
 ## A tap shoots one harpoon (harpoon.tscn) from her bow, straight ahead; it hooks what it meets and pulls it to her
 ## (see harpoon.gd). Harpoons are spent: one out of the hold each shot (Enrico: like bombs and jars, bought again).
 ## One at a time: while it's out, taps do nothing; after each shot the button rests `cooldown` seconds (the ink pie).
@@ -36,7 +36,8 @@ func _ready() -> void:
 ## Shown only while a harpoon is equipped AND there's at least one aboard (a hidden Control gets no taps, so hiding
 ## it also switches it off).
 func _update_shown() -> void:
-	visible = Inventory.equipped_wind == HARPOON and Inventory.count(HARPOON) > 0
+	visible = Inventory.is_equipped(HARPOON) and Inventory.count(HARPOON) > 0
+	Hud.place_item_button(self, Inventory.slot_with(HARPOON))
 
 
 func _gui_input(event: InputEvent) -> void:
