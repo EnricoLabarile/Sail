@@ -4,6 +4,8 @@
 [ext_resource type="Shader" uid="uid://c3by8qdnwmb0o" path="res://Assets/Items/barrel/barrel.gdshader" id="2_shader"]
 [ext_resource type="Texture2D" uid="uid://cviunct7yqyi" path="res://Assets/Items/barrel/barrel.png" id="3_picture"]
 
+[ext_resource type="Script" path="res://Assets/Items/towable/towable.gd" id="4_towable"]
+
 [sub_resource type="ShaderMaterial" id="Mat_barrel"]
 render_priority = 2
 shader = ExtResource("2_shader")
@@ -39,3 +41,10 @@ monitorable = false
 
 [node name="Shape" type="CollisionShape3D" parent="Sensor" unique_id=1923794267]
 shape = SubResource("Shape_sensor")
+
+[node name="Towable" type="Node3D" parent="."]
+script = ExtResource("4_towable")
+grab_reach = 8.0
+rope_length = 4.0
+tow_slowdown = 0.8
+size = 5.0

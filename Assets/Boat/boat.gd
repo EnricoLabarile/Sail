@@ -505,6 +505,15 @@ func done_talking_with(npc: Node3D) -> void:
 		talk_hint_changed.emit()
 
 
+## An NPC has something new to say (npc.gd on_delivered): it no longer counts as talked to, so anchoring there
+## starts its talk again even though she never left its radius.
+func forget_talk_with(npc: Node3D) -> void:
+	var had_hint := talk_hint()
+	npcs_talked_to.erase(npc)
+	if talk_hint() != had_hint:
+		talk_hint_changed.emit()
+
+
 ## Has she already talked to this NPC since she came into its radius?
 func has_talked_to(npc: Node3D) -> bool:
 	return npcs_talked_to.has(npc)

@@ -685,7 +685,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   inside, Enrico picks it; empty = nothing), `count`, `radius` (its size as a collider; Enrico set 5 m).
   **Solid**: `Sensor` (Area3D, mask layer 4, sized in `_ready` to `radius` + `SENSOR_MARGIN` 3 m) switches `_physics_process` on while the boat's SpotSensor is in
   it; her middle closer than `radius` is put back on its edge (`keep_boat_out`), and if her own way took her into it,
-  `boat.bump(out, into)` (her push back, lost way, half a heart, as a shore); bumping doesn't move it. **Towed by the hook** (Enrico, Oct 2026; see Levers and the hook): group `towable`, grabbed with her middle within `radius` + `grab_reach` 3 m; then `follow_boat` (physics) keeps it at most `rope_length` 4 m from her stern to its edge (pulled along the rope when taut, left still when slack), never onto land (`Land.is_land` at its middle and half a radius ahead: it stays stuck on the shore), not solid for her meanwhile, her speed × `tow_slowdown` 0.8 (`held_back`); an ink rope (made in code, `make_rope`, top_level, from the interpolated places, `rope_width` 0.15, `rope_height` 0.6); physics interpolation on (it moves in physics frames); let go, it stays there, solid again; a bomb breaks it as before (letting go first). Other barrels don't stop it. **Broken only by a bomb**: `bomb.gd` `explode()`
+  `boat.bump(out, into)` (her push back, lost way, half a heart, as a shore); bumping doesn't move it. **Towed by the hook** through its `Towable` child (the component, see Towable; in barrel.tscn `grab_reach` 8, `rope_length` 4, `tow_slowdown` 0.8, `size` 5): while `towable.is_towed()` it isn't solid for her; let go, solid again where she left it; a bomb breaks it as before (letting go first). **Broken only by a bomb**: `bomb.gd` `explode()`
   calls `blast_at(point, blast_radius)` on the group `barrels`; with an arm of the blast touching it (`in_blast` + its `radius`) it breaks (`break_open`): an
   ordinary **pickup** (`pickup.tscn`, `item` = `contents`, `count`) left where it was, the barrel gone. No sound or
   break animation yet (not asked).
@@ -753,7 +753,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   grabs the nearest thing of the group **`towable`** whose `tow_reach()` her middle is within (`Sfx.lever_hook`), a
   second tap lets go; while holding the disc is ink with a paper hook (`paper_copy` of the icon); nothing in reach: only
   the flash and click; the hook taken off lets go. **The towable interface**: `can_be_towed()`, `tow_reach()`,
-  `start_tow(boat)`, `stop_tow()`, `is_towed()` (now the lever, the barrel and the key). **Hurt, she lets go** (Enrico): the
+  `start_tow(boat)`, `stop_tow()`, `is_towed()` (the lever implements it itself; everything else through the **Towable** component below). **Hurt, she lets go** (Enrico): the
   button listens to the boat's `hurt` (any real damage) and lets go. The lever: grabbed within
   `touch_radius` 6 m of its middle → HOOKED (`hooked_distance` = her stern's distance then; `boat.held_back` = `slowdown` 0.5:
   boat.gd multiplies her target speed by it, after everything else); `progress` = (stern distance − hooked_distance) /
@@ -768,12 +768,33 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   measured over 0.1 s (`measured_pull`, `measured_time`: the boat moves in physics steps) and eased (`drag_level`),
   louder and pitch 0.85 → 1.15 the faster; 0 on letting go; `lever_done.ogg` (`LeverDone` −6 dB, a dry higher snap:
   two ticks and a 1.6 kHz ring) at the full pull, `Sfx.lever_done()`.
+- **Towable: the towing component** (Enrico, Oct 2026: like an Actor Component in Unreal, to make anything draggable
+  with the hook; `Assets/Items/towable/towable.gd`, `class_name Towable`, `@icon` the hook's icon, no .tscn: added as a
+  child node, "Add Child Node" → Towable, left at the parent's middle): it moves its **parent**. Group `towable` (the
+  hook button's interface). Exports: `tow_id` (for goals), `grab_reach` (from the parent's middle), `rope_length` (stern
+  to the thing's edge), `tow_slowdown` (`held_back`), `size` (middle to edge), `towable_after_delivery` (false),
+  `rope_width` 0.15, `rope_height` 0.6. Towed: `follow_boat` (physics; taut → pulled to `rope_length` + `size` from her
+  stern, slack → still, never onto land: middle and half a size ahead), the ink rope (`make_rope`, `draw_rope`, from the
+  interpolated places), the parent's physics interpolation on; she sank → let go. Signals **`grabbed(boat)`**,
+  **`released`**, **`delivered(goal)`** for the parent; `deliver(goal)` (let go, `delivered_to`, can't be towed again
+  unless `towable_after_delivery`). Used by the barrel, the key and the raft NPC. **The tow goal**
+  (`Assets/Items/towable/tow_goal.gd`, `class_name TowGoal`, `@tool`; a Node3D with the script): `goal_id` (empty = any),
+  `radius` 8 (a green editor disc, render_priority 10, no depth test); every physics frame a `Towable` (not the lever)
+  with that `tow_id`, not yet delivered, within `radius` of it → `towable.deliver(self)` and signal **`arrived(towable)`**.
+  **Towed NPCs** (`npc.gd`): `lines_after_delivery` (export), `towed`; `on_grabbed` (as if she left: `set_near_npc`
+  false, so no speed limit, no talk, the bubble fades; the sensor and anchor ignore her while towed), `on_released`
+  (near again if her SpotSensor overlaps, `get_overlapping_areas`; no auto-talk), `on_delivered` (lines =
+  `lines_after_delivery`, `boat.forget_talk_with(self)` so anchoring there talks again). **The castaway on the raft**
+  (`Assets/NPCs/raft_npc/`: `raft_npc.tscn`, an inherited scene of `npc.tscn` with no script of its own: `Picture` a 5 m
+  plane of `raft_npc.png` (96², a stand-in by `art_src/items/make_raft_npc.py`), the placeholder box hidden, a
+  `Towable` (`tow_id` "castaway", `grab_reach` 8 = its `talk_radius`, since the anchor drops itself at the radius;
+  `rope_length` 4, `tow_slowdown` 0.8, `size` 2.5) whose three signals are connected in the .tscn to `on_grabbed`,
+  `on_released`, `on_delivered`; "Castaway", two test pages before and two after). Tests in Overworld:
+  `Gameplay/RaftNPCTest` (25, 0, −10) and `Gameplay/TowGoalTest` (30, 0, −30), `goal_id` "castaway".
 - **Keys and bridge locks** (Enrico, Oct 2026; a key towed with the hook opens a gate under a bridge):
   **the key** (`Assets/Items/key/`: `key.tscn` + `key.gd` (`@tool`), `key.png` a 64² stand-in by
   `art_src/items/make_key.py`; placed by hand): `Picture` a 3 m PlaneMesh lying 0.1 m up (StandardMaterial3D unshaded,
-  alpha-scissor, nearest, render_priority 2), bobbing (`bob_height` 0.1, `bob_speed` 2); not solid; groups `keys` and
-  `towable` (the barrel's towing, its own copy: `grab_reach` 4 m from its middle, `rope_length` 4 m from her stern,
-  `tow_slowdown` 0.9, `size` 1.2, never onto land, physics interpolation on); `key_id` (text). `use_up()`: let go and
+  alpha-scissor, nearest, render_priority 2), bobbing (`bob_height` 0.1, `bob_speed` 2); not solid; group `keys`; towed through its `Towable` child (`grab_reach` 4, `rope_length` 3, `tow_slowdown` 0.9, `size` 1.2); `key_id` (text). `use_up()`: let go and
   freed. **The bridge lock** (`Assets/Landscape/architecture/`: `bridge_lock.tscn` + `bridge_lock.gd` (`@tool`), around
   Enrico's `sm_bridge_lock_01_a.fbx`, whose mesh carries its own scale 16 × 4 × 4: 16 m wide, 6 m tall, origin at the
   bottom): `Gate` (sinks) holding the mesh (any name: the first MeshInstance3D inside, `find_mesh`) and `Body`
@@ -784,7 +805,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   clamped to its half size on x/z; a radius from the box's middle failed with Enrico's 12 m deep box) → `open()` (signal
   **`opened`**) and the key `use_up()`; the gate sinks by `height` (the mesh's height in the Gate's space, through its
   scales, `mesh_height()`, 6 m) + `sink_extra` 0 in `open_time` 1.5 s, smoothstep, then the box is disabled and it stays
-  open for good. In Overworld: `BridgeLock` (−16, 0, 16) and `Key` (−25, 1.6, 53), `key_id` "1" both. No sounds (not asked), no test ones placed in the levels.
+  open for good. In Overworld: `BridgeLock` (Enrico moved it under the bridge, (−272, 0, −72)) and `Key` (−25, 1.6, 53), `key_id` "1" both. No sounds (not asked), no test ones placed in the levels.
 - **Traps** (Enrico; `Assets/Items/trap/`: `trap.tscn` + `trap.gd`, `trap.png` (a stand-in, seen from above),
   `trap_setter.gd` on `Boat/TrapSetter` in boat.tscn): boat.gd sends `anchor_dropped` when the anchor goes down
   (`toggle_anchor`, not at a pier); with a trap equipped (and one aboard) TrapSetter lays one where she is (a 2.4 m

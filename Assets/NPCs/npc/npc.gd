@@ -17,6 +17,12 @@ extends Node3D
 ## the Inspector: its name, its portrait and its lines (each entry of `lines` is one page; inside a page you can
 ## go to a new line as often as you like). In the editor a disc shows `talk_radius`.
 ## (In Unreal: an actor with a sphere trigger and a widget popping up over it, plus the dialogue data on it.)
+##
+## TOWED NPCs (Enrico: e.g. a castaway on a raft, raft_npc.tscn): give it a `Towable` child (the component,
+## Assets/Items/towable/towable.gd) and connect its signals to the three functions at the bottom (on_grabbed,
+## on_released, on_delivered: raft_npc.tscn does it). While it's towed it doesn't count as "near" (no speed limit, no
+## talk, no bubble); once a TowGoal has taken it, it says `lines_after_delivery` instead, and she can talk to it again
+## right there (drop the anchor).
 
 ## The name shown in the talk box.
 @export var speaker_name := "Stranger"
@@ -24,6 +30,8 @@ extends Node3D
 @export var portrait: Texture2D
 ## What it says: each entry is one page, shown one after the other (a tap on the hub for the next).
 @export_multiline var lines: Array[String] = ["Hello, sailor."]
+## What it says once it has been towed to its goal (only for a towed NPC; empty = the same lines as before).
+@export_multiline var lines_after_delivery: Array[String] = []
 ## How close the boat must come, in metres, for the bubble to show and for the anchor to start the talk.
 @export var talk_radius := 15:
 	set(value):
@@ -39,6 +47,7 @@ var talking := false               # is the talk box showing this NPC's lines no
 var bubble_alpha := 0.0            # 0 = bubble hidden, 1 = fully shown
 var bubble_rest_y := 0.0           # the bubble's height as placed in npc.tscn (it bobs round it)
 var time := 0.0
+var towed := false                 # is the hook dragging it now? (then the boat doesn't count as near)
 
 @onready var bubble: MeshInstance3D = $Bubble
 @onready var sensor: Area3D = $Sensor
@@ -89,6 +98,8 @@ func _listen_to_boat() -> void:
 
 func _on_sensor_entered(area: Area3D) -> void:
 	var boat := area.get_parent()
+	if towed:
+		return                            # being dragged by her: she's always near, that doesn't count
 	if boat != null and boat.is_in_group("player_boat"):
 		boat_near = true
 		boat.set_near_npc(self, true)     # the wheel's hub shows the speech bubble
@@ -119,7 +130,7 @@ func _on_sensor_exited(area: Area3D) -> void:
 
 ## The anchor went down somewhere: if it was inside our radius, start talking.
 func _on_anchor_dropped() -> void:
-	if not boat_near or talking or lines.is_empty():
+	if towed or not boat_near or talking or lines.is_empty():
 		return
 	if _talked_to():
 		return                            # already talked since she came in: she has to leave and come back
@@ -144,6 +155,40 @@ func _on_talk_finished() -> void:
 func _talked_to() -> bool:
 	var boat := get_tree().get_first_node_in_group("player_boat")
 	return boat != null and boat.has_talked_to(self)
+
+
+# ---- towed (connect its Towable child's signals to these: raft_npc.tscn does it) ----
+
+## The hook took it: as if she had sailed out of its radius (no speed limit, no talk, the bubble fades).
+func on_grabbed(_boat: Node3D) -> void:
+	towed = true
+	var boat := get_tree().get_first_node_in_group("player_boat")
+	if boat and boat_near:
+		boat.set_near_npc(self, false)
+	boat_near = false
+	set_process(true)                     # the bubble fades out
+
+
+## Let go: if she's inside its radius, she's near again (the hub shows the speech bubble: drop anchor to talk).
+## No talk starts by itself here: she's already beside it.
+func on_released() -> void:
+	towed = false
+	for area in sensor.get_overlapping_areas():
+		var boat := area.get_parent()
+		if boat != null and boat.is_in_group("player_boat"):
+			boat_near = true
+			boat.set_near_npc(self, true)
+	set_process(true)
+
+
+## A TowGoal took it: from now on it says lines_after_delivery, and she may talk to it again at once.
+func on_delivered(_goal: Node3D) -> void:
+	if not lines_after_delivery.is_empty():
+		lines = lines_after_delivery
+	var boat := get_tree().get_first_node_in_group("player_boat")
+	if boat and boat_near:
+		boat.forget_talk_with(self)       # it has something new to say
+	set_process(true)
 
 
 # ---- helpers ----

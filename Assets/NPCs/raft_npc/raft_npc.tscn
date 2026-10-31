@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://v3vso8b52t23" path="res://Assets/NPCs/npc/npc.tscn" id="1_npc"]
+[ext_resource type="Texture2D" path="res://Assets/NPCs/raft_npc/raft_npc.png" id="2_picture"]
+[ext_resource type="Script" path="res://Assets/Items/towable/towable.gd" id="3_towable"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_raft"]
+render_priority = 2
+transparency = 2
+alpha_scissor_threshold = 0.5
+alpha_antialiasing_mode = 0
+shading_mode = 0
+albedo_texture = ExtResource("2_picture")
+texture_filter = 0
+
+[sub_resource type="PlaneMesh" id="Mesh_raft"]
+material = SubResource("Mat_raft")
+size = Vector2(5, 5)
+
+[node name="RaftNPC" instance=ExtResource("1_npc")]
+speaker_name = "Castaway"
+lines = Array[String](["My oar snapped and the current won't let me row.", "Could you tow me to the old pier? Use your hook."])
+lines_after_delivery = Array[String](["Solid planks under my feet again!", "Thank you, sailor. I won't forget it."])
+talk_radius = 8
+
+[node name="MeshInstance3D" parent="." index="2"]
+visible = false
+
+[node name="Picture" type="MeshInstance3D" parent="." index="3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_raft")
+
+[node name="Towable" type="Node3D" parent="." index="4"]
+script = ExtResource("3_towable")
+tow_id = "castaway"
+grab_reach = 8.0
+rope_length = 4.0
+tow_slowdown = 0.8
+size = 2.5
+
+[connection signal="grabbed" from="Towable" to="." method="on_grabbed"]
+[connection signal="released" from="Towable" to="." method="on_released"]
+[connection signal="delivered" from="Towable" to="." method="on_delivered"]
