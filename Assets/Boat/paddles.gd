@@ -62,6 +62,12 @@ func wound() -> void:
 		push_left = push_time
 
 
+## A booster (Assets/Items/booster) adds `seconds` of push, never more than full (push_time). Only if they're on.
+func add_push(seconds: float) -> void:
+	if is_on():
+		push_left = minf(push_time, push_left + seconds)
+
+
 ## The speed they give her now (m/s): 0 when not pushing.
 func push_speed() -> float:
 	return paddle_speed * power

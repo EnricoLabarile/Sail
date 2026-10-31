@@ -19,6 +19,7 @@ extends Node
 ##   crank_click.ogg  one tooth of the paddles' crank going round: a dry clack (played rising, an octave a turn)  } made by
 ##   paddle_splash.ogg a paddle dipping into the water: a low soft splash and a thud (the prototype's)             } art_src/audio/
 ##   crank_unlock.ogg the crank free again: a latch's double click and a spring's ring                            } make_crank_sounds.py
+##   booster.ogg      a booster orb taken: a rising whoosh, three bright notes going up, a low push (make_booster_sound.py)
 ##   talk_blip.ogg    one syllable of a talking NPC, Animal Crossing style: a plain little dot of sound, 240 Hz (art_src/audio/make_talk_blip.py)
 ## (The sea, the wind and the water along the hull were removed by Enrico; bake.html can still make them.)
 ## The players are nodes in sfx.tscn: open it to change a sound's loudness (Volume dB in the Inspector).
@@ -43,6 +44,7 @@ extends Node
 @onready var crank_click_sound: AudioStreamPlayer = $CrankClick
 @onready var paddle_splash_sound: AudioStreamPlayer = $PaddleSplash
 @onready var crank_unlock_sound: AudioStreamPlayer = $CrankUnlock
+@onready var booster_sound: AudioStreamPlayer = $Booster
 
 ## The talk blips' pitch: each one picked at random between these (1 = as made), so a page babbles like a voice.
 @export var talk_pitch_min := 0.96    # Enrico: only a little change of pitch (was 0.7–0.95, before 0.9–1.25)
@@ -176,6 +178,11 @@ func paddle_splash(power: float) -> void:
 ## The crank can be wound again (crank.gd): a snappy mechanical unlock.
 func crank_unlock() -> void:
 	crank_unlock_sound.play()
+
+
+## The boat took a booster orb (booster.gd): a power-up.
+func booster() -> void:
+	booster_sound.play()
 
 
 ## The boat caught a wind gust (gust.gd): a very mild whoosh.

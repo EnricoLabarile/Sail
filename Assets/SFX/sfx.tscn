@@ -19,6 +19,7 @@
 [ext_resource type="AudioStream" uid="uid://3nr18maa1082" path="res://Assets/SFX/crank_click.ogg" id="20_crank_click"]
 [ext_resource type="AudioStream" uid="uid://dqht6i7b2rlye" path="res://Assets/SFX/paddle_splash.ogg" id="21_paddle_splash"]
 [ext_resource type="AudioStream" uid="uid://bb28ehtj4xya8" path="res://Assets/SFX/crank_unlock.ogg" id="22_crank_unlock"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/booster.ogg" id="23_booster"]
 
 [node name="Sfx" type="Node" unique_id=1764671958]
 script = ExtResource("1_sfx")
@@ -99,4 +100,8 @@ max_polyphony = 3
 
 [node name="CrankUnlock" type="AudioStreamPlayer" parent="." unique_id=100327517]
 stream = ExtResource("22_crank_unlock")
+volume_db = -6.0
+
+[node name="Booster" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("23_booster")
 volume_db = -6.0
