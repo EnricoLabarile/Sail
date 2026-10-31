@@ -32,7 +32,7 @@ signal opened
 
 var is_open := false
 var progress := 0.0                 # 0 = shut, 1 = all the way down
-var height := 1.5                   # the gate's height (the mesh's), worked out in _fit_body
+var height := 6                   # the gate's height (the mesh's), worked out in _fit_body
 
 @onready var gate: Node3D = $Gate
 

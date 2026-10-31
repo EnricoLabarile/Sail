@@ -39,6 +39,9 @@
 [ext_resource type="PackedScene" uid="uid://cxyvsiocbqavr" path="res://Assets/Landscape/islands/sm_island_edge_32x16.fbx" id="45_pcmpt"]
 [ext_resource type="PackedScene" uid="uid://23afdjaes360" path="res://Assets/Landscape/islands/sm_island_center_16x16.fbx" id="46_klm3u"]
 [ext_resource type="PackedScene" uid="uid://d0sdk8o8wvfxe" path="res://Assets/Items/barrel/barrel.tscn" id="49_to4lu"]
+[ext_resource type="PackedScene" path="res://Assets/Items/key/key.tscn" id="55_2r5vj"]
+[ext_resource type="PackedScene" uid="uid://c7qs5gjgfihdw" path="res://Assets/Landscape/architecture/sm_bridge_01_a.fbx" id="56_bwgkw"]
+[ext_resource type="PackedScene" uid="uid://b7h4qd0bbash4" path="res://Assets/Landscape/architecture/bridge_lock.tscn" id="57_c7or3"]
 [ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
 [ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="91_pickup"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
@@ -1469,3 +1472,14 @@ contents = ExtResource("27_cra7r")
 [node name="Barrel6" parent="." unique_id=912253653 instance=ExtResource("49_to4lu")]
 transform = Transform3D(0.99827325, 0, -0.05874306, 0, 1, 0, 0.05874306, 0, 0.99827325, -76.30937, 0, 19.072691)
 contents = ExtResource("27_cra7r")
+
+[node name="Key" parent="." unique_id=311401057 instance=ExtResource("55_2r5vj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.004208, 1.612463, 52.99401)
+key_id = "1"
+
+[node name="sm_bridge_01_a" parent="." unique_id=1021530131 instance=ExtResource("56_bwgkw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -272, 0, -72)
+
+[node name="BridgeLock" parent="." unique_id=1040793887 instance=ExtResource("57_c7or3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 16)
+key_id = "1"
