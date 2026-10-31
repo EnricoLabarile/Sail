@@ -25,7 +25,7 @@ signal direction_changed
 # ---- Knobs (constants: values you set here by hand, they never change while playing) ----
 
 const START_FROM_DEG := 180.0             # where the wind comes from when a level starts: 180 = from the south, so it blows north
-const CURRENT_SPEED := 1.5                # m/s the current carries floating things downwind (boat, bombs, a dead imp)
+const CURRENT_SPEED := 2.0                # m/s the current carries floating things downwind (boat, bombs, a dead imp)
 
 
 # ---- The value other scripts read ----
