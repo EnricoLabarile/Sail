@@ -16,6 +16,9 @@ extends Node
 ##   button_press.ogg a button pressed: a soft low tock, 70 ms, 170 -> 130 Hz (art_src/audio/make_button_press.py)
 ##   book_open.ogg / book_close.ogg  the logbook: a page turning; closing, also the cover's soft thump (art_src/audio/make_page_turn.py)
 ##   boat_hurt.ogg    the boat losing hearts, whatever hurt her: a splintering crack on a heavy thud (art_src/audio/make_boat_hurt.py)
+##   crank_click.ogg  one tooth of the paddles' crank going round: a dry clack (played rising, an octave a turn)  } made by
+##   paddle_splash.ogg a paddle dipping into the water: a low soft splash and a thud (the prototype's)             } art_src/audio/
+##   crank_unlock.ogg the crank free again: a latch's double click and a spring's ring                            } make_crank_sounds.py
 ##   talk_blip.ogg    one syllable of a talking NPC, Animal Crossing style: a plain little dot of sound, 240 Hz (art_src/audio/make_talk_blip.py)
 ## (The sea, the wind and the water along the hull were removed by Enrico; bake.html can still make them.)
 ## The players are nodes in sfx.tscn: open it to change a sound's loudness (Volume dB in the Inspector).
@@ -37,6 +40,9 @@ extends Node
 @onready var boat_hurt_sound: AudioStreamPlayer = $BoatHurt
 @onready var book_open_sound: AudioStreamPlayer = $BookOpen
 @onready var book_close_sound: AudioStreamPlayer = $BookClose
+@onready var crank_click_sound: AudioStreamPlayer = $CrankClick
+@onready var paddle_splash_sound: AudioStreamPlayer = $PaddleSplash
+@onready var crank_unlock_sound: AudioStreamPlayer = $CrankUnlock
 
 ## The talk blips' pitch: each one picked at random between these (1 = as made), so a page babbles like a voice.
 @export var talk_pitch_min := 0.96    # Enrico: only a little change of pitch (was 0.7–0.95, before 0.9–1.25)
@@ -46,6 +52,7 @@ extends Node
 ## the same instant and would cover it (Enrico couldn't hear it): a moment later, it's heard after the bang.
 @export var enemy_death_delay := 0.25
 
+var splash_db := 0.0    # the paddle splash's loudness as set in sfx.tscn (read at start): turned down with the paddles' power
 var rub_db := 0.0       # the rub's loudness as set in sfx.tscn (read at start): the code turns it down from there
 var thunk_db := 0.0     # the same for the thud
 var bump_db := 0.0      # the same for the hull's bump
@@ -56,6 +63,7 @@ func _ready() -> void:
 	rub_db = wheel_rub.volume_db
 	thunk_db = wheel_thunk.volume_db
 	bump_db = hull_bump_sound.volume_db
+	splash_db = paddle_splash_sound.volume_db
 	# The rub goes round and round, silent until the wheel turns.
 	wheel_rub.stream.loop = true
 	wheel_rub.volume_db = -80.0
@@ -148,6 +156,26 @@ func book(opening: bool) -> void:
 ## (linear_to_db(0) would be minus infinity, so it never goes below 0.0001.)
 func loudness_db(share: float) -> float:
 	return linear_to_db(maxf(share, 0.0001))
+
+
+## One tooth of the paddles' crank (crank.gd): a dry clack. `tooth` counts the teeth of this turn (0..15): each one a
+## little higher, so by the end of the turn it has gone up an octave (pitch 2 = an octave up).
+func crank_click(tooth: int, teeth: int) -> void:
+	crank_click_sound.pitch_scale = pow(2.0, float(tooth) / teeth)
+	crank_click_sound.play()
+
+
+## A paddle of the wheels dipping into the water (paddles.gd), as loud as the paddles push now (power 0..1): as she
+## comes to a halt the splashes get quieter and further apart, and stop.
+func paddle_splash(power: float) -> void:
+	paddle_splash_sound.volume_db = splash_db + loudness_db(power)
+	paddle_splash_sound.pitch_scale = randf_range(0.9, 1.1)      # each splash a little different
+	paddle_splash_sound.play()
+
+
+## The crank can be wound again (crank.gd): a snappy mechanical unlock.
+func crank_unlock() -> void:
+	crank_unlock_sound.play()
 
 
 ## The boat caught a wind gust (gust.gd): a very mild whoosh.

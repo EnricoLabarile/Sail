@@ -283,6 +283,15 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   rivets, arm and knob, 72-unit box scaled); a finger turning it clockwise winds `wound_so_far`; at TAU →
   `paddles.wound()` and the arm back up; let go before → springs back at `spring_back_speed` 12 rad/s; locked = pale
   (0.35) and no touch; the ring = `push_left / push_time`; every touch flashes it black and clicks.
+  **Their sounds** (Enrico; `art_src/audio/make_crank_sounds.py`, players in sfx.tscn): `crank_click.ogg` (`CrankClick`
+  −10 dB, a dry clack: a bright tick and a woody knock, 60 ms) for each of the gear's `TEETH` 16 as it's wound
+  (`crank.gd` `click_teeth`, `teeth_clicked`), `Sfx.crank_click(n, 16)` at pitch 2^(n/16), so the 16th, at the full turn,
+  is an octave up; springing back is silent and the next turn starts low. `paddle_splash.ogg` (`PaddleSplash` −4 dB,
+  the prototype's `Sfx.paddle`: a low soft splash low-passed 340 → 120 Hz and a thud 75 → 48 Hz) every quarter turn of
+  the wheel (`paddles.gd` `update_splashes`, `splash_turn`), `Sfx.paddle_splash(splash_level)` at a random pitch 0.9–1.1:
+  `splash_level` 1 while `push_left` > 0, then it follows her speed / `paddle_speed` down as she halts (and fades by
+  0.5/s, so freewheeling under sail is silent). `crank_unlock.ogg` (`CrankUnlock` −6 dB: a latch's double click and a
+  spring's 2.1 kHz ring, 0.25 s) once, the moment the crank can be wound again (`was_free` in crank.gd `_process`).
 - **Fake light** (no lights in the scene, Enrico removed the `Sun`): the boat's materials are unshaded and shade
   themselves, `Assets/Boat/fake_light.gdshaderinc` (a shared include, like a Material Function): `fake_light(NORMAL,
   INV_VIEW_MATRIX)` = `ambient` (0.45) + (1 − ambient) × max(0, N·sun) in world space. The sun is the **global shader

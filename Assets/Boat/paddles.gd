@@ -12,6 +12,9 @@ extends Node3D
 ## turn then winds them full again, so a player who keeps an eye on it never stops. The current still carries her
 ## (the boat's). At anchor they don't push. With the sail set too, she goes at whichever gives more.
 ##
+## Their sound (Enrico, the prototype's): a low soft splash for every other paddle that comes round (4 a turn of the
+## wheel, Sfx.paddle_splash) while they work; when the push ends it dies down as she slows (splash_level).
+##
 ## The boat (boat.gd) calls: push_speed() and bite (her speed), turn_factor() (turning), update(dt) every frame,
 ## stop() when she's back home after sinking. The crank calls: is_on(), can_wind(), wound().
 
@@ -30,6 +33,8 @@ var push_left := 0.0      # seconds of push left (0 = not wound)
 var power := 0.0          # 0..1: how hard they push now (eased toward 1 while push_left > 0)
 var spin_left := 0.0      # the wheels' angles (radians)
 var spin_right := 0.0
+var splash_turn := 0.0    # how far the wheel has turned since the last splash (radians)
+var splash_level := 0.0   # how loud the splashes are now (0..1): 1 while they push, then down as she slows
 
 @onready var boat: Node3D = owner                               # the boat (boat.tscn's root)
 @onready var wheel_left: Node3D = $PaddleWheelLeft/Spin          # the part of each wheel that turns
@@ -92,16 +97,34 @@ func spin_wheels(dt: float) -> void:
 	var turn_part: float = boat.turn_speed * half_beam / paddle_radius * 0.9
 	# 3. Going forward, the top of a wheel moves toward the bow (-Z): a negative turn round X.
 	#    (wrapf keeps the angle between -PI and PI, so the number never grows huge)
+	update_splashes(dt, base)
 	spin_left = wrapf(spin_left - (base - turn_part) * dt, -PI, PI)
 	spin_right = wrapf(spin_right - (base + turn_part) * dt, -PI, PI)
 	wheel_left.rotation.x = spin_left
 	wheel_right.rotation.x = spin_right
 
 
+## The splashes: one every quarter turn of the wheel (every other of its 8 paddles), so they come quicker the faster
+## it turns. Loud while they push; after a push it falls with her speed (she's coming to a halt) and fades within a
+## couple of seconds anyway (under sail the wheels only freewheel: no sound, Enrico asked for it while they work).
+func update_splashes(dt: float, wheel_speed: float) -> void:
+	if push_left > 0.0 and not boat.anchored:
+		splash_level = 1.0                  # pushing: full
+	else:
+		splash_level = minf(splash_level, clampf(boat.speed / paddle_speed, 0.0, 1.0))
+		splash_level = maxf(0.0, splash_level - dt * 0.5)
+	splash_turn += wheel_speed * dt
+	if splash_turn >= TAU / 4.0:
+		splash_turn = 0.0
+		if splash_level > 0.02:
+			Sfx.paddle_splash(splash_level)
+
+
 ## No push left (she's back home after sinking, or they were switched off).
 func stop() -> void:
 	push_left = 0.0
 	power = 0.0
+	splash_level = 0.0
 
 
 ## Switched on or off in the logbook: the wheels show or go; off, any push left is lost.

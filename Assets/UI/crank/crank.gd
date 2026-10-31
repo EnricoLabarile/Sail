@@ -6,7 +6,10 @@ extends Control
 ## Turning it anticlockwise does nothing (a ratchet).
 ## While the paddles push, the crank is LOCKED (pale, no touch), except in the last seconds of the push (paddles.gd
 ## recharge_window, Enrico): then it can be wound again, so the push never runs out if you keep it up.
-## The ring round the plate shows the push left. It shows only while the paddles are on (the logbook).
+## The ring round the plate shows the push left.
+## Its sounds (Enrico): a clack for each of the gear's 16 teeth as it's wound, each a little higher, an octave up by
+## the end of the turn (Sfx.crank_click); and a snappy mechanical unlock the moment it can be wound again
+## (Sfx.crank_unlock). It shows only while the paddles are on (the logbook).
 ##
 ## Drawn with code, in greys, like the wheel: its CanvasLayer (crank.tscn) sits UNDER the dither (95, the dither is
 ## 100), so it comes out in paper-and-ink dots. The drawing is in the prototype's units (a 72 x 72 box round the
@@ -19,11 +22,15 @@ extends Control
 @export var spring_back_speed := 12.0   # rad/s the arm springs back when let go before a full turn
 @export var press_flash := 0.12         # a touch turns it black for this long (s), with a click (Enrico: every button)
 
+const TEETH := 16   # the gear's teeth: a clack each as it's wound
+
 var crank_angle := 0.0        # the arm's angle (radians, 0 = pointing up, clockwise +)
 var wound_so_far := 0.0       # how far this turn has got (radians, 0..TAU): at TAU the paddles are wound
 var drag_index := -1          # the finger on it (-1 = none)
 var last_a := 0.0             # the finger's angle round the middle a moment ago
 var press_flash_left := 0.0   # seconds it stays black after a touch
+var teeth_clicked := 0        # teeth of this turn already clacked (0..TEETH)
+var was_free := true          # could it be wound a frame ago? (to hear the moment it unlocks)
 
 
 func _paddles() -> Node:
@@ -48,6 +55,8 @@ func _update_shown() -> void:
 		drag_index = -1
 		wound_so_far = 0.0
 		crank_angle = 0.0
+		teeth_clicked = 0
+	was_free = _can_wind()        # shown again: no unlock sound for the state it's already in
 
 
 func _on_inventory_changed(_item: String, _on: bool) -> void:
@@ -97,10 +106,20 @@ func _gui_input(e: InputEvent) -> void:
 		if turned > 0.0 and turned < 1.5:
 			wound_so_far += turned
 			crank_angle = wound_so_far
+			click_teeth()
 			if wound_so_far >= TAU:
 				_full_turn()
 			queue_redraw()
 		accept_event()
+
+
+## A clack for every tooth the arm has gone past since the last one (a quick finger can pass two in a frame),
+## each higher than the one before: tooth n of 16 at 2^(n/16), so the 16th, at the full turn, is an octave up.
+func click_teeth() -> void:
+	var teeth_now := mini(TEETH, int(wound_so_far / (TAU / TEETH)))
+	while teeth_clicked < teeth_now:
+		teeth_clicked += 1
+		Sfx.crank_click(teeth_clicked, TEETH)
 
 
 ## A full turn: the paddles are wound, and the arm is back up, ready for the next turn.
@@ -110,6 +129,8 @@ func _full_turn() -> void:
 		paddles.wound()
 	wound_so_far = 0.0
 	crank_angle = 0.0
+	teeth_clicked = 0
+	was_free = false                        # now locked: the unlock sound comes when it's free again
 	drag_index = -1                         # the finger must come off and start a new turn
 
 
@@ -122,6 +143,12 @@ func _process(dt: float) -> void:
 	if drag_index == -1 and wound_so_far > 0.0:
 		wound_so_far = maxf(0.0, wound_so_far - spring_back_speed * dt)
 		crank_angle = wound_so_far
+		teeth_clicked = 0                   # the next turn starts low again (springing back is silent)
+	# The moment it can be wound again (the last seconds of the push, or the push over): the unlock sound, once.
+	var free := _can_wind()
+	if free and not was_free:
+		Sfx.crank_unlock()
+	was_free = free
 	# Locked meanwhile (the paddles pushing, outside their last seconds): no finger can stay on it.
 	if drag_index != -1 and not _can_wind():
 		drag_index = -1

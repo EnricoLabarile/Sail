@@ -16,6 +16,9 @@
 [ext_resource type="AudioStream" path="res://Assets/SFX/book_open.ogg" id="17_book_open"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/book_close.ogg" id="18_book_close"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/boat_hurt.ogg" id="19_boat_hurt"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/crank_click.ogg" id="20_crank_click"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/paddle_splash.ogg" id="21_paddle_splash"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/crank_unlock.ogg" id="22_crank_unlock"]
 
 [node name="Sfx" type="Node"]
 script = ExtResource("1_sfx")
@@ -77,4 +80,18 @@ volume_db = -8.0
 
 [node name="BoatHurt" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("19_boat_hurt")
+volume_db = -6.0
+
+[node name="CrankClick" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("20_crank_click")
+volume_db = -10.0
+max_polyphony = 3
+
+[node name="PaddleSplash" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("21_paddle_splash")
+volume_db = -4.0
+max_polyphony = 3
+
+[node name="CrankUnlock" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("22_crank_unlock")
 volume_db = -6.0
