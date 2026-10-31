@@ -39,18 +39,16 @@
 [ext_resource type="PackedScene" uid="uid://cxyvsiocbqavr" path="res://Assets/Landscape/islands/sm_island_edge_32x16.fbx" id="45_pcmpt"]
 [ext_resource type="PackedScene" uid="uid://23afdjaes360" path="res://Assets/Landscape/islands/sm_island_center_16x16.fbx" id="46_klm3u"]
 [ext_resource type="PackedScene" uid="uid://d0sdk8o8wvfxe" path="res://Assets/Items/barrel/barrel.tscn" id="49_to4lu"]
-[ext_resource type="PackedScene" uid="uid://crxyhy3s27x67" path="res://Assets/Landscape/architecture/sm_island_bridge_01_a.fbx" id="50_oiq7i"]
-[ext_resource type="PackedScene" uid="uid://3ya3uojd536h" path="res://Assets/Landscape/architecture/sm_island_bridge_lock_01_a.fbx" id="52_lbqlv"]
 [ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
 [ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="91_pickup"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
 [ext_resource type="PackedScene" path="res://Assets/UI/harpoon_button/harpoon_button.tscn" id="93_harpoon_button"]
-[ext_resource type="PackedScene" path="res://Assets/UI/hook_button/hook_button.tscn" id="99_hook_button"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/harpoon.tres" id="94_harpoon_item"]
 [ext_resource type="Script" uid="uid://bdhc1006ybcng" path="res://Assets/Landscape/islands/island_grid.gd" id="95_island_grid"]
 [ext_resource type="PackedScene" path="res://Assets/UI/crank/crank.tscn" id="96_crank"]
 [ext_resource type="PackedScene" path="res://Assets/Items/booster/booster.tscn" id="97_booster"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/lever/lever.tscn" id="98_lever"]
+[ext_resource type="PackedScene" path="res://Assets/UI/hook_button/hook_button.tscn" id="99_hook_button"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/hook.tres" id="99_hook_item"]
 [ext_resource type="Script" uid="uid://droldh1rpljoo" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
@@ -285,7 +283,7 @@ script = ExtResource("21_game_view")
 
 [node name="HarpoonButton" parent="UI and PostProcess" unique_id=2045448758 instance=ExtResource("93_harpoon_button")]
 
-[node name="HookButton" parent="UI and PostProcess" instance=ExtResource("99_hook_button")]
+[node name="HookButton" parent="UI and PostProcess" unique_id=585324968 instance=ExtResource("99_hook_button")]
 
 [node name="Crank" parent="UI and PostProcess" unique_id=379339131 instance=ExtResource("96_crank")]
 
@@ -1471,9 +1469,3 @@ contents = ExtResource("27_cra7r")
 [node name="Barrel6" parent="." unique_id=912253653 instance=ExtResource("49_to4lu")]
 transform = Transform3D(0.99827325, 0, -0.05874306, 0, 1, 0, 0.05874306, 0, 0.99827325, -76.30937, 0, 19.072691)
 contents = ExtResource("27_cra7r")
-
-[node name="sm_island_bridge_01_a" parent="." unique_id=1093432086 instance=ExtResource("50_oiq7i")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -272, 0, -64)
-
-[node name="sm_island_bridge_lock_01_a" parent="." unique_id=1771353555 instance=ExtResource("52_lbqlv")]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -272, 0, -64)
