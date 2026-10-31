@@ -496,7 +496,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `{item, count}`; `add(item, count)` (as many as fit: a stackable already aboard needs no slot), `remove`, `count`,
   `is_full`; signal `changed`. **Equipping** (Enrico): equippable ones (`bomb`, `trap`), one at a time, `equipped` ("" =
   none), `tap_equip(item)`, `equip(item, slot)`, `unequip(item)`, `slot_with(item)` (the last one spent unequips), signal `equipped_changed`.
-  `START_ITEMS` {trap: 9, sail: 1, paddles: 1} (Enrico: no bombs and no jars at the start, she finds them; the sail, see The sail); **two equip slots, A and B** (Enrico, like Zelda's item buttons; `equipped_a`, `equipped_b`; `ItemData.equip_slot` is gone): ANY equippable thing (bomb, trap, jar, harpoon) in either; a tap in the logbook puts it in A, again moves it to B, again back to A; moving onto the other one's slot swaps them, a new one replaces what was there; a hold takes it off. Each item button sits in its slot's place (`Hud.ITEM_BUTTON_TOP` {a: −252 above, b: −162 below}, `Hud.place_item_button`); the trap has no button (laid at anchor while equipped in either). Things with `ItemData.equip_on_pickup` (bomb, jar, harpoon) **are equipped at once when they come aboard** in the first empty slot (A, then B; both taken: not equipped) (in `add`). A captured imp is `"imp"` (one slot).
+  `START_ITEMS` {trap: 9, sail: 1, paddles: 1} (Enrico: no bombs and no jars at the start, she finds them; the sail, see The sail); **two equip slots, A and B** (Enrico, like Zelda's item buttons; `equipped_a`, `equipped_b`; `ItemData.equip_slot` is gone): ANY equippable thing (bomb, trap, jar, harpoon) in either; a tap in the logbook puts it in A, again moves it to B, again back to A; moving onto the other one's slot swaps them, a new one replaces what was there; a hold takes it off. Each item button sits in its slot's place (`Hud.ITEM_BUTTON_TOP` {a: −252 above, b: −162 below}, `Hud.place_item_button`); the trap has no button (laid at anchor while equipped in either); the hook has one (see Levers and the hook). Things with `ItemData.equip_on_pickup` (bomb, jar, harpoon) **are equipped at once when they come aboard** in the first empty slot (A, then B; both taken: not equipped) (in `add`). A captured imp is `"imp"` (one slot).
 - **Health** (Enrico, the prototype's hull as Zelda's hearts): on the boat (`boat.gd`): `max_hearts` 3, `health` in hearts
   (0.5 = half), `hit_damage` 0 a bump (Enrico; was 0.5; in `bump()`, after its cooldown and minimum speed), `take_damage(hearts)`,
   `add_heart_container()` (one more heart and the hull whole), signal `health_changed(hurt)`. **At 0 she sinks** (Enrico): `start_sinking()` (no sailing, anchor or bumps; the water mask off so the sea covers her inside; no wake or bow wave), `update_sinking` takes `Model` down `sink_depth` 2.5 m and over `sink_lean_deg` 25° in `sink_time` 2 s (eased in), then signal `sank`; `respawn()` puts her back home (`home_position` / `home_turn`, where she was placed in Overworld) at anchor, hull whole, keeping the hold and heart containers. **She spawns by coming up out of the water** (Enrico: the sinking played backwards): `start_emerging()` at the level's start (`emerge_on_start`, on) and at the end of `respawn()`; `update_emerging` raises `Model` from `sink_depth` under and `sink_lean_deg` over to its place in `sink_time` ((1 − share)², quick at first, slowing at the surface), the water mask off till she's up; while `emerging` no sailing or damage, but the fog clears round her, and **the anchor can already be weighed** (Enrico: one press after "Set sail"; she sets off once she's up). **The game over card** (`Assets/UI/game_over.tscn` + `.gd`, made like the start screen: CanvasLayer 130, process_mode Always, hidden): on `sank` it pauses the game and shows "Shipwrecked", "The hull gave way. Back home to mend it." and "Set sail again", which calls `respawn()` and unpauses.
@@ -685,7 +685,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   inside, Enrico picks it; empty = nothing), `count`, `radius` (its size as a collider; Enrico set 5 m).
   **Solid**: `Sensor` (Area3D, mask layer 4, sized in `_ready` to `radius` + `SENSOR_MARGIN` 3 m) switches `_physics_process` on while the boat's SpotSensor is in
   it; her middle closer than `radius` is put back on its edge (`keep_boat_out`), and if her own way took her into it,
-  `boat.bump(out, into)` (her push back, lost way, half a heart, as a shore); **the barrel never moves** (Enrico). **Broken only by a bomb**: `bomb.gd` `explode()`
+  `boat.bump(out, into)` (her push back, lost way, half a heart, as a shore); bumping doesn't move it. **Towed by the hook** (Enrico, Oct 2026; see Levers and the hook): group `towable`, grabbed with her middle within `radius` + `grab_reach` 3 m; then `follow_boat` (physics) keeps it at most `rope_length` 4 m from her stern to its edge (pulled along the rope when taut, left still when slack), never onto land (`Land.is_land` at its middle and half a radius ahead: it stays stuck on the shore), not solid for her meanwhile, her speed × `tow_slowdown` 0.8 (`held_back`); an ink rope (made in code, `make_rope`, top_level, from the interpolated places, `rope_width` 0.15, `rope_height` 0.6); physics interpolation on (it moves in physics frames); let go, it stays there, solid again; a bomb breaks it as before (letting go first). Other barrels don't stop it. **Broken only by a bomb**: `bomb.gd` `explode()`
   calls `blast_at(point, blast_radius)` on the group `barrels`; with an arm of the blast touching it (`in_blast` + its `radius`) it breaks (`break_open`): an
   ordinary **pickup** (`pickup.tscn`, `item` = `contents`, `count`) left where it was, the barrel gone. No sound or
   break animation yet (not asked).
@@ -744,16 +744,22 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `art_src/audio/make_booster_sound.py`); then `disappear()`: the orb hidden and the sensor off (`set_deferred`) for
   `respawn_time` 30 s (`gone_left`), then `come_back()`.
 - **Levers and the hook** (Enrico, like A Link to the Past's levers; `Assets/Landscape/lever/`: `lever.tscn` +
-  `lever.gd` (`@tool`); item `hook.tres`: equippable in A or B, no button (like the trap), `equip_on_pickup`, buy 6 /
+  `lever.gd` (`@tool`); item `hook.tres`: equippable in A or B, `equip_on_pickup`, buy 6 /
   sell 3, icon `icons/hook.png` by `art_src/items/make_hook_icon.py`; tests in Overworld: `Gameplay/Pickups/HookPickup`
   (−6.6, 0, 56) and `LeverTest` (6, 0, 62)). Parts: `Post` (StaticBody3D, solid: she bumps on it like a shore), `Handle`
-  (slides out), `Rope` (ink strip, top_level), `Sensor` (`touch_radius` 3.5, `_fit_sensor`). With the hook equipped,
-  her SpotSensor entering → HOOKED (`hooked_distance` = her stern's distance then; `boat.held_back` = `slowdown` 0.5:
+  (slides out), `Rope` (ink strip, top_level); no sensor any more. **The hook button** (Enrico, Oct 2026: the hook is active now;
+  `Assets/UI/hook_button/`: `hook_button.tscn` (CanvasLayer 95, group `hidden_at_start`, in game_view `DITHERED`, all
+  4 levels) + `hook_button.gd` (`@tool`), in its A/B slot's place, shown while the hook is equipped, not spent): a tap
+  grabs the nearest thing of the group **`towable`** whose `tow_reach()` her middle is within (`Sfx.lever_hook`), a
+  second tap lets go; while holding the disc is ink with a paper hook (`paper_copy` of the icon); nothing in reach: only
+  the flash and click; the hook taken off lets go. **The towable interface**: `can_be_towed()`, `tow_reach()`,
+  `start_tow(boat)`, `stop_tow()`, `is_towed()` (now the lever and the barrel). The lever: grabbed within
+  `touch_radius` 6 m of its middle → HOOKED (`hooked_distance` = her stern's distance then; `boat.held_back` = `slowdown` 0.5:
   boat.gd multiplies her target speed by it, after everything else); `progress` = (stern distance − hooked_distance) /
   `pull_length` 15 m (coming back slides it back), the handle out `handle_travel` 1.5 m toward her, the rope from it to
   `boat.stern_point()` at `rope_height` 0.6; at 1 → signal **`pulled`** (empty for now: connect a door…), `let_go()`
-  (held_back 1, rope hidden; the hook stays equipped) and RETURNING over `return_time` 0.6 s → IDLE (reusable). Sinking
-  or taking the hook off lets go.
+  (held_back 1, rope hidden; the hook stays equipped) and RETURNING over `return_time` 0.6 s → IDLE (reusable). Sinking,
+  taking the hook off or a second tap (`stop_tow`) lets go, the handle sliding back.
   **Its sounds** (Enrico; `art_src/audio/make_lever_sounds.py`, players in sfx.tscn): `lever_hook.ogg` (`LeverHook`
   −6 dB, a low full click: a dull knock and a tone 160 → 110 Hz) on hooking on, `Sfx.lever_hook()`; `lever_drag.ogg`
   (`LeverDrag` −8 dB, a 2 s loop of friction and soft creaks, always playing, silent at −80 like the wheel's rub)

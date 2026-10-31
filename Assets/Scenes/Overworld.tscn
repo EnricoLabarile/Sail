@@ -45,6 +45,7 @@
 [ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="91_pickup"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
 [ext_resource type="PackedScene" path="res://Assets/UI/harpoon_button/harpoon_button.tscn" id="93_harpoon_button"]
+[ext_resource type="PackedScene" path="res://Assets/UI/hook_button/hook_button.tscn" id="99_hook_button"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/harpoon.tres" id="94_harpoon_item"]
 [ext_resource type="Script" uid="uid://bdhc1006ybcng" path="res://Assets/Landscape/islands/island_grid.gd" id="95_island_grid"]
 [ext_resource type="PackedScene" path="res://Assets/UI/crank/crank.tscn" id="96_crank"]
@@ -283,6 +284,8 @@ script = ExtResource("21_game_view")
 [node name="JarButton" parent="UI and PostProcess" unique_id=1744983952 instance=ExtResource("90_jar_button")]
 
 [node name="HarpoonButton" parent="UI and PostProcess" unique_id=2045448758 instance=ExtResource("93_harpoon_button")]
+
+[node name="HookButton" parent="UI and PostProcess" instance=ExtResource("99_hook_button")]
 
 [node name="Crank" parent="UI and PostProcess" unique_id=379339131 instance=ExtResource("96_crank")]
 

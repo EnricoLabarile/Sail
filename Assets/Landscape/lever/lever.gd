@@ -1,27 +1,28 @@
 @tool
 extends Node3D
 ## A LEVER (Enrico, like A Link to the Past's levers pulled out of a wall): placed by hand. With the HOOK equipped
-## (the item "hook", in A or B), the boat runs into it and is hooked to its handle by a rope. Then, the further she
-## sails from it, the further the handle comes out; while she pulls, the rope holds her back (her speed × `slowdown`).
+## (the item "hook", in A or B), the boat comes within `touch_radius` and the hook button is tapped
+## (Assets/UI/hook_button): she's hooked to its handle by a rope from her stern. Then, the further she sails from it,
+## the further the handle comes out; while she pulls, the rope holds her back (her speed × `slowdown`).
 ## Once she's `pull_length` metres further out than where she hooked on, it's pulled all the way: the signal `pulled`
 ## is sent (connect it to whatever should happen: a door…), the rope lets her go, and the handle slides back in by
-## itself. It can be pulled again. Coming back toward it lets the handle slide back as far.
-## (In Unreal: an actor with an overlap volume, a cable component to the pawn, and an Event Dispatcher "Pulled".)
+## itself. It can be pulled again. Coming back toward it lets the handle slide back as far. Another tap of the hook
+## button before the end lets go: the handle slides back in.
+## It's in the group "towable" (the hook button's interface: can_be_towed, tow_reach, start_tow, stop_tow, is_towed).
+## (In Unreal: an actor with a cable component to the pawn and an Event Dispatcher "Pulled".)
 ##
 ## Its parts (lever.tscn): `Post` (the fixed part, solid: a StaticBody so the boat bumps on it like a shore), `Handle`
-## (slides out toward the boat), `Rope` (an ink strip from the handle to her stern), `Sensor` (how close she must come
-## to hook on, `touch_radius`). Stand-ins: plain shapes with the boat's toon_shade material.
-## Its sounds (Enrico): a low click when she hooks on (Sfx.lever_hook), a drag while the handle comes out, louder the
-## faster (Sfx.lever_drag, `drag_full_speed`), and a dry click when it's pulled all the way (Sfx.lever_done).
+## (slides out toward the boat), `Rope` (an ink strip from the handle to her stern). Stand-ins: plain shapes with the
+## boat's toon_shade material.
+## Its sounds (Enrico): a low click when she hooks on (played by the hook button, Sfx.lever_hook), a drag while the
+## handle comes out, louder the faster (Sfx.lever_drag, `drag_full_speed`), and a dry click when it's pulled all the
+## way (Sfx.lever_done).
 
 ## Sent once each time it's pulled all the way out.
 signal pulled
 
-## Metres from its middle the boat must come within to hook on (with the hook equipped). The sensor follows it.
-@export var touch_radius := 3.5:
-	set(value):
-		touch_radius = value
-		_fit_sensor()
+## Metres from its middle her middle must be within for the hook button to grab it.
+@export var touch_radius := 6.0
 @export var pull_length := 15.0       # metres she must sail out (from where she hooked on) to pull it all the way
 @export var slowdown := 0.5           # her speed × this while she's pulling it (Enrico: the rope holds her back)
 @export var handle_travel := 1.5      # metres the handle comes out at the end of the pull (only the look)
@@ -50,34 +51,44 @@ var measured_time := 0.0        # …and over how many seconds
 
 
 func _ready() -> void:
-	_fit_sensor()
 	if Engine.is_editor_hint():
 		return
+	add_to_group("towable")               # so the hook button can grab it
 	rope.visible = false
 	rope.top_level = true                 # placed in world space (easier: it runs from the handle to her stern)
-	$Sensor.area_entered.connect(_on_sensor_entered)
 
 
-## The sensor's cylinder is as wide as `touch_radius` (each lever has its own copy of the shape: local to scene).
-func _fit_sensor() -> void:
-	var shape_node := get_node_or_null("Sensor/Shape") as CollisionShape3D
-	if shape_node and shape_node.shape:
-		shape_node.shape.radius = touch_radius
+# ---- the hook button's interface (Assets/UI/hook_button/hook_button.gd) ----
+
+## May it be grabbed now? Only when it's at rest (not held, not sliding back in).
+func can_be_towed() -> bool:
+	return state == State.IDLE
 
 
-## The boat came close: if she has the hook equipped (and it's free), she's hooked to it.
-func _on_sensor_entered(area: Area3D) -> void:
-	var other := area.get_parent() as Node3D
-	if other == null or not other.is_in_group("player_boat"):
-		return
-	if state != State.IDLE or other.sinking or not Inventory.is_equipped(HOOK):
-		return
-	boat = other
+## How close her middle must be to its middle to grab it.
+func tow_reach() -> float:
+	return touch_radius
+
+
+## Grabbed: she's hooked to it, the rope holds her back.
+func start_tow(by_boat: Node3D) -> void:
+	boat = by_boat
 	state = State.HOOKED
 	hooked_distance = flat_distance(global_position, boat.stern_point())
 	boat.held_back = slowdown             # the rope holds her back (boat.gd: her speed × this)
 	rope.visible = true
-	Sfx.lever_hook()
+
+
+## Let go with the button: the rope comes off and the handle slides back in.
+func stop_tow() -> void:
+	if state == State.HOOKED:
+		let_go()
+		state = State.RETURNING
+
+
+## Still held?
+func is_towed() -> bool:
+	return state == State.HOOKED
 
 
 func _process(dt: float) -> void:
@@ -93,8 +104,7 @@ func _process(dt: float) -> void:
 ## Hooked: the handle comes out as far as she has sailed out since she hooked on (pull_length = all the way).
 func pull(dt: float) -> void:
 	if not is_instance_valid(boat) or boat.sinking or not Inventory.is_equipped(HOOK):
-		let_go()                           # she sank, or took the hook off: the rope comes off
-		state = State.RETURNING
+		stop_tow()                         # she sank, or took the hook off: the rope comes off
 		return
 	var stern: Vector3 = boat.stern_point()
 	var off := stern - global_position
