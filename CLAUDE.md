@@ -57,6 +57,22 @@
 5. Keep the number of new tools the player must learn to the minimum.
 6. Fun, engaging traversal is the core of the game: flowing movement, all about keeping momentum (like The Pathless).
 
+## Enrico's review of the elements (Oct 2026: direction for future work, nothing changed yet)
+**Keeps / likes**: the wheel (turning it is fun); items as independent modules (even if they don't end up in the
+inventory); bomb fights with sea imps and the current carrying bombs; **the paddles over the sail** (clearer,
+intentional movement, fun to crank); a minimal map that raises questions (vague markers), not spoilers; boiling water
+as a soft lock; strong currents as one-way valves; the Android browser's limits guiding production; NPCs to teach and
+point to secrets; stores to get stronger, **the walk-over floating shop preferred** (no extra UI); boosters (pace,
+seafaring fantasy); locks and keys (levers) to gate areas; barrels (blow up, collect the drop); the hook (the boat's
+own movement as the action); **in general: the boat itself as the tool** (walk over to buy, smash, bounce, hook);
+the marked places page (treasure hunts by the look of the land); changing the current to steer bombs; the boat
+lightly carried by the current (it makes the water feel real).
+**Doesn't like**: the UI is crowded; trading by dragging things in a UI isn't relevant any more; a second logbook page
+adds complexity; **the sail and the wind don't fit the game** (random, limiting, hard to explain; not missed);
+fishing (a fish only to sell = trade system and extra items) — but dropping anchor on a dark spot stays interesting
+as a mystery (precious items, lesser items, or monsters); the trap (made for catching monsters to sell); the wind
+itself without the sail. **Open**: the current stays, but random vs changed at will by the player is undecided.
+
 ## The story so far (Enrico's synopsis, Oct 2026: a frame for choices; parts may go)
 You are a **monster hunter**. Reach the town (one of the islands) and gather information. A **smith** offers a boat
 upgrade (a metal reinforcement with a **ram**), dear. He offers work for a friend of his: he marks the friend's place on
