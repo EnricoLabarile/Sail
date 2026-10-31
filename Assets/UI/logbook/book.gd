@@ -95,6 +95,7 @@ func _ready() -> void:
 		return
 	Inventory.changed.connect(refresh)   # something came aboard or went out: the hold's page changes
 	Inventory.equipped_changed.connect(refresh)   # something was equipped or unequipped
+	Inventory.toggled.connect(_on_toggled)   # the sail switched on or off
 
 
 ## Called by logbook.gd when the book is opened (and by the Inventory when the hold changes): reads what the
@@ -248,6 +249,11 @@ func _wait_for_hold(touch: int) -> void:
 			return
 
 
+
+## The sail (or another toggle thing) was switched on or off: draw the pages again.
+func _on_toggled(_item: String, _on: bool) -> void:
+	refresh()
+
 ## Turns the page by `step` (1 = next, -1 = back), if there is one that way.
 func turn_page(step: int) -> void:
 	var new_page := clampi(page + step, 0, PAGE_COUNT - 1)
@@ -362,6 +368,8 @@ func _draw_hold(area: Rect2) -> void:
 			var item: String = _slots[i]["item"]
 			var amount: int = _slots[i]["count"]
 			_half_frame(r, INK, 1.5, false)
+			if Inventory.is_on(item):
+				_half_frame(r.grow(-3.0), INK, 2.0, false)      # switched on (the sail set): the thick frame, no letter
 			if Inventory.is_equipped(item):
 				_half_frame(r.grow(-3.0), INK, 2.0, false)      # equipped: a second, thick frame inside…
 				# …and its letter, A or B, small in the top left corner

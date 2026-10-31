@@ -18,6 +18,9 @@ extends Node
 ## Things with ItemData.equip_on_pickup (bomb, jar, harpoon) are equipped by themselves when they come aboard, in the first
 ## empty slot (A, then B); with both taken they wait in the hold.
 ##
+## SWITCHED ON / OFF (Enrico): things with ItemData.toggle_on_tap (the sail) don't go in A or B: a tap on their slot
+## in the logbook switches them on or off (toggle), kept in `switched_on`; is_on(item) = aboard and on.
+##
 ## The purse: `coins`, taken in and spent at the stores. It takes no slot.
 
 ## Sent whenever something comes in or goes out (the open logbook listens, to draw the pages again).
@@ -27,12 +30,15 @@ signal equipped_changed
 ## Sent when something comes aboard (anything: a pickup, a caught imp, the fish from a haul, a buy at a counter).
 ## The boat listens and plays the "came aboard" sound (boat.gd). Not sent for the things she sets out with.
 signal came_aboard(item: String, count: int)
+## Sent when a thing is switched on or off (the sail, sail.gd, listens; so does the logbook).
+signal toggled(item: String, on: bool)
 
 const SLOTS := 9   # how many slots the hold has
 const ITEMS_FOLDER := "res://Assets/Inventory/items"   # one ItemData .tres per kind of item
 
 ## What she sets out with (Enrico: no bombs and no Aeolus Jars, she finds them; 9 traps, to try them).
-const START_ITEMS := {"trap": 9}
+const START_ITEMS := {"trap": 9, "sail": 1}
+const START_ON := ["sail"]          # of those, the ones switched on at the start (the sail is set)
 const START_COINS := 10             # coins in the purse at the start (10 for now, Enrico: to try the floating shop)
 
 var catalogue := {}                 # every kind of item: its name → its ItemData (read from ITEMS_FOLDER)
@@ -40,12 +46,14 @@ var items: Array[String] = []   # what's aboard, one entry per thing, in the ord
 var equipped_a := ""                # what's in the A slot (its button above; "" = nothing)
 var equipped_b := ""                # what's in the B slot (its button below; "" = nothing)
 var coins := START_COINS            # the purse
+var switched_on: Array[String] = [] # the toggle things switched on now (the sail)
 
 
 func _ready() -> void:
 	load_catalogue()
 	for item in START_ITEMS:
 		add(item, START_ITEMS[item])
+	switched_on.assign(START_ON)
 
 
 ## Reads every ItemData file in ITEMS_FOLDER into `catalogue`, by its id. (ResourceLoader.list_directory works
@@ -158,6 +166,10 @@ func is_full() -> bool:
 ## A tap on a thing's slot in the logbook: not equipped → into A; in A → over to B; in B → back to A.
 ## Only equippable things that are aboard.
 func tap_equip(item: String) -> void:
+	var info := data(item)
+	if info and info.toggle_on_tap:
+		toggle(item)                      # the sail: on or off, not A or B
+		return
 	if not is_equippable(item) or count(item) == 0:
 		return
 	if slot_with(item) == "a":
@@ -209,3 +221,19 @@ func _set_slot(slot: String, item: String) -> void:
 	else:
 		equipped_b = item
 	equipped_changed.emit()
+
+
+## Switches a toggle thing (the sail) on or off, if it's aboard.
+func toggle(item: String) -> void:
+	if count(item) == 0:
+		return
+	if switched_on.has(item):
+		switched_on.erase(item)
+	else:
+		switched_on.append(item)
+	toggled.emit(item, switched_on.has(item))
+
+
+## Is `item` aboard and switched on? (The sail: is it set?)
+func is_on(item: String) -> bool:
+	return switched_on.has(item) and count(item) > 0

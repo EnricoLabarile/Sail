@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://bqcnv6p2wbfl6" path="res://Assets/Boat/sm_boat_hull_inner.fbx" id="5_ks1r1"]
 [ext_resource type="Script" uid="uid://6ghbvwsa1jbd" path="res://Assets/Boat/boat_camera.gd" id="9_camera"]
 [ext_resource type="Script" uid="uid://enqfotlib5l3" path="res://Assets/Items/trap/trap_setter.gd" id="10_trap_setter"]
+[ext_resource type="Script" path="res://Assets/Boat/sail.gd" id="11_sail"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_wake"]
 render_priority = 1
@@ -56,6 +57,7 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.08832236, 0.9484325, 3.860701e-09)
 
 [node name="Rig" type="Node3D" parent="Model/sm_boat_hull/sm_boat_mast" unique_id=503799022]
+script = ExtResource("11_sail")
 
 [node name="sm_boat_sail" parent="Model/sm_boat_hull/sm_boat_mast/Rig" unique_id=139299008 instance=ExtResource("4_og2vt")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0.23171997, 0)

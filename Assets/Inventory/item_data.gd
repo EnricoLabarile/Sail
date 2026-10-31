@@ -13,5 +13,8 @@ extends Resource
 @export var sell_price := 0           # coins a merchant pays for one of yours (0 = merchants don't buy it)
 @export var stackable := false        # true: they pile up in ONE slot of the hold, with their number on it
 @export var equippable := false       # true: it can go in the A or B slot (a tap on its slot in the logbook)
+## Switched on and off by a tap on its slot in the logbook, instead of going in A or B (the sail, Enrico):
+## Inventory.toggle / is_on. Leave `equippable` off for these.
+@export var toggle_on_tap := false
 ## Equipped by itself whenever one comes aboard, in the first empty slot (A, then B).
 @export var equip_on_pickup := false

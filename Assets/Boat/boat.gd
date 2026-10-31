@@ -10,8 +10,7 @@ extends Node3D
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 5		    # how far she leans with the wind on the sail
-@export var sail_fill_rate := 2   # how quickly the sail fills or empties (higher = quicker)
-@export var boom_max_deg := 90    # the furthest the sail swin`gs out from the boat's middle line, either side
+# (The sail itself, its curve, boom, belly, gathering up and trail, is its own script: sail.gd, on the Rig node.)
 
 # Turning: she leans out of the turn (the prototype's "lean out of a turn"), more the quicker she turns
 # and the faster she goes.
@@ -21,11 +20,6 @@ extends Node3D
 # as she keeps that speed; it comes down again as she slows.
 @export var bow_lift_deg := 15       # degrees the bow is lifted at top_speed
 @export var bow_lift_curve := 2.0     # how the lift grows with speed: 1 = evenly; 2 = little when slow, most near top speed
-
-# The sail's trail (Enrico): in a tight, fast turn the boom's end skims the water and leaves a trail of dots
-# (SailTrail, particles like the wake, dropped where SailTip is). How hard she's turning = her share of turn_rate
-# × her share of top_speed (0..1); over the threshold, the trail is on.
-@export var sail_trail_threshold := 0.4   # 0..1: 0.4 = e.g. full rudder at 40% of top speed, or half rudder at 80%
 
 # Big waves (Assets/Dangers/big_waves): surfing one from astern, or being hit by one head-on or broadside.
 @export var surf_boost := 3.2        # m/s on top of what the sail gives, while she surfs a wave
@@ -51,18 +45,14 @@ extends Node3D
 # The anchor (the prototype's ANCHOR_RODE): it stays where it fell, off the bow. The current carries her
 # until the line is taut; then the line holds her bow and she swings round the anchor, stern downstream.
 @export var anchor_rode := 3.0          # metres of anchor line from the bow to the anchor
-@export var furl_rate := 2.2            # how quickly the sail is gathered up when the anchor goes down…
-@export var unfurl_rate := 3.5          # …and spread again when it comes up (higher = quicker)
-@export var furled_height := 0.06       # how tall the sail is when gathered up, as a share of its full height
 
 # The waves: she rocks gently on them, side to side (roll) and bow to stern (pitch).
 @export var wave_roll_deg := 3.0    # how far she rolls each way on the waves, in degrees
 @export var wave_pitch_deg := 2.0   # how far the bow rises and dips on the waves, in degrees
 @export var wave_period := 3.0      # seconds for one wave to pass under her (higher = slower rocking)
 
-# The shallows: near the coast there's less wind, so the sail gives less.
+# The shallows: near the coast there's less wind, so the sail gives less (how much less: sail.gd shallows_sail).
 @export var shallows_width := 3.0   # metres from the land that count as shallows
-@export var shallows_sail := 0.5    # what the sail gives there, as a share of the usual (0.3 = 30%)
 # Near an NPC (inside its talk radius, Enrico): she slows down, so it's easy to stop by and talk.
 @export var npc_speed_limit := 1  # her top speed there, as a share of top_speed (0.2 = 20%)
 # The bow wave (boat.tscn: BowWaveRight / BowWaveLeft, bow_wave.png, a 4 x 4 flipbook).
@@ -138,9 +128,6 @@ var talking := false:
 var npcs_near: Array[Node3D] = []   # the NPCs whose radius she's in now (they tell her: npc.gd)
 var npcs_talked_to: Array[Node3D] = []   # of those, the ones she has already talked to since she came in (npc.gd tells her)
 
-# The Marconi sail's curve: [degrees off the wind, share of top speed] (SAIL_POLAR_MARCONI)
-const POLAR := [[10, 0.0], [0, 0.7], [45.0, 1.0 ], [90.0, 1.0], [180.0, 1.0]]
-
 var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0
 var bow_wave_strength := 0.0   # how solid the bow wave is now, 0..1 (eased toward her speed share)
@@ -154,7 +141,6 @@ var anchored := true:
 	set(value):
 		anchored = value
 		Hud.set_hidden("anchor", ["hidden_at_start"], anchored)
-var belly := 0.0       # how full the sail is: -1 full to port (left), 0 flat, +1 full to starboard (right)
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
 var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her motion
 var whirl_pull := Vector3.ZERO   # the maelstroms' pull this frame (m/s, toward their eye): added to her motion
@@ -180,7 +166,6 @@ var berth: Node3D = null     # the pier's berth she's tied up at (null = not tie
 var calm_left := 0.0         # seconds left of the calm after casting off (no wind, no current)
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
 var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
-var furl := 1.0             # 0 = sail spread, 1 = gathered up on the boom (she starts at anchor: gathered up)
 var health := 3.0           # hearts left (0.5 = half a heart); set to max_hearts at start
 var sinking := false        # true from 0 hearts until she's back home (no sailing, no anchor)
 var sunk_for := 0.0         # seconds since she started sinking
@@ -196,21 +181,11 @@ var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over n
 # (children, children of children, and so on), so you can rearrange the hierarchy freely: only the
 # NAMES must stay the same. ($Model, with the $, is a fixed address: it must be a direct child of Boat.)
 @onready var model: Node3D = $Model            # heels and bobs: everything inside it follows
-@onready var rig: Node3D = find_child("Rig")   # turns round the mast: the sail (and boom) inside it swing out
+@onready var sail: Node3D = find_child("Rig")   # the sail (sail.gd, on the Rig node): the wind's push and its look
 @onready var camera: Camera3D = $Camera3D   # her camera, with its own script (boat_camera.gd)
 @onready var wake: CPUParticles3D = find_child("Wake")          # the dots left behind the stern
 @onready var bow_wave_right: Node3D = find_child("BowWaveRight") # the water thrown up and out at the bow (Wind
-@onready var sail_tip: Node3D = find_child("SailTip")              # the boom's end (a Marker3D inside Rig, like a Socket)
-@onready var sail_trail: CPUParticles3D = find_child("SailTrail")  # the dots it leaves on the water
 @onready var bow_wave_left: Node3D = find_child("BowWaveLeft")   # Waker's "wings"; bow_wave.gdshader), a side each
-@onready var sail_node: Node3D = find_child("sm_boat_sail")   # the whole sail: squashed down onto the boom to furl it
-
-# The sail's mesh: the MeshInstance3D inside the imported sm_boat_sail (the FBX makes it a little scene
-# of its own, so we look for the first MeshInstance3D inside it).
-@onready var sail_mesh: MeshInstance3D = find_child("sm_boat_sail").find_children("*", "MeshInstance3D")[0]
-# The numbers of its two shape keys (made in Blender). find_blend_shape_by_name gives -1 if there's none.
-@onready var key_right: int = sail_mesh.find_blend_shape_by_name("Inflated_Right")   # belly to starboard
-@onready var key_left: int = sail_mesh.find_blend_shape_by_name("Inflated_Left")     # belly to port
 
 func _ready() -> void:
 	add_to_group("player_boat")
@@ -395,8 +370,7 @@ func start_sinking() -> void:
 	set_water_mask(false)            # the sea may cover her inside now
 	if wake:
 		wake.emitting = false        # no wake behind a wreck
-	if sail_trail:
-		sail_trail.emitting = false
+	sail.stop_trail()
 	for wing in [bow_wave_right, bow_wave_left]:
 		if wing:
 			wing.visible = false
@@ -432,7 +406,7 @@ func respawn() -> void:
 	rudder = 0.0
 	anchored = true
 	anchor_point = bow_point()
-	furl = 1.0
+	sail.gather_up()
 	roll = 0.0
 	roll_velocity = 0.0
 	pitch = 0.0
@@ -545,14 +519,6 @@ func bow_point() -> Vector3:
 	var fwd := -global_transform.basis.z
 	return global_position + fwd * bow_reach
 
-func polar(off_deg: float) -> float:
-	for i in range(1, POLAR.size()):
-		if off_deg <= POLAR[i][0]:
-			var a = POLAR[i - 1]
-			var b = POLAR[i]
-			return lerpf(a[1], b[1], (off_deg - a[0]) / (b[0] - a[0]))
-	return POLAR[-1][1]
-
 func _physics_process(dt: float) -> void:
 	# Sinking: only that, no sailing, no anchor, no bumps.
 	if sinking:
@@ -571,20 +537,17 @@ func _physics_process(dt: float) -> void:
 	if Input.is_action_just_pressed("ui_accept"):
 		toggle_anchor()
 
-	var fwd := -global_transform.basis.z                        # Godot's forward is -Z
 	var wind_from: Vector3 = Wind.from_vector()                 # the wind (Assets/Landscape/world/wind.gd)
-	var off := rad_to_deg(fwd.angle_to(wind_from))               # 0 = head to wind, 180 = wind astern
-	var drive := 0.0 if anchored else polar(off)
+	# In the shallows (land within shallows_width metres) the sail gives less (sail.gd shallows_sail).
+	# The baked picture of the distances says how far the shore is (Land): cheap, so every frame.
+	in_shallows = Land.distance_to_shore(global_position) < shallows_width
+	# The wind's push: the sail's (sail.gd), 0 when it's not set or she's at anchor.
+	var drive: float = sail.drive()
 	# Just cast off from a pier: the wind gives nothing for calm_left seconds (she glides on the push).
 	if calm_left > 0.0:
 		calm_left = maxf(0.0, calm_left - dt)
 		drive = 0.0
-		# In the shallows (land within shallows_width metres) the sail gives only shallows_sail of its push.
-	# The baked picture of the distances says how far the shore is (Land): cheap, so every frame.
-	in_shallows = Land.distance_to_shore(global_position) < shallows_width
-	if in_shallows:
-		drive *= shallows_sail
-		
+
 	# speed eases toward what the sail gives; the anchor takes her way off quickly
 	var target := top_speed * drive
 	var rate := anchor_bite if anchored else accel
@@ -622,21 +585,14 @@ func _physics_process(dt: float) -> void:
 	turn_speed = wrapf(rotation.y - yaw_before, -PI, PI) / dt
 	Fog.reveal(global_position)                                 # clear the fog round her (fog.gd)
 
-	# the look: heel away from the wind, the boom out to leeward, a gentle bob
+	# the look: heel away from the wind (only as much as the sail drives her), a gentle bob; the sail's own look
+	# (boom, belly, gathered up at anchor, its trail) is the sail's (sail.gd)
 	var side := signf(global_transform.basis.x.dot(wind_from))   # + = wind from starboard
 	heel = side * deg_to_rad(heel_max_deg) * drive
 	rock_and_roll(dt)
-	# The boom swings out to leeward, the side away from the wind: wind from starboard (side = +1)
-	# puts the sail out to port. A positive rotation.y turns the rig anticlockwise seen from above,
-	# which swings the boom (behind the mast) over to starboard: so the sign is the opposite of `side`.
-	# How far out: half the wind's angle off the bow, but never less than 8 degrees and never more than
-	# boom_max_deg (30), so the sail never stands across the boat.
-	var boom := -side * deg_to_rad(clampf(off * 0.5, 8.0, boom_max_deg))
-	rig.rotation.y = lerpf(rig.rotation.y, boom if drive > 0.0 else 0.0, dt * 2.0)
 	# A gentle bob up and down, round the height Model has in the scene (set it there to sink her more or less).
 	model.position.y = model_height + sin(Time.get_ticks_msec() * 0.0013) * 0.04
-	update_sail_belly(dt, side)
-	update_furl(dt)
+	sail.update_look(dt, drive)
 	update_water_fx(dt)
 
 ## How she leans (roll) and how her bow rises and dips (pitch). First where she should be:
@@ -681,25 +637,6 @@ func rock_and_roll(dt: float) -> void:
 	model.rotation.x = pitch   # x: across her, so the bow goes up (+) and down (-)
 
 
-## The sail fills with the wind: the faster she goes, the fuller it is, and the belly is always on the
-## side away from the wind (to leeward, like the boom). Uses the two shape keys made in Blender.
-## side: +1 if the wind comes from starboard, -1 if from port (worked out in _physics_process).
-func update_sail_belly(dt: float, side: float) -> void:
-	# 1. How full: her speed as a share of her top speed (0 = still, 1 = full speed).
-	var fullness := clampf(speed / top_speed, 0.0, 1.0)
-	# 2. Which way: away from the wind. Wind from port (side = -1) fills it to starboard (+).
-	var target := -side * fullness
-	# 3. Change it gently, not all at once. When she changes tack the target jumps to the other side,
-	#    and belly slides there through 0: the sail empties, goes flat, and fills on the other side.
-	belly = lerpf(belly, target, minf(1.0, dt * sail_fill_rate))
-	# 4. Share it out to the two shape keys: one gets the belly, the other stays at 0.
-	#    (maxf(belly, 0) is belly when it's positive and 0 when it's negative.)
-	if key_right >= 0:
-		sail_mesh.set_blend_shape_value(key_right, maxf(belly, 0.0))
-	if key_left >= 0:
-		sail_mesh.set_blend_shape_value(key_left, maxf(-belly, 0.0))
-
-
 ## At anchor the line is a pivot. The anchor stays where it fell. While the line is slack she drifts
 ## freely (the current carries her); once her bow is anchor_rode metres from the anchor, the taut line
 ## holds the bow there, and the hull trails behind it the way it's pushed: she swings round the anchor,
@@ -734,8 +671,6 @@ func hold_at_anchor() -> void:
 	knock *= 0.5
 
 
-## At anchor the sail is gathered up onto the boom (only a look: as in the prototype); it spreads
-## again as the anchor comes up. Done by squashing the sail's node down (scale.y) onto the boom.
 ## The wake (the CPUParticles3D node in boat.tscn, like a small CPU Niagara emitter: its look is set in the
 ## Inspector). Here only how fast it runs: the slower she goes, the slower it plays (speed_scale), so fewer
 ## dots come out and they drift aside more slowly. That keeps the dots the same distance apart on the water
@@ -750,21 +685,6 @@ func update_water_fx(dt: float) -> void:
 		# never slower than 0.35, or the last dots would hang on the water for ages
 		wake.speed_scale = maxf(k, 0.35) if on else 1.0
 	update_bow_wave(dt, k, on)
-	update_sail_trail()
-
-
-## The sail's trail: the emitter follows the boom's end, but down on the water (the dots lie on the sea, and
-## with local_coords off they stay where they were dropped, so they make a line behind her). It's on only
-## while she turns hard enough at speed (see sail_trail_threshold).
-func update_sail_trail() -> void:
-	if sail_trail == null or sail_tip == null:
-		return
-	var tip := sail_tip.global_position
-	sail_trail.global_position = Vector3(tip.x, 0.05, tip.z)
-	var turn_share := absf(turn_speed) / turn_rate        # 1 = turning as fast as she can
-	var speed_share := clampf(speed / top_speed, 0.0, 1.0)
-	var turning_hard := turn_share * speed_share
-	sail_trail.emitting = turning_hard > sail_trail_threshold and not anchored and not sinking
 
 
 ## The bow wave (Wind Waker's wings of water at the bow): two flat pictures, a side each, playing a flipbook
@@ -787,13 +707,6 @@ func update_bow_wave(dt: float, k: float, on: bool) -> void:
 	for wing in [bow_wave_right, bow_wave_left]:
 		wing.scale = Vector3(grow, grow, 1.0)
 		wing.visible = bow_wave_strength > 0.02
-
-
-func update_furl(dt: float) -> void:
-	var target := 1.0 if anchored else 0.0
-	var rate := furl_rate if anchored else unfurl_rate
-	furl = lerpf(furl, target, minf(1.0, dt * rate))
-	sail_node.scale.y = lerpf(1.0, furled_height, furl)
 
 
 ## Moves her for this frame: her own way (forward × speed) plus the push of a bump (knock).
