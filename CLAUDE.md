@@ -727,6 +727,17 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   player `Booster` −6 dB: a rising whoosh, three bright notes going up E5–B5–E6 and a low push, 0.55 s, made by
   `art_src/audio/make_booster_sound.py`); then `disappear()`: the orb hidden and the sensor off (`set_deferred`) for
   `respawn_time` 30 s (`gone_left`), then `come_back()`.
+- **Levers and the hook** (Enrico, like A Link to the Past's levers; `Assets/Landscape/lever/`: `lever.tscn` +
+  `lever.gd` (`@tool`); item `hook.tres`: equippable in A or B, no button (like the trap), `equip_on_pickup`, buy 6 /
+  sell 3, icon `icons/hook.png` by `art_src/items/make_hook_icon.py`; tests in Overworld: `Gameplay/Pickups/HookPickup`
+  (−6.6, 0, 56) and `LeverTest` (6, 0, 62)). Parts: `Post` (StaticBody3D, solid: she bumps on it like a shore), `Handle`
+  (slides out), `Rope` (ink strip, top_level), `Sensor` (`touch_radius` 3.5, `_fit_sensor`). With the hook equipped,
+  her SpotSensor entering → HOOKED (`hooked_distance` = her stern's distance then; `boat.held_back` = `slowdown` 0.5:
+  boat.gd multiplies her target speed by it, after everything else); `progress` = (stern distance − hooked_distance) /
+  `pull_length` 15 m (coming back slides it back), the handle out `handle_travel` 1.5 m toward her, the rope from it to
+  `boat.stern_point()` at `rope_height` 0.6; at 1 → signal **`pulled`** (empty for now: connect a door…), `let_go()`
+  (held_back 1, rope hidden; the hook stays equipped) and RETURNING over `return_time` 0.6 s → IDLE (reusable). Sinking
+  or taking the hook off lets go.
 - **Traps** (Enrico; `Assets/Items/trap/`: `trap.tscn` + `trap.gd`, `trap.png` (a stand-in, seen from above),
   `trap_setter.gd` on `Boat/TrapSetter` in boat.tscn): boat.gd sends `anchor_dropped` when the anchor goes down
   (`toggle_anchor`, not at a pier); with a trap equipped (and one aboard) TrapSetter lays one where she is (a 2.4 m

@@ -53,6 +53,8 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
 [ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/sea_urchin/sea_urchin.tscn" id="103_sea_urchin"]
+[ext_resource type="PackedScene" path="res://Assets/Landscape/lever/lever.tscn" id="98_lever"]
+[ext_resource type="Resource" path="res://Assets/Inventory/items/hook.tres" id="99_hook_item"]
 
 [sub_resource type="Curve3D" id="Curve3D_current_test"]
 _data = {
@@ -230,6 +232,13 @@ land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
 [node name="Piers" type="Node3D" parent="Gameplay" unique_id=788276141]
 
 [node name="Pickups" type="Node3D" parent="Gameplay" unique_id=1786065463]
+
+[node name="HookPickup" parent="Gameplay/Pickups" instance=ExtResource("91_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.6, 0, 56)
+item = ExtResource("99_hook_item")
+
+[node name="LeverTest" parent="Gameplay/Pickups" instance=ExtResource("98_lever")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 62)
 
 [node name="BoosterTest" parent="Gameplay/Pickups" unique_id=1724946626 instance=ExtResource("97_booster")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 0, 34)

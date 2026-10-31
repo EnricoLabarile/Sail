@@ -1,0 +1,77 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Landscape/lever/lever.gd" id="1_script"]
+[ext_resource type="Shader" path="res://Assets/Boat/toon_shade.gdshader" id="2_shade"]
+
+[sub_resource type="ShaderMaterial" id="Mat_dark"]
+shader = ExtResource("2_shade")
+shader_parameter/base_color = Color(0.3, 0.29, 0.27, 1)
+shader_parameter/ambient = 0.45
+
+[sub_resource type="ShaderMaterial" id="Mat_light"]
+shader = ExtResource("2_shade")
+shader_parameter/base_color = Color(0.9, 0.88, 0.84, 1)
+shader_parameter/ambient = 0.45
+
+[sub_resource type="CylinderMesh" id="Mesh_post"]
+material = SubResource("Mat_dark")
+top_radius = 0.8
+bottom_radius = 0.9
+height = 3.0
+radial_segments = 12
+
+[sub_resource type="CylinderShape3D" id="Shape_post"]
+radius = 0.9
+height = 4.0
+
+[sub_resource type="SphereMesh" id="Mesh_handle"]
+material = SubResource("Mat_light")
+radius = 0.45
+height = 0.9
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_rope"]
+render_priority = 2
+shading_mode = 0
+albedo_color = Color(0.105882, 0.101961, 0.0901961, 1)
+
+[sub_resource type="PlaneMesh" id="Mesh_rope"]
+material = SubResource("Mat_rope")
+size = Vector2(1, 1)
+
+[sub_resource type="CylinderShape3D" id="Shape_sensor"]
+resource_local_to_scene = true
+height = 4.0
+radius = 3.5
+
+[node name="Lever" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Post" type="StaticBody3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="Post"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_post")
+
+[node name="Shape" type="CollisionShape3D" parent="Post"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("Shape_post")
+
+[node name="Handle" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_handle")
+
+[node name="Rope" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("Mesh_rope")
+
+[node name="Sensor" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+
+[node name="Shape" type="CollisionShape3D" parent="Sensor"]
+shape = SubResource("Shape_sensor")

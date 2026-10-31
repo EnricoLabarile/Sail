@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://Assets/Inventory/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" path="res://Assets/Inventory/icons/hook.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_item")
+id = "hook"
+display_name = "Hook"
+icon = ExtResource("2_icon")
+buy_price = 6
+sell_price = 3
+stackable = false
+equippable = true
+equip_on_pickup = true

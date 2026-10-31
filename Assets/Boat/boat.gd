@@ -141,6 +141,7 @@ var anchored := true:
 	set(value):
 		anchored = value
 		Hud.set_hidden("anchor", ["hidden_at_start"], anchored)
+var held_back := 1.0        # her target speed × this (1 = free; a lever's rope sets less while she pulls it: lever.gd)
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
 var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her motion
 var whirl_pull := Vector3.ZERO   # the maelstroms' pull this frame (m/s, toward their eye): added to her motion
@@ -396,6 +397,7 @@ func respawn() -> void:
 	berth = null
 	surfing_left = 0.0
 	boost_left = 0.0
+	held_back = 1.0
 	boil_time = 0.0
 	global_position = home_position
 	rotation.y = home_turn
@@ -516,6 +518,12 @@ func talk_hint() -> bool:
 	return talking or npcs_waiting()
 
 
+## Where her stern is now, on the water (a rope is tied there: lever.gd).
+func stern_point() -> Vector3:
+	var fwd := -global_transform.basis.z
+	return global_position - fwd * bow_reach
+
+
 ## Where her bow is now, on the water.
 func bow_point() -> Vector3:
 	var fwd := -global_transform.basis.z
@@ -575,6 +583,8 @@ func _physics_process(dt: float) -> void:
 	# She slows down to it smoothly, at her usual rate (the line below): she doesn't stop dead.
 	if not npcs_near.is_empty():
 		target = minf(target, top_speed * npc_speed_limit)
+	# Held back by a rope (a lever she's hooked to, lever.gd sets held_back): her speed × that while it holds her.
+	target *= held_back
 	speed += (target - speed) * minf(1.0, dt * rate)
 
 	# She turns at the same rate whatever her speed, as in the prototype; not at anchor.
