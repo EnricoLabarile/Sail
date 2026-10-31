@@ -1,97 +1,102 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bv7ja60jxpo36"]
 
-[ext_resource type="Script" path="res://Assets/SFX/sfx.gd" id="1_sfx"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/anchor_down.ogg" id="5_down"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/anchor_up.ogg" id="6_up"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/wheel_rub.ogg" id="7_rub"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/wheel_thunk.ogg" id="8_thunk"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/pickup.ogg" id="9_pickup"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/imp_death.ogg" id="10_imp"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/bomb_blast.ogg" id="11_bomb"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/hull_bump.ogg" id="12_bump"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/equip_bomb.ogg" id="13_equip"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/talk_blip.ogg" id="14_talk"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/gust_whoosh.ogg" id="15_whoosh"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/button_press.ogg" id="16_button"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/book_open.ogg" id="17_book_open"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/book_close.ogg" id="18_book_close"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/boat_hurt.ogg" id="19_boat_hurt"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/crank_click.ogg" id="20_crank_click"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/paddle_splash.ogg" id="21_paddle_splash"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/crank_unlock.ogg" id="22_crank_unlock"]
+[ext_resource type="Script" uid="uid://c048jymt8c2jd" path="res://Assets/SFX/sfx.gd" id="1_sfx"]
+[ext_resource type="AudioStream" uid="uid://d248pwgygq4vg" path="res://Assets/SFX/anchor_down.ogg" id="5_down"]
+[ext_resource type="AudioStream" uid="uid://b1g8tc7ub583f" path="res://Assets/SFX/anchor_up.ogg" id="6_up"]
+[ext_resource type="AudioStream" uid="uid://cm3aliqhs1lij" path="res://Assets/SFX/wheel_rub.ogg" id="7_rub"]
+[ext_resource type="AudioStream" uid="uid://b1plxvudwcxvw" path="res://Assets/SFX/wheel_thunk.ogg" id="8_thunk"]
+[ext_resource type="AudioStream" uid="uid://de5hayh1re1y4" path="res://Assets/SFX/pickup.ogg" id="9_pickup"]
+[ext_resource type="AudioStream" uid="uid://c4oxffn5pmtt6" path="res://Assets/SFX/imp_death.ogg" id="10_imp"]
+[ext_resource type="AudioStream" uid="uid://c0wc3uhqksyhe" path="res://Assets/SFX/bomb_blast.ogg" id="11_bomb"]
+[ext_resource type="AudioStream" uid="uid://c2qptxeafijq2" path="res://Assets/SFX/hull_bump.ogg" id="12_bump"]
+[ext_resource type="AudioStream" uid="uid://p4cv1y2cys3y" path="res://Assets/SFX/equip_bomb.ogg" id="13_equip"]
+[ext_resource type="AudioStream" uid="uid://dttbwf632sybl" path="res://Assets/SFX/talk_blip.ogg" id="14_talk"]
+[ext_resource type="AudioStream" uid="uid://uk83ybclhnr0" path="res://Assets/SFX/gust_whoosh.ogg" id="15_whoosh"]
+[ext_resource type="AudioStream" uid="uid://bmvyi2l46aq43" path="res://Assets/SFX/button_press.ogg" id="16_button"]
+[ext_resource type="AudioStream" uid="uid://cjpkrn82ty77h" path="res://Assets/SFX/book_open.ogg" id="17_book_open"]
+[ext_resource type="AudioStream" uid="uid://kmvxfhkjpyha" path="res://Assets/SFX/book_close.ogg" id="18_book_close"]
+[ext_resource type="AudioStream" uid="uid://bowkorkqi12te" path="res://Assets/SFX/boat_hurt.ogg" id="19_boat_hurt"]
+[ext_resource type="AudioStream" uid="uid://3nr18maa1082" path="res://Assets/SFX/crank_click.ogg" id="20_crank_click"]
+[ext_resource type="AudioStream" uid="uid://dqht6i7b2rlye" path="res://Assets/SFX/paddle_splash.ogg" id="21_paddle_splash"]
+[ext_resource type="AudioStream" uid="uid://bb28ehtj4xya8" path="res://Assets/SFX/crank_unlock.ogg" id="22_crank_unlock"]
 
-[node name="Sfx" type="Node"]
+[node name="Sfx" type="Node" unique_id=1764671958]
 script = ExtResource("1_sfx")
 
-[node name="AnchorDown" type="AudioStreamPlayer" parent="."]
+[node name="AnchorDown" type="AudioStreamPlayer" parent="." unique_id=403313757]
 stream = ExtResource("5_down")
 
-[node name="AnchorUp" type="AudioStreamPlayer" parent="."]
+[node name="AnchorUp" type="AudioStreamPlayer" parent="." unique_id=344764065]
 stream = ExtResource("6_up")
+volume_db = -20.0
+pitch_scale = 0.5
 
-[node name="WheelRub" type="AudioStreamPlayer" parent="."]
+[node name="WheelRub" type="AudioStreamPlayer" parent="." unique_id=1465258909]
 stream = ExtResource("7_rub")
-volume_db = -14.0
+volume_db = -20.0
+pitch_scale = 0.9
 
-[node name="WheelThunk" type="AudioStreamPlayer" parent="."]
+[node name="WheelThunk" type="AudioStreamPlayer" parent="." unique_id=2066695223]
 stream = ExtResource("8_thunk")
 volume_db = -14.0
 
-[node name="Pickup" type="AudioStreamPlayer" parent="."]
+[node name="Pickup" type="AudioStreamPlayer" parent="." unique_id=2103228338]
 stream = ExtResource("9_pickup")
 
-[node name="ImpDeath" type="AudioStreamPlayer" parent="."]
+[node name="ImpDeath" type="AudioStreamPlayer" parent="." unique_id=707209463]
 stream = ExtResource("10_imp")
 
-[node name="BombBlast" type="AudioStreamPlayer" parent="."]
+[node name="BombBlast" type="AudioStreamPlayer" parent="." unique_id=1638897492]
 stream = ExtResource("11_bomb")
 volume_db = -6.0
 pitch_scale = 1.5
 
-[node name="HullBump" type="AudioStreamPlayer" parent="."]
+[node name="HullBump" type="AudioStreamPlayer" parent="." unique_id=241439508]
 stream = ExtResource("12_bump")
 volume_db = -8.0
 
-[node name="EquipBomb" type="AudioStreamPlayer" parent="."]
+[node name="EquipBomb" type="AudioStreamPlayer" parent="." unique_id=527884300]
 stream = ExtResource("13_equip")
 volume_db = -4.0
 
-[node name="TalkBlip" type="AudioStreamPlayer" parent="."]
+[node name="TalkBlip" type="AudioStreamPlayer" parent="." unique_id=1388951602]
 stream = ExtResource("14_talk")
 volume_db = -8.0
 max_polyphony = 3
 
-[node name="GustWhoosh" type="AudioStreamPlayer" parent="."]
+[node name="GustWhoosh" type="AudioStreamPlayer" parent="." unique_id=1864791682]
 stream = ExtResource("15_whoosh")
 volume_db = -12.0
 
-[node name="ButtonPress" type="AudioStreamPlayer" parent="."]
+[node name="ButtonPress" type="AudioStreamPlayer" parent="." unique_id=1131439014]
 stream = ExtResource("16_button")
 volume_db = -6.0
 max_polyphony = 2
 
-[node name="BookOpen" type="AudioStreamPlayer" parent="."]
+[node name="BookOpen" type="AudioStreamPlayer" parent="." unique_id=1280804186]
 stream = ExtResource("17_book_open")
 volume_db = -8.0
 
-[node name="BookClose" type="AudioStreamPlayer" parent="."]
+[node name="BookClose" type="AudioStreamPlayer" parent="." unique_id=538124598]
 stream = ExtResource("18_book_close")
 volume_db = -8.0
 
-[node name="BoatHurt" type="AudioStreamPlayer" parent="."]
+[node name="BoatHurt" type="AudioStreamPlayer" parent="." unique_id=1232574090]
 stream = ExtResource("19_boat_hurt")
 volume_db = -6.0
 
-[node name="CrankClick" type="AudioStreamPlayer" parent="."]
+[node name="CrankClick" type="AudioStreamPlayer" parent="." unique_id=1416073562]
 stream = ExtResource("20_crank_click")
-volume_db = -10.0
+volume_db = -30.0
+pitch_scale = 0.9
 max_polyphony = 3
 
-[node name="PaddleSplash" type="AudioStreamPlayer" parent="."]
+[node name="PaddleSplash" type="AudioStreamPlayer" parent="." unique_id=194329140]
 stream = ExtResource("21_paddle_splash")
-volume_db = -4.0
+volume_db = -33.835
+pitch_scale = 0.45
 max_polyphony = 3
 
-[node name="CrankUnlock" type="AudioStreamPlayer" parent="."]
+[node name="CrankUnlock" type="AudioStreamPlayer" parent="." unique_id=100327517]
 stream = ExtResource("22_crank_unlock")
 volume_db = -6.0

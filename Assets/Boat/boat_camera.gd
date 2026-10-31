@@ -12,7 +12,7 @@ extends Camera3D
 ##     following isn't disturbed);
 ##   - it carries the ink outline round the boat (boat_outline.gdshader), a screen effect in front of it.
 
-@export var tilt_deg := 20.0         # the camera's tilt from straight down (the prototype's BOAT_TILT look)
+@export var tilt_deg := 35.0         # the camera's tilt from straight down (the prototype's BOAT_TILT look)
 # How far it sits from her, along the way it looks, in metres (perspective: further = more sea in view). It's
 # set at start and then eased by update_zoom between distance_sailing and distance_anchored, so the number typed
 # here is only where it would be before the first frame.

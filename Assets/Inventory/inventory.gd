@@ -38,7 +38,7 @@ const ITEMS_FOLDER := "res://Assets/Inventory/items"   # one ItemData .tres per 
 
 ## What she sets out with (Enrico: no bombs and no Aeolus Jars, she finds them; 9 traps, to try them).
 const START_ITEMS := {"trap": 9, "sail": 1, "paddles": 1}
-const START_ON := ["sail"]          # of those, the ones switched on at the start (the sail is set; the paddles are off)
+const START_ON := ["paddles"]          # of those, the ones switched on at the start (the sail is set; the paddles are off)
 const START_COINS := 10             # coins in the purse at the start (10 for now, Enrico: to try the floating shop)
 
 var catalogue := {}                 # every kind of item: its name → its ItemData (read from ITEMS_FOLDER)

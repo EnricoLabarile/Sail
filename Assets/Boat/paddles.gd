@@ -20,9 +20,9 @@ extends Node3D
 
 const ITEM := "paddles"   # the item's id (paddles.tres)
 
-@export var paddle_speed := 5.88       # m/s they give her (58.8 px/s in the prototype)
-@export var push_time := 4.0           # seconds a full turn of the crank keeps them pushing
-@export var recharge_window := 2.0     # the last seconds of a push in which the crank can be wound again (Enrico)
+@export var paddle_speed := 8.0       # m/s they give her (58.8 px/s in the prototype)
+@export var push_time := 20.0           # seconds a full turn of the crank keeps them pushing
+@export var recharge_window := 3.0     # the last seconds of a push in which the crank can be wound again (Enrico)
 @export var turn_mult := 1.5           # she turns this much quicker while they push
 @export var take_up_rate := 3.75            # how quickly they take up and let go as a push starts or ends
 @export var bite := 5.25               # how quickly her speed catches up with their push (the sail fills slower)
