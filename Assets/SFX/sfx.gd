@@ -20,6 +20,9 @@ extends Node
 ##   paddle_splash.ogg a paddle dipping into the water: a low soft splash and a thud (the prototype's)             } art_src/audio/
 ##   crank_unlock.ogg the crank free again: a latch's double click and a spring's ring                            } make_crank_sounds.py
 ##   booster.ogg      a booster orb taken: a rising whoosh, three bright notes going up, a low push (make_booster_sound.py)
+##   lever_hook.ogg   the boat hooked to a lever: a low full click                                              } made by
+##   lever_drag.ogg   the lever's handle dragged out: a 2 s loop of friction and a taut rope (Sfx.lever_drag)    } art_src/audio/
+##   lever_done.ogg   the lever pulled all the way: a dry higher click, a snap                                   } make_lever_sounds.py
 ##   talk_blip.ogg    one syllable of a talking NPC, Animal Crossing style: a plain little dot of sound, 240 Hz (art_src/audio/make_talk_blip.py)
 ## (The sea, the wind and the water along the hull were removed by Enrico; bake.html can still make them.)
 ## The players are nodes in sfx.tscn: open it to change a sound's loudness (Volume dB in the Inspector).
@@ -45,6 +48,9 @@ extends Node
 @onready var paddle_splash_sound: AudioStreamPlayer = $PaddleSplash
 @onready var crank_unlock_sound: AudioStreamPlayer = $CrankUnlock
 @onready var booster_sound: AudioStreamPlayer = $Booster
+@onready var lever_hook_sound: AudioStreamPlayer = $LeverHook
+@onready var lever_drag_sound: AudioStreamPlayer = $LeverDrag
+@onready var lever_done_sound: AudioStreamPlayer = $LeverDone
 
 ## The talk blips' pitch: each one picked at random between these (1 = as made), so a page babbles like a voice.
 @export var talk_pitch_min := 0.96    # Enrico: only a little change of pitch (was 0.7–0.95, before 0.9–1.25)
@@ -54,6 +60,7 @@ extends Node
 ## the same instant and would cover it (Enrico couldn't hear it): a moment later, it's heard after the bang.
 @export var enemy_death_delay := 0.25
 
+var drag_db := 0.0      # the lever drag's loudness as set in sfx.tscn (read at start): turned down from there
 var splash_db := 0.0    # the paddle splash's loudness as set in sfx.tscn (read at start): turned down with the paddles' power
 var rub_db := 0.0       # the rub's loudness as set in sfx.tscn (read at start): the code turns it down from there
 var thunk_db := 0.0     # the same for the thud
@@ -66,6 +73,11 @@ func _ready() -> void:
 	thunk_db = wheel_thunk.volume_db
 	bump_db = hull_bump_sound.volume_db
 	splash_db = paddle_splash_sound.volume_db
+	# The lever's drag goes round and round, silent until a handle is dragged out (like the wheel's rub).
+	drag_db = lever_drag_sound.volume_db
+	lever_drag_sound.stream.loop = true
+	lever_drag_sound.volume_db = -80.0
+	lever_drag_sound.play()
 	# The rub goes round and round, silent until the wheel turns.
 	wheel_rub.stream.loop = true
 	wheel_rub.volume_db = -80.0
@@ -183,6 +195,23 @@ func crank_unlock() -> void:
 ## The boat took a booster orb (booster.gd): a power-up.
 func booster() -> void:
 	booster_sound.play()
+
+
+## The boat hooked to a lever (lever.gd): a low, full click.
+func lever_hook() -> void:
+	lever_hook_sound.play()
+
+
+## A lever's handle being dragged out (lever.gd, every frame while she's hooked): `level` 0..1 is how fast it comes out
+## (0 = still: silent). Louder and a little higher the faster.
+func lever_drag(level: float) -> void:
+	lever_drag_sound.volume_db = drag_db + loudness_db(level) if level > 0.01 else -80.0
+	lever_drag_sound.pitch_scale = 0.85 + 0.3 * clampf(level, 0.0, 1.0)
+
+
+## A lever pulled all the way (lever.gd): a dry, higher click.
+func lever_done() -> void:
+	lever_done_sound.play()
 
 
 ## The boat caught a wind gust (gust.gd): a very mild whoosh.

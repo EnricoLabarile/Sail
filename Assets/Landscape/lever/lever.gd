@@ -11,6 +11,8 @@ extends Node3D
 ## Its parts (lever.tscn): `Post` (the fixed part, solid: a StaticBody so the boat bumps on it like a shore), `Handle`
 ## (slides out toward the boat), `Rope` (an ink strip from the handle to her stern), `Sensor` (how close she must come
 ## to hook on, `touch_radius`). Stand-ins: plain shapes with the boat's toon_shade material.
+## Its sounds (Enrico): a low click when she hooks on (Sfx.lever_hook), a drag while the handle comes out, louder the
+## faster (Sfx.lever_drag, `drag_full_speed`), and a dry click when it's pulled all the way (Sfx.lever_done).
 
 ## Sent once each time it's pulled all the way out.
 signal pulled
@@ -26,6 +28,7 @@ signal pulled
 @export var return_time := 0.6        # seconds the handle takes to slide back in
 @export var rope_width := 0.12        # metres
 @export var rope_height := 0.6        # metres above the water the rope runs
+@export var drag_full_speed := 4.0    # m/s the handle's pull must reach for the drag sound at full loudness
 
 const HOOK := "hook"   # the item that must be equipped (Assets/Inventory/items/hook.tres)
 
@@ -36,6 +39,10 @@ var boat: Node3D = null         # the boat hooked to it (HOOKED)
 var hooked_distance := 0.0      # how far her stern was from its middle when she hooked on
 var progress := 0.0             # 0 = handle in, 1 = pulled all the way
 var pull_direction := Vector3.FORWARD   # which way the handle comes out (toward her, flat)
+var drag_level := 0.0           # how loud the drag sound is now (0..1, eased)
+var drag_target := 0.0          # how loud it should be: the handle's speed, measured every tenth of a second
+var measured_pull := 0.0        # metres the handle came out since the last measure…
+var measured_time := 0.0        # …and over how many seconds
 
 @onready var handle: Node3D = $Handle
 @onready var rope: MeshInstance3D = $Rope
@@ -70,6 +77,7 @@ func _on_sensor_entered(area: Area3D) -> void:
 	hooked_distance = flat_distance(global_position, boat.stern_point())
 	boat.held_back = slowdown             # the rope holds her back (boat.gd: her speed × this)
 	rope.visible = true
+	Sfx.lever_hook()
 
 
 func _process(dt: float) -> void:
@@ -83,7 +91,7 @@ func _process(dt: float) -> void:
 
 
 ## Hooked: the handle comes out as far as she has sailed out since she hooked on (pull_length = all the way).
-func pull(_dt: float) -> void:
+func pull(dt: float) -> void:
 	if not is_instance_valid(boat) or boat.sinking or not Inventory.is_equipped(HOOK):
 		let_go()                           # she sank, or took the hook off: the rope comes off
 		state = State.RETURNING
@@ -93,11 +101,23 @@ func pull(_dt: float) -> void:
 	off.y = 0.0
 	if off.length() > 0.01:
 		pull_direction = off.normalized()
+	var progress_before := progress
 	progress = clampf((off.length() - hooked_distance) / pull_length, 0.0, 1.0)
+	# The drag sound: as loud as the handle comes out fast. Its speed is measured over a tenth of a second (the boat
+	# moves in steps of physics, so frame by frame it would flicker between moving and still), then eased.
+	measured_pull += maxf(0.0, progress - progress_before) * pull_length
+	measured_time += dt
+	if measured_time >= 0.1:
+		drag_target = clampf(measured_pull / measured_time / drag_full_speed, 0.0, 1.0)
+		measured_pull = 0.0
+		measured_time = 0.0
+	drag_level = lerpf(drag_level, drag_target, minf(1.0, dt * 8.0))
+	Sfx.lever_drag(drag_level)
 	place_handle()
 	draw_rope(stern)
 	if progress >= 1.0:
 		pulled.emit()                      # all the way out: whatever is connected happens
+		Sfx.lever_done()
 		let_go()
 		state = State.RETURNING
 
@@ -108,6 +128,9 @@ func let_go() -> void:
 		boat.held_back = 1.0
 	boat = null
 	rope.visible = false
+	drag_level = 0.0
+	drag_target = 0.0
+	Sfx.lever_drag(0.0)                    # the drag falls silent
 
 
 ## The handle slides back in by itself, then the lever can be pulled again.

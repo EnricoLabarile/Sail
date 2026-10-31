@@ -738,6 +738,13 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `boat.stern_point()` at `rope_height` 0.6; at 1 → signal **`pulled`** (empty for now: connect a door…), `let_go()`
   (held_back 1, rope hidden; the hook stays equipped) and RETURNING over `return_time` 0.6 s → IDLE (reusable). Sinking
   or taking the hook off lets go.
+  **Its sounds** (Enrico; `art_src/audio/make_lever_sounds.py`, players in sfx.tscn): `lever_hook.ogg` (`LeverHook`
+  −6 dB, a low full click: a dull knock and a tone 160 → 110 Hz) on hooking on, `Sfx.lever_hook()`; `lever_drag.ogg`
+  (`LeverDrag` −8 dB, a 2 s loop of friction and soft creaks, always playing, silent at −80 like the wheel's rub)
+  set every frame while hooked by `Sfx.lever_drag(level)`: level = the handle's speed / `drag_full_speed` 4 m/s,
+  measured over 0.1 s (`measured_pull`, `measured_time`: the boat moves in physics steps) and eased (`drag_level`),
+  louder and pitch 0.85 → 1.15 the faster; 0 on letting go; `lever_done.ogg` (`LeverDone` −6 dB, a dry higher snap:
+  two ticks and a 1.6 kHz ring) at the full pull, `Sfx.lever_done()`.
 - **Traps** (Enrico; `Assets/Items/trap/`: `trap.tscn` + `trap.gd`, `trap.png` (a stand-in, seen from above),
   `trap_setter.gd` on `Boat/TrapSetter` in boat.tscn): boat.gd sends `anchor_dropped` when the anchor goes down
   (`toggle_anchor`, not at a pier); with a trap equipped (and one aboard) TrapSetter lays one where she is (a 2.4 m

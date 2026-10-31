@@ -20,6 +20,9 @@
 [ext_resource type="AudioStream" uid="uid://dqht6i7b2rlye" path="res://Assets/SFX/paddle_splash.ogg" id="21_paddle_splash"]
 [ext_resource type="AudioStream" uid="uid://bb28ehtj4xya8" path="res://Assets/SFX/crank_unlock.ogg" id="22_crank_unlock"]
 [ext_resource type="AudioStream" uid="uid://cffakxowbwd7h" path="res://Assets/SFX/booster.ogg" id="23_booster"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/lever_hook.ogg" id="24_lever_hook"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/lever_drag.ogg" id="25_lever_drag"]
+[ext_resource type="AudioStream" path="res://Assets/SFX/lever_done.ogg" id="26_lever_done"]
 
 [node name="Sfx" type="Node" unique_id=1764671958]
 script = ExtResource("1_sfx")
@@ -103,4 +106,16 @@ volume_db = -6.0
 
 [node name="Booster" type="AudioStreamPlayer" parent="." unique_id=1465128691]
 stream = ExtResource("23_booster")
+volume_db = -6.0
+
+[node name="LeverHook" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("24_lever_hook")
+volume_db = -6.0
+
+[node name="LeverDrag" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("25_lever_drag")
+volume_db = -8.0
+
+[node name="LeverDone" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("26_lever_done")
 volume_db = -6.0
