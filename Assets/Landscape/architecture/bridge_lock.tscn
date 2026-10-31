@@ -5,10 +5,12 @@
 
 [sub_resource type="BoxShape3D" id="Shape_gate"]
 resource_local_to_scene = true
-size = Vector3(16.854736, 7.4072266, 12.12262)
+size = Vector3(16.854736, 7.4072266, 17.789505)
 
 [node name="BridgeLock" type="Node3D" unique_id=2019150060]
 script = ExtResource("1_lock")
+open_radius = 6.0
+sink_extra = null
 
 [node name="Gate" type="Node3D" parent="." unique_id=1293722417]
 
@@ -17,5 +19,5 @@ script = ExtResource("1_lock")
 [node name="Body" type="StaticBody3D" parent="Gate" unique_id=194199656]
 
 [node name="Shape" type="CollisionShape3D" parent="Gate/Body" unique_id=41322318]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.29089355, 3.0310025, 0.58694315)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.29089355, 3.0310025, 0.01360178)
 shape = SubResource("Shape_gate")

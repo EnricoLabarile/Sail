@@ -1481,5 +1481,6 @@ key_id = "1"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -272, 0, -72)
 
 [node name="BridgeLock" parent="." unique_id=1040793887 instance=ExtResource("57_c7or3")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -272, 0, -72)
 key_id = "1"
+open_radius = 6.0
