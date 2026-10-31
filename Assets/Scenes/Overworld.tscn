@@ -48,11 +48,11 @@
 [ext_resource type="Resource" path="res://Assets/Inventory/items/harpoon.tres" id="94_harpoon_item"]
 [ext_resource type="Script" uid="uid://bdhc1006ybcng" path="res://Assets/Landscape/islands/island_grid.gd" id="95_island_grid"]
 [ext_resource type="PackedScene" path="res://Assets/UI/crank/crank.tscn" id="96_crank"]
+[ext_resource type="PackedScene" path="res://Assets/Items/booster/booster.tscn" id="97_booster"]
 [ext_resource type="Script" uid="uid://droldh1rpljoo" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
 [ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/sea_urchin/sea_urchin.tscn" id="103_sea_urchin"]
-[ext_resource type="PackedScene" path="res://Assets/Items/booster/booster.tscn" id="97_booster"]
 
 [sub_resource type="Curve3D" id="Curve3D_current_test"]
 _data = {
@@ -122,7 +122,12 @@ fling_speed = 12.0
 fling_time = 1.2
 
 [node name="SeaUrchinTest" parent="Dangers" unique_id=1237544682 instance=ExtResource("103_sea_urchin")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 0, 156)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -44)
+walk_speed = 0.0
+drop_item = null
+
+[node name="SeaUrchinTest2" parent="Dangers" unique_id=916170001 instance=ExtResource("103_sea_urchin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 96, 0, -20)
 walk_speed = 0.0
 drop_item = null
 
@@ -226,11 +231,11 @@ land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
 
 [node name="Pickups" type="Node3D" parent="Gameplay" unique_id=1786065463]
 
-[node name="BoosterTest" parent="Gameplay/Pickups" instance=ExtResource("97_booster")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0, 50)
+[node name="BoosterTest" parent="Gameplay/Pickups" unique_id=1724946626 instance=ExtResource("97_booster")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 0, 34)
 
 [node name="HarpoonPickup" parent="Gameplay/Pickups" unique_id=237842599 instance=ExtResource("91_pickup")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66, 0, -34)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, 62)
 item = ExtResource("94_harpoon_item")
 count = 9
 

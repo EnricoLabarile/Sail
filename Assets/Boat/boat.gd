@@ -4,7 +4,7 @@ extends Node3D
 ## her rudder; Space works the anchor. Her camera (boat_camera.gd, on the Camera3D node) follows her.
 ## 1 unit = 10 px of the HTML prototype.
 
-@export var top_speed := 10.0      # m/s with the sail at its best (Enrico: halved from 7, the gusts boost it; the prototype had ~4.2)
+@export var top_speed := 15.0      # m/s with the sail at its best (Enrico: halved from 7, the gusts boost it; the prototype had ~4.2)
 @export var accel := 3.0            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)

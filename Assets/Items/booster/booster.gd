@@ -17,10 +17,10 @@ extends Node3D
 	set(value):
 		reach = value
 		_fit_sensor()
-@export var speed_multiplier := 1.6    # her top speed × this while it lasts
-@export var boost_time := 2.5          # seconds it lasts
+@export var speed_multiplier := 2.0    # her top speed × this while it lasts
+@export var boost_time := 4.0          # seconds it lasts
 @export var boost_accel := 4.0         # how quickly she picks up the extra speed (her usual is boat.gd's accel)
-@export var crank_refill := 2.0        # seconds of push given to the paddles (if they're on)
+@export var crank_refill := 5.0        # seconds of push given to the paddles (if they're on)
 @export var respawn_time := 30.0       # seconds it stays gone after being taken
 @export var shake_strength := 0.4      # the screen shake when she takes it (metres)…
 @export var shake_time := 0.25         # …and how long it lasts (seconds)
