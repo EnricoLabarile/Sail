@@ -182,6 +182,7 @@ var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over n
 # NAMES must stay the same. ($Model, with the $, is a fixed address: it must be a direct child of Boat.)
 @onready var model: Node3D = $Model            # heels and bobs: everything inside it follows
 @onready var sail: Node3D = find_child("Rig")   # the sail (sail.gd, on the Rig node): the wind's push and its look
+@onready var paddles: Node3D = find_child("Paddles")   # the paddle wheels (paddles.gd): a crank's push and their look
 @onready var camera: Camera3D = $Camera3D   # her camera, with its own script (boat_camera.gd)
 @onready var wake: CPUParticles3D = find_child("Wake")          # the dots left behind the stern
 @onready var bow_wave_right: Node3D = find_child("BowWaveRight") # the water thrown up and out at the bow (Wind
@@ -407,6 +408,7 @@ func respawn() -> void:
 	anchored = true
 	anchor_point = bow_point()
 	sail.gather_up()
+	paddles.stop()
 	roll = 0.0
 	roll_velocity = 0.0
 	pitch = 0.0
@@ -551,6 +553,12 @@ func _physics_process(dt: float) -> void:
 	# speed eases toward what the sail gives; the anchor takes her way off quickly
 	var target := top_speed * drive
 	var rate := anchor_bite if anchored else accel
+	# The paddle wheels (paddles.gd), wound by the crank: if they give more than the sail, she goes at their push,
+	# picked up at their own (quicker) bite.
+	paddles.update(dt)
+	if paddles.push_speed() > target:
+		target = paddles.push_speed()
+		rate = paddles.bite
 	# A wind gust's boost (gust.gd): her top speed × boost_multiplier while it lasts, picked up at boost_accel.
 	if boost_left > 0.0:
 		boost_left = maxf(0.0, boost_left - dt)
@@ -575,7 +583,7 @@ func _physics_process(dt: float) -> void:
 		glide_to_berth(dt)           # tied up at a pier: only gliding into place, nothing else moves her
 	else:
 		if not anchored:
-			rotate_y(-rudder * turn_rate * dt)
+			rotate_y(-rudder * turn_rate * paddles.turn_factor() * dt)   # quicker while the paddles push
 		update_current(dt)
 		update_boiling(dt)
 		move_and_bounce(dt)

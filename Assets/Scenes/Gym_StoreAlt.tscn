@@ -25,6 +25,7 @@
 
 [ext_resource type="Script" path="res://Assets/Landscape/gust/gust_spawner.gd" id="99_gust_spawner"]
 [ext_resource type="PackedScene" path="res://Assets/UI/harpoon_button/harpoon_button.tscn" id="93_harpoon_button"]
+[ext_resource type="PackedScene" path="res://Assets/UI/crank/crank.tscn" id="96_crank"]
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
 [node name="Core" type="Node" parent="." unique_id=70268906]
@@ -177,6 +178,8 @@ script = ExtResource("21_uvb2l")
 [node name="JarButton" parent="UI and PostProcess" instance=ExtResource("90_jar_button")]
 
 [node name="HarpoonButton" parent="UI and PostProcess" instance=ExtResource("93_harpoon_button")]
+
+[node name="Crank" parent="UI and PostProcess" instance=ExtResource("96_crank")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("28_f8m4f")]
 

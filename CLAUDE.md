@@ -265,6 +265,24 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `switched_on`, signal `toggled(item, on)`; the slot has the thick frame, no A/B letter). **Struck**: the mast and
   everything on it hidden (`sm_boat_mast.visible`, Enrico), no wind push (gusts' boost × 0 too), the current still
   carries her; set again it comes back gathered up and spreads.
+- **The paddles** (Enrico, Oct 2026: the paddle wheels and the crank back, as an item like the sail; their code on
+  themselves): **`Assets/Boat/paddles.gd`** on `Model/Paddles` in boat.tscn, holding `PaddleWheelLeft` / `Right`
+  (`Assets/Boat/paddle_wheel.tscn`, the old stand-in from git with `toon_shade` materials, x ±1.75, y 0.1, z 0.1; `Spin`
+  turns). Item `paddles.tres` (`toggle_on_tap`, buy/sell 0, icon `icons/paddles.png` by
+  `art_src/items/make_paddles_icon.py`), aboard from the start but **off** (`START_ITEMS`, not in `START_ON`); a tap on
+  its logbook slot switches it; off = no wheels, no crank, no push. **The wound spring**: one FULL clockwise turn of
+  the crank → `wound()`: `push_left` = `push_time` 4 s at `paddle_speed` 5.88 m/s forward whichever way she points
+  (counted down only under way; none at anchor); `power` eases at `take_up_rate` 3.75; the boat's target speed =
+  max(sail, `push_speed()`) picked up at `bite` 5.25; turning × `turn_mult` 1.5 while they push (`turn_factor`); the
+  current still carries her. **Locked while it pushes, except the last `recharge_window` 2 s** (Enrico: keep it going
+  without stopping): `can_wind()`; a full turn then refills to `push_time` (not added). Wheels: pushed or freewheeling
+  with her speed, outside wheel faster in a turn (`half_beam`, `paddle_radius`). `stop()` on respawn.
+  **The crank** (`Assets/UI/crank/`: `crank.tscn` CanvasLayer 95, group `hidden_at_start`, in game_view `DITHERED`, in
+  all 4 levels; Control `Button` 120 px, bottom-left anchored, offsets 6 / −392 / 126 / −272: up and left of the wheel,
+  bigger than A/B; `crank.gd`, `@tool`): shown only while the paddles are on; the old drawing (gear, hatched plate,
+  rivets, arm and knob, 72-unit box scaled); a finger turning it clockwise winds `wound_so_far`; at TAU →
+  `paddles.wound()` and the arm back up; let go before → springs back at `spring_back_speed` 12 rad/s; locked = pale
+  (0.35) and no touch; the ring = `push_left / push_time`; every touch flashes it black and clicks.
 - **Fake light** (no lights in the scene, Enrico removed the `Sun`): the boat's materials are unshaded and shade
   themselves, `Assets/Boat/fake_light.gdshaderinc` (a shared include, like a Material Function): `fake_light(NORMAL,
   INV_VIEW_MATRIX)` = `ambient` (0.45) + (1 − ambient) × max(0, N·sun) in world space. The sun is the **global shader
@@ -400,7 +418,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   tiny-dotted copy of each CPUParticles3D, for `FRAMES` 3 frames; then it all goes (59 materials, 2 emitters in the
   Overworld). Something new made later in code with a new kind of material: add its scene to `LATER`.
 - **Top speed** (`boat.gd` `top_speed`): **3.5 m/s** (Enrico: halved from 7, so the gusts' boosts matter). **Turning** (as the prototype): `turn_rate` 2.25 rad/s (Enrico: between the old 1.5 and the doubled 3) at full rudder whatever her speed (no slower with less way);
-  none at anchor. (Paddle wheels and the crank were added, then removed for now by Enrico.)
+  none at anchor; × the paddles' `turn_mult` while they push (see The paddles).
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
   `bow_point()` = middle + `bow_reach` forward) and stays there; the current now carries her at anchor too; once the
   bow is `anchor_rode` 3 m from it, `hold_at_anchor` holds the bow there and the hull trails from it, so she swings
@@ -453,7 +471,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `{item, count}`; `add(item, count)` (as many as fit: a stackable already aboard needs no slot), `remove`, `count`,
   `is_full`; signal `changed`. **Equipping** (Enrico): equippable ones (`bomb`, `trap`), one at a time, `equipped` ("" =
   none), `tap_equip(item)`, `equip(item, slot)`, `unequip(item)`, `slot_with(item)` (the last one spent unequips), signal `equipped_changed`.
-  `START_ITEMS` {trap: 9, sail: 1} (Enrico: no bombs and no jars at the start, she finds them; the sail, see The sail); **two equip slots, A and B** (Enrico, like Zelda's item buttons; `equipped_a`, `equipped_b`; `ItemData.equip_slot` is gone): ANY equippable thing (bomb, trap, jar, harpoon) in either; a tap in the logbook puts it in A, again moves it to B, again back to A; moving onto the other one's slot swaps them, a new one replaces what was there; a hold takes it off. Each item button sits in its slot's place (`Hud.ITEM_BUTTON_TOP` {a: −252 above, b: −162 below}, `Hud.place_item_button`); the trap has no button (laid at anchor while equipped in either). Things with `ItemData.equip_on_pickup` (bomb, jar, harpoon) **are equipped at once when they come aboard** in the first empty slot (A, then B; both taken: not equipped) (in `add`). A captured imp is `"imp"` (one slot).
+  `START_ITEMS` {trap: 9, sail: 1, paddles: 1} (Enrico: no bombs and no jars at the start, she finds them; the sail, see The sail); **two equip slots, A and B** (Enrico, like Zelda's item buttons; `equipped_a`, `equipped_b`; `ItemData.equip_slot` is gone): ANY equippable thing (bomb, trap, jar, harpoon) in either; a tap in the logbook puts it in A, again moves it to B, again back to A; moving onto the other one's slot swaps them, a new one replaces what was there; a hold takes it off. Each item button sits in its slot's place (`Hud.ITEM_BUTTON_TOP` {a: −252 above, b: −162 below}, `Hud.place_item_button`); the trap has no button (laid at anchor while equipped in either). Things with `ItemData.equip_on_pickup` (bomb, jar, harpoon) **are equipped at once when they come aboard** in the first empty slot (A, then B; both taken: not equipped) (in `add`). A captured imp is `"imp"` (one slot).
 - **Health** (Enrico, the prototype's hull as Zelda's hearts): on the boat (`boat.gd`): `max_hearts` 3, `health` in hearts
   (0.5 = half), `hit_damage` 0 a bump (Enrico; was 0.5; in `bump()`, after its cooldown and minimum speed), `take_damage(hearts)`,
   `add_heart_container()` (one more heart and the hull whole), signal `health_changed(hurt)`. **At 0 she sinks** (Enrico): `start_sinking()` (no sailing, anchor or bumps; the water mask off so the sea covers her inside; no wake or bow wave), `update_sinking` takes `Model` down `sink_depth` 2.5 m and over `sink_lean_deg` 25° in `sink_time` 2 s (eased in), then signal `sank`; `respawn()` puts her back home (`home_position` / `home_turn`, where she was placed in Overworld) at anchor, hull whole, keeping the hold and heart containers. **She spawns by coming up out of the water** (Enrico: the sinking played backwards): `start_emerging()` at the level's start (`emerge_on_start`, on) and at the end of `respawn()`; `update_emerging` raises `Model` from `sink_depth` under and `sink_lean_deg` over to its place in `sink_time` ((1 − share)², quick at first, slowing at the surface), the water mask off till she's up; while `emerging` no sailing or damage, but the fog clears round her, and **the anchor can already be weighed** (Enrico: one press after "Set sail"; she sets off once she's up). **The game over card** (`Assets/UI/game_over.tscn` + `.gd`, made like the start screen: CanvasLayer 130, process_mode Always, hidden): on `sank` it pauses the game and shows "Shipwrecked", "The hull gave way. Back home to mend it." and "Set sail again", which calls `respawn()` and unpauses.

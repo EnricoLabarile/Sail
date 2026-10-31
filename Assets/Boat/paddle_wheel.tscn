@@ -1,0 +1,73 @@
+[gd_scene format=3]
+
+[ext_resource type="Shader" path="res://Assets/Boat/toon_shade.gdshader" id="1_shade"]
+
+[sub_resource type="ShaderMaterial" id="Mat_wood"]
+shader = ExtResource("1_shade")
+shader_parameter/base_color = Color(0.85, 0.85, 0.83, 1)
+shader_parameter/ambient = 0.45
+
+[sub_resource type="ShaderMaterial" id="Mat_dark"]
+shader = ExtResource("1_shade")
+shader_parameter/base_color = Color(0.2, 0.2, 0.19, 1)
+shader_parameter/ambient = 0.45
+
+[sub_resource type="BoxMesh" id="Mesh_blade"]
+material = SubResource("Mat_wood")
+size = Vector3(0.46, 1.4, 0.05)
+
+[sub_resource type="TorusMesh" id="Mesh_rim"]
+material = SubResource("Mat_dark")
+inner_radius = 0.64
+outer_radius = 0.7
+rings = 24
+ring_segments = 6
+
+[sub_resource type="CylinderMesh" id="Mesh_hub"]
+material = SubResource("Mat_dark")
+top_radius = 0.12
+bottom_radius = 0.12
+height = 0.56
+radial_segments = 10
+
+[sub_resource type="CylinderMesh" id="Mesh_axle"]
+material = SubResource("Mat_dark")
+top_radius = 0.04
+bottom_radius = 0.04
+height = 0.8
+radial_segments = 6
+
+[node name="PaddleWheel" type="Node3D"]
+
+[node name="Axle" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Mesh_axle")
+
+[node name="Spin" type="Node3D" parent="."]
+
+[node name="Blade0" type="MeshInstance3D" parent="Spin"]
+mesh = SubResource("Mesh_blade")
+
+[node name="Blade45" type="MeshInstance3D" parent="Spin"]
+transform = Transform3D(1, 0, 0, 0, 0.7071068, 0.7071068, 0, -0.7071068, 0.7071068, 0, 0, 0)
+mesh = SubResource("Mesh_blade")
+
+[node name="Blade90" type="MeshInstance3D" parent="Spin"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0)
+mesh = SubResource("Mesh_blade")
+
+[node name="Blade135" type="MeshInstance3D" parent="Spin"]
+transform = Transform3D(1, 0, 0, 0, -0.7071068, 0.7071068, 0, -0.7071068, -0.7071068, 0, 0, 0)
+mesh = SubResource("Mesh_blade")
+
+[node name="RimIn" type="MeshInstance3D" parent="Spin"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.23, 0, 0)
+mesh = SubResource("Mesh_rim")
+
+[node name="RimOut" type="MeshInstance3D" parent="Spin"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.23, 0, 0)
+mesh = SubResource("Mesh_rim")
+
+[node name="Hub" type="MeshInstance3D" parent="Spin"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Mesh_hub")

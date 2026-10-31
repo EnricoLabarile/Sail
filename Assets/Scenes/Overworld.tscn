@@ -47,6 +47,7 @@
 [ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/sea_urchin/sea_urchin.tscn" id="103_sea_urchin"]
 [ext_resource type="Script" path="res://Assets/Landscape/islands/island_grid.gd" id="95_island_grid"]
+[ext_resource type="PackedScene" path="res://Assets/UI/crank/crank.tscn" id="96_crank"]
 
 [sub_resource type="Curve3D" id="Curve3D_current_test"]
 _data = {
@@ -259,6 +260,8 @@ script = ExtResource("21_game_view")
 [node name="JarButton" parent="UI and PostProcess" unique_id=1744983952 instance=ExtResource("90_jar_button")]
 
 [node name="HarpoonButton" parent="UI and PostProcess" unique_id=2045448758 instance=ExtResource("93_harpoon_button")]
+
+[node name="Crank" parent="UI and PostProcess" instance=ExtResource("96_crank")]
 
 [node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("25_health")]
 

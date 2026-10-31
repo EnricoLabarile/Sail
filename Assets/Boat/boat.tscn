@@ -9,6 +9,8 @@
 [ext_resource type="Script" uid="uid://6ghbvwsa1jbd" path="res://Assets/Boat/boat_camera.gd" id="9_camera"]
 [ext_resource type="Script" uid="uid://enqfotlib5l3" path="res://Assets/Items/trap/trap_setter.gd" id="10_trap_setter"]
 [ext_resource type="Script" path="res://Assets/Boat/sail.gd" id="11_sail"]
+[ext_resource type="Script" path="res://Assets/Boat/paddles.gd" id="12_paddles"]
+[ext_resource type="PackedScene" path="res://Assets/Boat/paddle_wheel.tscn" id="12_paddle_wheel"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_wake"]
 render_priority = 1
@@ -66,6 +68,15 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 4.7)
 
 [node name="sm_boat_hull_inner" parent="Model/sm_boat_hull" unique_id=973111920 instance=ExtResource("5_ks1r1")]
+
+[node name="Paddles" type="Node3D" parent="Model"]
+script = ExtResource("12_paddles")
+
+[node name="PaddleWheelLeft" parent="Model/Paddles" instance=ExtResource("12_paddle_wheel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.75, 0.1, 0.1)
+
+[node name="PaddleWheelRight" parent="Model/Paddles" instance=ExtResource("12_paddle_wheel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 0.1, 0.1)
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1565566446]
 keep_aspect = 0
