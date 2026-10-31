@@ -37,6 +37,15 @@ func _ready() -> void:
 	Inventory.equipped_changed.connect(_update_shown)   # equipped or taken off
 	Inventory.changed.connect(_update_shown)
 	_update_shown()
+	_listen_to_boat.call_deferred()      # once the level is all there (the boat is found by its group)
+
+
+## Enrico: whenever the boat really takes damage (anything: a fireball, a spike, a bomb, boiling water…), the hook
+## lets go of what it holds. The boat sends `hurt` for that (boat.gd take_damage; a bump on the shore doesn't).
+func _listen_to_boat() -> void:
+	var boat := get_tree().get_first_node_in_group("player_boat")
+	if boat:
+		boat.hurt.connect(let_go)
 
 
 ## Shown only while the hook is equipped. Taken off while holding something: it's let go.

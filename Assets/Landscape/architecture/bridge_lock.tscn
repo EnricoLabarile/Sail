@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/Landscape/architecture/bridge_lock.gd" id="1_lock"]
+[ext_resource type="PackedScene" uid="uid://b73owb0okij2p" path="res://Assets/Landscape/architecture/sm_bridge_lock_01_a.fbx" id="2_mesh"]
+
+[sub_resource type="BoxShape3D" id="Shape_gate"]
+resource_local_to_scene = true
+size = Vector3(1, 1.5, 1.5)
+
+[node name="BridgeLock" type="Node3D"]
+script = ExtResource("1_lock")
+
+[node name="Gate" type="Node3D" parent="."]
+
+[node name="Mesh" parent="Gate" instance=ExtResource("2_mesh")]
+
+[node name="Body" type="StaticBody3D" parent="Gate"]
+
+[node name="Shape" type="CollisionShape3D" parent="Gate/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, -0.75)
+shape = SubResource("Shape_gate")

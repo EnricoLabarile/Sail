@@ -102,6 +102,10 @@ signal health_changed(hurt: bool)
 ## Sent once she's gone under (the game over card listens).
 signal sank
 
+## Sent whenever she really loses hearts (more than 0), whatever hurt her. The hook button listens: a hit makes
+## her let go of whatever the hook holds (Enrico).
+signal hurt
+
 ## Sent when she comes over a fishing spot (over = true) or leaves the last one she was over (false).
 ## The wheel listens, to show a question mark instead of the anchor. The spots tell her (set_over_fishing_spot).
 signal over_fishing_spot_changed(over: bool)
@@ -352,11 +356,13 @@ func glide_to_berth(dt: float) -> void:
 func take_damage(hearts: float) -> void:
 	if sinking or emerging:
 		return                       # going down, or still coming up: nothing more can hurt her
-	if hearts > 0.0:
-		Sfx.boat_hurt()              # the one sound for every kind of damage (sfx.gd); not for a 0 (a shore bump: only the shake)
+	if hearts <= 0.0:
+		return                       # no damage, nothing happens: no sound, no flash of the hearts, no letting go
+	Sfx.boat_hurt()                  # the one sound for every kind of damage (sfx.gd)
 	health = maxf(0.0, health - hearts)
 	health_changed.emit(true)
 	camera.shake()                   # the screen shakes (boat_camera.gd)
+	hurt.emit()                      # the hook lets go of what it holds (hook_button.gd)
 	if health <= 0.0:
 		start_sinking()
 
@@ -846,7 +852,12 @@ func bump(out: Vector3, into: float) -> void:
 	if bump_wait > 0.0 or into < bounce_min_speed:
 		return                                           # just a nudge, or the same bump as a moment ago
 	bump_wait = bounce_cooldown
-	take_damage(hit_damage)                              # the same whatever her speed (as in the prototype)
+	# The hull takes hit_damage (0 now, Enrico: no damage from the landscape, so moving round is comfortable). With 0,
+	# take_damage does nothing at all (no flash of the hearts), so the screen shake is asked for here on its own.
+	if hit_damage > 0.0:
+		take_damage(hit_damage)                          # its shake comes with it
+	else:
+		camera.shake()                                   # only the shake: Enrico keeps it for every bump
 	# The knock of the hull (Assets/SFX): louder the harder she hit, never quieter than 40%.
 	Sfx.hull_bump(clampf(0.4 + 0.6 * into / top_speed, 0.0, 1.0))
 

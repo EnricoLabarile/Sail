@@ -146,7 +146,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   Static Body, or name it with the `-col` suffix in Blender), which is what `Land` hits. When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
   `impact()`, in `boat.gd`: `move_and_bounce`, `bump`; knobs `bounce_*`): only moving into the shore at ≥ 0.4 m/s,
   0.6 s cooldown; a push `knock` along `Land.way_to_sea()` of 2 + 0.9 × the hit speed, fading at 3.5/s; speed × 0.25;
-  the bow swung off up to 0.3 rad toward the open side; the hull loses `hit_damage` (**0 now**, Enrico: no damage from bumps, the screen shake stays; was half a heart, see Health) and the hull knocks (`Sfx.hull_bump`, see Sound). No wobble (Enrico removed it), no buzz yet. In the **shallows** (land within
+  the bow swung off up to 0.3 rad toward the open side; the hull loses `hit_damage` (**0 now**, Enrico: no damage from the landscape; with 0 `bump` doesn't call `take_damage` at all, only `camera.shake()`, so the hearts don't flash and the hook doesn't let go; was half a heart, see Health) and the hull knocks (`Sfx.hull_bump`, see Sound). No wobble (Enrico removed it), no buzz yet. In the **shallows** (land within
   `shallows_width` 6 m of her middle, `Land.is_near_land`: 3 rings × 16 rays, looked again only every `shallows_check_time`
   0.2 s, `in_shallows`) the sail's drive is ×
   `shallows_sail` 0.3 (Enrico: less wind by the coast). **The current** (prototype's `CURRENT_DRIFT`): `drift` =
@@ -498,7 +498,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   none), `tap_equip(item)`, `equip(item, slot)`, `unequip(item)`, `slot_with(item)` (the last one spent unequips), signal `equipped_changed`.
   `START_ITEMS` {trap: 9, sail: 1, paddles: 1} (Enrico: no bombs and no jars at the start, she finds them; the sail, see The sail); **two equip slots, A and B** (Enrico, like Zelda's item buttons; `equipped_a`, `equipped_b`; `ItemData.equip_slot` is gone): ANY equippable thing (bomb, trap, jar, harpoon) in either; a tap in the logbook puts it in A, again moves it to B, again back to A; moving onto the other one's slot swaps them, a new one replaces what was there; a hold takes it off. Each item button sits in its slot's place (`Hud.ITEM_BUTTON_TOP` {a: −252 above, b: −162 below}, `Hud.place_item_button`); the trap has no button (laid at anchor while equipped in either); the hook has one (see Levers and the hook). Things with `ItemData.equip_on_pickup` (bomb, jar, harpoon) **are equipped at once when they come aboard** in the first empty slot (A, then B; both taken: not equipped) (in `add`). A captured imp is `"imp"` (one slot).
 - **Health** (Enrico, the prototype's hull as Zelda's hearts): on the boat (`boat.gd`): `max_hearts` 3, `health` in hearts
-  (0.5 = half), `hit_damage` 0 a bump (Enrico; was 0.5; in `bump()`, after its cooldown and minimum speed), `take_damage(hearts)`,
+  (0.5 = half), `hit_damage` 0 a bump (Enrico; was 0.5; in `bump()`, after its cooldown and minimum speed), `take_damage(hearts)` (does nothing for 0 hearts; for more: the sound, the hearts' flash, the shake and signal **`hurt`**, which makes the hook button let go of what it holds, Enrico),
   `add_heart_container()` (one more heart and the hull whole), signal `health_changed(hurt)`. **At 0 she sinks** (Enrico): `start_sinking()` (no sailing, anchor or bumps; the water mask off so the sea covers her inside; no wake or bow wave), `update_sinking` takes `Model` down `sink_depth` 2.5 m and over `sink_lean_deg` 25° in `sink_time` 2 s (eased in), then signal `sank`; `respawn()` puts her back home (`home_position` / `home_turn`, where she was placed in Overworld) at anchor, hull whole, keeping the hold and heart containers. **She spawns by coming up out of the water** (Enrico: the sinking played backwards): `start_emerging()` at the level's start (`emerge_on_start`, on) and at the end of `respawn()`; `update_emerging` raises `Model` from `sink_depth` under and `sink_lean_deg` over to its place in `sink_time` ((1 − share)², quick at first, slowing at the surface), the water mask off till she's up; while `emerging` no sailing or damage, but the fog clears round her, and **the anchor can already be weighed** (Enrico: one press after "Set sail"; she sets off once she's up). **The game over card** (`Assets/UI/game_over.tscn` + `.gd`, made like the start screen: CanvasLayer 130, process_mode Always, hidden): on `sank` it pauses the game and shows "Shipwrecked", "The hull gave way. Back home to mend it." and "Set sail again", which calls `respawn()` and unpauses.
   Shown top left by `Assets/UI/health/` (`health.tscn`: CanvasLayer 110, crisp; Control `Hearts` 12, 20; `health.gd`,
   `@tool`): a paper panel, 2 px ink border, a hard 3 px ink shadow, "Hull" and a 17 px heart a heart (the prototype's SVG
@@ -753,7 +753,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   grabs the nearest thing of the group **`towable`** whose `tow_reach()` her middle is within (`Sfx.lever_hook`), a
   second tap lets go; while holding the disc is ink with a paper hook (`paper_copy` of the icon); nothing in reach: only
   the flash and click; the hook taken off lets go. **The towable interface**: `can_be_towed()`, `tow_reach()`,
-  `start_tow(boat)`, `stop_tow()`, `is_towed()` (now the lever and the barrel). The lever: grabbed within
+  `start_tow(boat)`, `stop_tow()`, `is_towed()` (now the lever, the barrel and the key). **Hurt, she lets go** (Enrico): the
+  button listens to the boat's `hurt` (any real damage) and lets go. The lever: grabbed within
   `touch_radius` 6 m of its middle → HOOKED (`hooked_distance` = her stern's distance then; `boat.held_back` = `slowdown` 0.5:
   boat.gd multiplies her target speed by it, after everything else); `progress` = (stern distance − hooked_distance) /
   `pull_length` 15 m (coming back slides it back), the handle out `handle_travel` 1.5 m toward her, the rope from it to
@@ -767,6 +768,20 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   measured over 0.1 s (`measured_pull`, `measured_time`: the boat moves in physics steps) and eased (`drag_level`),
   louder and pitch 0.85 → 1.15 the faster; 0 on letting go; `lever_done.ogg` (`LeverDone` −6 dB, a dry higher snap:
   two ticks and a 1.6 kHz ring) at the full pull, `Sfx.lever_done()`.
+- **Keys and bridge locks** (Enrico, Oct 2026; a key towed with the hook opens a gate under a bridge):
+  **the key** (`Assets/Items/key/`: `key.tscn` + `key.gd` (`@tool`), `key.png` a 64² stand-in by
+  `art_src/items/make_key.py`; placed by hand): `Picture` a 3 m PlaneMesh lying 0.1 m up (StandardMaterial3D unshaded,
+  alpha-scissor, nearest, render_priority 2), bobbing (`bob_height` 0.1, `bob_speed` 2); not solid; groups `keys` and
+  `towable` (the barrel's towing, its own copy: `grab_reach` 4 m from its middle, `rope_length` 4 m from her stern,
+  `tow_slowdown` 0.9, `size` 1.2, never onto land, physics interpolation on); `key_id` (text). `use_up()`: let go and
+  freed. **The bridge lock** (`Assets/Landscape/architecture/`: `bridge_lock.tscn` + `bridge_lock.gd` (`@tool`), around
+  Enrico's `sm_bridge_lock_01_a.fbx`, a flat panel 1 × 1.5 m with its origin at the bottom; scale the node to fit the
+  bridge): `Gate` (sinks) holding `Mesh` (the fbx) and `Body` (StaticBody3D, a box local to scene made as big as the mesh
+  by `_fit_body`, `thickness` 1.5 deep: `Land`'s rays hit it, so the boat bumps on it and a towed key stops against it).
+  Every physics frame while shut (`look_for_key`): a key of group `keys` with the same `key_id` (the lock's empty = any)
+  within `open_radius` 6 m of the gate's middle (`middle()`, the box's) → `open()` (signal **`opened`**) and the key
+  `use_up()`; the gate sinks by its own height (the mesh's) in `open_time` 1.5 s, smoothstep, then the box is disabled and
+  it stays open for good. No sounds (not asked), no test ones placed in the levels.
 - **Traps** (Enrico; `Assets/Items/trap/`: `trap.tscn` + `trap.gd`, `trap.png` (a stand-in, seen from above),
   `trap_setter.gd` on `Boat/TrapSetter` in boat.tscn): boat.gd sends `anchor_dropped` when the anchor goes down
   (`toggle_anchor`, not at a pier); with a trap equipped (and one aboard) TrapSetter lays one where she is (a 2.4 m
