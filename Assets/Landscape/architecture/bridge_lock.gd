@@ -2,61 +2,57 @@
 extends Node3D
 ## A BRIDGE LOCK (Enrico): a gate standing in the water under a bridge, across a river, that shuts the way. It's
 ## solid: the boat bumps on it like a shore. When a KEY (Assets/Items/key, towed there with the hook) comes within
-## `open_radius` of it, the gate sinks straight down into the water, by its own height, over `open_time` seconds; then
+## `open_radius` metres of its solid box (of the box's surface, wherever it is: in front, at a side, at a corner),
+## the gate sinks straight down into the water, by its own height, over `open_time` seconds; then
 ## it stops being solid and the boat can sail through. The key is used up (gone). It stays open for good.
 ## `key_id`: it opens only for a key with the same id (empty = any key opens it).
 ## The signal `opened` is sent once, when it starts to open (connect it to anything else that should happen).
 ## (In Unreal: an actor with a blocking collision that looks for actors tagged "Key" within a radius, then plays a
 ## timeline that lowers the mesh and switches the collision off, and fires an Event Dispatcher.)
 ##
-## Its parts (bridge_lock.tscn): `Gate` (the part that sinks) holding `Mesh` (Enrico's sm_bridge_lock_01_a.fbx:
-## a flat panel 1 m wide and 1.5 m tall, its origin at its bottom) and `Body` (a StaticBody3D whose box is made in
-## code as big as the mesh, `thickness` deep, so Land's rays hit it: the boat and a towed key stop against it).
-## Scale the BridgeLock node in the level to make it as big as the bridge: everything follows.
+## Its parts (bridge_lock.tscn): `Gate` (the part that sinks) holding the mesh (Enrico's sm_bridge_lock_01_a.fbx, any
+## node name: the first MeshInstance3D inside Gate is used) and `Body` (a StaticBody3D with a box, `Shape`, that YOU
+## size and place in the editor: it's the WALL, not a trigger. Land's rays hit it, so the boat and a towed key stop
+## against it). There's no trigger shape: the "trigger" is `open_radius`, measured from the box's surface.
+## How far it sinks: the mesh's height (worked out at start, with the mesh's own scale; 6 m now), plus `sink_extra`.
 
 ## Sent once, when a key opens it.
 signal opened
 
 ## Which key opens it: the same text as the key's `key_id` (empty = any key).
 @export var key_id := ""
-## Metres from the gate's middle a key must come within to open it.
-@export var open_radius := 6.0
+## Metres from the solid box's surface a key must come within to open it. (A towed key stops a little way off the
+## box, as against a shore, so this must be more than that: 4 is plenty.)
+@export var open_radius := 4.0
 ## Seconds it takes to sink all the way down.
 @export var open_time := 1.5
-## Metres deep the solid box is (the mesh is a flat panel: the box gives it some thickness, so the boat can't slip
-## through it). In the gate's own size, so it grows with the node's scale.
-@export var thickness := 1.5:
-	set(value):
-		thickness = value
-		_fit_body()
+## Metres it sinks further than its own height (0 = its top ends level with the water).
+@export var sink_extra := 0.0
 
 var is_open := false
 var progress := 0.0                 # 0 = shut, 1 = all the way down
-var height := 6                   # the gate's height (the mesh's), worked out in _fit_body
+var height := 1.5                   # how far it sinks: the mesh's height (in the Gate's space), worked out in _ready
 
 @onready var gate: Node3D = $Gate
 
 
 func _ready() -> void:
-	_fit_body()
 	if Engine.is_editor_hint():
 		return
+	height = mesh_height()
 	set_physics_process(true)
 
 
-## The solid box as big as the mesh (its width and height), `thickness` deep, standing on the same bottom.
-## (Its own copy of the shape: local to scene in bridge_lock.tscn.) get_node_or_null: the setter can run while the
-## scene is still being loaded, before the nodes exist.
-func _fit_body() -> void:
-	var mesh := find_mesh(get_node_or_null("Gate/Mesh"))
-	var shape_node := get_node_or_null("Gate/Body/Shape") as CollisionShape3D
-	if mesh == null or shape_node == null or shape_node.shape == null:
-		return
-	var box := mesh.get_aabb()                           # the mesh's own size and place (in its node's space)
-	height = box.size.y
-	var middle := box.get_center()
-	shape_node.shape.size = Vector3(box.size.x, box.size.y, thickness)
-	shape_node.position = Vector3(middle.x, middle.y, middle.z)
+## The mesh's height as it stands inside the Gate: its own box (get_aabb, in the mesh's own units) carried through
+## the scales of the nodes between it and the Gate (the .fbx gives the mesh a scale of its own: 16 × 4 × 4, so
+## 1.5 × 4 = 6 m). No mesh found: 1.5.
+func mesh_height() -> float:
+	var mesh := find_mesh(gate)
+	if mesh == null:
+		return 1.5
+	var to_gate: Transform3D = gate.global_transform.affine_inverse() * mesh.global_transform
+	var box: AABB = to_gate * mesh.get_aabb()            # the mesh's box, seen from the Gate
+	return box.size.y
 
 
 ## The MeshInstance3D inside the imported model (the .fbx makes it a little scene with the mesh inside).
@@ -88,17 +84,25 @@ func look_for_key() -> void:
 			continue
 		if key_id != "" and key.key_id != key_id:
 			continue                                     # not this lock's key
-		var off: Vector3 = key.global_position - middle()
-		off.y = 0.0
-		if off.length() <= open_radius:
+		if distance_to_box(key.global_position) <= open_radius:
 			open()
 			key.use_up()
 			return
 
 
-## The gate's middle on the water (the solid box's middle: the mesh doesn't sit on the node's own origin).
-func middle() -> Vector3:
-	return $Gate/Body/Shape.global_position
+## How far a point is from the solid box, across the water (0 = on it or inside it). Worked out in the box's own
+## space: the point is brought into it, pushed onto the box (clamped to its half size on x and z), and the distance
+## between the two is the answer. (A sphere round the middle didn't work for a long, deep box: a key stopped against
+## a 12 m deep box is more than 6 m from its middle.)
+func distance_to_box(point: Vector3) -> float:
+	var shape_node := $Gate/Body/Shape as CollisionShape3D
+	var box := shape_node.shape as BoxShape3D
+	var local: Vector3 = shape_node.global_transform.affine_inverse() * point   # the point, seen from the box
+	var half: Vector3 = box.size * 0.5
+	var nearest := Vector3(clampf(local.x, -half.x, half.x), local.y, clampf(local.z, -half.z, half.z))
+	var off: Vector3 = shape_node.global_transform * nearest - point              # back in the world
+	off.y = 0.0
+	return off.length()
 
 
 ## It opens: from now on it sinks (sink, every physics frame).
@@ -112,7 +116,7 @@ func open() -> void:
 func sink(dt: float) -> void:
 	progress = minf(1.0, progress + dt / open_time)
 	var eased := progress * progress * (3.0 - 2.0 * progress)   # smoothstep: starts and ends gently
-	gate.position.y = -height * eased
+	gate.position.y = -(height + sink_extra) * eased
 	if progress >= 1.0:
 		$Gate/Body/Shape.disabled = true                 # the way is open: the boat can sail through
 		set_physics_process(false)

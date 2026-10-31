@@ -775,13 +775,16 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `towable` (the barrel's towing, its own copy: `grab_reach` 4 m from its middle, `rope_length` 4 m from her stern,
   `tow_slowdown` 0.9, `size` 1.2, never onto land, physics interpolation on); `key_id` (text). `use_up()`: let go and
   freed. **The bridge lock** (`Assets/Landscape/architecture/`: `bridge_lock.tscn` + `bridge_lock.gd` (`@tool`), around
-  Enrico's `sm_bridge_lock_01_a.fbx`, a flat panel 1 × 1.5 m with its origin at the bottom; scale the node to fit the
-  bridge): `Gate` (sinks) holding `Mesh` (the fbx) and `Body` (StaticBody3D, a box local to scene made as big as the mesh
-  by `_fit_body`, `thickness` 1.5 deep: `Land`'s rays hit it, so the boat bumps on it and a towed key stops against it).
-  Every physics frame while shut (`look_for_key`): a key of group `keys` with the same `key_id` (the lock's empty = any)
-  within `open_radius` 6 m of the gate's middle (`middle()`, the box's) → `open()` (signal **`opened`**) and the key
-  `use_up()`; the gate sinks by its own height (the mesh's) in `open_time` 1.5 s, smoothstep, then the box is disabled and
-  it stays open for good. No sounds (not asked), no test ones placed in the levels.
+  Enrico's `sm_bridge_lock_01_a.fbx`, whose mesh carries its own scale 16 × 4 × 4: 16 m wide, 6 m tall, origin at the
+  bottom): `Gate` (sinks) holding the mesh (any name: the first MeshInstance3D inside, `find_mesh`) and `Body`
+  (StaticBody3D with the box `Shape`, local to scene, **sized and placed by Enrico by hand** (16.9 × 7.4 × 12.1 now): the
+  WALL, not a trigger; `Land`'s rays hit it, so the boat bumps on it and a towed key stops against it). No trigger
+  shape: every physics frame while shut (`look_for_key`) a key of group `keys` with the same `key_id` (the lock's empty =
+  any) within `open_radius` 4 m of the **box's surface** (`distance_to_box`: the key brought into the box's space,
+  clamped to its half size on x/z; a radius from the box's middle failed with Enrico's 12 m deep box) → `open()` (signal
+  **`opened`**) and the key `use_up()`; the gate sinks by `height` (the mesh's height in the Gate's space, through its
+  scales, `mesh_height()`, 6 m) + `sink_extra` 0 in `open_time` 1.5 s, smoothstep, then the box is disabled and it stays
+  open for good. In Overworld: `BridgeLock` (−16, 0, 16) and `Key` (−25, 1.6, 53), `key_id` "1" both. No sounds (not asked), no test ones placed in the levels.
 - **Traps** (Enrico; `Assets/Items/trap/`: `trap.tscn` + `trap.gd`, `trap.png` (a stand-in, seen from above),
   `trap_setter.gd` on `Boat/TrapSetter` in boat.tscn): boat.gd sends `anchor_dropped` when the anchor goes down
   (`toggle_anchor`, not at a pier); with a trap equipped (and one aboard) TrapSetter lays one where she is (a 2.4 m
