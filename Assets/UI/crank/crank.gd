@@ -52,6 +52,7 @@ var lever := 0.0              # where it is: -1 all the way left, 0 the middle, 
 var drag_index := -1          # the finger on it (-1 = none)
 var last_a := 0.0             # the finger's angle round the pivot a moment ago
 var shown_charge := 1.0      # the charge the battery icon shows (0..1): it follows the real one, filling up slowly
+var filling := false         # is the battery icon filling up now? (then the knob is drawn with its colours swapped)
 var notch := NOTCHES / 2      # the notch it's at (for the clicks)
 var at_left_end := false      # is it at an end now? (an end works once each time the lever gets there)
 var at_right_end := false
@@ -241,14 +242,18 @@ func _draw() -> void:
 
 	# 4. The knob on the pivot (not turned: the battery inside stays level): paper with an ink ring.
 	draw_set_transform(size * 0.5 + PIVOT * k, 0.0, Vector2(k, k))
-	draw_circle(Vector2.ZERO, KNOB_R, paper)
-	draw_arc(Vector2.ZERO, KNOB_R, 0.0, TAU, 32, ink, 1.6)
+	#    While it's filling up (Enrico: to make the recharge stand out), the whole knob has its colours swapped: an ink
+	#    disc and the battery in paper; back to normal once it's full.
+	var knob_fill := ink if filling else paper
+	var knob_mark := paper if filling else ink
+	draw_circle(Vector2.ZERO, KNOB_R, knob_fill)
+	draw_arc(Vector2.ZERO, KNOB_R, 0.0, TAU, 32, knob_mark, 1.6)   # its ring swaps too (so it reads on the dark sea)
 	var paddles := null if Engine.is_editor_hint() else _paddles()
 	var share := 1.0                                   # the charge shown, 0..1 (full in the editor)
 	if paddles:
 		share = shown_charge
 	if not _battery_blinked_off(paddles):
-		_draw_battery(Vector2.ZERO, 1.0, share, ink)
+		_draw_battery(Vector2.ZERO, 1.0, share, knob_mark)
 
 	# 5. The hints beside the ends (see the notes at the top).
 	draw_set_transform(size * 0.5, 0.0, Vector2(k, k))
@@ -279,8 +284,10 @@ func update_shown_charge(dt: float) -> void:
 	var real: float = paddles.push_left / paddles.push_time
 	if real > shown_charge and refill_show_time > 0.0:
 		shown_charge = move_toward(shown_charge, real, dt / refill_show_time)
+		filling = shown_charge < real            # still climbing (false the frame it gets there)
 	else:
 		shown_charge = real
+		filling = false
 
 
 ## Is the battery in its blink's "off" moment? Only in the last seconds of a running battery.

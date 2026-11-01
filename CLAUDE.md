@@ -313,7 +313,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   shown (Enrico, Nov 2026; the arc along the plate is gone) as a **battery icon** (line art, ink: a box, a little knob,
   a fill as long as the charge) inside the **knob** on the pivot (`KNOB_R` 10, paper with an ink ring), always level, not
   turned with the lever; refilled, its fill **climbs** to the new charge over `refill_show_time` 0.5 s (`shown_charge`,
-  `update_shown_charge`; going down it just follows); **held, only the lever is drawn black** (the grip ink, its stripes
+  `update_shown_charge`; going down it just follows), and **while it fills the whole knob is inverted** (ink disc, paper ring and
+  battery; `filling`, Enrico: to make the recharge stand out); **held, only the lever is drawn black** (the grip ink, its stripes
   paper; the plate and the knob stay; no flash on touch any more); it **blinks** (`blink_per_second` 4) in the last `recharge_window` seconds while she runs.
   **Hints beside the ends** (Enrico; `_draw_anchor`, `_draw_battery`, `ICON_DISTANCE` 38, `ICON_PAST_END` 0.3 rad past
   each end; line art, ink with a thin paper halo so they read on the dark sea): a little **anchor on the left** while the
