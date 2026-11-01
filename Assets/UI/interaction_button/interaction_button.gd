@@ -170,7 +170,12 @@ func _draw() -> void:
 		"fishing":
 			_draw_question_mark(mark)
 		"item":
-			_draw_icon(Inventory.icon_of(Inventory.equipped), inked)
+			# An action can pick its own picture for the moment (the hook: empty or full hand, current_icon);
+			# otherwise the thing's own icon.
+			var icon := Inventory.icon_of(Inventory.equipped)
+			if action != null and action.has_method("current_icon"):
+				icon = action.current_icon()
+			_draw_icon(icon, inked)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# Resting after a use: the ink pie of what's left of the wait.

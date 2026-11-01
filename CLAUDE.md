@@ -920,6 +920,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   action's `use()` (if `can_use()`); the trap has no action (only shown; laid on anchoring); **nothing** → a faint
   empty face. Every press: `Sfx.button_press()`, and **black only while the finger holds it** (Enrico, Nov 2026, the rule for
   every button: no more 0.12 s flash; `press_flash` is gone); Enter does the same on the PC (a click, no black).
+  **The hook's pictures** (Enrico, Nov 2026: the hook is the core way to interact): an action may have `current_icon()`
+  (the button draws it instead of the item's icon); the hook's (`hook_button.gd`, `nearest_in_reach()`): holding something
+  → `t_interaction_grabbing.png` (a robotic hand holding a ball), something in reach → `t_interaction_grabbable.png`
+  (the empty hand), else the hook's icon (both 32², Enrico's, in `Assets/UI/interaction_button/`).
   **Item actions** (the interface every tool has: `ITEM`, `ICON`, `use()`, `can_use()`, `cooldown_share()`,
   `is_active()`; group `item_actions`): `bomb_button.gd`, `jar_button.gd`, `harpoon_button.gd`, `hook_button.gd`, still
   in ui_layout.tscn with their scenes' names (their numbers in the Inspector), but never drawn and never touched

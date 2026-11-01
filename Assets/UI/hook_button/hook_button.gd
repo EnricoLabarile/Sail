@@ -19,6 +19,10 @@ extends Control
 
 const ITEM := "hook"
 const ICON := preload("res://Assets/Inventory/icons/hook.png")
+## Enrico's two pictures for the interaction button (Nov 2026): the empty hand when something is in reach to grab, the
+## hand holding a ball while she's towing something. (Nothing in reach: the hook's own icon.)
+const GRABBABLE_ICON := preload("res://Assets/UI/interaction_button/t_interaction_grabbable.png")
+const GRABBING_ICON := preload("res://Assets/UI/interaction_button/t_interaction_grabbing.png")
 
 var towed: Node3D = null             # what she's holding now (null = nothing)
 
@@ -78,11 +82,34 @@ func is_holding() -> bool:
 	return is_instance_valid(towed) and towed.is_towed()
 
 
+## The picture the interaction button shows for the hook (it asks every frame): holding something → the full hand;
+## something in reach to grab → the empty hand; else the hook.
+func current_icon() -> Texture2D:
+	if is_holding():
+		return GRABBING_ICON
+	if nearest_in_reach() != null:
+		return GRABBABLE_ICON
+	return ICON
+
+
 ## Grabs the nearest towable thing whose reach her middle is in. Nothing in reach: nothing happens.
 func grab() -> void:
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if boat == null or boat.sinking or boat.emerging:
 		return
+	var nearest := nearest_in_reach()
+	if nearest == null:
+		return
+	towed = nearest
+	towed.start_tow(boat)
+	Sfx.lever_hook()                   # the low click of hooking on (the lever's)
+
+
+## The nearest towable thing whose reach her middle is in, or null (nothing to grab here).
+func nearest_in_reach() -> Node3D:
+	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	if boat == null:
+		return null
 	var nearest: Node3D = null
 	var nearest_distance := INF
 	for thing in get_tree().get_nodes_in_group("towable"):
@@ -94,11 +121,7 @@ func grab() -> void:
 		if distance <= thing.tow_reach() and distance < nearest_distance:
 			nearest = thing
 			nearest_distance = distance
-	if nearest == null:
-		return
-	towed = nearest
-	towed.start_tow(boat)
-	Sfx.lever_hook()                   # the low click of hooking on (the lever's)
+	return nearest
 
 
 ## Lets go of what she's holding (if anything).
