@@ -7,7 +7,8 @@ extends Node3D
 ## on the screen (Assets/UI/crank/crank.gd, Enrico, Nov 2026: a lever, no longer a crank turned round).
 ##
 ## THE BATTERY (the prototype's wound spring, still): `push_left` seconds of push. While there's some and the anchor is
-## up, they push her forward whichever way her bow points, at `paddle_speed` × the lever's share. Pushing the lever
+## up, they push her forward whichever way her bow points, at the boat's `top_speed` × the lever's share (Enrico: the
+## one number for her speed is boat.gd's top_speed). Pushing the lever
 ## all the way right TURNS HER ON (`turn_on()`: anchor up, battery full) when she's off; while she runs, all the way
 ## right again in the last `recharge_window` seconds of the battery fills it again (`can_wind()`), so a player who
 ## keeps an eye on it never stops. All the way left TURNS HER OFF (the anchor goes down, the battery is emptied).
@@ -27,7 +28,6 @@ extends Node3D
 ## refill(), turn_off(), set_lever_share().
 
 
-@export var paddle_speed := 8.0       # m/s they give her (58.8 px/s in the prototype)
 @export var push_time := 20.0           # seconds a full battery keeps them pushing (at the lever's 50%)
 @export var recharge_window := 3.0     # the last seconds of the battery in which the lever, pushed right, fills it again (Enrico)
 @export var turn_mult := 1.5           # she turns this much quicker while they push
@@ -111,7 +111,7 @@ func add_push(seconds: float) -> void:
 
 ## The speed they give her now (m/s): 0 when not pushing.
 func push_speed() -> float:
-	return paddle_speed * power
+	return boat.top_speed * power      # the most she can go (boat.gd); the lever's share is applied by the boat
 
 
 ## Her turning is multiplied by this: quicker while they push.
@@ -159,7 +159,7 @@ func update_splashes(dt: float, wheel_speed: float) -> void:
 	if push_left > 0.0 and not boat.anchored:
 		splash_level = 1.0                  # pushing: full
 	else:
-		splash_level = minf(splash_level, clampf(boat.speed / paddle_speed, 0.0, 1.0))
+		splash_level = minf(splash_level, clampf(boat.speed / boat.top_speed, 0.0, 1.0))
 		splash_level = maxf(0.0, splash_level - dt * 0.5)
 	splash_turn += wheel_speed * dt
 	if splash_turn >= TAU / 4.0:

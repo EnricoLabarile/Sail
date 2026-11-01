@@ -313,7 +313,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   shown as an ink arc along the plate's inner edge. Sounds: `Sfx.crank_click` every notch (`NOTCHES` 16, higher to the
   right), `Sfx.lever_done` at an end that does something (plus the anchor's), `Sfx.crank_unlock` when the battery can
   be filled again. Space on the PC does the same as the ends (off → on, running → off). The paddles push at
-  `paddle_speed` × the share while running; `turn_mult` while they push. **No sail any more** (Enrico: `START_ITEMS`
+  boat.gd's `top_speed` × the share while running (Enrico: `paddle_speed` is gone, `top_speed` is the one speed knob); `turn_mult` while they push. **No sail any more** (Enrico: `START_ITEMS`
   {trap: 9}; sail.gd and its files stay, unused, and the mast is hidden as the sail isn't aboard).
   (Before:) **The crank** (`Assets/UI/crank/`: `crank.tscn` CanvasLayer 95, group `hidden_at_start`, in game_view `DITHERED`, in
   all 4 levels; Control `Button` 120 px, bottom-left anchored, offsets 6 / −392 / 126 / −272: up and left of the wheel,
