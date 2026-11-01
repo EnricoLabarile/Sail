@@ -293,12 +293,18 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   current still carries her. **Locked while it pushes, except the last `recharge_window` 2 s** (Enrico: keep it going
   without stopping): `can_wind()`; a full turn then refills to `push_time` (not added). Wheels: pushed or freewheeling
   with her speed, outside wheel faster in a turn (`half_beam`, `paddle_radius`). `stop()` on respawn.
+  **The brake** (Enrico, Oct 2026): the crank turned **anticlockwise**, at any time, brakes: `crank.gd` `brake(turned)`
+  → `paddles.brake()` (`brake_left` = `brake_hold` 0.15 s after each bit of backward turn, `push_left` = 0); while
+  `paddles.braking()`, boat.gd's speed target is 0 at `brake_rate` 3 (after everything else, so it beats sail, gusts and
+  surfing; the current still carries her). No full turn needed; the arm follows the finger back and springs to the top
+  when let go. **The crank is never locked to the touch now** (not pale): clockwise turns while the paddles push
+  (outside `recharge_window`) just do nothing (`wind`); a half wound turn is lost when it turns back.
   **The crank** (`Assets/UI/crank/`: `crank.tscn` CanvasLayer 95, group `hidden_at_start`, in game_view `DITHERED`, in
   all 4 levels; Control `Button` 120 px, bottom-left anchored, offsets 6 / −392 / 126 / −272: up and left of the wheel,
   bigger than A/B; `crank.gd`, `@tool`): shown only while the paddles are on; the old drawing (gear, hatched plate,
   rivets, arm and knob, 72-unit box scaled); a finger turning it clockwise winds `wound_so_far`; at TAU →
-  `paddles.wound()` and the arm back up; let go before → springs back at `spring_back_speed` 12 rad/s; locked = pale
-  (0.35) and no touch; the ring = `push_left / push_time`; every touch flashes it black and clicks.
+  `paddles.wound()` and the arm back up; let go before → springs back at `spring_back_speed` 12 rad/s; anticlockwise =
+  the brake (above); the ring = `push_left / push_time`; every touch flashes it black and clicks.
   **Their sounds** (Enrico; `art_src/audio/make_crank_sounds.py`, players in sfx.tscn): `crank_click.ogg` (`CrankClick`
   −10 dB, a dry clack: a bright tick and a woody knock, 60 ms) for each of the gear's `TEETH` 16 as it's wound
   (`crank.gd` `click_teeth`, `teeth_clicked`), `Sfx.crank_click(n, 16)` at pitch 2^(n/16), so the 16th, at the full turn,

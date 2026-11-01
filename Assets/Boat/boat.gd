@@ -600,6 +600,10 @@ func _physics_process(dt: float) -> void:
 		target = minf(target, top_speed * npc_speed_limit)
 	# Held back by a rope (a lever she's hooked to, lever.gd sets held_back): her speed × that while it holds her.
 	target *= held_back
+	# The brake (Enrico: the crank turned backward, paddles.gd): nothing pushes her, she slows to a stop at brake_rate.
+	if paddles.braking():
+		target = 0.0
+		rate = paddles.brake_rate
 	speed += (target - speed) * minf(1.0, dt * rate)
 
 	# She turns at the same rate whatever her speed, as in the prototype; not at anchor.

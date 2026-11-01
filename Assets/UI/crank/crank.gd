@@ -3,9 +3,11 @@ extends Control
 ## THE CRANK (up and to the left of the wheel), as in the HTML prototype's wound spring: it works the paddle wheels
 ## (Assets/Boat/paddles.gd). Turn it clockwise with a finger: ONE FULL TURN winds the paddles and they push the boat
 ## for a while (paddles.gd push_time). Let go before the turn is complete and the arm springs back, nothing wound.
-## Turning it anticlockwise does nothing (a ratchet).
-## While the paddles push, the crank is LOCKED (pale, no touch), except in the last seconds of the push (paddles.gd
-## recharge_window, Enrico): then it can be wound again, so the push never runs out if you keep it up.
+## Turned ANTICLOCKWISE it's the BRAKE (Enrico): as long as it turns backward, the push left is cancelled and the boat
+## slows to a stop (paddles.gd brake); no full turn needed; let go, the arm springs back to the top.
+## While the paddles push, winding (clockwise) is LOCKED, except in the last seconds of the push (paddles.gd
+## recharge_window, Enrico): then it can be wound again, so the push never runs out if you keep it up. The crank can
+## always be touched (to brake); clockwise turns while it's locked just do nothing.
 ## The ring round the plate shows the push left.
 ## Its sounds (Enrico): a clack for each of the gear's 16 teeth as it's wound, each a little higher, an octave up by
 ## the end of the turn (Sfx.crank_click); and a snappy mechanical unlock the moment it can be wound again
@@ -24,7 +26,7 @@ extends Control
 
 const TEETH := 16   # the gear's teeth: a clack each as it's wound
 
-var crank_angle := 0.0        # the arm's angle (radians, 0 = pointing up, clockwise +)
+var crank_angle := 0.0        # the arm's angle (radians, 0 = pointing up, clockwise +; braking turns it below 0)
 var wound_so_far := 0.0       # how far this turn has got (radians, 0..TAU): at TAU the paddles are wound
 var drag_index := -1          # the finger on it (-1 = none)
 var last_a := 0.0             # the finger's angle round the middle a moment ago
@@ -91,9 +93,8 @@ func _gui_input(e: InputEvent) -> void:
 			press_flash_left = press_flash
 			Sfx.button_press()
 			queue_redraw()
-			if _can_wind():
-				drag_index = e.index
-				last_a = (e.position - c).angle()
+			drag_index = e.index            # always: clockwise winds (when it can), anticlockwise brakes
+			last_a = (e.position - c).angle()
 			accept_event()
 		elif not e.pressed and e.index == drag_index:
 			drag_index = -1                 # let go: if the turn isn't complete, _process springs it back
@@ -102,15 +103,42 @@ func _gui_input(e: InputEvent) -> void:
 		var a: float = (e.position - c).angle()
 		var turned := wrapf(a - last_a, -PI, PI)   # how far the finger went round since last time
 		last_a = a
-		# A ratchet: only clockwise counts (on screen, clockwise is a growing angle). A huge jump is a glitch.
+		# On screen, clockwise is a growing angle. A huge jump is a glitch: ignored.
 		if turned > 0.0 and turned < 1.5:
-			wound_so_far += turned
-			crank_angle = wound_so_far
-			click_teeth()
-			if wound_so_far >= TAU:
-				_full_turn()
-			queue_redraw()
+			wind(turned)                    # clockwise: winding (only while it can be wound)
+		elif turned < 0.0 and turned > -1.5:
+			brake(turned)                   # anticlockwise: the brake
 		accept_event()
+
+
+## Clockwise: winds the paddles, if it can be wound now (else the ratchet holds and nothing moves). Coming back from
+## braking (the arm below the top), it first just turns back up to the top.
+func wind(turned: float) -> void:
+	if crank_angle < 0.0:
+		crank_angle = minf(0.0, crank_angle + turned)
+		queue_redraw()
+		return
+	if not _can_wind():
+		return
+	wound_so_far += turned
+	crank_angle = wound_so_far
+	click_teeth()
+	if wound_so_far >= TAU:
+		_full_turn()
+	queue_redraw()
+
+
+## Anticlockwise: the brake (paddles.gd). A turn that was being wound is lost; the arm follows the finger backward.
+func brake(turned: float) -> void:
+	var paddles := _paddles()
+	if paddles:
+		paddles.brake()
+	wound_so_far = 0.0
+	teeth_clicked = 0
+	crank_angle += turned                   # the arm goes back with the finger
+	if crank_angle < -TAU:
+		crank_angle += TAU                  # more than a whole turn back: it's the same place on the dial
+	queue_redraw()
 
 
 ## A clack for every tooth the arm has gone past since the last one (a quick finger can pass two in a frame),
@@ -139,19 +167,16 @@ func _process(dt: float) -> void:
 		return
 	if press_flash_left > 0.0:
 		press_flash_left = maxf(0.0, press_flash_left - dt)
-	# Let go before a full turn: the arm springs back anticlockwise to the top, and nothing is wound.
-	if drag_index == -1 and wound_so_far > 0.0:
-		wound_so_far = maxf(0.0, wound_so_far - spring_back_speed * dt)
-		crank_angle = wound_so_far
+	# Let go: the arm springs back to the top (from a half wound turn, nothing is wound; from braking, the brake ends).
+	if drag_index == -1 and crank_angle != 0.0:
+		crank_angle = move_toward(crank_angle, 0.0, spring_back_speed * dt)
+		wound_so_far = maxf(0.0, crank_angle)
 		teeth_clicked = 0                   # the next turn starts low again (springing back is silent)
 	# The moment it can be wound again (the last seconds of the push, or the push over): the unlock sound, once.
 	var free := _can_wind()
 	if free and not was_free:
 		Sfx.crank_unlock()
 	was_free = free
-	# Locked meanwhile (the paddles pushing, outside their last seconds): no finger can stay on it.
-	if drag_index != -1 and not _can_wind():
-		drag_index = -1
 	queue_redraw()                          # the ring follows the push left every frame while it shows
 
 
@@ -179,8 +204,7 @@ func gear_points() -> PackedVector2Array:
 func _draw() -> void:
 	var k := _k()
 	var middle := size * 0.5
-	var locked := false if Engine.is_editor_hint() else not _can_wind()
-	var fade := 0.35 if locked else 1.0     # locked: pale (arm and gear faded, as in the prototype)
+	var fade := 1.0                         # never pale now (Enrico): it can always be touched, to brake
 	var ink := grey(0, fade)
 	var paper := grey(255)
 
