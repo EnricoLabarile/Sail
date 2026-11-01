@@ -34,11 +34,12 @@ func _fit() -> void:
 	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP if wide else Window.CONTENT_SCALE_ASPECT_EXPAND
 
 
-## True on a phone or tablet: an Android / iPhone app, a phone's browser (Godot's "web_android" / "web_ios" tags), or
-## any screen that can be touched. (A PC with a touch screen counts too: it then fills its window, no frame.)
+## True on a phone or tablet: an Android / iPhone app, or a phone's browser (Godot's "web_android" / "web_ios" tags,
+## from what the browser says it is). Not "any screen that can be touched" any more (Enrico, Nov 2026: the game looked
+## broken in a laptop's browser): Godot says a touch screen is there on many PCs (touch laptops, and even some
+## without one), so the PC got no frame and the game was stretched across the whole wide window.
 func is_phone() -> bool:
-	return OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios") \
-			or DisplayServer.is_touchscreen_available()
+	return OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
 
 
 ## Godot tells every node when the game comes back to the front (a notification, like Unreal's "application has
