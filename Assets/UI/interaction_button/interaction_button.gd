@@ -8,7 +8,8 @@ extends Control
 ##   3. over a fishing spot           -> a question mark: only a hint (fish by dropping anchor with the lever)
 ##   4. a thing in hand               -> its icon (bomb, jar, harpoon, hook, trap): a tap uses it (its action's use())
 ##   5. nothing                       -> an empty face, faint
-## Every press flashes it black and clicks (Enrico's rule for every button).
+## Every press clicks, and it's black for as long as the finger holds it (Enrico's rule for every button: it shows
+## "you're keeping this pressed").
 ##
 ## The thing in hand is Inventory.equipped (one at a time, picked in the logbook). What each one does lives in its
 ## "item action" node (bomb_button.gd, jar_button.gd, harpoon_button.gd, hook_button.gd in ui_layout.tscn): this
@@ -22,13 +23,11 @@ extends Control
 const INK := Color("1b1a17")
 const PAPER := Color("ebe7dc")
 
-@export var press_flash := 0.12      # a press turns it black for this long (s), with a click
 @export var shimmer_time := 0.5      # by an NPC: the glint takes this long to sweep across…
 @export var shimmer_every := 1.6     # …once every this many seconds
 @export var equip_anim_time := 0.6   # seconds the rings pulse out when a bomb is put in hand
 @export var equip_ring_grow := 22.0  # pixels each ring grows past the edge before it fades away
 
-var press_flash_left := 0.0          # seconds it stays black after a press
 var finger := -1                     # the finger on it (-1 = none): black while it's down
 var shimmer_t := 0.0                 # the glint's clock
 var equip_anim_left := 0.0           # seconds left of the equip rings (0 = none)
@@ -89,7 +88,6 @@ func _process(dt: float) -> void:
 		size = Vector2(r, r) * 2.0
 		position = wheel.hub_middle() - size * 0.5
 	if not Engine.is_editor_hint():
-		press_flash_left = maxf(0.0, press_flash_left - dt)
 		equip_anim_left = maxf(0.0, equip_anim_left - dt)
 		shimmer_t += dt
 	queue_redraw()
@@ -123,9 +121,8 @@ func _unhandled_key_input(e: InputEvent) -> void:
 		press()
 
 
-## A press: the black flash and the click always; then whatever this moment does.
+## A press: the click always; then whatever this moment does.
 func press() -> void:
-	press_flash_left = press_flash
 	Sfx.button_press()
 	var boat := _boat()
 	match mode():
@@ -144,7 +141,7 @@ func press() -> void:
 			var action := current_action()
 			if action != null and action.can_use():
 				action.use()
-		# "fishing" and "empty": only the flash and the click.
+		# "fishing" and "empty": only the click (and black while held).
 
 
 # ---- drawing it ----
@@ -185,8 +182,8 @@ func _draw() -> void:
 	# A bomb just put in hand: the rings.
 	if equip_anim_left > 0.0:
 		_draw_equip_rings(middle, size.x * 0.5)
-	# Pressed: all black.
-	if finger != -1 or press_flash_left > 0.0:
+	# Held down: all black, for as long as the finger is on it.
+	if finger != -1:
 		draw_circle(middle, size.x * 0.5, INK)
 
 

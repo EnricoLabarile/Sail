@@ -34,7 +34,7 @@ extends Control
 ## (In Unreal: a UMG widget with its own OnPaint and touch handling.)
 
 @export var spring_back_speed := 3.0    # how fast it springs back to the middle (a whole half-swing in 1/3 s)
-@export var press_flash := 0.12         # a touch turns it black for this long (s), with a click (Enrico: every button)
+@export var refill_show_time := 0.5    # seconds the battery icon takes to fill up when it's refilled (Enrico: seen filling, not at once)
 @export var blink_per_second := 4.0     # the battery blinks this fast in its last seconds (when it can be filled again)
 
 const MAX_ANGLE := deg_to_rad(45.0)     # how far the lever swings either way from upright
@@ -51,7 +51,7 @@ const END := 0.98                       # how close to an end (of 1) counts as t
 var lever := 0.0              # where it is: -1 all the way left, 0 the middle, +1 all the way right
 var drag_index := -1          # the finger on it (-1 = none)
 var last_a := 0.0             # the finger's angle round the pivot a moment ago
-var press_flash_left := 0.0   # seconds it stays black after a touch
+var shown_charge := 1.0      # the charge the battery icon shows (0..1): it follows the real one, filling up slowly
 var notch := NOTCHES / 2      # the notch it's at (for the clicks)
 var at_left_end := false      # is it at an end now? (an end works once each time the lever gets there)
 var at_right_end := false
@@ -101,8 +101,7 @@ func _gui_input(e: InputEvent) -> void:
 		return
 	if e is InputEventScreenTouch:
 		if e.pressed and drag_index == -1:
-			# Every touch: black for a moment and a click (Enrico: every button).
-			press_flash_left = press_flash
+			# Every touch: a click; the lever is black while the finger holds it (Enrico: every button).
 			Sfx.button_press()
 			drag_index = e.index
 			last_a = _angle_round_pivot(e.position)
@@ -170,8 +169,7 @@ func let_go() -> void:
 func _process(dt: float) -> void:
 	if Engine.is_editor_hint() or not visible:
 		return
-	if press_flash_left > 0.0:
-		press_flash_left = maxf(0.0, press_flash_left - dt)
+	update_shown_charge(dt)
 	# Let go: the spring takes it back to the middle (silently).
 	if drag_index == -1 and lever != 0.0:
 		lever = move_toward(lever, 0.0, spring_back_speed * dt)
@@ -217,11 +215,11 @@ func _draw() -> void:
 	var ink := grey(0)
 	var paper := grey(255)
 	draw_set_transform(size * 0.5, 0.0, Vector2(k, k))
-	var black := press_flash_left > 0.0      # just touched: all of it black for a moment
+	var held := drag_index != -1             # the finger on it: the lever (only the lever, Enrico) is drawn black
 
 	# 1. The plate: paper with an ink edge, the middle marked by a thin line (as in the sketch).
 	var plate := plate_points()
-	draw_colored_polygon(plate, ink if black else paper)
+	draw_colored_polygon(plate, paper)
 	var closed := plate.duplicate()
 	closed.append(plate[0])
 	draw_polyline(closed, ink, 1.6, true)
@@ -230,25 +228,27 @@ func _draw() -> void:
 	# 3. The lever: a stem from the pivot, then the grip wound like a spring (an ink box with slanted stripes).
 	var angle := lever * MAX_ANGLE
 	draw_set_transform(size * 0.5 + PIVOT * k, angle, Vector2(k, k))   # now drawing in the lever's own frame (up = -y)
+	#    Held: the grip turns ink and its stripes paper (the colours swapped), for as long as the finger is on it.
 	draw_line(Vector2(0, -KNOB_R), Vector2(0, -24.0), ink, 3.0)
 	var grip := Rect2(-5.0, -LEVER_LENGTH, 10.0, LEVER_LENGTH - 22.0)
-	draw_rect(grip, paper)
+	draw_rect(grip, ink if held else paper)
+	var stripe_color := paper if held else ink
 	var y := grip.position.y + 2.0
 	while y < grip.end.y - 3.0:                   # the spring's coils: slanted lines across the grip
-		draw_line(Vector2(-5.0, y + 3.0), Vector2(5.0, y), ink, 1.4)
+		draw_line(Vector2(-5.0, y + 3.0), Vector2(5.0, y), stripe_color, 1.4)
 		y += 4.0
 	draw_rect(grip, ink, false, 1.6)
 
 	# 4. The knob on the pivot (not turned: the battery inside stays level): paper with an ink ring.
 	draw_set_transform(size * 0.5 + PIVOT * k, 0.0, Vector2(k, k))
-	draw_circle(Vector2.ZERO, KNOB_R, ink if black else paper)
+	draw_circle(Vector2.ZERO, KNOB_R, paper)
 	draw_arc(Vector2.ZERO, KNOB_R, 0.0, TAU, 32, ink, 1.6)
 	var paddles := null if Engine.is_editor_hint() else _paddles()
-	var share := 1.0                                   # the charge left, 0..1 (full in the editor)
+	var share := 1.0                                   # the charge shown, 0..1 (full in the editor)
 	if paddles:
-		share = paddles.push_left / paddles.push_time
+		share = shown_charge
 	if not _battery_blinked_off(paddles):
-		_draw_battery(Vector2.ZERO, 1.0, share, paper if black else ink)
+		_draw_battery(Vector2.ZERO, 1.0, share, ink)
 
 	# 5. The hints beside the ends (see the notes at the top).
 	draw_set_transform(size * 0.5, 0.0, Vector2(k, k))
@@ -268,6 +268,19 @@ func _draw() -> void:
 		else:
 			_draw_anchor(right_spot, color, extra)                   # at anchor / tied up: all the way right weighs it
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## The charge the icon shows: when the battery is filled (lever all the way right, a booster) it climbs to the new
+## charge over refill_show_time seconds, so the player sees it filling; going down it just follows.
+func update_shown_charge(dt: float) -> void:
+	var paddles := _paddles()
+	if paddles == null:
+		return
+	var real: float = paddles.push_left / paddles.push_time
+	if real > shown_charge and refill_show_time > 0.0:
+		shown_charge = move_toward(shown_charge, real, dt / refill_show_time)
+	else:
+		shown_charge = real
 
 
 ## Is the battery in its blink's "off" moment? Only in the last seconds of a running battery.
