@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://btu70idp6hlib"]
 
 [ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="1_start"]
 [ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="2_game_over"]
@@ -13,12 +13,14 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/crank/crank.tscn" id="11_crank"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="12_health"]
 
-[node name="UILayout" type="Node"]
+[node name="UILayout" type="Node" unique_id=2057268536]
 
-[node name="ItemSlots" type="CanvasLayer" parent="."]
+[node name="ItemSlots" type="CanvasLayer" parent="." unique_id=1337479570]
 layer = 95
+offset = Vector2(0.39, -144.22)
+transform = Transform2D(1, 0, 0, 1, 0.39, -144.22)
 
-[node name="SlotA" type="ReferenceRect" parent="ItemSlots" groups=["item_slot_a"]]
+[node name="SlotA" type="ReferenceRect" parent="ItemSlots" unique_id=1763181038 groups=["item_slot_a"]]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
@@ -34,7 +36,7 @@ mouse_filter = 2
 border_color = Color(1, 0.6, 0.1, 1)
 border_width = 2.0
 
-[node name="SlotB" type="ReferenceRect" parent="ItemSlots" groups=["item_slot_b"]]
+[node name="SlotB" type="ReferenceRect" parent="ItemSlots" unique_id=1746707277 groups=["item_slot_b"]]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
@@ -50,26 +52,73 @@ mouse_filter = 2
 border_color = Color(0.1, 0.6, 1, 1)
 border_width = 2.0
 
-[node name="Helm" parent="." instance=ExtResource("4_helm")]
+[node name="Helm" parent="." unique_id=983948778 instance=ExtResource("4_helm")]
+offset = Vector2(65.79, 25.49)
+transform = Transform2D(1, 0, 0, 1, 65.79, 25.49)
 
-[node name="Crank" parent="." instance=ExtResource("11_crank")]
+[node name="Crank" parent="." unique_id=554795623 instance=ExtResource("11_crank")]
+offset = Vector2(10.285, 255.775)
+transform = Transform2D(1, 0, 0, 1, 10.285, 255.775)
 
-[node name="BombButton" parent="." instance=ExtResource("7_bomb_button")]
+[node name="BombButton" parent="." unique_id=1952801994 instance=ExtResource("7_bomb_button")]
+offset = Vector2(0.39, -144.22)
+transform = Transform2D(1, 0, 0, 1, 0.39, -144.22)
 
-[node name="JarButton" parent="." instance=ExtResource("8_jar_button")]
+[node name="JarButton" parent="." unique_id=1089303972 instance=ExtResource("8_jar_button")]
+offset = Vector2(0.39, -144.22)
+transform = Transform2D(1, 0, 0, 1, 0.39, -144.22)
 
-[node name="HarpoonButton" parent="." instance=ExtResource("9_harpoon_button")]
+[node name="HarpoonButton" parent="." unique_id=1613413950 instance=ExtResource("9_harpoon_button")]
+offset = Vector2(0.39, -144.22)
+transform = Transform2D(1, 0, 0, 1, 0.39, -144.22)
 
-[node name="HookButton" parent="." instance=ExtResource("10_hook_button")]
+[node name="HookButton" parent="." unique_id=1044944646 instance=ExtResource("10_hook_button")]
+offset = Vector2(0.39, -144.22)
+transform = Transform2D(1, 0, 0, 1, 0.39, -144.22)
 
-[node name="Logbook" parent="." instance=ExtResource("6_logbook")]
+[node name="Logbook" parent="." unique_id=1819577489 instance=ExtResource("6_logbook")]
 
-[node name="Health" parent="." instance=ExtResource("12_health")]
+[node name="IconLayer" parent="Logbook" index="0"]
+offset = Vector2(0.03, -110.68)
+transform = Transform2D(1, 0, 0, 1, 0.03, -110.68)
 
-[node name="WindVane" parent="." instance=ExtResource("5_vane")]
+[node name="BookIcon" parent="Logbook/IconLayer" index="0"]
+layout_mode = 3
 
-[node name="TalkBox" parent="." instance=ExtResource("3_talk_box")]
+[node name="Book" parent="Logbook/BookLayer" index="0"]
+layout_mode = 3
+anchors_preset = 0
 
-[node name="GameOver" parent="." instance=ExtResource("2_game_over")]
+[node name="Health" parent="." unique_id=791032704 instance=ExtResource("12_health")]
 
-[node name="StartScreen" parent="." instance=ExtResource("1_start")]
+[node name="WindVane" parent="." unique_id=400703464 instance=ExtResource("5_vane")]
+
+[node name="TalkBox" parent="." unique_id=451997198 instance=ExtResource("3_talk_box")]
+
+[node name="GameOver" parent="." unique_id=1015147809 instance=ExtResource("2_game_over")]
+
+[node name="StartScreen" parent="." unique_id=193752396 instance=ExtResource("1_start")]
+
+[node name="Margin" parent="StartScreen/Card" index="0"]
+layout_mode = 2
+
+[node name="Lines" parent="StartScreen/Card/Margin" index="0"]
+layout_mode = 2
+
+[node name="Title" parent="StartScreen/Card/Margin/Lines" index="0"]
+layout_mode = 2
+
+[node name="Build" parent="StartScreen/Card/Margin/Lines" index="1"]
+layout_mode = 2
+
+[node name="LevelsTitle" parent="StartScreen/Card/Margin/Lines" index="2"]
+layout_mode = 2
+
+[node name="Levels" parent="StartScreen/Card/Margin/Lines" index="3"]
+layout_mode = 2
+
+[node name="Start" parent="StartScreen/Card/Margin/Lines" index="4"]
+layout_mode = 2
+
+[editable path="Logbook"]
+[editable path="StartScreen"]
