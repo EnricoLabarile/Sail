@@ -27,7 +27,7 @@ signal delivered(goal: Node3D)
 
 ## Which goals take it: a TowGoal with the same text (a goal with no id takes anything).
 @export var tow_id := ""
-@export var grab_reach := 4.0       # metres from the parent's middle her middle may be for the hook to grab it
+@export var grab_reach := 8.0       # metres from the parent's middle her middle may be for the hook to grab it
 @export var rope_length := 4.0      # metres of rope from her stern to the thing's edge while towed
 @export var tow_slowdown := 0.9     # her speed × this while she tows it (1 = it doesn't hold her back)
 @export var size := 1.0             # metres from the thing's middle to its edge (where the rope ends)

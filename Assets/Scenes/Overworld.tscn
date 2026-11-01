@@ -1471,4 +1471,3 @@ mesh = SubResource("BoxMesh_8ksrx")
 
 [node name="Node3D" type="Node3D" parent="MeshInstance3D" unique_id=1284508284]
 script = ExtResource("49_oiq7i")
-grab_reach = 55.0
