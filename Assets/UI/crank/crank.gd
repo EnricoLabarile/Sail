@@ -3,10 +3,10 @@ extends Control
 ## THE CRANK (up and to the left of the wheel), as in the HTML prototype's wound spring: it works the paddle wheels
 ## (Assets/Boat/paddles.gd). Turn it clockwise with a finger: ONE FULL TURN winds the paddles and they push the boat
 ## for a while (paddles.gd push_time). Let go before the turn is complete and the arm springs back, nothing wound.
-## Turned ANTICLOCKWISE it's the BRAKE (Enrico): the further back the arm is held, the harder she brakes (a quarter
-## turn back = a quarter of the brake, paddles.gd set_brake); the push left is cancelled. A WHOLE TURN back works the
+## Held turned ANTICLOCKWISE it SETS HER SPEED (Enrico): at the top = full speed, half a turn back = half speed, three
+## quarters back = a quarter, and so on (paddles.gd set_turned_back / speed_share). A WHOLE TURN back works the
 ## ANCHOR, exactly like the wheel's hub (boat.gd toggle_anchor): sailing, it drops it (so she stops); at anchor, it
-## weighs it. Let go, the arm springs back to the top and the brake ends.
+## weighs it. Let go, the arm springs back to the top: full speed again.
 ## While the paddles push, winding (clockwise) is LOCKED, except in the last seconds of the push (paddles.gd
 ## recharge_window, Enrico): then it can be wound again, so the push never runs out if you keep it up. The crank can
 ## always be touched (to brake); clockwise turns while it's locked just do nothing.
@@ -95,7 +95,7 @@ func _gui_input(e: InputEvent) -> void:
 			press_flash_left = press_flash
 			Sfx.button_press()
 			queue_redraw()
-			drag_index = e.index            # always: clockwise winds (when it can), anticlockwise brakes
+			drag_index = e.index            # always: clockwise winds (when it can), anticlockwise sets her speed
 			last_a = (e.position - c).angle()
 			accept_event()
 		elif not e.pressed and e.index == drag_index:
@@ -109,7 +109,7 @@ func _gui_input(e: InputEvent) -> void:
 		if turned > 0.0 and turned < 1.5:
 			wind(turned)                    # clockwise: winding (only while it can be wound)
 		elif turned < 0.0 and turned > -1.5:
-			brake(turned)                   # anticlockwise: the brake
+			turn_back(turned)               # anticlockwise: her speed (a whole turn: the anchor)
 		accept_event()
 
 
@@ -130,9 +130,9 @@ func wind(turned: float) -> void:
 	queue_redraw()
 
 
-## Anticlockwise: the arm follows the finger backward (a turn that was being wound is lost). How far back it is sets the
-## brake (_process sends it every frame). A whole turn back: the anchor (_full_turn_back).
-func brake(turned: float) -> void:
+## Anticlockwise: the arm follows the finger backward (a turn that was being wound is lost). How far back it is sets her
+## speed (_process sends it every frame). A whole turn back: the anchor (_full_turn_back).
+func turn_back(turned: float) -> void:
 	wound_so_far = 0.0
 	teeth_clicked = 0
 	crank_angle += turned                   # the arm goes back with the finger (below 0)
@@ -177,18 +177,18 @@ func _process(dt: float) -> void:
 		return
 	if press_flash_left > 0.0:
 		press_flash_left = maxf(0.0, press_flash_left - dt)
-	# Let go: the arm springs back to the top (from a half wound turn, nothing is wound; from braking, the brake ends).
+	# Let go: the arm springs back to the top (from a half wound turn, nothing is wound; from turning back, full speed again).
 	if drag_index == -1 and crank_angle != 0.0:
 		crank_angle = move_toward(crank_angle, 0.0, spring_back_speed * dt)
 		wound_so_far = maxf(0.0, crank_angle)
 		teeth_clicked = 0                   # the next turn starts low again (springing back is silent)
-	# The brake: as hard as the arm is held back (0 = at the top, 1 = a whole turn back); none once it's let go.
+	# Her speed: how far the arm is held back (0 = at the top, 1 = a whole turn back); let go, full speed again.
 	var paddles := _paddles()
 	if paddles:
 		var back := 0.0
 		if drag_index != -1 and crank_angle < 0.0:
 			back = -crank_angle / TAU
-		paddles.set_brake(back)
+		paddles.set_turned_back(back)
 	# The moment it can be wound again (the last seconds of the push, or the push over): the unlock sound, once.
 	var free := _can_wind()
 	if free and not was_free:
@@ -221,7 +221,7 @@ func gear_points() -> PackedVector2Array:
 func _draw() -> void:
 	var k := _k()
 	var middle := size * 0.5
-	var fade := 1.0                         # never pale now (Enrico): it can always be touched, to brake
+	var fade := 1.0                         # never pale now (Enrico): it can always be touched, to set her speed
 	var ink := grey(0, fade)
 	var paper := grey(255)
 

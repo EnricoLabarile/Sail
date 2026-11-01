@@ -12,10 +12,11 @@ extends Node3D
 ## turn then winds them full again, so a player who keeps an eye on it never stops. The current still carries her
 ## (the boat's). At anchor they don't push. With the sail set too, she goes at whichever gives more.
 ##
-## THE BRAKE (Enrico): turning the crank the other way (anticlockwise) brakes, as hard as it's been turned back: the
-## crank tells us every frame how far (`set_brake(amount)`: 0 = not at all, 1 = a whole turn back), and her speed falls
-## toward 0 at `brake_rate` × that amount (boat.gd reads `braking()` and `brake_amount`). Any push left is cancelled
-## while it brakes. A whole turn back drops the anchor (the crank does that, like the wheel's hub).
+## THE SPEED SETTING (Enrico): the crank held turned back (anticlockwise) sets how fast she may go: the crank tells us
+## every frame how far back it is (`set_turned_back(amount)`: 0 = at the top, 1 = a whole turn back), and her speed is
+## (1 − that) of what sail and paddles would give her: a half turn back = half speed, three quarters = a quarter
+## (boat.gd multiplies her target speed by `speed_share()`). Not a brake: the push left stays, it's only held back.
+## A whole turn back drops the anchor (the crank does that, like the wheel's hub).
 ##
 ## Their sound (Enrico, the prototype's): a low soft splash for every other paddle that comes round (4 a turn of the
 ## wheel, Sfx.paddle_splash) while they work; when the push ends it dies down as she slows (splash_level).
@@ -33,7 +34,6 @@ const ITEM := "paddles"   # the item's id (paddles.tres)
 @export var bite := 5.25               # how quickly her speed catches up with their push (the sail fills slower)
 @export var paddle_radius := 0.7       # metres: the wheels' size (to turn them as fast as the water goes by)
 @export var half_beam := 1.75          # metres from her middle to each wheel (turning, the two go at different speeds)
-@export var brake_rate := 4.0          # how quickly her speed falls to 0 with the crank turned all the way back (× how far it is)
 
 var push_left := 0.0      # seconds of push left (0 = not wound)
 var power := 0.0          # 0..1: how hard they push now (eased toward 1 while push_left > 0)
@@ -41,7 +41,7 @@ var spin_left := 0.0      # the wheels' angles (radians)
 var spin_right := 0.0
 var splash_turn := 0.0    # how far the wheel has turned since the last splash (radians)
 var splash_level := 0.0   # how loud the splashes are now (0..1): 1 while they push, then down as she slows
-var brake_amount := 0.0   # how hard she's braking now: 0 = not at all, 1 = the crank a whole turn back (set by the crank)
+var turned_back := 0.0    # how far back the crank is held: 0 = at the top (full speed), 1 = a whole turn (set by the crank)
 
 @onready var boat: Node3D = owner                               # the boat (boat.tscn's root)
 @onready var wheel_left: Node3D = $PaddleWheelLeft/Spin          # the part of each wheel that turns
@@ -69,16 +69,18 @@ func wound() -> void:
 		push_left = push_time
 
 
-## The crank says how far it's turned back (crank.gd, every frame): 0..1. Braking cancels the push left.
-func set_brake(amount: float) -> void:
-	brake_amount = clampf(amount, 0.0, 1.0) if is_on() else 0.0
-	if brake_amount > 0.0:
-		push_left = 0.0
+## The crank says how far it's held turned back (crank.gd, every frame): 0..1.
+func set_turned_back(amount: float) -> void:
+	if is_on():
+		turned_back = clampf(amount, 0.0, 1.0)
+	else:
+		turned_back = 0.0
 
 
-## Is she braking now? (boat.gd: then her speed falls to 0 at brake_rate × brake_amount.)
-func braking() -> bool:
-	return brake_amount > 0.0
+## The share of her speed she may keep (boat.gd multiplies her target speed by it): 1 with the crank at the top,
+## 0.5 with it held half a turn back, 0 a whole turn back.
+func speed_share() -> float:
+	return 1.0 - turned_back
 
 
 ## A booster (Assets/Items/booster) adds `seconds` of push, never more than full (push_time). Only if they're on.
@@ -148,7 +150,7 @@ func update_splashes(dt: float, wheel_speed: float) -> void:
 ## No push left (she's back home after sinking, or they were switched off).
 func stop() -> void:
 	push_left = 0.0
-	brake_amount = 0.0
+	turned_back = 0.0
 	power = 0.0
 	splash_level = 0.0
 

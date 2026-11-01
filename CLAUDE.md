@@ -293,20 +293,20 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   current still carries her. **Locked while it pushes, except the last `recharge_window` 2 s** (Enrico: keep it going
   without stopping): `can_wind()`; a full turn then refills to `push_time` (not added). Wheels: pushed or freewheeling
   with her speed, outside wheel faster in a turn (`half_beam`, `paddle_radius`). `stop()` on respawn.
-  **The brake** (Enrico, Oct 2026): the crank turned **anticlockwise**, at any time, brakes **in proportion to how far
-  back the arm is held**: `crank.gd` `_process` sends `paddles.set_brake(-crank_angle / TAU)` every frame while the
-  finger is on it (0 when let go; it cancels `push_left`); boat.gd, not at anchor: speed target 0 at `brake_rate` 4 ×
-  `brake_amount` (after everything else, so it beats sail, gusts and surfing; the current still carries her). **A
-  whole turn back works the anchor** like the wheel's hub (`_full_turn_back` → `boat.toggle_anchor()`: drops it sailing,
-  weighs it at anchor; the arm back up, the finger must come off). The arm follows the finger back and springs to the
-  top when let go. **The crank is never locked to the touch now** (not pale): clockwise turns while the paddles push
-  (outside `recharge_window`) just do nothing (`wind`); a half wound turn is lost when it turns back.
+  **The speed setting** (Enrico, Oct 2026; it replaced a brake): the crank **held turned anticlockwise** sets how fast she
+  may go: `crank.gd` `_process` sends `paddles.set_turned_back(-crank_angle / TAU)` every frame while the finger is on it
+  (0 when let go: the arm springs back, full speed); boat.gd multiplies her target speed by `paddles.speed_share()` =
+  1 − `turned_back` (after everything else; she reaches it at her usual rate): at the top 100%, half a turn back 50%,
+  three quarters 25%. The paddles' push isn't cancelled, only held back. **A whole turn back works the anchor** like
+  the wheel's hub (`turn_back` → `_full_turn_back` → `boat.toggle_anchor()`: drops it sailing, weighs it at anchor; the
+  arm back up, the finger must come off). **The crank is never locked to the touch** (not pale): clockwise turns while
+  the paddles push (outside `recharge_window`) just do nothing (`wind`); a half wound turn is lost when it turns back.
   **The crank** (`Assets/UI/crank/`: `crank.tscn` CanvasLayer 95, group `hidden_at_start`, in game_view `DITHERED`, in
   all 4 levels; Control `Button` 120 px, bottom-left anchored, offsets 6 / −392 / 126 / −272: up and left of the wheel,
   bigger than A/B; `crank.gd`, `@tool`): shown only while the paddles are on; the old drawing (gear, hatched plate,
   rivets, arm and knob, 72-unit box scaled); a finger turning it clockwise winds `wound_so_far`; at TAU →
   `paddles.wound()` and the arm back up; let go before → springs back at `spring_back_speed` 12 rad/s; anticlockwise =
-  the brake (above); the ring = `push_left / push_time`; every touch flashes it black and clicks.
+  the speed setting (above); the ring = `push_left / push_time`; every touch flashes it black and clicks.
   **Their sounds** (Enrico; `art_src/audio/make_crank_sounds.py`, players in sfx.tscn): `crank_click.ogg` (`CrankClick`
   −10 dB, a dry clack: a bright tick and a woody knock, 60 ms) for each of the gear's `TEETH` 16 as it's wound
   (`crank.gd` `click_teeth`, `teeth_clicked`), `Sfx.crank_click(n, 16)` at pitch 2^(n/16), so the 16th, at the full turn,
