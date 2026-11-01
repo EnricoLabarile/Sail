@@ -449,6 +449,13 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   on the picture are passed into the view (`_pass_input`: `push_input`, scaled to its pixels). In the editor the
   scene looks as always. (Before: the 3D at 1/3 with `scaling_3d_scale`, the dither at full resolution; `dither.gd`
   is gone.) The 3D world is shared (the SubViewport uses the root's World3D: `Land`'s rays still work).
+  **Tilt-shift (a test, Enrico, Nov 2026)**: the top and bottom of the world blurred, more toward the edge, for a
+  miniature look (`Assets/Post_Process/tilt_shift/tilt_shift.gdshader`, a canvas shader reading `hint_screen_texture`:
+  the picture plus 12 samples on two rings, the radius × the band's share squared). `game_view.gd` makes it at start: a
+  CanvasLayer `TILT_SHIFT_LAYER` 90 inside the view with a full-screen ColorRect (mouse ignored), so it blurs only the
+  3D world (the controls at 95 stay sharp) and the dither (100) turns the blur into dots. Knobs on `GameView`:
+  `tilt_shift_on`, `tilt_top` 0.35, `tilt_bottom` 0.4 (share of the screen's height), `tilt_blur` 6 (game-view pixels
+  at the edge). After the dither it reads only faintly (sharp lines like the shore foam soften; smooth greys don't change).
 - **Smooth movement: physics interpolation** (Enrico: choppy on the phone; Project Settings > Physics > Common >
   Physics Interpolation, on): she moves in `_physics_process` (60 Hz) but the phone draws at its own uneven pace, so
   her drawn position jumped 0 or 2 ticks a frame (measured with real frame times: 2.5–4.5 m/s on screen for a steady

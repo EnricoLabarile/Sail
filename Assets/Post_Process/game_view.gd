@@ -21,11 +21,34 @@ const DESIGN_WIDTH := 360.0   # the game's width in the project settings: the co
 ## size on the screen whatever this is: only the grain changes. (On a narrower screen it can't go finer than
 ## a dot per real pixel.)
 @export var dots_across := 360
+## TILT-SHIFT (Enrico, Nov 2026, a test): the top and bottom of the world blurred, so the sea looks like a little
+## model. Only the world: the controls and the logbook's button stay sharp (Assets/Post_Process/tilt_shift/).
+@export var tilt_shift_on := true:
+	set(value):
+		tilt_shift_on = value
+		_update_tilt_shift()
+@export_range(0.0, 0.5) var tilt_top := 0.35:     # share of the screen's height blurred from the top (0 = none)
+	set(value):
+		tilt_top = value
+		_update_tilt_shift()
+@export_range(0.0, 0.5) var tilt_bottom := 0.4:   # the same, from the bottom
+	set(value):
+		tilt_bottom = value
+		_update_tilt_shift()
+@export_range(0.0, 10.0) var tilt_blur := 6.0:    # how far the blur reaches at the very edge (game-view pixels)
+	set(value):
+		tilt_blur = value
+		_update_tilt_shift()
+
+const TILT_SHIFT_SHADER := preload("res://Assets/Post_Process/tilt_shift/tilt_shift.gdshader")
+const TILT_SHIFT_LAYER := 90   # over the world, under the controls (95) and the dither (100)
+
 const DITHERED := ["Sea", "Coast", "Clouds", "WindLines", "Gulls", "Boat", "Dither", "Helm", "BombButton", "JarButton", "HarpoonButton", "HookButton", "Crank"]   # nodes of the level moved into the view (by name, anywhere in it)
 
 var view: SubViewport         # where the dithered part of the game is drawn
 var screen: TextureRect       # the view's picture, stretched over the screen
 var dot_scale := 1            # real pixels per game pixel (3 on a phone about 1080 wide, 1 on a 360 x 800 window)
+var tilt_shift: ColorRect     # the tilt-shift's full-screen rectangle inside the view (null until the game starts)
 
 
 func _ready() -> void:
@@ -48,6 +71,20 @@ func _build() -> void:
 	var icon_layer := scene.find_child("IconLayer", true, false)   # the logbook's button (its open book stays crisp)
 	if icon_layer:
 		icon_layer.reparent(view)
+
+	# 2b. The tilt-shift: a rectangle over the whole view on its own CanvasLayer (90). A canvas shader reads what's
+	#     been drawn so far (the 3D world only, as the controls' layers come after it) and blurs top and bottom.
+	var tilt_layer := CanvasLayer.new()
+	tilt_layer.layer = TILT_SHIFT_LAYER
+	view.add_child(tilt_layer)
+	tilt_shift = ColorRect.new()
+	tilt_shift.set_anchors_preset(Control.PRESET_FULL_RECT)
+	tilt_shift.mouse_filter = Control.MOUSE_FILTER_IGNORE   # never takes a touch
+	var material := ShaderMaterial.new()
+	material.shader = TILT_SHIFT_SHADER
+	tilt_shift.material = material
+	tilt_layer.add_child(tilt_shift)
+	_update_tilt_shift()
 
 	# 3. The picture of it, over the whole screen, under the crisp layers (vane 110, book 120, start screen 130).
 	var layer := CanvasLayer.new()
@@ -87,6 +124,17 @@ func _fit() -> void:
 	var ui_scale := maxi(1, roundi(real_size.x / DESIGN_WIDTH))
 	view.size_2d_override = Vector2i(maxi(1, int(real_size.x / ui_scale)), maxi(1, int(real_size.y / ui_scale)))
 	view.size_2d_override_stretch = true
+
+
+## Sends the tilt-shift's numbers to its shader (also when they're changed in the Inspector while the game runs).
+func _update_tilt_shift() -> void:
+	if tilt_shift == null:
+		return
+	tilt_shift.visible = tilt_shift_on
+	var material := tilt_shift.material as ShaderMaterial
+	material.set_shader_parameter("top_band", tilt_top)
+	material.set_shader_parameter("bottom_band", tilt_bottom)
+	material.set_shader_parameter("blur_pixels", tilt_blur)
 
 
 ## A tap or a drag on the picture: passed on to the SubViewport, its position turned into the view's pixels.
