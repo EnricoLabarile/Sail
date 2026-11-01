@@ -21,7 +21,8 @@ extends Control
 ## right fills it again) it blinks.
 ## THE HINTS (Enrico): a little anchor beside the end that works the anchor now: LEFT while the anchor is up (all the
 ## way left drops it), RIGHT while she's at anchor or tied up (all the way right weighs it and starts her). Drifting with
-## the battery empty, also a little battery on the right (all the way right fills it and starts her).
+## the battery empty, or while it's in its last seconds (blinking), also a little battery on the right (all the way right
+## fills it).
 ## Its sounds (Enrico): a light click every notch (NOTCHES across the plate), higher toward the right
 ## (Sfx.crank_click); a firm snap at an end that turns her on, off or fills the battery (Sfx.lever_done, with the
 ## anchor's own sound); the unlock sound the moment the battery can be filled again (Sfx.crank_unlock).
@@ -260,8 +261,10 @@ func _draw() -> void:
 		var extra := 2.0 if pass_number == 0 else 0.0
 		if boat == null or not boat.anchored:
 			_draw_anchor(left_spot, color, extra)                    # anchor up: all the way left drops it
-			if paddles and not paddles.is_running():
-				_draw_battery(right_spot, 0.7, 0.0, color, extra)   # drifting, battery empty: all the way right fills it
+			# The battery can be filled now (its last seconds, while the knob's blinks, or empty, drifting): a little
+			# battery on the right says "all the way right fills it".
+			if paddles and paddles.can_wind():
+				_draw_battery(right_spot, 0.7, 0.0, color, extra)
 		else:
 			_draw_anchor(right_spot, color, extra)                   # at anchor / tied up: all the way right weighs it
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
