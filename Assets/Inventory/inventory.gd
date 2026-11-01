@@ -10,15 +10,14 @@ extends Node
 ## Most things take a slot each (two fish = two slots). Stackable things (bombs, traps) pile up in ONE slot,
 ## however many there are, with their number drawn on it. When all the slots are taken, nothing new fits.
 ##
-## EQUIPPING, A and B (Enrico, like Zelda's two item buttons): two equip slots, `equipped_a` and `equipped_b`, each
-## with its own button on the screen (A above, B below: Hud.ITEM_BUTTON_TOP). ANY equippable thing (bomb, trap, Aeolus
-## Jar, harpoon) can go in either. In the logbook a tap on a thing's slot puts it in A; tapping it again moves it to
-## B, and again back to A (tap_equip); holding the finger on it takes it off (unequip). Putting a thing where another
-## one is: if the new one was in the other slot they swap places, otherwise the old one is taken off.
-## Things with ItemData.equip_on_pickup (bomb, jar, harpoon) are equipped by themselves when they come aboard, in the first
-## empty slot (A, then B); with both taken they wait in the hold.
+## EQUIPPING (Enrico, Nov 2026: ONE thing at a time, used with the interaction button in the middle of the wheel,
+## Assets/UI/interaction_button): `equipped` is what's in hand ("" = nothing). Any equippable thing (bomb, trap, Aeolus
+## Jar, harpoon, hook). In the logbook a tap on a thing's slot equips it (whatever was equipped is put back); holding
+## the finger on it takes it off (unequip).
+## Things with ItemData.equip_on_pickup (bomb, jar, harpoon, hook) are equipped by themselves when they come aboard, if
+## nothing is equipped yet.
 ##
-## SWITCHED ON / OFF (Enrico): things with ItemData.toggle_on_tap (the sail) don't go in A or B: a tap on their slot
+## SWITCHED ON / OFF (Enrico): things with ItemData.toggle_on_tap (the sail) aren't put in hand: a tap on their slot
 ## in the logbook switches them on or off (toggle), kept in `switched_on`; is_on(item) = aboard and on.
 ##
 ## The purse: `coins`, taken in and spent at the stores. It takes no slot.
@@ -37,14 +36,14 @@ const SLOTS := 9   # how many slots the hold has
 const ITEMS_FOLDER := "res://Assets/Inventory/items"   # one ItemData .tres per kind of item
 
 ## What she sets out with (Enrico: no bombs and no Aeolus Jars, she finds them; 9 traps, to try them).
-const START_ITEMS := {"trap": 9, "sail": 1, "paddles": 1}
-const START_ON := ["paddles"]          # of those, the ones switched on at the start (the sail is set; the paddles are off)
+## (The paddles aren't an item any more, Enrico: they're always fitted, boat's paddles.gd.)
+const START_ITEMS := {"trap": 9, "sail": 1}
+const START_ON: Array[String] = []     # of those, the ones switched on at the start (the sail is struck)
 const START_COINS := 10             # coins in the purse at the start (10 for now, Enrico: to try the floating shop)
 
 var catalogue := {}                 # every kind of item: its name → its ItemData (read from ITEMS_FOLDER)
 var items: Array[String] = []   # what's aboard, one entry per thing, in the order it came in
-var equipped_a := ""                # what's in the A slot (its button above; "" = nothing)
-var equipped_b := ""                # what's in the B slot (its button below; "" = nothing)
+var equipped := ""                  # what's in hand, used with the interaction button ("" = nothing)
 var coins := START_COINS            # the purse
 var switched_on: Array[String] = [] # the toggle things switched on now (the sail)
 
@@ -107,14 +106,11 @@ func add(item: String, count := 1) -> int:
 		items.append(item)
 		added += 1
 	if added > 0:
-		# Things coming aboard with equip_on_pickup in their .tres are equipped at once, in the first empty slot,
-		# so their button shows without opening the logbook (both slots taken: they just wait in the hold).
+		# Things coming aboard with equip_on_pickup in their .tres are equipped at once if nothing is in hand, so the
+		# interaction button shows them without opening the logbook (something else in hand: they wait in the hold).
 		var info := data(item)
-		if info and info.equippable and info.equip_on_pickup and not is_equipped(item):
-			if equipped_a == "":
-				_set_slot("a", item)
-			elif equipped_b == "":
-				_set_slot("b", item)
+		if info and info.equippable and info.equip_on_pickup and equipped == "":
+			equip(item)
 		changed.emit()
 		came_aboard.emit(item, added)
 	return added
@@ -163,64 +159,36 @@ func is_full() -> bool:
 	return slots().size() >= SLOTS
 
 
-## A tap on a thing's slot in the logbook: not equipped → into A; in A → over to B; in B → back to A.
-## Only equippable things that are aboard.
+## A tap on a thing's slot in the logbook: equips it (whatever was in hand is put back in the hold). Toggle things (the
+## sail) are switched on or off instead. Only equippable things that are aboard.
 func tap_equip(item: String) -> void:
 	var info := data(item)
 	if info and info.toggle_on_tap:
-		toggle(item)                      # the sail: on or off, not A or B
+		toggle(item)                      # the sail: on or off
 		return
 	if not is_equippable(item) or count(item) == 0:
 		return
-	if slot_with(item) == "a":
-		equip(item, "b")
-	else:
-		equip(item, "a")
+	equip(item)
 
 
-## Puts `item` in `slot` ("a" or "b"). If it was in the other slot, the two swap places; if it wasn't equipped,
-## whatever was in `slot` is taken off.
-func equip(item: String, slot: String) -> void:
-	var was_in := slot_with(item)
-	if was_in == slot:
+## Puts `item` in hand (whatever was there before is simply no longer equipped).
+func equip(item: String) -> void:
+	if equipped == item:
 		return
-	var other := "b" if slot == "a" else "a"
-	var displaced := equipped_a if slot == "a" else equipped_b
-	if was_in == other:
-		_set_slot(other, displaced)           # swap: the one that was here goes where the item was
-	_set_slot(slot, item)
+	equipped = item
+	equipped_changed.emit()
 
 
 ## Takes `item` off (holding the finger on its slot, or the last one spent).
 func unequip(item: String) -> void:
-	var slot := slot_with(item)
-	if slot != "":
-		_set_slot(slot, "")
+	if equipped == item and item != "":
+		equipped = ""
+		equipped_changed.emit()
 
 
-## Is `item` equipped now (in either slot)?
+## Is `item` the thing in hand now?
 func is_equipped(item: String) -> bool:
-	return slot_with(item) != ""
-
-
-## Which slot `item` is in: "a", "b", or "" (not equipped).
-func slot_with(item: String) -> String:
-	if item == "":
-		return ""
-	if equipped_a == item:
-		return "a"
-	if equipped_b == item:
-		return "b"
-	return ""
-
-
-## Puts `item` in `slot` ("" = empty it), and tells whoever listens.
-func _set_slot(slot: String, item: String) -> void:
-	if slot == "a":
-		equipped_a = item
-	else:
-		equipped_b = item
-	equipped_changed.emit()
+	return item != "" and equipped == item
 
 
 ## Switches a toggle thing (the sail) on or off, if it's aboard.

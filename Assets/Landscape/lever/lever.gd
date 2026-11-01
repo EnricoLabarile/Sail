@@ -1,27 +1,27 @@
 @tool
 extends Node3D
 ## A LEVER (Enrico, like A Link to the Past's levers pulled out of a wall): placed by hand. With the HOOK equipped
-## (the item "hook", in A or B), the boat comes within `touch_radius` and the hook button is tapped
-## (Assets/UI/hook_button): she's hooked to its handle by a rope from her stern. Then, the further she sails from it,
+## (the item "hook", in hand), the boat comes within `touch_radius` and the interaction button is tapped
+## (Assets/UI/interaction_button, which calls the hook's action, Assets/UI/hook_button): she's hooked to its handle by a rope from her stern. Then, the further she sails from it,
 ## the further the handle comes out; while she pulls, the rope holds her back (her speed × `slowdown`).
 ## Once she's `pull_length` metres further out than where she hooked on, it's pulled all the way: the signal `pulled`
 ## is sent (connect it to whatever should happen: a door…), the rope lets her go, and the handle slides back in by
 ## itself. It can be pulled again. Coming back toward it lets the handle slide back as far. Another tap of the hook
 ## button before the end lets go: the handle slides back in.
-## It's in the group "towable" (the hook button's interface: can_be_towed, tow_reach, start_tow, stop_tow, is_towed).
+## It's in the group "towable" (the hook's interface: can_be_towed, tow_reach, start_tow, stop_tow, is_towed).
 ## (In Unreal: an actor with a cable component to the pawn and an Event Dispatcher "Pulled".)
 ##
 ## Its parts (lever.tscn): `Post` (the fixed part, solid: a StaticBody so the boat bumps on it like a shore), `Handle`
 ## (slides out toward the boat), `Rope` (an ink strip from the handle to her stern). Stand-ins: plain shapes with the
 ## boat's toon_shade material.
-## Its sounds (Enrico): a low click when she hooks on (played by the hook button, Sfx.lever_hook), a drag while the
+## Its sounds (Enrico): a low click when she hooks on (played by the hook, Sfx.lever_hook), a drag while the
 ## handle comes out, louder the faster (Sfx.lever_drag, `drag_full_speed`), and a dry click when it's pulled all the
 ## way (Sfx.lever_done).
 
 ## Sent once each time it's pulled all the way out.
 signal pulled
 
-## Metres from its middle her middle must be within for the hook button to grab it.
+## Metres from its middle her middle must be within for the hook to grab it.
 @export var touch_radius := 6.0
 @export var pull_length := 15.0       # metres she must sail out (from where she hooked on) to pull it all the way
 @export var slowdown := 0.5           # her speed × this while she's pulling it (Enrico: the rope holds her back)
@@ -53,12 +53,12 @@ var measured_time := 0.0        # …and over how many seconds
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
-	add_to_group("towable")               # so the hook button can grab it
+	add_to_group("towable")               # so the hook can grab it
 	rope.visible = false
 	rope.top_level = true                 # placed in world space (easier: it runs from the handle to her stern)
 
 
-# ---- the hook button's interface (Assets/UI/hook_button/hook_button.gd) ----
+# ---- the hook's interface (Assets/UI/hook_button/hook_button.gd) ----
 
 ## May it be grabbed now? Only when it's at rest (not held, not sliding back in).
 func can_be_towed() -> bool:

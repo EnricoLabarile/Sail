@@ -7,8 +7,8 @@ extends Node3D
 ## It moves its PARENT, not itself.
 ##
 ## What it does:
-##   - the hook button (Assets/UI/hook_button) grabs it when her middle is within `grab_reach` of the parent's middle
-##     (it's in the group "towable": the hook button's interface, can_be_towed, tow_reach, start_tow, stop_tow,
+##   - the hook (Assets/UI/hook_button, through the interaction button) grabs it when her middle is within `grab_reach` of the parent's middle
+##     (it's in the group "towable": the hook's interface, can_be_towed, tow_reach, start_tow, stop_tow,
 ##     is_towed);
 ##   - towed, the parent follows her: kept at most `rope_length` metres from her stern to its edge (`size` is how big
 ##     the thing is), pulled along the rope when taut, left still when slack; never onto land (it stays stuck on the
@@ -27,7 +27,7 @@ signal delivered(goal: Node3D)
 
 ## Which goals take it: a TowGoal with the same text (a goal with no id takes anything).
 @export var tow_id := ""
-@export var grab_reach := 4.0       # metres from the parent's middle her middle may be for the hook button to grab it
+@export var grab_reach := 4.0       # metres from the parent's middle her middle may be for the hook to grab it
 @export var rope_length := 4.0      # metres of rope from her stern to the thing's edge while towed
 @export var tow_slowdown := 0.9     # her speed × this while she tows it (1 = it doesn't hold her back)
 @export var size := 1.0             # metres from the thing's middle to its edge (where the rope ends)
@@ -45,7 +45,7 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	thing = get_parent() as Node3D
-	add_to_group("towable")                              # so the hook button finds it
+	add_to_group("towable")                              # so the hook finds it
 	# The thing moves in physics frames while towed, like the boat: drawn smoothly between them.
 	thing.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
 	make_rope()
@@ -61,7 +61,7 @@ func _process(_dt: float) -> void:
 	draw_rope()
 
 
-# ---- the hook button's interface (Assets/UI/hook_button/hook_button.gd) ----
+# ---- the hook's interface (Assets/UI/hook_button/hook_button.gd) ----
 
 ## May it be grabbed now?
 func can_be_towed() -> bool:

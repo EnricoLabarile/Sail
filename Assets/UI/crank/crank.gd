@@ -5,15 +5,15 @@ extends Control
 ## for a while (paddles.gd push_time). Let go before the turn is complete and the arm springs back, nothing wound.
 ## Held turned ANTICLOCKWISE it SETS HER SPEED (Enrico): at the top = full speed, half a turn back = half speed, three
 ## quarters back = a quarter, and so on (paddles.gd set_turned_back / speed_share). A WHOLE TURN back works the
-## ANCHOR, exactly like the wheel's hub (boat.gd toggle_anchor): sailing, it drops it (so she stops); at anchor, it
-## weighs it. Let go, the arm springs back to the top: full speed again.
+## ANCHOR (Enrico, Nov 2026: the only way to work it; boat.gd toggle_anchor): sailing, it drops it (so she stops); at
+## anchor, it weighs it. Let go, the arm springs back to the top: full speed again.
 ## While the paddles push, winding (clockwise) is LOCKED, except in the last seconds of the push (paddles.gd
 ## recharge_window, Enrico): then it can be wound again, so the push never runs out if you keep it up. The crank can
 ## always be touched (to brake); clockwise turns while it's locked just do nothing.
 ## The ring round the plate shows the push left.
 ## Its sounds (Enrico): a clack for each of the gear's 16 teeth as it's wound, each a little higher, an octave up by
 ## the end of the turn (Sfx.crank_click); and a snappy mechanical unlock the moment it can be wound again
-## (Sfx.crank_unlock). It shows only while the paddles are on (the logbook).
+## (Sfx.crank_unlock). It's always on the screen (Enrico: the paddles are always fitted, and it works the anchor).
 ##
 ## Drawn with code, in greys, like the wheel: its CanvasLayer (crank.tscn) sits UNDER the dither (95, the dither is
 ## 100), so it comes out in paper-and-ink dots. The drawing is in the prototype's units (a 72 x 72 box round the
@@ -47,24 +47,7 @@ func _paddles() -> Node:
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
-	Inventory.toggled.connect(_on_inventory_changed)
-	Inventory.changed.connect(_update_shown)
-	_update_shown()
-
-
-## Shown only while the paddles are on (a hidden Control gets no touches, so hiding it switches it off too).
-func _update_shown() -> void:
-	visible = Inventory.is_on("paddles")
-	if not visible:
-		drag_index = -1
-		wound_so_far = 0.0
-		crank_angle = 0.0
-		teeth_clicked = 0
-	was_free = _can_wind()        # shown again: no unlock sound for the state it's already in
-
-
-func _on_inventory_changed(_item: String, _on: bool) -> void:
-	_update_shown()
+	was_free = _can_wind()        # no unlock sound for the state it starts in
 
 
 ## Can it be wound now? (paddles.gd: on, and not pushing, or in the last seconds of a push)

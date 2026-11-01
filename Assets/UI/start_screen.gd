@@ -84,7 +84,7 @@ func _on_start() -> void:
 
 
 ## Hides (or shows) every node in the group "hidden_at_start", through the Hud autoload (Assets/UI/hud.gd): after
-## "Set sail" they still stay hidden while she's at anchor (Enrico: at anchor only the hub shows).
+## "Set sail" they show (unless something else, a talk or the counter, still hides them).
 func _show_controls(show: bool) -> void:
 	Hud.set_hidden("start", ["hidden_at_start"], not show)
 

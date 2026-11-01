@@ -3,8 +3,8 @@ extends Node3D
 ## from the boat). On the `Paddles` node in boat.tscn, which holds the two wheels (paddle_wheel.tscn, a stand-in).
 ## (In Unreal: an Actor Component on the boat Pawn.)
 ##
-## Like the sail they are an item in the hold ("paddles", Assets/Inventory/items/paddles.tres): a tap on their slot in
-## the logbook switches them on or off (Inventory.toggle). Off: no wheels on her sides, no crank on the screen.
+## They're always fitted (Enrico, Nov 2026: no longer an item to switch on and off), and the crank is always on the
+## screen: it also works the anchor (a whole turn back, crank.gd).
 ##
 ## How they push (the prototype's wound spring): one FULL turn of the crank (Assets/UI/crank/crank.gd) winds them,
 ## and then they push her forward, whichever way her bow points (into the wind too), at `paddle_speed` for
@@ -24,7 +24,6 @@ extends Node3D
 ## The boat (boat.gd) calls: push_speed() and bite (her speed), turn_factor() (turning), update(dt) every frame,
 ## stop() when she's back home after sinking. The crank calls: is_on(), can_wind(), wound().
 
-const ITEM := "paddles"   # the item's id (paddles.tres)
 
 @export var paddle_speed := 8.0       # m/s they give her (58.8 px/s in the prototype)
 @export var push_time := 20.0           # seconds a full turn of the crank keeps them pushing
@@ -48,14 +47,9 @@ var turned_back := 0.0    # how far back the crank is held: 0 = at the top (full
 @onready var wheel_right: Node3D = $PaddleWheelRight/Spin
 
 
-func _ready() -> void:
-	Inventory.toggled.connect(_on_toggled)   # switched on or off in the logbook
-	visible = is_on()
-
-
-## Are the paddles on? They must be aboard and switched on.
+## Are the paddles there? Always now (they used to be an item you could switch off).
 func is_on() -> bool:
-	return Inventory.is_on(ITEM)
+	return true
 
 
 ## Can the crank be wound now? When they're on and not pushing, or in the last recharge_window seconds of a push.
@@ -147,18 +141,9 @@ func update_splashes(dt: float, wheel_speed: float) -> void:
 			Sfx.paddle_splash(splash_level)
 
 
-## No push left (she's back home after sinking, or they were switched off).
+## No push left (she's back home after sinking).
 func stop() -> void:
 	push_left = 0.0
 	turned_back = 0.0
 	power = 0.0
 	splash_level = 0.0
-
-
-## Switched on or off in the logbook: the wheels show or go; off, any push left is lost.
-func _on_toggled(item: String, _on: bool) -> void:
-	if item != ITEM:
-		return
-	visible = is_on()
-	if not is_on():
-		stop()

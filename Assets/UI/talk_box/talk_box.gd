@@ -3,10 +3,10 @@ extends Control
 ## (In Unreal: a UMG widget with an Image, two Text blocks and a little typewriter logic.)
 ##
 ## On the left a framed portrait, on the right the speaker's name and the words. Each page is typed out
-## letter by letter (`letters_per_second`). A quick tap on the wheel's hub (helm.gd sends `hub_tapped`):
+## letter by letter (`letters_per_second`). A tap on the interaction button (Assets/UI/interaction_button calls `tap`):
 ##   - while the page is still being typed: the whole page shows at once;
 ##   - once it's all there: the next page; after the last page, the box closes.
-## While it's open the hub's long press doesn't work the anchor (boat.gd `talking`), so she can't sail off by mistake.
+## While it's open the anchor can't be worked (boat.gd `talking`).
 ## While it's open everything in the group "hidden_while_talking" is hidden (the wind vane and the hearts, Enrico):
 ## to hide something else too, add its node to that group (Node dock → Groups; like an Actor Tag in Unreal).
 ##
@@ -36,7 +36,6 @@ func _ready() -> void:
 	add_to_group("talk_box")              # so an NPC finds it (npc.gd)
 	visible = false
 	set_process(false)                    # the typewriter runs only while the box shows (open / _close)
-	_listen_to_helm.call_deferred()
 
 
 func _process(dt: float) -> void:
@@ -71,7 +70,7 @@ func open(speaker: String, picture: Texture2D, lines: Array[String], when_done: 
 	_show_page()
 
 
-## A quick tap on the hub: finish typing this page, or go on to the next, or close after the last.
+## A tap on the interaction button: finish typing this page, or go on to the next, or close after the last.
 func tap() -> void:
 	if not visible:
 		return
@@ -115,18 +114,11 @@ func _show_hud(show: bool) -> void:
 	Hud.set_hidden("talk", ["hidden_while_talking"], not show)
 
 
-## The boat ignores the anchor button's long press while someone is talking (boat.gd toggle_anchor).
+## The boat ignores the anchor while someone is talking (boat.gd toggle_anchor).
 func _set_boat_talking(on: bool) -> void:
 	var boat := get_tree().get_first_node_in_group("player_boat")
 	if boat:
 		boat.talking = on
-
-
-## The wheel's hub sends `hub_tapped` on a quick tap (helm.gd).
-func _listen_to_helm() -> void:
-	var helm := get_tree().get_first_node_in_group("helm")
-	if helm:
-		helm.hub_tapped.connect(tap)
 
 
 ## The panel: paper with an ink border and a hard ink shadow (like the hearts' panel), and the portrait's frame.

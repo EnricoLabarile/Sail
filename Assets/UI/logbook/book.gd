@@ -8,9 +8,8 @@ extends Control
 ##   - two paper pages with the edges of the pages beneath showing at the sides;
 ##   - the top half: the hold ("Cargo", the Inventory autoload): its slots in a grid of 3 across, each thing
 ##     aboard drawn in its slot (its picture from its ItemData, Inventory.icon_of; a pile of bombs or traps with its number in
-##     the corner), the empty slots dashed and faint. Tapping a bomb's or a trap's slot equips it (or unequips
-##     it): the equipped slot has a thick double frame and its letter, A or B, in the top left corner
-##     (Inventory.tap_equip, unequip);
+##     the corner), the empty slots dashed and faint. Tapping an equippable thing's slot puts it in hand (one at a time,
+##     for the interaction button): the equipped slot has a thick double frame (Inventory.tap_equip; held, unequip);
 ##   - the bottom half: the map, the world cut into 9 x 9 squares (A..I from the west, 1..9 from the north,
 ##     home in E5), with the square she's in shaded.
 ## What the pages show is read when the book opens (and when the hold changes): it isn't redrawn every frame.
@@ -371,9 +370,7 @@ func _draw_hold(area: Rect2) -> void:
 			if Inventory.is_on(item):
 				_half_frame(r.grow(-3.0), INK, 2.0, false)      # switched on (the sail set): the thick frame, no letter
 			if Inventory.is_equipped(item):
-				_half_frame(r.grow(-3.0), INK, 2.0, false)      # equipped: a second, thick frame inside…
-				# …and its letter, A or B, small in the top left corner
-				_half_text(r.position + Vector2(6.0, 14.0), Inventory.slot_with(item).to_upper(), 10, INK, HORIZONTAL_ALIGNMENT_LEFT)
+				_half_frame(r.grow(-3.0), INK, 2.0, false)      # equipped (in hand): a second, thick frame inside
 			var icon := Inventory.icon_of(item)
 			if icon:
 				_draw_icon(icon, r)

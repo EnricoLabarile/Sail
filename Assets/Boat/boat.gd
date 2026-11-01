@@ -102,7 +102,7 @@ signal health_changed(hurt: bool)
 ## Sent once she's gone under (the game over card listens).
 signal sank
 
-## Sent whenever she really loses hearts (more than 0), whatever hurt her. The hook button listens: a hit makes
+## Sent whenever she really loses hearts (more than 0), whatever hurt her. The hook (hook_button.gd) listens: a hit makes
 ## her let go of whatever the hook holds (Enrico).
 signal hurt
 
@@ -118,7 +118,7 @@ signal anchor_dropped
 ## anchor the first time starts the game.
 signal anchor_weighed
 
-## Sent when the wheel's hub should start or stop showing the speech bubble instead of the anchor: she came into
+## Sent when the wheel should be drawn darker or not (the interaction button shows the speech bubble): she came into
 ## an NPC's radius or left it, or a talk started or ended (talk_hint() says which). The wheel listens.
 signal talk_hint_changed
 
@@ -138,13 +138,9 @@ var bow_wave_strength := 0.0   # how solid the bow wave is now, 0..1 (eased towa
 var bow_wave_frame := 0.0      # the bow wave's flipbook frame, counting up
 var in_shallows := false     # land within shallows_width? (looked again every shallows_check_time seconds)
 var shallows_wait := 0.0     # seconds left before the next look
-## At anchor (or tied up at a pier)? She starts at anchor: hold the wheel's hub (or press Space) to weigh it.
-## Whenever it changes, the icons on the screen hide or come back (Enrico: at anchor only the hub shows;
-## the Hud autoload, Assets/UI/hud.gd). (A setter: like a Blueprint "Set" node that also runs some code.)
-var anchored := true:
-	set(value):
-		anchored = value
-		Hud.set_hidden("anchor", ["hidden_at_start"], anchored)
+## At anchor (or tied up at a pier)? She starts at anchor: a whole turn of the crank backward weighs it (crank.gd;
+## Space too, on the PC). The screen's icons stay as they are (Enrico, Nov 2026: nothing is hidden at anchor any more).
+var anchored := true
 var held_back := 1.0        # her target speed × this (1 = free; a lever's rope sets less while she pulls it: lever.gd)
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
 var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her motion
@@ -195,7 +191,6 @@ var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over n
 
 func _ready() -> void:
 	add_to_group("player_boat")
-	Hud.set_hidden("anchor", ["hidden_at_start"], anchored)   # she starts at anchor: the icons hidden
 	# PHYSICS INTERPOLATION (Project Settings > Physics > Common, on): she moves in _physics_process, 60 times a
 	# second, but the phone draws the screen at its own uneven pace; Godot draws her where she'd be between two
 	# ticks, so she glides instead of jumping. Only she (and what's inside her) is smoothed: everything else in the
@@ -255,7 +250,7 @@ func toggle_anchor() -> void:
 	# Coming up out of the water (Enrico): the anchor can be weighed already, so one press after "Set sail" is
 	# enough; she sets off as soon as she's up (update_emerging lets her go).
 	if talking:
-		return                       # someone is talking (Assets/UI/talk_box): the hub's taps go on with the talk
+		return                       # someone is talking (Assets/UI/talk_box): no anchor meanwhile
 	if caught_eye != null:
 		return                       # spinning in a maelstrom: no anchor
 	if berth != null:
@@ -323,7 +318,7 @@ func update_caught(dt: float) -> void:
 
 
 ## A pier's berth (pier.gd) tells her to tie up there: she stops, gathers the sail (as at anchor, so the wheel
-## doesn't steer and the hub shows the anchor), and glides into place (glide_to_berth, every physics frame).
+## doesn't steer), and glides into place (glide_to_berth, every physics frame).
 func dock_at(spot: Node3D) -> void:
 	if sinking or berth != null:
 		return
@@ -495,7 +490,7 @@ func set_near_npc(npc: Node3D, near: bool) -> void:
 
 
 ## An NPC tells her their talk is over (npc.gd, when the talk box closes). Until she leaves its radius it counts as
-## talked to: the hub shows the anchor again (Enrico: so it's clear she can sail on) and anchoring there again
+## talked to: the interaction button stops showing the speech bubble (Enrico: so it's clear she can sail on) and anchoring there again
 ## doesn't start the same talk over. (In Unreal: the NPC calling an interface function on the pawn.)
 func done_talking_with(npc: Node3D) -> void:
 	var had_hint := talk_hint()
@@ -527,10 +522,24 @@ func npcs_waiting() -> bool:
 	return false
 
 
-## Should the wheel's hub show the speech bubble? While she's in the radius of an NPC she hasn't talked to yet
-## (dropping anchor will start the talk) or while someone is talking (a tap goes on).
+## Should the interaction button show the speech bubble? While she's in the radius of an NPC she hasn't talked to yet
+## (a tap starts the talk) or while someone is talking (a tap goes on).
 func talk_hint() -> bool:
 	return talking or npcs_waiting()
+
+
+## The NPC a tap on the interaction button would talk to: the first one near her she hasn't talked to yet (null =
+## none). (Assets/UI/interaction_button)
+func npc_to_talk_to() -> Node3D:
+	for npc in npcs_near:
+		if not npcs_talked_to.has(npc):
+			return npc
+	return null
+
+
+## Is she over a fishing spot now? (The interaction button shows a question mark.)
+func over_fishing_spot() -> bool:
+	return not fishing_spots_under.is_empty()
 
 
 ## Where her stern is now, on the water (a rope is tied there: lever.gd).

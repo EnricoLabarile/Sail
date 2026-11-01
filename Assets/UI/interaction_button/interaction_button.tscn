@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Assets/UI/interaction_button/interaction_button.gd" id="1_ib"]
+
+[node name="InteractionButton" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 78.0
+offset_bottom = 78.0
+script = ExtResource("1_ib")

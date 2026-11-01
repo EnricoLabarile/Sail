@@ -1,6 +1,6 @@
 extends Node
 ## THE TRAP SETTER: a little helper node inside the boat (boat.tscn: Boat/TrapSetter). It listens to the boat:
-## when her anchor goes down (boat.gd's signal anchor_dropped) and a trap is equipped (in A or B: it has no button), it
+## when her anchor goes down (boat.gd's signal anchor_dropped) and a trap is the thing in hand (Inventory.equipped; the interaction button only shows it), it
 ## lays a trap (trap.tscn) on the water where she is. The trap itself does the rest (trap.gd: arming, catching).
 ## (In Unreal: an Actor Component on the pawn, bound to one of the pawn's Event Dispatchers.)
 

@@ -6,11 +6,12 @@ extends Node3D
 ## How it works:
 ##   1. the boat comes within `talk_radius`: a speech bubble fades in above it and bobs up and down, to catch
 ##      the eye; she sails away without stopping: it fades out and nothing happens;
-##   2. the moment she comes in, the anchor drops by itself (Enrico: no button to press) and the talk
-##      starts. The talk box at the top of the screen
+##   2. the interaction button (Assets/UI/interaction_button, in the middle of the wheel) shows a speech bubble; a
+##      tap on it starts the talk (Enrico, Nov 2026: no anchor needed, nothing starts by itself). The talk box at
+##      the top of the screen
 ##      (Assets/UI/talk_box) shows `portrait`, `speaker_name` and the `lines`, one page at a time, typed out
-##      letter by letter; a quick tap on the wheel's hub (the anchor button) goes on to the next page;
-##   3. after the last page a tap closes it. Dropping anchor here again starts it again from the top.
+##      letter by letter; a tap on the interaction button goes on to the next page;
+##   3. after the last page a tap closes it. Until she leaves the radius it won't start again; out and back in, it can.
 ## It's a monologue: the player only reads and taps, no choices.
 ##
 ## To place one: instance npc.tscn under NPCs in Overworld (like placing a Blueprint), move it, and fill in
@@ -28,7 +29,7 @@ extends Node3D
 @export var speaker_name := "Stranger"
 ## The picture in the talk box's frame, on the left (paint your own; any size, it's fitted into the frame).
 @export var portrait: Texture2D
-## What it says: each entry is one page, shown one after the other (a tap on the hub for the next).
+## What it says: each entry is one page, shown one after the other (a tap on the interaction button for the next).
 @export_multiline var lines: Array[String] = ["Hello, sailor."]
 ## What it says once it has been towed to its goal (only for a towed NPC; empty = the same lines as before).
 @export_multiline var lines_after_delivery: Array[String] = []
@@ -66,8 +67,6 @@ func _ready() -> void:
 	# as with the fishing spots: no checks every frame.
 	sensor.area_entered.connect(_on_sensor_entered)
 	sensor.area_exited.connect(_on_sensor_exited)
-	# When the anchor goes down (boat.gd sends anchor_dropped), see if it was inside our radius.
-	_listen_to_boat.call_deferred()
 
 
 func _process(dt: float) -> void:
@@ -90,34 +89,14 @@ func _process(dt: float) -> void:
 
 # ---- the boat ----
 
-func _listen_to_boat() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat")
-	if boat:
-		boat.anchor_dropped.connect(_on_anchor_dropped)
-
-
 func _on_sensor_entered(area: Area3D) -> void:
 	var boat := area.get_parent()
 	if towed:
 		return                            # being dragged by her: she's always near, that doesn't count
 	if boat != null and boat.is_in_group("player_boat"):
 		boat_near = true
-		boat.set_near_npc(self, true)     # the wheel's hub shows the speech bubble
+		boat.set_near_npc(self, true)     # the interaction button shows the speech bubble
 		set_process(true)                 # the bubble fades in (and bobs) every frame from now
-		_start_talk_on_arrival.call_deferred(boat)   # after the physics step, not inside it
-
-
-## She came in (Enrico): no need to press the anchor, it drops by itself and the talk starts
-## (dropping it sends anchor_dropped, which starts the talk: _on_anchor_dropped). Already at anchor: just talk.
-func _start_talk_on_arrival(boat: Node) -> void:
-	if not boat_near or talking or _talked_to() or lines.is_empty():
-		return
-	if boat.berth != null or boat.sinking:
-		return                            # tied up at a pier, or going down: no talk
-	if boat.anchored:
-		_on_anchor_dropped()
-	else:
-		boat.toggle_anchor()              # the anchor goes down (its sound too), and the talk starts
 
 
 func _on_sensor_exited(area: Area3D) -> void:
@@ -128,8 +107,9 @@ func _on_sensor_exited(area: Area3D) -> void:
 		set_process(true)                 # the bubble fades out, then _process switches itself off
 
 
-## The anchor went down somewhere: if it was inside our radius, start talking.
-func _on_anchor_dropped() -> void:
+## A tap on the interaction button while she's in our radius (interaction_button.gd, through boat.npc_to_talk_to):
+## start talking.
+func start_talk() -> void:
 	if towed or not boat_near or talking or lines.is_empty():
 		return
 	if _talked_to():
@@ -141,7 +121,7 @@ func _on_anchor_dropped() -> void:
 	talk_box.open(speaker_name, portrait, lines, _on_talk_finished)
 
 
-## The talk box was closed after the last page: tell the boat (Enrico: her hub turns back into the anchor until
+## The talk box was closed after the last page: tell the boat (Enrico: the interaction button stops showing the speech bubble until
 ## she leaves our radius), and let the bubble over our head fade out (we've had our say).
 func _on_talk_finished() -> void:
 	talking = false
@@ -169,7 +149,7 @@ func on_grabbed(_boat: Node3D) -> void:
 	set_process(true)                     # the bubble fades out
 
 
-## Let go: if she's inside its radius, she's near again (the hub shows the speech bubble: drop anchor to talk).
+## Let go: if she's inside its radius, she's near again (the interaction button shows the speech bubble: a tap to talk).
 ## No talk starts by itself here: she's already beside it.
 func on_released() -> void:
 	towed = false
