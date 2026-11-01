@@ -312,7 +312,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (`push_left`, `push_time` 20 s at 50%) drains at `drain_rate()` = share / 0.5 (100% twice as fast, 25% half);
   shown (Enrico, Nov 2026; the arc along the plate is gone) as a **battery icon** (line art, ink: a box, a little knob,
   a fill as long as the charge) inside the **knob** on the pivot (`KNOB_R` 10, paper with an ink ring), always level, not
-  turned with the lever; it **blinks** (`blink_per_second` 4) in the last `recharge_window` seconds while she runs.
+  turned with the lever; refilled, its fill **climbs** to the new charge over `refill_show_time` 0.5 s (`shown_charge`,
+  `update_shown_charge`; going down it just follows); **held, only the lever is drawn black** (the grip ink, its stripes
+  paper; the plate and the knob stay; no flash on touch any more); it **blinks** (`blink_per_second` 4) in the last `recharge_window` seconds while she runs.
   **Hints beside the ends** (Enrico; `_draw_anchor`, `_draw_battery`, `ICON_DISTANCE` 38, `ICON_PAST_END` 0.3 rad past
   each end; line art, ink with a thin paper halo so they read on the dark sea): a little **anchor on the left** while the
   anchor is up (left end drops it), **on the right** while at anchor or tied up (right end weighs it); whenever the
@@ -915,7 +917,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   light face, inked with a paper icon while `is_active()` (the hook holding, a harpoon out), the ink pie from
   `cooldown_share()`, the two rings when a bomb is put in hand (`equip_anim_time`, `equip_ring_grow`), a tap → its
   action's `use()` (if `can_use()`); the trap has no action (only shown; laid on anchoring); **nothing** → a faint
-  empty face. Every press: black (`press_flash` 0.12 s) and `Sfx.button_press()`; Enter does the same on the PC.
+  empty face. Every press: `Sfx.button_press()`, and **black only while the finger holds it** (Enrico, Nov 2026, the rule for
+  every button: no more 0.12 s flash; `press_flash` is gone); Enter does the same on the PC (a click, no black).
   **Item actions** (the interface every tool has: `ITEM`, `ICON`, `use()`, `can_use()`, `cooldown_share()`,
   `is_active()`; group `item_actions`): `bomb_button.gd`, `jar_button.gd`, `harpoon_button.gd`, `hook_button.gd`, still
   in ui_layout.tscn with their scenes' names (their numbers in the Inspector), but never drawn and never touched
