@@ -23,7 +23,8 @@ const DESIGN_WIDTH := 360.0   # the game's width in the project settings: the co
 @export var dots_across := 360
 ## TILT-SHIFT (Enrico, Nov 2026, a test): the top and bottom of the world blurred, so the sea looks like a little
 ## model. Only the world: the controls and the logbook's button stay sharp (Assets/Post_Process/tilt_shift/).
-@export var tilt_shift_on := true:
+## Off for now (Enrico, Nov 2026): it cost about a quarter of the frame on the phone and barely shows after the dither.
+@export var tilt_shift_on := false:
 	set(value):
 		tilt_shift_on = value
 		_update_tilt_shift()

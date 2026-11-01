@@ -260,8 +260,14 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `extra_cull_margin`, render_priority 3, after the sea, the outline, the cloud shadows, gulls and stones; the clouds (4) come after it, over it), stretched over the screen in the vertex
   shader; per pixel it follows the line of sight (two points unprojected with `INV_PROJECTION_MATRIX` /
   `INV_VIEW_MATRIX`) down to the water (y 0) and reads `fog_tex` there (linear: soft edge), painting `fog_color`
-  black with that alpha; `falloff` (metres, `sea.gd` `fog_falloff`, 0 = as it comes, about a cell) averages 8 more
-  reads on a ring that far round, for a wider, softer edge. Tall objects are fogged as the water just behind them. The boat is drawn under it but she's
+  black with that alpha. **The soft edge** (`sea.gd` `fog_falloff`, metres, 2 in Overworld; 0 = as it comes, about a cell)
+  is worked out **in `fog.gd`, not in the shader** (Nov 2026, for speed: the shader's 9 reads a pixel every frame cost
+  ~17% of the frame): `seen` (bytes, 255 = fog) is the truth, `soft` the blurred copy sent to `texture`; `set_falloff`
+  (from sea.gd) bakes the blur's recipe once (`make_kernel`: the old ring of 8 points `falloff` m round each cell plus
+  its middle, read bilinearly, comes down to fixed shares of the 3 × 3 cells round it; `kernel_di/dj/share`,
+  `kernel_reach`), and `reveal` blurs again (`soften`) only the cells that just changed and their neighbours (~0.2 ms on
+  the PC, only when a cell is seen); `seen_box` limits a full re-blur to what's been seen. The shader's own `falloff`
+  stays at 0 (it still works if set by hand). Tall objects are fogged as the water just behind them. The boat is drawn under it but she's
   always in seen water. Made in code, so the editor shows the whole map. Nothing is always clear yet.
 - **The boat's hierarchy** (Enrico's, Oct 2026): `Boat / Model / sm_boat_hull / sm_boat_mast / Rig / sm_boat_sail`
   (+ `Boat/Camera3D`). `Model` heels, bobs and rocks (`rock_and_roll`, the prototype's damped springs: roll pulled toward heel + lean out of a turn + the waves' roll, pitch toward the speed's bow lift + the waves' pitch, `roll_stiffness` 16 / `roll_damping` 3.2, `pitch_stiffness` 22 / `pitch_damping` 4.5, clamped ±0.6 / ±0.3 rad; the lean out of a turn is the measured `turn_speed` / `turn_rate` × speed / `top_speed` × `turn_lean_deg` 22°; **speed lifts the bow and it stays up** (Enrico, like a motorboat; it replaced the prototype's surge): pitch target = (speed / `top_speed`)^`bow_lift_curve` (2) × `bow_lift_deg` (8°), the pitch clamp's top raised to fit; the waves `wave_roll_deg` 3°, `wave_pitch_deg` 2°, `wave_period` 3 s and 0.8× that; everything follows), `Rig` (at the mast's foot) turns the
@@ -454,7 +460,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   the picture plus 12 samples on two rings, the radius × the band's share squared). `game_view.gd` makes it at start: a
   CanvasLayer `TILT_SHIFT_LAYER` 90 inside the view with a full-screen ColorRect (mouse ignored), so it blurs only the
   3D world (the controls at 95 stay sharp) and the dither (100) turns the blur into dots. Knobs on `GameView`:
-  `tilt_shift_on`, `tilt_top` 0.35, `tilt_bottom` 0.4 (share of the screen's height), `tilt_blur` 6 (game-view pixels
+  `tilt_shift_on` (**off**, Enrico, Nov 2026: it cost ~a quarter of the frame and barely shows), `tilt_top` 0.35, `tilt_bottom` 0.4 (share of the screen's height), `tilt_blur` 6 (game-view pixels
   at the edge). After the dither it reads only faintly (sharp lines like the shore foam soften; smooth greys don't change).
 - **Smooth movement: physics interpolation** (Enrico: choppy on the phone; Project Settings > Physics > Common >
   Physics Interpolation, on): she moves in `_physics_process` (60 Hz) but the phone draws at its own uneven pace, so
@@ -464,6 +470,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   the camera is OFF too and follows `boat_position()` = `get_global_transform_interpolated()`; `respawn()` calls
   `reset_physics_interpolation()` (a jump, not a glide). Anything new moved in `_physics_process` that must look
   smooth: set its mode ON (or put it inside the boat).
+- **Performance check (Nov 2026)**: measured sailing a loop in Overworld (xvfb, software GL: only the shares count),
+  each thing switched off in turn, of a 47 ms frame: tilt-shift −11, fog's soft edge in the shader −8 (both fixed
+  above: 47 → 32), the sea −8, the dither −5, clouds −3.7, cloud shadows −3.4, the outline −3.4, the UI −1.5, island
+  pieces and gameplay things ~0. Every script's own `_process` / `_physics_process` together: ~0.12 ms a frame on the PC.
 - **Nothing runs every frame without a reason** (Enrico's optimisation pass, Oct 2026; measured: the scripts' own cost
   was tiny, the choppiness was the above): `set_process(false)` while idle, switched on by events: NPCs (sensor in/out,
   talk end; off once the bubble has faded), fishing spots (`try_fishing`; off when nobody fishes), wave zones (while she's

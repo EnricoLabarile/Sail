@@ -37,17 +37,18 @@ extends MeshInstance3D
 		show_shore_waves = value
 		use_shore_picture()
 
-# The fog of war's soft edge (fog.gdshader's falloff): metres it shades off over. 0 = as it comes (about one cell).
-# Sent to the fog when it changes (also while the game runs, from the Inspector), not every frame.
+# The fog of war's soft edge: metres it shades off over. 0 = as it comes (about one cell).
+# Sent to the Fog when it changes (also while the game runs, from the Inspector), not every frame: the Fog blurs
+# its own picture once (fog.gd set_falloff), so the fog shader reads it only once a pixel (it's cheaper).
 @export var fog_falloff := 0.0:
 	set(value):
 		fog_falloff = value
 		if fog_material:
-			fog_material.set_shader_parameter("falloff", fog_falloff)
+			Fog.set_falloff(fog_falloff)
 
 const WindScript := preload("res://Assets/Landscape/world/wind.gd")   # for CURRENT_SPEED (also in the editor)
 
-var fog_material: ShaderMaterial      # the fog's material (to send it the falloff)
+var fog_material: ShaderMaterial      # the fog's material (made at start; once it exists, a new falloff goes to the Fog)
 var texture_angle := 0.0              # where the texture is turned now (radians, clockwise from north)
 var texture_offset := Vector2.ZERO    # a shift that keeps the water under the boat still while it turns
 var boat: Node3D                      # the boat (found the first time it's needed)
@@ -113,7 +114,8 @@ func add_fog() -> void:
 	var fog := ShaderMaterial.new()
 	fog.shader = load("res://Assets/Landscape/world/fog.gdshader")
 	fog.set_shader_parameter("fog_tex", Fog.texture)   # the picture of what's been seen (fog.gd)
-	fog.set_shader_parameter("falloff", fog_falloff)
+	fog.set_shader_parameter("falloff", 0.0)   # the shader's own blur stays off: the Fog's picture is blurred already
+	Fog.set_falloff(fog_falloff)
 	fog.set_shader_parameter("world_size", Land.WORLD_SIZE)   # how much of the world the fog picture covers
 	fog_material = fog
 	fog.render_priority = 3      # drawn after the sea (0), outline and shadows (1), gulls, bombs and land drawings (2): over all but the clouds (4)
