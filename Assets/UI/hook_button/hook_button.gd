@@ -20,10 +20,14 @@ extends Control
 
 const HOOK := "hook"                 # the item's id (Assets/Inventory/items/hook.tres)
 const ICON := preload("res://Assets/Inventory/icons/hook.png")
+const HUD := preload("res://Assets/UI/hud.gd")   # the Hud autoload's script: its static put_in_frame works in the editor too
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
 
 @export var press_flash := 0.12      # a press turns the button black for this long (s), with a click (Enrico: every button)
+## In the editor only: which slot frame (SlotA / SlotB in ui_layout.tscn) this button is shown in, to preview the
+## layout. In the game it goes where its thing is equipped.
+@export_enum("a", "b") var editor_slot := "b"
 
 var press_flash_left := 0.0          # seconds it stays black after a press
 var towed: Node3D = null             # what she's holding now (null = nothing)
@@ -73,6 +77,7 @@ func _gui_input(event: InputEvent) -> void:
 
 func _process(dt: float) -> void:
 	if Engine.is_editor_hint():
+		HUD.show_in_frame_in_editor(self, editor_slot)   # follows its slot's frame while you move it
 		return
 	if press_flash_left > 0.0:
 		press_flash_left = maxf(0.0, press_flash_left - dt)

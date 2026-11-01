@@ -33,26 +33,48 @@ func set_hidden(reason: String, groups: Array, hidden: bool) -> void:
 	refresh()
 
 
-## Puts an item button (its Control) in the place of `slot` ("a" or "b"; "" leaves it where it is): the same anchors
-## and offsets as that slot's frame in ui_layout.tscn, so it takes its place and its size.
+## Puts an item button (its Control) in the place of `slot` ("a" or "b"; "" leaves it where it is): the same place
+## and size as that slot's frame in ui_layout.tscn (see put_in_frame).
 func place_item_button(button: Control, slot: String) -> void:
 	if not ITEM_BUTTON_TOP.has(slot):
 		return
 	var frame := get_tree().get_first_node_in_group("item_slot_" + slot) as Control
 	if frame:
-		button.anchor_left = frame.anchor_left
-		button.anchor_top = frame.anchor_top
-		button.anchor_right = frame.anchor_right
-		button.anchor_bottom = frame.anchor_bottom
-		button.offset_left = frame.offset_left
-		button.offset_top = frame.offset_top
-		button.offset_right = frame.offset_right
-		button.offset_bottom = frame.offset_bottom
+		put_in_frame(button, frame)
 		return
 	# No layout scene: the old fixed places.
 	var height := button.offset_bottom - button.offset_top
 	button.offset_top = ITEM_BUTTON_TOP[slot]
 	button.offset_bottom = button.offset_top + height
+
+
+## Gives `button` the same anchors and offsets as `frame` (so the same place and size on the screen), and its
+## CanvasLayer the same offset as the frame's CanvasLayer (if you moved the whole ItemSlots layer, the buttons follow).
+## Static, so the buttons can also call it in the editor (where this autoload doesn't run): see their _process.
+static func put_in_frame(button: Control, frame: Control) -> void:
+	button.anchor_left = frame.anchor_left
+	button.anchor_top = frame.anchor_top
+	button.anchor_right = frame.anchor_right
+	button.anchor_bottom = frame.anchor_bottom
+	button.offset_left = frame.offset_left
+	button.offset_top = frame.offset_top
+	button.offset_right = frame.offset_right
+	button.offset_bottom = frame.offset_bottom
+	var button_layer := button.get_parent() as CanvasLayer
+	var frame_layer := frame.get_parent() as CanvasLayer
+	if button_layer and frame_layer:
+		button_layer.offset = frame_layer.offset
+
+
+## In the editor only (the buttons call it every editor frame): the button sits in its preview slot's frame, so moving
+## SlotA / SlotB in ui_layout.tscn shows at once where the buttons will be. (No frame, e.g. in the button's own scene:
+## it stays where it is.)
+static func show_in_frame_in_editor(button: Control, slot: String) -> void:
+	if not button.is_inside_tree():
+		return
+	var frame := button.get_tree().get_first_node_in_group("item_slot_" + slot) as Control
+	if frame:
+		put_in_frame(button, frame)
 
 
 ## Shows every icon no reason hides, hides the rest.

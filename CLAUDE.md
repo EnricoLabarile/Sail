@@ -879,7 +879,12 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `StartScreen`) and holds **`ItemSlots`** (CanvasLayer 95) with two `ReferenceRect` frames, **`SlotA`** / **`SlotB`**
   (groups `item_slot_a` / `item_slot_b`, editor-only borders orange / blue, mouse ignored): `Hud.place_item_button`
   copies the anchors and offsets of the slot's frame onto the item button (place and size); without them it falls back
-  on `ITEM_BUTTON_TOP`. **Each level instances only `UILayout`** under `UI and PostProcess` (next to `GameView` and
+  on `ITEM_BUTTON_TOP` (`Hud.put_in_frame`, static: anchors, offsets, and the frame's CanvasLayer offset onto the button's
+  layer, so moving the whole `ItemSlots` layer works too). **In the editor the four item buttons sit in their frame**
+  (each one's `_process` in the editor calls `HUD.show_in_frame_in_editor(self, editor_slot)`, `HUD` = a preload of
+  hud.gd; export `editor_slot`: bomb and harpoon "a", jar and hook "b"), so moving SlotA / SlotB shows at once where
+  they'll be; move the frames, not the buttons (in the game the buttons are put in their frames anyway).
+  **Each level instances only `UILayout`** under `UI and PostProcess` (next to `GameView` and
   `Dither`, which stay in the level); moving things in `ui_layout.tscn` moves them in every level. The names stay the
   same, so `game_view.gd` (find_child by name, owned = false) and everything else still find them. New UI goes into
   this scene, not into the levels. (The open book is still centred by `logbook.gd`.)

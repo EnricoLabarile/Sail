@@ -14,6 +14,7 @@ extends Control
 
 const JAR := "aeolus_jar"            # the item's id (Assets/Inventory/items/aeolus_jar.tres)
 const ICON := preload("res://Assets/Inventory/icons/aeolus_jar.png")
+const HUD := preload("res://Assets/UI/hud.gd")   # the Hud autoload's script: its static put_in_frame works in the editor too
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
 
@@ -21,6 +22,9 @@ const INK := Color("1b1a17")
 @export var turn_time := 1.5         # seconds the wind takes to swing round behind her
 
 @export var press_flash := 0.12      # a press turns the button black for this long (s), with a click (Enrico: every button)
+## In the editor only: which slot frame (SlotA / SlotB in ui_layout.tscn) this button is shown in, to preview the
+## layout. In the game it goes where its thing is equipped.
+@export_enum("a", "b") var editor_slot := "b"
 
 var press_flash_left := 0.0          # seconds it stays black after a press (any press, even while it rests)
 var pressed_time := 0.0              # > 0 for a moment after a tap: the button is drawn pushed in
@@ -58,6 +62,7 @@ func _gui_input(event: InputEvent) -> void:
 
 func _process(dt: float) -> void:
 	if Engine.is_editor_hint():
+		HUD.show_in_frame_in_editor(self, editor_slot)   # follows its slot's frame while you move it
 		return
 	if pressed_time > 0.0:
 		pressed_time = maxf(0.0, pressed_time - dt)
