@@ -293,11 +293,13 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   current still carries her. **Locked while it pushes, except the last `recharge_window` 2 s** (Enrico: keep it going
   without stopping): `can_wind()`; a full turn then refills to `push_time` (not added). Wheels: pushed or freewheeling
   with her speed, outside wheel faster in a turn (`half_beam`, `paddle_radius`). `stop()` on respawn.
-  **The brake** (Enrico, Oct 2026): the crank turned **anticlockwise**, at any time, brakes: `crank.gd` `brake(turned)`
-  → `paddles.brake()` (`brake_left` = `brake_hold` 0.15 s after each bit of backward turn, `push_left` = 0); while
-  `paddles.braking()`, boat.gd's speed target is 0 at `brake_rate` 3 (after everything else, so it beats sail, gusts and
-  surfing; the current still carries her). No full turn needed; the arm follows the finger back and springs to the top
-  when let go. **The crank is never locked to the touch now** (not pale): clockwise turns while the paddles push
+  **The brake** (Enrico, Oct 2026): the crank turned **anticlockwise**, at any time, brakes **in proportion to how far
+  back the arm is held**: `crank.gd` `_process` sends `paddles.set_brake(-crank_angle / TAU)` every frame while the
+  finger is on it (0 when let go; it cancels `push_left`); boat.gd, not at anchor: speed target 0 at `brake_rate` 4 ×
+  `brake_amount` (after everything else, so it beats sail, gusts and surfing; the current still carries her). **A
+  whole turn back works the anchor** like the wheel's hub (`_full_turn_back` → `boat.toggle_anchor()`: drops it sailing,
+  weighs it at anchor; the arm back up, the finger must come off). The arm follows the finger back and springs to the
+  top when let go. **The crank is never locked to the touch now** (not pale): clockwise turns while the paddles push
   (outside `recharge_window`) just do nothing (`wind`); a half wound turn is lost when it turns back.
   **The crank** (`Assets/UI/crank/`: `crank.tscn` CanvasLayer 95, group `hidden_at_start`, in game_view `DITHERED`, in
   all 4 levels; Control `Button` 120 px, bottom-left anchored, offsets 6 / −392 / 126 / −272: up and left of the wheel,

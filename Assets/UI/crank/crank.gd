@@ -3,8 +3,10 @@ extends Control
 ## THE CRANK (up and to the left of the wheel), as in the HTML prototype's wound spring: it works the paddle wheels
 ## (Assets/Boat/paddles.gd). Turn it clockwise with a finger: ONE FULL TURN winds the paddles and they push the boat
 ## for a while (paddles.gd push_time). Let go before the turn is complete and the arm springs back, nothing wound.
-## Turned ANTICLOCKWISE it's the BRAKE (Enrico): as long as it turns backward, the push left is cancelled and the boat
-## slows to a stop (paddles.gd brake); no full turn needed; let go, the arm springs back to the top.
+## Turned ANTICLOCKWISE it's the BRAKE (Enrico): the further back the arm is held, the harder she brakes (a quarter
+## turn back = a quarter of the brake, paddles.gd set_brake); the push left is cancelled. A WHOLE TURN back works the
+## ANCHOR, exactly like the wheel's hub (boat.gd toggle_anchor): sailing, it drops it (so she stops); at anchor, it
+## weighs it. Let go, the arm springs back to the top and the brake ends.
 ## While the paddles push, winding (clockwise) is LOCKED, except in the last seconds of the push (paddles.gd
 ## recharge_window, Enrico): then it can be wound again, so the push never runs out if you keep it up. The crank can
 ## always be touched (to brake); clockwise turns while it's locked just do nothing.
@@ -128,17 +130,25 @@ func wind(turned: float) -> void:
 	queue_redraw()
 
 
-## Anticlockwise: the brake (paddles.gd). A turn that was being wound is lost; the arm follows the finger backward.
+## Anticlockwise: the arm follows the finger backward (a turn that was being wound is lost). How far back it is sets the
+## brake (_process sends it every frame). A whole turn back: the anchor (_full_turn_back).
 func brake(turned: float) -> void:
-	var paddles := _paddles()
-	if paddles:
-		paddles.brake()
 	wound_so_far = 0.0
 	teeth_clicked = 0
-	crank_angle += turned                   # the arm goes back with the finger
-	if crank_angle < -TAU:
-		crank_angle += TAU                  # more than a whole turn back: it's the same place on the dial
+	crank_angle += turned                   # the arm goes back with the finger (below 0)
+	if crank_angle <= -TAU:
+		_full_turn_back()
 	queue_redraw()
+
+
+## A whole turn back: the anchor goes down (or comes up if she's at anchor), as with the wheel's hub. The arm is back up
+## and the finger must come off and start again.
+func _full_turn_back() -> void:
+	var boat := get_tree().get_first_node_in_group("player_boat")
+	if boat:
+		boat.toggle_anchor()
+	crank_angle = 0.0
+	drag_index = -1
 
 
 ## A clack for every tooth the arm has gone past since the last one (a quick finger can pass two in a frame),
@@ -172,6 +182,13 @@ func _process(dt: float) -> void:
 		crank_angle = move_toward(crank_angle, 0.0, spring_back_speed * dt)
 		wound_so_far = maxf(0.0, crank_angle)
 		teeth_clicked = 0                   # the next turn starts low again (springing back is silent)
+	# The brake: as hard as the arm is held back (0 = at the top, 1 = a whole turn back); none once it's let go.
+	var paddles := _paddles()
+	if paddles:
+		var back := 0.0
+		if drag_index != -1 and crank_angle < 0.0:
+			back = -crank_angle / TAU
+		paddles.set_brake(back)
 	# The moment it can be wound again (the last seconds of the push, or the push over): the unlock sound, once.
 	var free := _can_wind()
 	if free and not was_free:
