@@ -10,7 +10,8 @@ extends Control
 ##   - ALL THE WAY RIGHT, while she's off (at anchor, tied up, or the battery empty): she TURNS ON: the anchor comes up
 ##     (or she casts off) and the paddles' battery is full (paddles.turn_on). Then the lever springs back to the middle.
 ##   - ALL THE WAY RIGHT, while she runs, in the battery's last seconds (paddles.recharge_window): the battery is full
-##     again (paddles.refill). The lever stays where the finger holds it (100%).
+##     again (paddles.refill). The lever stays where the finger holds it (100%). Only with a grab that BEGAN in those
+##     last seconds (Enrico): held at 100% from before, the player must let go and push it right again.
 ##   - ALL THE WAY LEFT, while the anchor is up: she TURNS OFF: the anchor goes down (paddles.turn_off). Then the
 ##     lever springs back to the middle.
 ## An end works once each time the lever gets there: to use it again, the lever must leave it first.
@@ -56,6 +57,9 @@ var filling := false         # is the battery icon filling up now? (then the kno
 var notch := NOTCHES / 2      # the notch it's at (for the clicks)
 var at_left_end := false      # is it at an end now? (an end works once each time the lever gets there)
 var at_right_end := false
+## Was the lever grabbed after the battery's last seconds began? (Enrico: to refill it the player must let go and push it
+## all the way right again; holding it at 100% from before isn't enough, nor is a finger wobbling at the end.)
+var grabbed_in_window := false
 var was_free := true          # could the battery be filled a frame ago? (to hear the moment it can)
 
 
@@ -106,6 +110,8 @@ func _gui_input(e: InputEvent) -> void:
 			Sfx.button_press()
 			drag_index = e.index
 			last_a = _angle_round_pivot(e.position)
+			var paddles := _paddles()
+			grabbed_in_window = paddles != null and paddles.is_running() and paddles.can_wind()
 			accept_event()
 		elif not e.pressed and e.index == drag_index:
 			drag_index = -1                 # let go: _process springs it back to the middle
@@ -145,9 +151,11 @@ func check_ends() -> void:
 				paddles.turn_on()           # off: she starts (anchor up, battery full)…
 				Sfx.lever_done()
 				let_go()                    # …and the lever springs back to the middle
-			elif paddles.can_wind():
-				paddles.refill()            # running, battery nearly out: full again; she keeps the 100%
+			elif paddles.can_wind() and grabbed_in_window:
+				# Running, battery nearly out, and this grab began in its last seconds: full again; she keeps the 100%.
+				paddles.refill()
 				Sfx.lever_done()
+				grabbed_in_window = false   # once per grab
 	elif lever < END:
 		at_right_end = false
 	# All the way left.

@@ -308,7 +308,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (each works once per arrival, `at_left_end` / `at_right_end`, `END` 0.98): right end while she's off (anchored, tied
   up, or battery empty) → `paddles.turn_on()` (anchor up / cast off, battery full) and the lever springs back
   (`let_go`); right end while running in the battery's last `recharge_window` 3 s → `refill()` (full again, she keeps
-  100%); left end with the anchor up → `turn_off()` (anchor down, battery emptied) and springs back. **The battery**
+  100%; only with a grab that began in that window, `grabbed_in_window`, Enrico: held at 100% from before, let go and push again); left end with the anchor up → `turn_off()` (anchor down, battery emptied) and springs back. **The battery**
   (`push_left`, `push_time` 20 s at 50%) drains at `drain_rate()` = share / 0.5 (100% twice as fast, 25% half);
   shown (Enrico, Nov 2026; the arc along the plate is gone) as a **battery icon** (line art, ink: a box, a little knob,
   a fill as long as the charge) inside the **knob** on the pivot (`KNOB_R` 10, paper with an ink ring), always level, not
