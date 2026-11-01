@@ -2,12 +2,8 @@
 
 [ext_resource type="PackedScene" uid="uid://cnu0m3427cdln" path="res://Assets/Landscape/world/sea.tscn" id="1_sea"]
 [ext_resource type="PackedScene" uid="uid://dhestvacwpffc" path="res://Assets/Boat/boat.tscn" id="2_boat"]
-[ext_resource type="PackedScene" path="res://Assets/UI/helm.tscn" id="3_helm"]
 [ext_resource type="PackedScene" uid="uid://bba4hwropmrh4" path="res://Assets/Post_Process/dither/dither.tscn" id="4_dither"]
 [ext_resource type="Texture2D" uid="uid://c3dbbk3u8rxjp" path="res://Assets/Landscape/shore/ShoreMask_Overworld.png" id="4_trlql"]
-[ext_resource type="PackedScene" uid="uid://bhqupmdfm8my" path="res://Assets/UI/wind_vane.tscn" id="5_vane"]
-[ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="6_logbook"]
-[ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="7_start"]
 [ext_resource type="Texture2D" uid="uid://c83coim1pxjpi" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_1.png" id="13_7dbbo"]
 [ext_resource type="Texture2D" uid="uid://b6qbcnpowxg62" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_2.png" id="14_yvevl"]
 [ext_resource type="Texture2D" uid="uid://djxmu6wgjgyf4" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_3.png" id="15_cra7r"]
@@ -21,15 +17,11 @@
 [ext_resource type="Script" uid="uid://dte3lbhusmsjc" path="res://Assets/Post_Process/game_view.gd" id="21_game_view"]
 [ext_resource type="PackedScene" uid="uid://duxq1bjfe0iib" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="23_gulls"]
-[ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="24_bomb_button"]
-[ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="25_health"]
 [ext_resource type="PackedScene" uid="uid://c83avpy373bev" path="res://Assets/Landscape/fishing_spots/fishing_spot.tscn" id="26_fishing_spot"]
 [ext_resource type="Resource" uid="uid://brawp83bscqtm" path="res://Assets/Inventory/items/bomb.tres" id="27_cra7r"]
-[ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="27_game_over"]
 [ext_resource type="PackedScene" uid="uid://85hj3herq30r" path="res://Assets/Dangers/sea_imp/sea_imp_zone.tscn" id="28_sea_imp_zone"]
 [ext_resource type="PackedScene" uid="uid://b5lqfu2xq0o10" path="res://Assets/Dangers/maelstrom/maelstrom.tscn" id="28_ubo31"]
 [ext_resource type="PackedScene" uid="uid://ej7rs2ta81hm" path="res://Assets/Quests/map_marker/map_marker.tscn" id="29_map_marker"]
-[ext_resource type="PackedScene" path="res://Assets/UI/talk_box/talk_box.tscn" id="33_talk_box"]
 [ext_resource type="Script" uid="uid://dkpkc26vqp16v" path="res://Assets/Landscape/shore/shore_baker.gd" id="34_shore_baker"]
 [ext_resource type="PackedScene" uid="uid://b2ghm848ugj4w" path="res://Assets/Landscape/islands/sm_island_center_32x32.fbx" id="42_i5cs1"]
 [ext_resource type="PackedScene" uid="uid://cooxvf8worfh6" path="res://Assets/Landscape/islands/sm_island_edge_16x16.fbx" id="43_cnf3h"]
@@ -42,16 +34,12 @@
 [ext_resource type="PackedScene" path="res://Assets/Items/key/key.tscn" id="55_2r5vj"]
 [ext_resource type="PackedScene" uid="uid://c7qs5gjgfihdw" path="res://Assets/Landscape/architecture/sm_bridge_01_a.fbx" id="56_bwgkw"]
 [ext_resource type="PackedScene" uid="uid://b7h4qd0bbash4" path="res://Assets/Landscape/architecture/bridge_lock.tscn" id="57_c7or3"]
-[ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
 [ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="91_pickup"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
-[ext_resource type="PackedScene" path="res://Assets/UI/harpoon_button/harpoon_button.tscn" id="93_harpoon_button"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/harpoon.tres" id="94_harpoon_item"]
 [ext_resource type="Script" uid="uid://bdhc1006ybcng" path="res://Assets/Landscape/islands/island_grid.gd" id="95_island_grid"]
-[ext_resource type="PackedScene" path="res://Assets/UI/crank/crank.tscn" id="96_crank"]
 [ext_resource type="PackedScene" path="res://Assets/Items/booster/booster.tscn" id="97_booster"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/lever/lever.tscn" id="98_lever"]
-[ext_resource type="PackedScene" path="res://Assets/UI/hook_button/hook_button.tscn" id="99_hook_button"]
 [ext_resource type="PackedScene" path="res://Assets/NPCs/raft_npc/raft_npc.tscn" id="100_raft_npc"]
 [ext_resource type="Script" path="res://Assets/Items/towable/tow_goal.gd" id="101_tow_goal"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/hook.tres" id="99_hook_item"]
@@ -59,6 +47,7 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
 [ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/sea_urchin/sea_urchin.tscn" id="103_sea_urchin"]
+[ext_resource type="PackedScene" path="res://Assets/UI/ui_layout.tscn" id="200_ui_layout"]
 
 [sub_resource type="Curve3D" id="Curve3D_current_test"]
 _data = {
@@ -273,34 +262,12 @@ count = 99
 
 [node name="UI and PostProcess" type="Node" parent="." unique_id=58599448]
 
-[node name="StartScreen" parent="UI and PostProcess" unique_id=2112618694 instance=ExtResource("7_start")]
-
-[node name="GameOver" parent="UI and PostProcess" unique_id=633694080 instance=ExtResource("27_game_over")]
-
 [node name="GameView" type="Node" parent="UI and PostProcess" unique_id=1016146137]
 script = ExtResource("21_game_view")
 
-[node name="TalkBox" parent="UI and PostProcess" unique_id=272770690 instance=ExtResource("33_talk_box")]
-
 [node name="Dither" parent="UI and PostProcess" unique_id=1041423395 instance=ExtResource("4_dither")]
 
-[node name="Helm" parent="UI and PostProcess" unique_id=1401139767 instance=ExtResource("3_helm")]
-
-[node name="WindVane" parent="UI and PostProcess" unique_id=1472540336 instance=ExtResource("5_vane")]
-
-[node name="Logbook" parent="UI and PostProcess" unique_id=1838272232 instance=ExtResource("6_logbook")]
-
-[node name="BombButton" parent="UI and PostProcess" unique_id=1236485803 instance=ExtResource("24_bomb_button")]
-
-[node name="JarButton" parent="UI and PostProcess" unique_id=1744983952 instance=ExtResource("90_jar_button")]
-
-[node name="HarpoonButton" parent="UI and PostProcess" unique_id=2045448758 instance=ExtResource("93_harpoon_button")]
-
-[node name="HookButton" parent="UI and PostProcess" unique_id=585324968 instance=ExtResource("99_hook_button")]
-
-[node name="Crank" parent="UI and PostProcess" unique_id=379339131 instance=ExtResource("96_crank")]
-
-[node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("25_health")]
+[node name="UILayout" parent="UI and PostProcess" instance=ExtResource("200_ui_layout")]
 
 [node name="Islands" type="Node" parent="." unique_id=263895800]
 script = ExtResource("95_island_grid")

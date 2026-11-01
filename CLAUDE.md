@@ -873,6 +873,16 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   empty slots dashed and faint, as the hold's. Page dots at the bottom (`_draw_page_dots`, `DOTS_HEIGHT`).
   **Swipe** to turn (`_gui_input`: where the finger came down is kept; lifted ≥ `SWIPE` 40 px sideways → `turn_page`,
   left = next; less = a tap, which on page 0 equips a bomb or trap slot as before). It remembers its page.
+- **The UI layout scene** (Enrico, Nov 2026: to place all the UI in one view, like a master widget in UMG;
+  `Assets/UI/ui_layout.tscn`, root `UILayout`, a plain Node): it instances every UI element (`Helm`, `Crank`,
+  `BombButton`, `JarButton`, `HarpoonButton`, `HookButton`, `Logbook`, `Health`, `WindVane`, `TalkBox`, `GameOver`,
+  `StartScreen`) and holds **`ItemSlots`** (CanvasLayer 95) with two `ReferenceRect` frames, **`SlotA`** / **`SlotB`**
+  (groups `item_slot_a` / `item_slot_b`, editor-only borders orange / blue, mouse ignored): `Hud.place_item_button`
+  copies the anchors and offsets of the slot's frame onto the item button (place and size); without them it falls back
+  on `ITEM_BUTTON_TOP`. **Each level instances only `UILayout`** under `UI and PostProcess` (next to `GameView` and
+  `Dither`, which stay in the level); moving things in `ui_layout.tscn` moves them in every level. The names stay the
+  same, so `game_view.gd` (find_child by name, owned = false) and everything else still find them. New UI goes into
+  this scene, not into the levels. (The open book is still centred by `logbook.gd`.)
 - **The UI is drawn in the editor too** (Enrico: to place and arrange it himself): `helm.gd`, `wind_vane.gd`,
   `book_icon.gd`, `book.gd`, `health.gd` and `bomb_button.gd` are `@tool`; in the editor (`Engine.is_editor_hint()`) `_gui_input`
   and `_process` return at once (no touches, keys, boat, wind or sounds), so they only draw: the wheel with the

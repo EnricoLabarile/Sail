@@ -11,22 +11,11 @@
 [ext_resource type="PackedScene" uid="uid://46d6jucney4i" path="res://Assets/Landscape/islands/sm_island_01_a.fbx" id="13_ug3rh"]
 [ext_resource type="PackedScene" uid="uid://w4l1206j8gt3" path="res://Assets/Landscape/islands/sm_island_02_a.fbx" id="14_663nb"]
 [ext_resource type="PackedScene" uid="uid://boiuwov1823vx" path="res://Assets/Landscape/islands/sm_island_03_a.fbx" id="15_s2gd6"]
-[ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="19_wqlgv"]
-[ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="20_m3onn"]
 [ext_resource type="Script" uid="uid://dte3lbhusmsjc" path="res://Assets/Post_Process/game_view.gd" id="21_uvb2l"]
-[ext_resource type="PackedScene" path="res://Assets/UI/talk_box/talk_box.tscn" id="22_m7mlc"]
 [ext_resource type="PackedScene" uid="uid://bba4hwropmrh4" path="res://Assets/Post_Process/dither/dither.tscn" id="23_d8mco"]
-[ext_resource type="PackedScene" path="res://Assets/UI/helm.tscn" id="24_l7bnf"]
-[ext_resource type="PackedScene" uid="uid://bhqupmdfm8my" path="res://Assets/UI/wind_vane.tscn" id="25_v60ju"]
-[ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="26_jqmww"]
-[ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="27_35spf"]
-[ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="28_f8m4f"]
-[ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="90_jar_button"]
 
 [ext_resource type="Script" path="res://Assets/Landscape/gust/gust_spawner.gd" id="99_gust_spawner"]
-[ext_resource type="PackedScene" path="res://Assets/UI/harpoon_button/harpoon_button.tscn" id="93_harpoon_button"]
-[ext_resource type="PackedScene" path="res://Assets/UI/hook_button/hook_button.tscn" id="99_hook_button"]
-[ext_resource type="PackedScene" path="res://Assets/UI/crank/crank.tscn" id="96_crank"]
+[ext_resource type="PackedScene" path="res://Assets/UI/ui_layout.tscn" id="200_ui_layout"]
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
 [node name="Core" type="Node" parent="." unique_id=70268906]
@@ -155,34 +144,12 @@ merchant_name = "Test Merchant"
 
 [node name="UI and PostProcess" type="Node" parent="." unique_id=58599448]
 
-[node name="StartScreen" parent="UI and PostProcess" unique_id=2112618694 instance=ExtResource("19_wqlgv")]
-
-[node name="GameOver" parent="UI and PostProcess" unique_id=633694080 instance=ExtResource("20_m3onn")]
-
 [node name="GameView" type="Node" parent="UI and PostProcess" unique_id=1016146137]
 script = ExtResource("21_uvb2l")
 
-[node name="TalkBox" parent="UI and PostProcess" unique_id=272770690 instance=ExtResource("22_m7mlc")]
-
 [node name="Dither" parent="UI and PostProcess" unique_id=1041423395 instance=ExtResource("23_d8mco")]
 
-[node name="Helm" parent="UI and PostProcess" unique_id=1401139767 instance=ExtResource("24_l7bnf")]
-
-[node name="WindVane" parent="UI and PostProcess" unique_id=1472540336 instance=ExtResource("25_v60ju")]
-
-[node name="Logbook" parent="UI and PostProcess" unique_id=1838272232 instance=ExtResource("26_jqmww")]
-
-[node name="BombButton" parent="UI and PostProcess" unique_id=1236485803 instance=ExtResource("27_35spf")]
-
-[node name="JarButton" parent="UI and PostProcess" instance=ExtResource("90_jar_button")]
-
-[node name="HarpoonButton" parent="UI and PostProcess" instance=ExtResource("93_harpoon_button")]
-
-[node name="HookButton" parent="UI and PostProcess" instance=ExtResource("99_hook_button")]
-
-[node name="Crank" parent="UI and PostProcess" instance=ExtResource("96_crank")]
-
-[node name="Health" parent="UI and PostProcess" unique_id=914720043 instance=ExtResource("28_f8m4f")]
+[node name="UILayout" parent="UI and PostProcess" instance=ExtResource("200_ui_layout")]
 
 [node name="GustSpawner" type="Node3D" parent="."]
 script = ExtResource("99_gust_spawner")

@@ -13,8 +13,10 @@ extends Node
 ## and "hidden_while_talking" (the wind vane and the hearts).
 
 ## Where the A and B item buttons sit (Enrico's Zelda-like slots, Inventory.equipped_a / _b): each button (bomb,
-## jar, harpoon) moves to the place of the slot its thing is in. Their Control's offset_top, from the bottom of the
-## screen (they're 80 px tall): A above, B below it.
+## jar, harpoon, hook) moves to the place of the slot its thing is in. The places are two frames in the UI layout
+## scene (Assets/UI/ui_layout.tscn: `ItemSlots/SlotA` and `SlotB`, in the groups "item_slot_a" / "item_slot_b"):
+## move or resize them there and every button follows. If they can't be found, these offsets (from the bottom-right
+## corner) are used: A above, B below it.
 const ITEM_BUTTON_TOP := {"a": -252.0, "b": -162.0}
 
 const GROUPS := ["hidden_at_start", "hidden_while_talking"]   # every group of icons this looks after
@@ -31,10 +33,23 @@ func set_hidden(reason: String, groups: Array, hidden: bool) -> void:
 	refresh()
 
 
-## Puts an item button (its Control) in the place of `slot` ("a" or "b"; "" leaves it where it is).
+## Puts an item button (its Control) in the place of `slot` ("a" or "b"; "" leaves it where it is): the same anchors
+## and offsets as that slot's frame in ui_layout.tscn, so it takes its place and its size.
 func place_item_button(button: Control, slot: String) -> void:
 	if not ITEM_BUTTON_TOP.has(slot):
 		return
+	var frame := get_tree().get_first_node_in_group("item_slot_" + slot) as Control
+	if frame:
+		button.anchor_left = frame.anchor_left
+		button.anchor_top = frame.anchor_top
+		button.anchor_right = frame.anchor_right
+		button.anchor_bottom = frame.anchor_bottom
+		button.offset_left = frame.offset_left
+		button.offset_top = frame.offset_top
+		button.offset_right = frame.offset_right
+		button.offset_bottom = frame.offset_bottom
+		return
+	# No layout scene: the old fixed places.
 	var height := button.offset_bottom - button.offset_top
 	button.offset_top = ITEM_BUTTON_TOP[slot]
 	button.offset_bottom = button.offset_top + height

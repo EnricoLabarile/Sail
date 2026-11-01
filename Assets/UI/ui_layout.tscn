@@ -1,0 +1,75 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="1_start"]
+[ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="2_game_over"]
+[ext_resource type="PackedScene" path="res://Assets/UI/talk_box/talk_box.tscn" id="3_talk_box"]
+[ext_resource type="PackedScene" path="res://Assets/UI/helm.tscn" id="4_helm"]
+[ext_resource type="PackedScene" uid="uid://bhqupmdfm8my" path="res://Assets/UI/wind_vane.tscn" id="5_vane"]
+[ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="6_logbook"]
+[ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="7_bomb_button"]
+[ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="8_jar_button"]
+[ext_resource type="PackedScene" path="res://Assets/UI/harpoon_button/harpoon_button.tscn" id="9_harpoon_button"]
+[ext_resource type="PackedScene" path="res://Assets/UI/hook_button/hook_button.tscn" id="10_hook_button"]
+[ext_resource type="PackedScene" path="res://Assets/UI/crank/crank.tscn" id="11_crank"]
+[ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="12_health"]
+
+[node name="UILayout" type="Node"]
+
+[node name="ItemSlots" type="CanvasLayer" parent="."]
+layer = 95
+
+[node name="SlotA" type="ReferenceRect" parent="ItemSlots" groups=["item_slot_a"]]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -94.0
+offset_top = -252.0
+offset_right = -14.0
+offset_bottom = -172.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+border_color = Color(1, 0.6, 0.1, 1)
+border_width = 2.0
+
+[node name="SlotB" type="ReferenceRect" parent="ItemSlots" groups=["item_slot_b"]]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -94.0
+offset_top = -162.0
+offset_right = -14.0
+offset_bottom = -82.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+border_color = Color(0.1, 0.6, 1, 1)
+border_width = 2.0
+
+[node name="Helm" parent="." instance=ExtResource("4_helm")]
+
+[node name="Crank" parent="." instance=ExtResource("11_crank")]
+
+[node name="BombButton" parent="." instance=ExtResource("7_bomb_button")]
+
+[node name="JarButton" parent="." instance=ExtResource("8_jar_button")]
+
+[node name="HarpoonButton" parent="." instance=ExtResource("9_harpoon_button")]
+
+[node name="HookButton" parent="." instance=ExtResource("10_hook_button")]
+
+[node name="Logbook" parent="." instance=ExtResource("6_logbook")]
+
+[node name="Health" parent="." instance=ExtResource("12_health")]
+
+[node name="WindVane" parent="." instance=ExtResource("5_vane")]
+
+[node name="TalkBox" parent="." instance=ExtResource("3_talk_box")]
+
+[node name="GameOver" parent="." instance=ExtResource("2_game_over")]
+
+[node name="StartScreen" parent="." instance=ExtResource("1_start")]
