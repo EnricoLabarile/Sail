@@ -34,6 +34,9 @@ extends Node3D
 @export var take_up_rate := 3.75            # how quickly they take up and let go as a push starts or ends
 @export var bite := 5.25               # how quickly her speed catches up with their push (the sail fills slower)
 @export var paddle_radius := 0.7       # metres: the wheels' size (to turn them as fast as the water goes by)
+## How fast the wheels LOOK like they turn, as a share of "as fast as the water goes by" (Enrico: at her top speed the
+## real rate was ~4.5 turns a second, a blur). Only the look and the splashes: her speed doesn't change. 1 = real.
+@export var spin_scale := 0.35
 @export var half_beam := 1.75          # metres from her middle to each wheel (turning, the two go at different speeds)
 
 var push_left := 0.0      # seconds of battery left (0 = empty: they don't push)
@@ -137,12 +140,14 @@ func update(dt: float) -> void:
 func spin_wheels(dt: float) -> void:
 	if not visible:
 		return
-	# 1. How fast (rad/s): the water's speed divided by the wheel's radius.
-	var pushed := push_speed() / paddle_radius
+	# 1. How fast (rad/s): the water's speed divided by the wheel's radius. Pushing, the speed the lever lets her
+	#    reach (push × its share: at the lever's 50% they turn half as fast as at 100%); else freewheeling with her
+	#    own speed. Then × spin_scale, so they don't turn into a blur.
+	var pushed := push_speed() * lever_share / paddle_radius
 	var freewheel := maxf(boat.speed, 0.0) / paddle_radius * 0.9
-	var base := maxf(pushed, freewheel)
+	var base := maxf(pushed, freewheel) * spin_scale
 	# 2. Turning left (turn_speed +), the right wheel is on the outside: faster; the left one slower.
-	var turn_part: float = boat.turn_speed * half_beam / paddle_radius * 0.9
+	var turn_part: float = boat.turn_speed * half_beam / paddle_radius * 0.9 * spin_scale
 	# 3. Going forward, the top of a wheel moves toward the bow (-Z): a negative turn round X.
 	#    (wrapf keeps the angle between -PI and PI, so the number never grows huge)
 	update_splashes(dt, base)
