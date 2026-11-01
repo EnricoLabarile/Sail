@@ -40,14 +40,14 @@
 [ext_resource type="Script" uid="uid://bdhc1006ybcng" path="res://Assets/Landscape/islands/island_grid.gd" id="95_island_grid"]
 [ext_resource type="PackedScene" path="res://Assets/Items/booster/booster.tscn" id="97_booster"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/lever/lever.tscn" id="98_lever"]
-[ext_resource type="PackedScene" path="res://Assets/NPCs/raft_npc/raft_npc.tscn" id="100_raft_npc"]
-[ext_resource type="Script" path="res://Assets/Items/towable/tow_goal.gd" id="101_tow_goal"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/hook.tres" id="99_hook_item"]
+[ext_resource type="PackedScene" path="res://Assets/NPCs/raft_npc/raft_npc.tscn" id="100_raft_npc"]
 [ext_resource type="Script" uid="uid://droldh1rpljoo" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
+[ext_resource type="Script" uid="uid://bcjtpyaks0wvp" path="res://Assets/Items/towable/tow_goal.gd" id="101_tow_goal"]
 [ext_resource type="Texture2D" uid="uid://d1dgxpkpjo6gy" path="res://Assets/Landscape/sea_zones/SeaZones_Overworld.png" id="102_zones"]
 [ext_resource type="PackedScene" path="res://Assets/Dangers/sea_urchin/sea_urchin.tscn" id="103_sea_urchin"]
-[ext_resource type="PackedScene" path="res://Assets/UI/ui_layout.tscn" id="200_ui_layout"]
+[ext_resource type="PackedScene" uid="uid://btu70idp6hlib" path="res://Assets/UI/ui_layout.tscn" id="200_ui_layout"]
 
 [sub_resource type="Curve3D" id="Curve3D_current_test"]
 _data = {
@@ -234,14 +234,6 @@ item = ExtResource("99_hook_item")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34, 0, -2)
 rope_width = 0.3
 
-[node name="RaftNPCTest" parent="Gameplay" instance=ExtResource("100_raft_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, -10)
-
-[node name="TowGoalTest" type="Node3D" parent="Gameplay"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -30)
-script = ExtResource("101_tow_goal")
-goal_id = "castaway"
-
 [node name="BoosterTest" parent="Gameplay/Pickups" unique_id=1724946626 instance=ExtResource("97_booster")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 0, 34)
 
@@ -260,6 +252,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.861847, 0, 69.37944)
 item = ExtResource("92_jar_item")
 count = 99
 
+[node name="RaftNPCTest" parent="Gameplay" unique_id=609462272 instance=ExtResource("100_raft_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, -10)
+
+[node name="TowGoalTest" type="Node3D" parent="Gameplay" unique_id=37620220]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -30)
+script = ExtResource("101_tow_goal")
+goal_id = "castaway"
+
 [node name="UI and PostProcess" type="Node" parent="." unique_id=58599448]
 
 [node name="GameView" type="Node" parent="UI and PostProcess" unique_id=1016146137]
@@ -267,7 +267,7 @@ script = ExtResource("21_game_view")
 
 [node name="Dither" parent="UI and PostProcess" unique_id=1041423395 instance=ExtResource("4_dither")]
 
-[node name="UILayout" parent="UI and PostProcess" instance=ExtResource("200_ui_layout")]
+[node name="UILayout" parent="UI and PostProcess" unique_id=1933240321 instance=ExtResource("200_ui_layout")]
 
 [node name="Islands" type="Node" parent="." unique_id=263895800]
 script = ExtResource("95_island_grid")
@@ -1460,4 +1460,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -272, 0, -72)
 [node name="BridgeLock" parent="." unique_id=1040793887 instance=ExtResource("57_c7or3")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -272, 0, -72)
 key_id = "1"
-open_radius = 6.0
+sink_extra = 0.0
