@@ -23,6 +23,7 @@ extends Control
 const INK := Color("1b1a17")
 const PAPER := Color("ebe7dc")
 
+@export var icon_fps := 12.0      # frames a second for a flipbook icon (the hook's empty hand)
 @export var shimmer_time := 0.5      # by an NPC: the glint takes this long to sweep across…
 @export var shimmer_every := 1.6     # …once every this many seconds
 @export var equip_anim_time := 0.6   # seconds the rings pulse out when a bomb is put in hand
@@ -173,9 +174,12 @@ func _draw() -> void:
 			# An action can pick its own picture for the moment (the hook: empty or full hand, current_icon);
 			# otherwise the thing's own icon.
 			var icon := Inventory.icon_of(Inventory.equipped)
+			var frames := Vector2i(1, 1)          # a still picture; an action may give a flipbook's grid
 			if action != null and action.has_method("current_icon"):
 				icon = action.current_icon()
-			_draw_icon(icon, inked)
+			if action != null and action.has_method("current_icon_frames"):
+				frames = action.current_icon_frames()
+			_draw_icon(icon, inked, frames)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# Resting after a use: the ink pie of what's left of the wait.
@@ -216,13 +220,20 @@ func _draw_face(inked: bool, faint: bool) -> void:
 
 
 ## The thing in hand's icon in the middle of the face (in paper on the inked face).
-func _draw_icon(icon: Texture2D, inked: bool) -> void:
+## A FLIPBOOK icon (`frames` = its grid, columns x rows, more than 1 x 1): only one cell of the picture is drawn, the
+## next every 1 / icon_fps seconds, left to right then the next row, round and round (as the sea's flipbooks).
+func _draw_icon(icon: Texture2D, inked: bool, frames := Vector2i(1, 1)) -> void:
 	if icon == null:
 		return
 	var picture := _paper_copy(icon) if inked else icon
+	# One cell: its size, and which one it is now (counted from the time, so it plays by itself).
+	var cell := icon.get_size() / Vector2(frames)
+	var count := frames.x * frames.y
+	var frame := int(Time.get_ticks_msec() / 1000.0 * icon_fps) % count
+	var cell_rect := Rect2(Vector2(frame % frames.x, frame / frames.x) * cell, cell)
 	var height := 16.0                                    # in the hub's units (the face is 23.6 across)
-	var icon_size := icon.get_size() * (height / icon.get_size().y)
-	draw_texture_rect(picture, Rect2(-icon_size * 0.5, icon_size), false)
+	var icon_size := cell * (height / cell.y)
+	draw_texture_rect_region(picture, Rect2(-icon_size * 0.5, icon_size), cell_rect)
 
 
 ## The same picture with every pixel turned to paper (its see-through kept), made once per icon.

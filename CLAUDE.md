@@ -922,8 +922,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   every button: no more 0.12 s flash; `press_flash` is gone); Enter does the same on the PC (a click, no black).
   **The hook's pictures** (Enrico, Nov 2026: the hook is the core way to interact): an action may have `current_icon()`
   (the button draws it instead of the item's icon); the hook's (`hook_button.gd`, `nearest_in_reach()`): holding something
-  → `t_interaction_grabbing.png` (a robotic hand holding a ball), something in reach → `t_interaction_grabbable.png`
-  (the empty hand), else the hook's icon (both 32², Enrico's, in `Assets/UI/interaction_button/`).
+  → `t_interaction_grabbing.png` (a robotic hand holding a ball), something in reach → `t_interaction_grabbable_flipbook.png`
+  (the empty hand, a 4 × 4 flipbook of 32² frames: `current_icon_frames()` gives the grid, the button plays it at `icon_fps` 12), else the hook's icon (both 32², Enrico's, in `Assets/UI/interaction_button/`).
   **Item actions** (the interface every tool has: `ITEM`, `ICON`, `use()`, `can_use()`, `cooldown_share()`,
   `is_active()`; group `item_actions`): `bomb_button.gd`, `jar_button.gd`, `harpoon_button.gd`, `hook_button.gd`, still
   in ui_layout.tscn with their scenes' names (their numbers in the Inspector), but never drawn and never touched

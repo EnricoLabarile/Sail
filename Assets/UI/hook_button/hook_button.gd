@@ -21,7 +21,10 @@ const ITEM := "hook"
 const ICON := preload("res://Assets/Inventory/icons/hook.png")
 ## Enrico's two pictures for the interaction button (Nov 2026): the empty hand when something is in reach to grab, the
 ## hand holding a ball while she's towing something. (Nothing in reach: the hook's own icon.)
-const GRABBABLE_ICON := preload("res://Assets/UI/interaction_button/t_interaction_grabbable.png")
+## The empty hand is a FLIPBOOK (Enrico, Nov 2026): 16 frames of 32 x 32 in a 4 x 4 grid, played by the interaction
+## button (current_icon_frames tells it the grid). The still picture t_interaction_grabbable.png stays in the folder.
+const GRABBABLE_ICON := preload("res://Assets/UI/interaction_button/t_interaction_grabbable_flipbook.png")
+const GRABBABLE_FRAMES := Vector2i(4, 4)    # columns x rows of its grid
 const GRABBING_ICON := preload("res://Assets/UI/interaction_button/t_interaction_grabbing.png")
 
 var towed: Node3D = null             # what she's holding now (null = nothing)
@@ -90,6 +93,13 @@ func current_icon() -> Texture2D:
 	if nearest_in_reach() != null:
 		return GRABBABLE_ICON
 	return ICON
+
+
+## The grid of current_icon()'s picture, if it's a flipbook (columns x rows); (1, 1) = a still picture.
+func current_icon_frames() -> Vector2i:
+	if not is_holding() and nearest_in_reach() != null:
+		return GRABBABLE_FRAMES
+	return Vector2i(1, 1)
 
 
 ## Grabs the nearest towable thing whose reach her middle is in. Nothing in reach: nothing happens.
