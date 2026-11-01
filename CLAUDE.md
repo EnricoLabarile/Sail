@@ -310,7 +310,13 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (`let_go`); right end while running in the battery's last `recharge_window` 3 s → `refill()` (full again, she keeps
   100%); left end with the anchor up → `turn_off()` (anchor down, battery emptied) and springs back. **The battery**
   (`push_left`, `push_time` 20 s at 50%) drains at `drain_rate()` = share / 0.5 (100% twice as fast, 25% half);
-  shown as an ink arc along the plate's inner edge. Sounds: `Sfx.crank_click` every notch (`NOTCHES` 16, higher to the
+  shown (Enrico, Nov 2026; the arc along the plate is gone) as a **battery icon** (line art, ink: a box, a little knob,
+  a fill as long as the charge) inside the **knob** on the pivot (`KNOB_R` 10, paper with an ink ring), always level, not
+  turned with the lever; it **blinks** (`blink_per_second` 4) in the last `recharge_window` seconds while she runs.
+  **Hints beside the ends** (Enrico; `_draw_anchor`, `_draw_battery`, `ICON_DISTANCE` 38, `ICON_PAST_END` 0.3 rad past
+  each end; line art, ink with a thin paper halo so they read on the dark sea): a little **anchor on the left** while the
+  anchor is up (left end drops it), **on the right** while at anchor or tied up (right end weighs it); drifting with the
+  battery empty, also a small empty **battery on the right** (right end fills it). `PIVOT` (0, 26). Sounds: `Sfx.crank_click` every notch (`NOTCHES` 16, higher to the
   right), `Sfx.lever_done` at an end that does something (plus the anchor's), `Sfx.crank_unlock` when the battery can
   be filled again. Space on the PC does the same as the ends (off → on, running → off). The paddles push at
   boat.gd's `top_speed` × the share while running (Enrico: `paddle_speed` is gone, `top_speed` is the one speed knob); `turn_mult` while they push. **The wheels' look** (Enrico: too fast): they turn at (push × the lever's share, or

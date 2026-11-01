@@ -16,7 +16,12 @@ extends Control
 ## An end works once each time the lever gets there: to use it again, the lever must leave it first.
 ## The battery runs down faster the faster the lever lets her go (paddles.gd drain_rate).
 ##
-## The track along the plate's inner edge shows the battery left.
+## THE BATTERY (Enrico): a little battery icon, line art, inside the knob on the pivot; it stays level (it doesn't turn
+## with the lever) and its fill shows the charge left. In the last recharge_window seconds (when the lever all the way
+## right fills it again) it blinks.
+## THE HINTS (Enrico): a little anchor beside the end that works the anchor now: LEFT while the anchor is up (all the
+## way left drops it), RIGHT while she's at anchor or tied up (all the way right weighs it and starts her). Drifting with
+## the battery empty, also a little battery on the right (all the way right fills it and starts her).
 ## Its sounds (Enrico): a light click every notch (NOTCHES across the plate), higher toward the right
 ## (Sfx.crank_click); a firm snap at an end that turns her on, off or fills the battery (Sfx.lever_done, with the
 ## anchor's own sound); the unlock sound the moment the battery can be filled again (Sfx.crank_unlock).
@@ -29,9 +34,13 @@ extends Control
 
 @export var spring_back_speed := 3.0    # how fast it springs back to the middle (a whole half-swing in 1/3 s)
 @export var press_flash := 0.12         # a touch turns it black for this long (s), with a click (Enrico: every button)
+@export var blink_per_second := 4.0     # the battery blinks this fast in its last seconds (when it can be filled again)
 
 const MAX_ANGLE := deg_to_rad(45.0)     # how far the lever swings either way from upright
-const PIVOT := Vector2(0.0, 28.0)       # the pivot, in the drawing's units (from the box's middle; y down)
+const PIVOT := Vector2(0.0, 26.0)       # the pivot, in the drawing's units (from the box's middle; y down)
+const KNOB_R := 10.0                    # the knob on the pivot, with the battery inside it (Enrico)
+const ICON_DISTANCE := 38.0             # the anchor / battery hints: this far from the pivot…
+const ICON_PAST_END := 0.3              # …and this many radians past each end of the plate
 const PLATE_INNER := 26.0               # the plate's inner and outer edge (distance from the pivot)
 const PLATE_OUTER := 50.0
 const LEVER_LENGTH := 56.0              # from the pivot to the grip's top
@@ -217,23 +226,10 @@ func _draw() -> void:
 	draw_polyline(closed, ink, 1.6, true)
 	draw_line(at(0.0, PLATE_INNER), at(0.0, PLATE_OUTER), ink, 0.8)
 
-	# 2. The battery: a dotted track just inside the plate's inner edge, and over it an ink arc from the left as long
-	#    as the battery left.
-	var track := PLATE_INNER + 4.0
-	for i in 21:
-		draw_circle(at(lerpf(-MAX_ANGLE, MAX_ANGLE, i / 20.0), track), 0.5, grey(0, 0.6))
-	var paddles := null if Engine.is_editor_hint() else _paddles()
-	if paddles and paddles.push_left > 0.0:
-		var share: float = paddles.push_left / paddles.push_time
-		var arc := PackedVector2Array()
-		for i in 25:
-			arc.append(at(lerpf(-MAX_ANGLE, -MAX_ANGLE + share * 2.0 * MAX_ANGLE, i / 24.0), track))
-		draw_polyline(arc, paper if black else ink, 3.0)
-
 	# 3. The lever: a stem from the pivot, then the grip wound like a spring (an ink box with slanted stripes).
 	var angle := lever * MAX_ANGLE
 	draw_set_transform(size * 0.5 + PIVOT * k, angle, Vector2(k, k))   # now drawing in the lever's own frame (up = -y)
-	draw_line(Vector2.ZERO, Vector2(0, -24.0), ink, 3.0)
+	draw_line(Vector2(0, -KNOB_R), Vector2(0, -24.0), ink, 3.0)
 	var grip := Rect2(-5.0, -LEVER_LENGTH, 10.0, LEVER_LENGTH - 22.0)
 	draw_rect(grip, paper)
 	var y := grip.position.y + 2.0
@@ -241,8 +237,69 @@ func _draw() -> void:
 		draw_line(Vector2(-5.0, y + 3.0), Vector2(5.0, y), ink, 1.4)
 		y += 4.0
 	draw_rect(grip, ink, false, 1.6)
-	# The knob on the pivot: an ink ring round paper with an ink dot.
-	draw_circle(Vector2.ZERO, 7.0, ink)
-	draw_circle(Vector2.ZERO, 4.8, paper)
-	draw_circle(Vector2.ZERO, 1.8, ink)
+
+	# 4. The knob on the pivot (not turned: the battery inside stays level): paper with an ink ring.
+	draw_set_transform(size * 0.5 + PIVOT * k, 0.0, Vector2(k, k))
+	draw_circle(Vector2.ZERO, KNOB_R, ink if black else paper)
+	draw_arc(Vector2.ZERO, KNOB_R, 0.0, TAU, 32, ink, 1.6)
+	var paddles := null if Engine.is_editor_hint() else _paddles()
+	var share := 1.0                                   # the charge left, 0..1 (full in the editor)
+	if paddles:
+		share = paddles.push_left / paddles.push_time
+	if not _battery_blinked_off(paddles):
+		_draw_battery(Vector2.ZERO, 1.0, share, paper if black else ink)
+
+	# 5. The hints beside the ends (see the notes at the top).
+	draw_set_transform(size * 0.5, 0.0, Vector2(k, k))
+	var left_spot := at(-MAX_ANGLE - ICON_PAST_END, ICON_DISTANCE)
+	var right_spot := at(MAX_ANGLE + ICON_PAST_END, ICON_DISTANCE)
+	var boat := null if Engine.is_editor_hint() else get_tree().get_first_node_in_group("player_boat")
+	# Each hint is drawn twice: first thicker in paper (a thin halo, so it reads on the dark sea too), then in ink.
+	for pass_number in 2:
+		var color := paper if pass_number == 0 else ink
+		var extra := 2.0 if pass_number == 0 else 0.0
+		if boat == null or not boat.anchored:
+			_draw_anchor(left_spot, color, extra)                    # anchor up: all the way left drops it
+			if paddles and not paddles.is_running():
+				_draw_battery(right_spot, 0.7, 0.0, color, extra)   # drifting, battery empty: all the way right fills it
+		else:
+			_draw_anchor(right_spot, color, extra)                   # at anchor / tied up: all the way right weighs it
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## Is the battery in its blink's "off" moment? Only in the last seconds of a running battery.
+func _battery_blinked_off(paddles: Node) -> bool:
+	if paddles == null or not paddles.is_running() or not paddles.can_wind():
+		return false
+	var phase := fmod(Time.get_ticks_msec() / 1000.0 * blink_per_second, 1.0)
+	return phase > 0.5
+
+
+## A battery, line art like a phone's: a box with a little knob on its right and a fill inside as long as `share`
+## (0..1). `size_k` scales it (1 = the one in the knob, 12 units wide).
+## `extra` makes its lines that much thicker (for the paper halo).
+func _draw_battery(middle: Vector2, size_k: float, share: float, color: Color, extra := 0.0) -> void:
+	var body := Rect2(middle + Vector2(-6.5, -3.5) * size_k, Vector2(12.0, 7.0) * size_k)
+	draw_rect(body, color, false, 1.2 + extra)
+	var knob := Rect2(middle + Vector2(5.5, -1.5) * size_k, Vector2(1.5, 3.0) * size_k)
+	draw_rect(knob.grow(extra * 0.5), color)                                                # the little knob
+	if share > 0.0:
+		var inner := body.grow(-1.8 * size_k)
+		inner.size.x *= clampf(share, 0.0, 1.0)
+		draw_rect(inner, color)
+
+
+## An anchor, line art: a ring at the top, the shank, the stock across, and the two curved arms with their points.
+## `extra` makes its lines that much thicker (for the paper halo).
+func _draw_anchor(middle: Vector2, color: Color, extra := 0.0) -> void:
+	var w := 1.2 + extra
+	draw_arc(middle + Vector2(0, -5.0), 1.4, 0.0, TAU, 12, color, w)                       # the ring
+	draw_line(middle + Vector2(0, -3.6), middle + Vector2(0, 5.5), color, w)               # the shank
+	draw_line(middle + Vector2(-3.0, -2.0), middle + Vector2(3.0, -2.0), color, w)         # the stock
+	var arm := PackedVector2Array()
+	for i in 13:                                                                            # the arms: half a circle under it
+		var a := PI * i / 12.0
+		arm.append(middle + Vector2(cos(a) * 4.5, 1.5 + sin(a) * 4.0))
+	draw_polyline(arm, color, w)
+	draw_line(middle + Vector2(4.5, 1.5), middle + Vector2(5.5, 0.2), color, w)            # the points
+	draw_line(middle + Vector2(-4.5, 1.5), middle + Vector2(-5.5, 0.2), color, w)
