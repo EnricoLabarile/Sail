@@ -884,7 +884,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   hub was (the anchor is the crank's now: a whole turn back; Space still works it on the PC). What a tap does depends on
   the moment (`mode()`, the first that fits): **talking** → an arrow, `talk_box.tap()` (whole page, then the next, then
   close); **near an NPC not yet talked to** (`boat.npc_to_talk_to()`) → a speech bubble with the glint (`shimmer_time`
-  0.5 / `shimmer_every` 1.6) → `npc.start_talk()`; **over a fishing spot** (`boat.over_fishing_spot()`) → a question
+  0.5 / `shimmer_every` 1.6) → the anchor drops (`boat.toggle_anchor()`, unless already down or tied up: Enrico, the boat
+  stops for the talk) and `npc.start_talk()`; **over a fishing spot** (`boat.over_fishing_spot()`) → a question
   mark, only a hint (fish by anchoring with the crank); **a thing in hand** (`Inventory.equipped`) → its icon on the
   light face, inked with a paper icon while `is_active()` (the hook holding, a harpoon out), the ink pie from
   `cooldown_share()`, the two rings when a bomb is put in hand (`equip_anim_time`, `equip_ring_grow`), a tap → its

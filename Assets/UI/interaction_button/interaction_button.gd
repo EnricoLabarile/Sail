@@ -4,7 +4,7 @@ extends Control
 ## was (the anchor is worked by the crank now). It's the ONE button for everything, and what it does depends on the
 ## moment (the first that fits, top to bottom):
 ##   1. someone is talking            -> an arrow: a tap shows the whole page, then the next one (talk_box.tap)
-##   2. near an NPC not yet talked to -> a speech bubble with a glint: a tap starts the talk (npc.start_talk)
+##   2. near an NPC not yet talked to -> a speech bubble with a glint: a tap drops the anchor and starts the talk
 ##   3. over a fishing spot           -> a question mark: only a hint (fish by dropping anchor with the crank)
 ##   4. a thing in hand               -> its icon (bomb, jar, harpoon, hook, trap): a tap uses it (its action's use())
 ##   5. nothing                       -> an empty face, faint
@@ -134,7 +134,12 @@ func press() -> void:
 			if box:
 				box.tap()
 		"talk_start":
-			boat.npc_to_talk_to().start_talk()
+			# Enrico: talking stops the boat, so the anchor goes down first (with its sound), unless it's
+			# already down or she's tied up at a pier. Before the talk opens: while talking the anchor is locked.
+			var npc: Node3D = boat.npc_to_talk_to()
+			if not boat.anchored:
+				boat.toggle_anchor()
+			npc.start_talk()
 		"item":
 			var action := current_action()
 			if action != null and action.can_use():
