@@ -1,6 +1,6 @@
 extends Node
 ## THE HUD'S VISIBILITY (the autoload "Hud", like a GameInstance subsystem in Unreal): decides whether the icons on
-## the screen (the wind vane, the hearts, the logbook button, the crank) show or not.
+## the screen (the wind vane, the hearts, the logbook button, the throttle lever) show or not.
 ##
 ## Several things want them hidden, each for its own reason, and they mustn't undo each other:
 ##   "start"  until "Set sail" (start_screen.gd)

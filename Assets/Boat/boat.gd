@@ -138,7 +138,7 @@ var bow_wave_strength := 0.0   # how solid the bow wave is now, 0..1 (eased towa
 var bow_wave_frame := 0.0      # the bow wave's flipbook frame, counting up
 var in_shallows := false     # land within shallows_width? (looked again every shallows_check_time seconds)
 var shallows_wait := 0.0     # seconds left before the next look
-## At anchor (or tied up at a pier)? She starts at anchor: a whole turn of the crank backward weighs it (crank.gd;
+## At anchor (or tied up at a pier)? She starts at anchor: the throttle lever pushed all the way right weighs it (crank.gd;
 ## Space too, on the PC). The screen's icons stay as they are (Enrico, Nov 2026: nothing is hidden at anchor any more).
 var anchored := true
 var held_back := 1.0        # her target speed × this (1 = free; a lever's rope sets less while she pulls it: lever.gd)
@@ -567,9 +567,13 @@ func _physics_process(dt: float) -> void:
 	if caught_eye != null:
 		update_caught(dt)
 		return
-	# the keyboard: Space / Enter works the anchor (the arrows turn the wheel, in ui/helm)
-	if Input.is_action_just_pressed("ui_accept"):
-		toggle_anchor()
+	# the keyboard (PC): Space does what the throttle lever's ends do: off → on (anchor up, battery full), running →
+	# off (anchor down). (Enter is the interaction button's; the arrows turn the wheel, in ui/helm.)
+	if Input.is_action_just_pressed("ui_accept") and Input.is_key_pressed(KEY_SPACE):
+		if paddles.is_running():
+			paddles.turn_off()
+		else:
+			paddles.turn_on()
 
 	var wind_from: Vector3 = Wind.from_vector()                 # the wind (Assets/Landscape/world/wind.gd)
 	# In the shallows (land within shallows_width metres) the sail gives less (sail.gd shallows_sail).
@@ -585,7 +589,7 @@ func _physics_process(dt: float) -> void:
 	# speed eases toward what the sail gives; the anchor takes her way off quickly
 	var target := top_speed * drive
 	var rate := anchor_bite if anchored else accel
-	# The paddle wheels (paddles.gd), wound by the crank: if they give more than the sail, she goes at their push,
+	# The paddle wheels (paddles.gd), run on their battery: if they give more than the sail, she goes at their push,
 	# picked up at their own (quicker) bite.
 	paddles.update(dt)
 	if paddles.push_speed() > target:
@@ -609,8 +613,8 @@ func _physics_process(dt: float) -> void:
 		target = minf(target, top_speed * npc_speed_limit)
 	# Held back by a rope (a lever she's hooked to, lever.gd sets held_back): her speed × that while it holds her.
 	target *= held_back
-	# The speed setting (Enrico: the crank held turned back, paddles.gd): she goes at that share of what she'd do,
-	# e.g. half a turn back = half speed. She slows or speeds up to it at her usual rate.
+	# The speed setting (Enrico: the throttle lever, paddles.gd): she goes at that share of what she'd do,
+	# e.g. the lever at rest in the middle = half speed. She slows or speeds up to it at her usual rate.
 	target *= paddles.speed_share()
 	speed += (target - speed) * minf(1.0, dt * rate)
 

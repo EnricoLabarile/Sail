@@ -1,11 +1,11 @@
 @tool
 extends Control
 ## THE INTERACTION BUTTON (Enrico, Nov 2026): the round button in the middle of the wheel, where the anchor's hub
-## was (the anchor is worked by the crank now). It's the ONE button for everything, and what it does depends on the
+## was (the anchor is worked by the throttle lever now). It's the ONE button for everything, and what it does depends on the
 ## moment (the first that fits, top to bottom):
 ##   1. someone is talking            -> an arrow: a tap shows the whole page, then the next one (talk_box.tap)
 ##   2. near an NPC not yet talked to -> a speech bubble with a glint: a tap drops the anchor and starts the talk
-##   3. over a fishing spot           -> a question mark: only a hint (fish by dropping anchor with the crank)
+##   3. over a fishing spot           -> a question mark: only a hint (fish by dropping anchor with the lever)
 ##   4. a thing in hand               -> its icon (bomb, jar, harpoon, hook, trap): a tap uses it (its action's use())
 ##   5. nothing                       -> an empty face, faint
 ## Every press flashes it black and clicks (Enrico's rule for every button).

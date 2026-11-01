@@ -5,7 +5,7 @@ extends Control
 ## - Drag round the wheel to steer: half a turn either way = full rudder. Let go and it spins back to the middle.
 ## - Its middle holds the INTERACTION BUTTON (Enrico, Nov 2026; Assets/UI/interaction_button, a child of this
 ##   Control in helm.tscn: it places itself on hub_middle() / hub_radius()). The wheel itself is no longer a button:
-##   the anchor is worked with the crank (a whole turn back, Assets/UI/crank).
+##   the anchor is worked with the throttle lever (all the way right / left, Assets/UI/crank).
 ## - At anchor (or tied up) the wheel stays on the screen (Enrico) but doesn't steer (the drag and the arrow keys
 ##   do nothing until the anchor is up).
 ## - While she's by an NPC or someone talks it's drawn darker, so the interaction button's speech bubble stands out.

@@ -1,40 +1,51 @@
 @tool
 extends Control
-## THE CRANK (up and to the left of the wheel), as in the HTML prototype's wound spring: it works the paddle wheels
-## (Assets/Boat/paddles.gd). Turn it clockwise with a finger: ONE FULL TURN winds the paddles and they push the boat
-## for a while (paddles.gd push_time). Let go before the turn is complete and the arm springs back, nothing wound.
-## Held turned ANTICLOCKWISE it SETS HER SPEED (Enrico): at the top = full speed, half a turn back = half speed, three
-## quarters back = a quarter, and so on (paddles.gd set_turned_back / speed_share). A WHOLE TURN back works the
-## ANCHOR (Enrico, Nov 2026: the only way to work it; boat.gd toggle_anchor): sailing, it drops it (so she stops); at
-## anchor, it weighs it. Let go, the arm springs back to the top: full speed again.
-## While the paddles push, winding (clockwise) is LOCKED, except in the last seconds of the push (paddles.gd
-## recharge_window, Enrico): then it can be wound again, so the push never runs out if you keep it up. The crank can
-## always be touched (to brake); clockwise turns while it's locked just do nothing.
-## The ring round the plate shows the push left.
-## Its sounds (Enrico): a clack for each of the gear's 16 teeth as it's wound, each a little higher, an octave up by
-## the end of the turn (Sfx.crank_click); and a snappy mechanical unlock the moment it can be wound again
-## (Sfx.crank_unlock). It's always on the screen (Enrico: the paddles are always fitted, and it works the anchor).
+## THE THROTTLE LEVER (Enrico, Nov 2026, from his sketch; it replaced the crank turned round, keeping its files and
+## its name in the scenes): a lever on a pivot at the bottom, swinging left and right over a curved plate. Drag it
+## with a finger; let go and its SPRING brings it back to the middle, always (also after reaching an end).
 ##
-## Drawn with code, in greys, like the wheel: its CanvasLayer (crank.tscn) sits UNDER the dither (95, the dither is
-## 100), so it comes out in paper-and-ink dots. The drawing is in the prototype's units (a 72 x 72 box round the
-## middle) scaled to this Control's size: a toothed gear with a dotted face, a hatched plate with three rivets, the
-## ring, and the arm with its knob.
-## @tool: drawn in the editor too, so you can place and size it (its place and size are this Control's in
-## crank.tscn); there it only draws.
+## Where it is sets the MOST she may go (paddles.gd set_lever_share; not a brake, she reaches it at her usual rate):
+##   all the way left = 0%, the middle (at rest) = 50%, all the way right = 100%, in a straight line in between.
+## The two ends do more:
+##   - ALL THE WAY RIGHT, while she's off (at anchor, tied up, or the battery empty): she TURNS ON: the anchor comes up
+##     (or she casts off) and the paddles' battery is full (paddles.turn_on). Then the lever springs back to the middle.
+##   - ALL THE WAY RIGHT, while she runs, in the battery's last seconds (paddles.recharge_window): the battery is full
+##     again (paddles.refill). The lever stays where the finger holds it (100%).
+##   - ALL THE WAY LEFT, while the anchor is up: she TURNS OFF: the anchor goes down (paddles.turn_off). Then the
+##     lever springs back to the middle.
+## An end works once each time the lever gets there: to use it again, the lever must leave it first.
+## The battery runs down faster the faster the lever lets her go (paddles.gd drain_rate).
+##
+## The track along the plate's inner edge shows the battery left.
+## Its sounds (Enrico): a light click every notch (NOTCHES across the plate), higher toward the right
+## (Sfx.crank_click); a firm snap at an end that turns her on, off or fills the battery (Sfx.lever_done, with the
+## anchor's own sound); the unlock sound the moment the battery can be filled again (Sfx.crank_unlock).
+##
+## Drawn with code, in greys, like the wheel: its CanvasLayer (crank.tscn) sits UNDER the dither, so it comes out in
+## paper-and-ink dots. The drawing is in its own units (a 72 x 72 box round the Control's middle), scaled to this
+## Control's size: the plate (a ring segment), the lever (a striped grip, like a spring) and the pivot's knob.
+## @tool: drawn in the editor too, so you can place and size it (its place and size are this Control's in crank.tscn).
 ## (In Unreal: a UMG widget with its own OnPaint and touch handling.)
 
-@export var spring_back_speed := 12.0   # rad/s the arm springs back when let go before a full turn
+@export var spring_back_speed := 3.0    # how fast it springs back to the middle (a whole half-swing in 1/3 s)
 @export var press_flash := 0.12         # a touch turns it black for this long (s), with a click (Enrico: every button)
 
-const TEETH := 16   # the gear's teeth: a clack each as it's wound
+const MAX_ANGLE := deg_to_rad(45.0)     # how far the lever swings either way from upright
+const PIVOT := Vector2(0.0, 28.0)       # the pivot, in the drawing's units (from the box's middle; y down)
+const PLATE_INNER := 26.0               # the plate's inner and outer edge (distance from the pivot)
+const PLATE_OUTER := 50.0
+const LEVER_LENGTH := 56.0              # from the pivot to the grip's top
+const NOTCHES := 16                     # clicks across the whole swing
+const END := 0.98                       # how close to an end (of 1) counts as there
 
-var crank_angle := 0.0        # the arm's angle (radians, 0 = pointing up, clockwise +; braking turns it below 0)
-var wound_so_far := 0.0       # how far this turn has got (radians, 0..TAU): at TAU the paddles are wound
+var lever := 0.0              # where it is: -1 all the way left, 0 the middle, +1 all the way right
 var drag_index := -1          # the finger on it (-1 = none)
-var last_a := 0.0             # the finger's angle round the middle a moment ago
+var last_a := 0.0             # the finger's angle round the pivot a moment ago
 var press_flash_left := 0.0   # seconds it stays black after a touch
-var teeth_clicked := 0        # teeth of this turn already clacked (0..TEETH)
-var was_free := true          # could it be wound a frame ago? (to hear the moment it unlocks)
+var notch := NOTCHES / 2      # the notch it's at (for the clicks)
+var at_left_end := false      # is it at an end now? (an end works once each time the lever gets there)
+var at_right_end := false
+var was_free := true          # could the battery be filled a frame ago? (to hear the moment it can)
 
 
 func _paddles() -> Node:
@@ -47,23 +58,30 @@ func _paddles() -> Node:
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
-	was_free = _can_wind()        # no unlock sound for the state it starts in
-
-
-## Can it be wound now? (paddles.gd: on, and not pushing, or in the last seconds of a push)
-func _can_wind() -> bool:
 	var paddles := _paddles()
-	return paddles != null and paddles.can_wind()
+	was_free = paddles == null or paddles.can_wind()   # no unlock sound for the state it starts in
 
 
-## How many screen pixels one of the prototype's units is.
+## How many screen pixels one of the drawing's units is.
 func _k() -> float:
 	return minf(size.x, size.y) / 72.0
 
 
-## Only a touch on the crank's round face counts (the square's corners let a touch through).
+## The pivot on the screen (in this Control's pixels).
+func _pivot() -> Vector2:
+	return size * 0.5 + PIVOT * _k()
+
+
+## The angle of a point round the pivot, measured from straight up, clockwise + (so right = +).
+func _angle_round_pivot(point: Vector2) -> float:
+	var off := point - _pivot()
+	return atan2(off.x, -off.y)
+
+
+## Only a touch on the plate and lever counts: within the lever's reach from the pivot, and not below the pivot.
 func _has_point(point: Vector2) -> bool:
-	return point.distance_to(size * 0.5) < 36.0 * _k() + 6.0
+	var off := point - _pivot()
+	return off.length() < (LEVER_LENGTH + 6.0) * _k() and off.y < 8.0 * _k()
 
 
 # ---- touching it ----
@@ -71,88 +89,72 @@ func _has_point(point: Vector2) -> bool:
 func _gui_input(e: InputEvent) -> void:
 	if Engine.is_editor_hint():
 		return
-	var c := size * 0.5
 	if e is InputEventScreenTouch:
 		if e.pressed and drag_index == -1:
-			# Every touch: black for a moment and a click (Enrico: every button), even while it's locked.
+			# Every touch: black for a moment and a click (Enrico: every button).
 			press_flash_left = press_flash
 			Sfx.button_press()
-			queue_redraw()
-			drag_index = e.index            # always: clockwise winds (when it can), anticlockwise sets her speed
-			last_a = (e.position - c).angle()
+			drag_index = e.index
+			last_a = _angle_round_pivot(e.position)
 			accept_event()
 		elif not e.pressed and e.index == drag_index:
-			drag_index = -1                 # let go: if the turn isn't complete, _process springs it back
+			drag_index = -1                 # let go: _process springs it back to the middle
 			accept_event()
 	elif e is InputEventScreenDrag and e.index == drag_index:
-		var a: float = (e.position - c).angle()
-		var turned := wrapf(a - last_a, -PI, PI)   # how far the finger went round since last time
+		var a := _angle_round_pivot(e.position)
+		var turned := wrapf(a - last_a, -PI, PI)   # how far the finger went round the pivot since last time
 		last_a = a
-		# On screen, clockwise is a growing angle. A huge jump is a glitch: ignored.
-		if turned > 0.0 and turned < 1.5:
-			wind(turned)                    # clockwise: winding (only while it can be wound)
-		elif turned < 0.0 and turned > -1.5:
-			turn_back(turned)               # anticlockwise: her speed (a whole turn: the anchor)
+		if absf(turned) < 1.5:              # a huge jump is a glitch: ignored
+			move_lever(turned / MAX_ANGLE)
 		accept_event()
 
 
-## Clockwise: winds the paddles, if it can be wound now (else the ratchet holds and nothing moves). Coming back from
-## braking (the arm below the top), it first just turns back up to the top.
-func wind(turned: float) -> void:
-	if crank_angle < 0.0:
-		crank_angle = minf(0.0, crank_angle + turned)
-		queue_redraw()
-		return
-	if not _can_wind():
-		return
-	wound_so_far += turned
-	crank_angle = wound_so_far
-	click_teeth()
-	if wound_so_far >= TAU:
-		_full_turn()
-	queue_redraw()
+## Moves the lever by `amount` (of the half-swing: 1 = from the middle to an end), clicks its notches and works the ends.
+func move_lever(amount: float) -> void:
+	lever = clampf(lever + amount, -1.0, 1.0)
+	click_notches()
+	check_ends()
 
 
-## Anticlockwise: the arm follows the finger backward (a turn that was being wound is lost). How far back it is sets her
-## speed (_process sends it every frame). A whole turn back: the anchor (_full_turn_back).
-func turn_back(turned: float) -> void:
-	wound_so_far = 0.0
-	teeth_clicked = 0
-	crank_angle += turned                   # the arm goes back with the finger (below 0)
-	if crank_angle <= -TAU:
-		_full_turn_back()
-	queue_redraw()
+## A light click for each notch passed, higher toward the right (notch n of NOTCHES at 2^(n/NOTCHES)).
+func click_notches() -> void:
+	var now := int(round((lever + 1.0) * 0.5 * NOTCHES))
+	if now != notch:
+		notch = now
+		Sfx.crank_click(notch, NOTCHES)
 
 
-## A whole turn back: the anchor goes down (or comes up if she's at anchor), as with the wheel's hub. The arm is back up
-## and the finger must come off and start again.
-func _full_turn_back() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat")
-	if boat:
-		boat.toggle_anchor()
-	crank_angle = 0.0
-	drag_index = -1
-
-
-## A clack for every tooth the arm has gone past since the last one (a quick finger can pass two in a frame),
-## each higher than the one before: tooth n of 16 at 2^(n/16), so the 16th, at the full turn, is an octave up.
-func click_teeth() -> void:
-	var teeth_now := mini(TEETH, int(wound_so_far / (TAU / TEETH)))
-	while teeth_clicked < teeth_now:
-		teeth_clicked += 1
-		Sfx.crank_click(teeth_clicked, TEETH)
-
-
-## A full turn: the paddles are wound, and the arm is back up, ready for the next turn.
-func _full_turn() -> void:
+## The ends: each works once when the lever gets there (it must leave it before it works again).
+func check_ends() -> void:
 	var paddles := _paddles()
-	if paddles:
-		paddles.wound()
-	wound_so_far = 0.0
-	crank_angle = 0.0
-	teeth_clicked = 0
-	was_free = false                        # now locked: the unlock sound comes when it's free again
-	drag_index = -1                         # the finger must come off and start a new turn
+	# All the way right.
+	if lever >= END and not at_right_end:
+		at_right_end = true
+		if paddles:
+			if not paddles.is_running():
+				paddles.turn_on()           # off: she starts (anchor up, battery full)…
+				Sfx.lever_done()
+				let_go()                    # …and the lever springs back to the middle
+			elif paddles.can_wind():
+				paddles.refill()            # running, battery nearly out: full again; she keeps the 100%
+				Sfx.lever_done()
+	elif lever < END:
+		at_right_end = false
+	# All the way left.
+	if lever <= -END and not at_left_end:
+		at_left_end = true
+		var boat := get_tree().get_first_node_in_group("player_boat")
+		if paddles and boat and not boat.anchored:
+			paddles.turn_off()              # she stops: anchor down…
+			Sfx.lever_done()
+			let_go()                        # …and the lever springs back to the middle
+	elif lever > -END:
+		at_left_end = false
+
+
+## The finger must come off: the spring takes the lever back to the middle.
+func let_go() -> void:
+	drag_index = -1
 
 
 func _process(dt: float) -> void:
@@ -160,24 +162,21 @@ func _process(dt: float) -> void:
 		return
 	if press_flash_left > 0.0:
 		press_flash_left = maxf(0.0, press_flash_left - dt)
-	# Let go: the arm springs back to the top (from a half wound turn, nothing is wound; from turning back, full speed again).
-	if drag_index == -1 and crank_angle != 0.0:
-		crank_angle = move_toward(crank_angle, 0.0, spring_back_speed * dt)
-		wound_so_far = maxf(0.0, crank_angle)
-		teeth_clicked = 0                   # the next turn starts low again (springing back is silent)
-	# Her speed: how far the arm is held back (0 = at the top, 1 = a whole turn back); let go, full speed again.
+	# Let go: the spring takes it back to the middle (silently).
+	if drag_index == -1 and lever != 0.0:
+		lever = move_toward(lever, 0.0, spring_back_speed * dt)
+		notch = int(round((lever + 1.0) * 0.5 * NOTCHES))
+		check_ends()                        # (only to notice it has left an end)
 	var paddles := _paddles()
 	if paddles:
-		var back := 0.0
-		if drag_index != -1 and crank_angle < 0.0:
-			back = -crank_angle / TAU
-		paddles.set_turned_back(back)
-	# The moment it can be wound again (the last seconds of the push, or the push over): the unlock sound, once.
-	var free := _can_wind()
-	if free and not was_free:
-		Sfx.crank_unlock()
-	was_free = free
-	queue_redraw()                          # the ring follows the push left every frame while it shows
+		# The most she may go: 0% all the way left, 50% in the middle, 100% all the way right.
+		paddles.set_lever_share(0.5 + 0.5 * lever)
+		# The moment the battery can be filled again (its last seconds, or empty): the unlock sound, once.
+		var free: bool = paddles.can_wind()
+		if free and not was_free:
+			Sfx.crank_unlock()
+		was_free = free
+	queue_redraw()                          # the battery track follows the battery every frame
 
 
 # ---- the drawing ----
@@ -187,70 +186,63 @@ func grey(v: float, alpha: float = 1.0) -> Color:
 	return Color(v / 255.0, v / 255.0, v / 255.0, alpha)
 
 
-## The gear's outline: 16 teeth round the middle, each a little trapezoid between radius 30.5 and 33.8.
-func gear_points() -> PackedVector2Array:
+## A point at `distance` from the pivot, at `angle` from straight up (clockwise +), in the drawing's units.
+func at(angle: float, distance: float) -> Vector2:
+	return PIVOT + Vector2(sin(angle), -cos(angle)) * distance
+
+
+## The plate's outline: along the outer edge left to right, then back along the inner edge.
+func plate_points() -> PackedVector2Array:
 	var points := PackedVector2Array()
-	var teeth := 16
-	for i in teeth:
-		var a := TAU * i / teeth
-		var step := TAU / teeth
-		points.append(Vector2(cos(a), sin(a)) * 30.5)                             # the gap between two teeth
-		points.append(Vector2(cos(a + step * 0.2), sin(a + step * 0.2)) * 33.8)   # up the tooth
-		points.append(Vector2(cos(a + step * 0.45), sin(a + step * 0.45)) * 33.8) # its top
-		points.append(Vector2(cos(a + step * 0.65), sin(a + step * 0.65)) * 30.5) # back down
+	var steps := 24
+	for i in steps + 1:
+		points.append(at(lerpf(-MAX_ANGLE, MAX_ANGLE, float(i) / steps), PLATE_OUTER))
+	for i in steps + 1:
+		points.append(at(lerpf(MAX_ANGLE, -MAX_ANGLE, float(i) / steps), PLATE_INNER))
 	return points
 
 
 func _draw() -> void:
 	var k := _k()
-	var middle := size * 0.5
-	var fade := 1.0                         # never pale now (Enrico): it can always be touched, to set her speed
-	var ink := grey(0, fade)
+	var ink := grey(0)
 	var paper := grey(255)
+	draw_set_transform(size * 0.5, 0.0, Vector2(k, k))
+	var black := press_flash_left > 0.0      # just touched: all of it black for a moment
 
-	# Just touched: the whole crank black for a moment.
-	if press_flash_left > 0.0:
-		draw_set_transform(middle, 0.0, Vector2(k, k))
-		draw_colored_polygon(gear_points(), grey(0))
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		return
-
-	# 1. The parts that turn with the arm: the gear (a mid grey, which the dither makes dotted, with an ink edge),
-	#    the plate (paper with a hatch of thin lines), three rivets.
-	draw_set_transform(middle, crank_angle, Vector2(k, k))
-	var gear := gear_points()
-	draw_colored_polygon(gear, grey(185, fade))
-	var closed := gear.duplicate()
-	closed.append(gear[0])
+	# 1. The plate: paper with an ink edge, the middle marked by a thin line (as in the sketch).
+	var plate := plate_points()
+	draw_colored_polygon(plate, ink if black else paper)
+	var closed := plate.duplicate()
+	closed.append(plate[0])
 	draw_polyline(closed, ink, 1.6, true)
-	draw_circle(Vector2.ZERO, 24.0, paper)
-	# the hatch: lines at 45 degrees, each cut to fit inside the plate (radius 23)
-	var c := -22.0
-	while c <= 22.0:
-		var half := sqrt(23.0 * 23.0 - c * c)
-		var across := Vector2(0.7071, -0.7071) * c       # how far this line is from the middle
-		var along := Vector2(0.7071, 0.7071) * half      # half its length, along the line
-		draw_line(across - along, across + along, grey(150, fade), 0.8)
-		c += 4.0
-	draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 48, ink, 1.4)
-	for r in [Vector2(0, 13), Vector2(11.3, -6.5), Vector2(-11.3, -6.5)]:
-		draw_circle(r, 1.5, ink)
+	draw_line(at(0.0, PLATE_INNER), at(0.0, PLATE_OUTER), ink, 0.8)
 
-	# 2. The ring that doesn't turn: a dotted track, and over it an ink arc as long as the push left.
-	draw_set_transform(middle, 0.0, Vector2(k, k))
-	for i in 36:
-		var a := TAU * i / 36.0
-		draw_circle(Vector2(cos(a), sin(a)) * 19.5, 0.5, grey(0, 0.6))
+	# 2. The battery: a dotted track just inside the plate's inner edge, and over it an ink arc from the left as long
+	#    as the battery left.
+	var track := PLATE_INNER + 4.0
+	for i in 21:
+		draw_circle(at(lerpf(-MAX_ANGLE, MAX_ANGLE, i / 20.0), track), 0.5, grey(0, 0.6))
 	var paddles := null if Engine.is_editor_hint() else _paddles()
 	if paddles and paddles.push_left > 0.0:
 		var share: float = paddles.push_left / paddles.push_time
-		draw_arc(Vector2.ZERO, 19.5, -PI / 2.0, -PI / 2.0 + share * TAU, 32, grey(0), 3.6)
+		var arc := PackedVector2Array()
+		for i in 25:
+			arc.append(at(lerpf(-MAX_ANGLE, -MAX_ANGLE + share * 2.0 * MAX_ANGLE, i / 24.0), track))
+		draw_polyline(arc, paper if black else ink, 3.0)
 
-	# 3. The arm and its knob, turning; the hub on top.
-	draw_set_transform(middle, crank_angle, Vector2(k, k))
-	draw_line(Vector2.ZERO, Vector2(0, -26), ink, 4.0)
-	draw_circle(Vector2(0, -26), 8.5 + 1.1, ink)
-	draw_circle(Vector2(0, -26), 8.5 - 1.1, paper)
-	draw_circle(Vector2(0, -26), 2.4, ink)
-	draw_circle(Vector2.ZERO, 4.5, ink)
+	# 3. The lever: a stem from the pivot, then the grip wound like a spring (an ink box with slanted stripes).
+	var angle := lever * MAX_ANGLE
+	draw_set_transform(size * 0.5 + PIVOT * k, angle, Vector2(k, k))   # now drawing in the lever's own frame (up = -y)
+	draw_line(Vector2.ZERO, Vector2(0, -24.0), ink, 3.0)
+	var grip := Rect2(-5.0, -LEVER_LENGTH, 10.0, LEVER_LENGTH - 22.0)
+	draw_rect(grip, paper)
+	var y := grip.position.y + 2.0
+	while y < grip.end.y - 3.0:                   # the spring's coils: slanted lines across the grip
+		draw_line(Vector2(-5.0, y + 3.0), Vector2(5.0, y), ink, 1.4)
+		y += 4.0
+	draw_rect(grip, ink, false, 1.6)
+	# The knob on the pivot: an ink ring round paper with an ink dot.
+	draw_circle(Vector2.ZERO, 7.0, ink)
+	draw_circle(Vector2.ZERO, 4.8, paper)
+	draw_circle(Vector2.ZERO, 1.8, ink)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

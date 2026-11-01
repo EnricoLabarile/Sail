@@ -37,7 +37,7 @@ const ITEMS_FOLDER := "res://Assets/Inventory/items"   # one ItemData .tres per 
 
 ## What she sets out with (Enrico: no bombs and no Aeolus Jars, she finds them; 9 traps, to try them).
 ## (The paddles aren't an item any more, Enrico: they're always fitted, boat's paddles.gd.)
-const START_ITEMS := {"trap": 9, "sail": 1}
+const START_ITEMS := {"trap": 9}   # (Enrico, Nov 2026: no sail any more; the paddles are always fitted)
 const START_ON: Array[String] = []     # of those, the ones switched on at the start (the sail is struck)
 const START_COINS := 10             # coins in the purse at the start (10 for now, Enrico: to try the floating shop)
 

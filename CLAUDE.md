@@ -299,7 +299,23 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   the wheel's hub (`turn_back` → `_full_turn_back` → `boat.toggle_anchor()`: drops it sailing, weighs it at anchor; the
   arm back up, the finger must come off). **The crank is never locked to the touch** (not pale): clockwise turns while
   the paddles push (outside `recharge_window`) just do nothing (`wind`); a half wound turn is lost when it turns back.
-  **The crank** (`Assets/UI/crank/`: `crank.tscn` CanvasLayer 95, group `hidden_at_start`, in game_view `DITHERED`, in
+  **THE THROTTLE LEVER (Enrico, Nov 2026, from his sketch; it replaced the crank turned round, same files `crank.tscn`
+  / `crank.gd` and node names; what follows about the crank and its winding is superseded):** a lever on a pivot at
+  the bottom swinging ±45° (`MAX_ANGLE`) over a curved plate (ring segment, `PLATE_INNER` 26 / `PLATE_OUTER` 50 units
+  from `PIVOT`), a striped grip like a spring, the knob on the pivot; `lever` −1..1, dragged by the finger's angle
+  round the pivot; let go, a **spring** brings it back to the middle (`spring_back_speed` 3), always. Its place sets the
+  most she may go (`paddles.set_lever_share`, `speed_share()`): left end 0%, middle 50%, right end 100%, linear. **Ends**
+  (each works once per arrival, `at_left_end` / `at_right_end`, `END` 0.98): right end while she's off (anchored, tied
+  up, or battery empty) → `paddles.turn_on()` (anchor up / cast off, battery full) and the lever springs back
+  (`let_go`); right end while running in the battery's last `recharge_window` 3 s → `refill()` (full again, she keeps
+  100%); left end with the anchor up → `turn_off()` (anchor down, battery emptied) and springs back. **The battery**
+  (`push_left`, `push_time` 20 s at 50%) drains at `drain_rate()` = share / 0.5 (100% twice as fast, 25% half);
+  shown as an ink arc along the plate's inner edge. Sounds: `Sfx.crank_click` every notch (`NOTCHES` 16, higher to the
+  right), `Sfx.lever_done` at an end that does something (plus the anchor's), `Sfx.crank_unlock` when the battery can
+  be filled again. Space on the PC does the same as the ends (off → on, running → off). The paddles push at
+  `paddle_speed` × the share while running; `turn_mult` while they push. **No sail any more** (Enrico: `START_ITEMS`
+  {trap: 9}; sail.gd and its files stay, unused, and the mast is hidden as the sail isn't aboard).
+  (Before:) **The crank** (`Assets/UI/crank/`: `crank.tscn` CanvasLayer 95, group `hidden_at_start`, in game_view `DITHERED`, in
   all 4 levels; Control `Button` 120 px, bottom-left anchored, offsets 6 / −392 / 126 / −272: up and left of the wheel,
   bigger than the old A/B buttons; `crank.gd`, `@tool`): **always on screen, at anchor too, and the only way to work the
   anchor** (a whole turn back, below; Nov 2026); the old drawing (gear, hatched plate,
@@ -745,7 +761,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   imp** (only out of the water: UP, HURT, STUNNED, DEFEATED; new state `STUNNED`, then it goes under; a bomb hits it
   stunned too; dead, its body is pulled in to be taken aboard). In the shader warm-up's `LATER`.
 - **Wind gusts** (Enrico; `Assets/Landscape/gust/`: `gust.tscn` + `gust.gd` (`@tool`), `gust.gdshader`, `gust.png` a 4 × 4 flipbook of 128² frames (three paper-and-ink gusts curling into spirals, whirling round a dashed ring; a stand-in made by `art_src/items/make_gust.py`)): `Picture` a 1 m PlaneMesh 0.08 m up scaled to `radius` × 2, unshaded, nearest, alpha-cut, no depth, render_priority 2, the sea's stencil read, its own `phase`; `Sensor` (Area3D mask layer 4, sized by `radius` 3 m, `_fit_sensor`). Her SpotSensor entering (not at anchor, tied up or sinking; again every time she comes back in) → `boat.boost(speed_multiplier 2, boost_time 1 s, boost_accel 4)` (boat.gd `boost_left`, `boost_multiplier`, `boost_accel`: her speed target × the multiplier whichever way she heads, gathered at that rate; cleared on respawn), `camera.shake_hard(shake_strength 0.2, shake_time 0.15)` and `Sfx.gust_whoosh()` (`gust_whoosh.ogg`, player `GustWhoosh` −12 dB: a very mild band-passed noise sweep, 0.6 s, made by `art_src/audio/make_whoosh.py`). **The picture turns with the wind**: its top points the way the wind blows (`face_the_wind`, `picture_turn_deg`), at start and on `Wind.direction_changed`. **They travel with the wind** (Enrico, Oct 2026: no longer placed on the map): `travel_speed` m/s downwind (`_process`, read from `Wind.from_vector()` every frame, so they turn with the wind; 0 = stays put, for one placed by hand). **The gust spawner** (`gust_spawner.gd`, a plain Node3D in every level: `Gameplay/Gusts/GustSpawner` in Overworld, at the root in the gyms; the old scatter is gone): once the boat has kept `full_speed_share` 0.95 of `top_speed` (not anchored or sinking) for `full_speed_time` 3 s in a row (`full_speed_for`; any slowing starts it again), a gust every `spawn_every_min/max` 0.8–1.6 s while fewer than `max_gusts` 3 are out (`gusts`): placed at a random point across the wind (`spread` 0.8 of the screen's half-width there, measured by `distance_to_screen_edge`: steps of 2 m until `camera.is_position_in_frustum` is false) and then pushed upwind to just past the screen's edge (+4 m), given `travel_speed` 9 m/s (she does 7 at top speed); freed once downwind of her and out of view, or 300 m away (`forget_finished_gusts`).
-- **Boosters** (Enrico; `Assets/Items/booster/`: `booster.tscn` + `booster.gd` (`@tool`); placed by hand, a test one
+- **Boosters** (Nov 2026, Enrico: they only refill the paddles' battery, `crank_refill` 5 s; no speed boost any more,
+  its `speed_multiplier` / `boost_time` / `boost_accel` are gone. Older notes follow.) (Enrico; `Assets/Items/booster/`: `booster.tscn` + `booster.gd` (`@tool`); placed by hand, a test one
   `Gameplay/Pickups/BoosterTest` at (−6.5, 0, 50) in Overworld, north of the start): an orb (stand-in: a 0.8 m white
   `SphereMesh`, toon_shade, 1.2 m up, bobbing `bob_height` 0.25 / `bob_speed` 2) and `Sensor` (Area3D mask layer 4,
   `reach` 3 m, `_fit_sensor`). Her SpotSensor entering (not at anchor, tied up or sinking) → `boat.boost(speed_multiplier

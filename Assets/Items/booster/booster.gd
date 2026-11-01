@@ -1,10 +1,8 @@
 @tool
 extends Node3D
 ## A BOOSTER (Enrico): an orb floating over the water, placed by hand. When the boat sails over it:
-##   - she goes faster for a while (her top speed × `speed_multiplier` for `boost_time` seconds: the gusts' boost,
-##     boat.gd boost(); it multiplies the push she already has, from the sail or the paddles);
-##   - the paddles' push gets `crank_refill` seconds more (if the paddles are on; never more than full: paddles.gd
-##     add_push), so chaining boosters keeps her going;
+##   - the paddles' battery gets `crank_refill` seconds more (never more than full: paddles.gd add_push), so
+##     chaining boosters keeps her going (Enrico, Nov 2026: it no longer makes her faster);
 ##   - a screen shake and a power-up sound.
 ## Then it's gone: invisible and switched off for `respawn_time` seconds, and then it comes back, ready again.
 ## (In Unreal: a pickup actor with an overlap volume that hides itself and re-enables on a timer.)
@@ -17,10 +15,7 @@ extends Node3D
 	set(value):
 		reach = value
 		_fit_sensor()
-@export var speed_multiplier := 2.0    # her top speed × this while it lasts
-@export var boost_time := 4.0          # seconds it lasts
-@export var boost_accel := 4.0         # how quickly she picks up the extra speed (her usual is boat.gd's accel)
-@export var crank_refill := 5.0        # seconds of push given to the paddles (if they're on)
+@export var crank_refill := 5.0        # seconds of battery given to the paddles
 @export var respawn_time := 30.0       # seconds it stays gone after being taken
 @export var shake_strength := 0.4      # the screen shake when she takes it (metres)…
 @export var shake_time := 0.25         # …and how long it lasts (seconds)
@@ -64,15 +59,14 @@ func _process(dt: float) -> void:
 	orb.position.y = orb_height + sin(time) * bob_height
 
 
-## The boat came over it: the boost, the paddles' refill, the shake and the sound; then it's gone for a while.
+## The boat came over it: the paddles' refill, the shake and the sound; then it's gone for a while.
 func _on_sensor_entered(area: Area3D) -> void:
 	var boat := area.get_parent() as Node3D
 	if boat == null or not boat.is_in_group("player_boat"):
 		return
 	if gone_left > 0.0 or boat.sinking or boat.anchored:
 		return                                  # gone, or she isn't sailing: nothing happens, it stays
-	boat.boost(speed_multiplier, boost_time, boost_accel)   # boat.gd: a higher top speed for a while
-	boat.paddles.add_push(crank_refill)                     # paddles.gd: more push (only if they're on)
+	boat.paddles.add_push(crank_refill)                     # paddles.gd: more battery
 	boat.camera.shake_hard(shake_strength, shake_time)      # boat_camera.gd
 	Sfx.booster()
 	disappear()
