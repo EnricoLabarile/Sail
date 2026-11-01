@@ -7,7 +7,7 @@ extends Node3D
 @export var top_speed := 20.0      # m/s with the sail at its best (Enrico: halved from 7, the gusts boost it; the prototype had ~4.2)
 @export var accel := 3.0            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
-@export var turn_rate := 2.25       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
+@export var turn_rate := 1.5       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
 @export var heel_max_deg := 5		    # how far she leans with the wind on the sail
 # (The sail itself, its curve, boom, belly, gathering up and trail, is its own script: sail.gd, on the Rig node.)
