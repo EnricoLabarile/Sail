@@ -37,7 +37,13 @@ extends Control
 ## @tool: drawn in the editor too, so you can place and size it (its place and size are this Control's in crank.tscn).
 ## (In Unreal: a UMG widget with its own OnPaint and touch handling.)
 
-@export var spring_back_speed := 3.0    # how fast it springs back to the middle (a whole half-swing in 1/3 s)
+## The spring inside (Enrico): let go, the lever is pulled back to the middle like a real spring, overshoots it a
+## little and wiggles to a stop. Stiffness = how hard the spring pulls (more = quicker and faster wiggles);
+## damping = how quickly the wiggle dies out (less = more wiggles, more = it just settles). With 80 and 7 it reaches
+## the middle in ~0.2 s from an end, swings about a quarter past it and settles after two or three wiggles.
+## (Keep the damping above ~5: with less, the swing past the middle could reach the left end.)
+@export var spring_stiffness := 80.0
+@export var spring_damping := 7.0
 @export var refill_show_time := 0.5    # seconds the filling takes to climb back when it's refilled (Enrico: seen filling, not at once)
 # The chevrons flowing left in the filling while she goes faster than the middle (the battery drains faster):
 @export var chevron_count := 7          # how many chevrons across the whole plate
@@ -59,6 +65,7 @@ const LEVER_LENGTH := 56.0              # from the pivot to the grip's top
 const NOTCHES := 16                     # clicks across the whole swing
 const END := 0.98                       # how close to an end (of 1) counts as there
 
+var lever_speed := 0.0       # how fast the lever is swinging on its spring (half-swings a second; only after letting go)
 var lever := 0.0              # where it is: -1 all the way left, 0 the middle, +1 all the way right
 var drag_index := -1          # the finger on it (-1 = none)
 var last_a := 0.0             # the finger's angle round the pivot a moment ago
@@ -122,6 +129,7 @@ func _gui_input(e: InputEvent) -> void:
 			# Every touch: a click; the lever is black while the finger holds it (Enrico: every button).
 			Sfx.button_press()
 			drag_index = e.index
+			lever_speed = 0.0               # the finger stops the spring's swing
 			held_time = 0.0                 # the boost's wait starts again
 			last_a = _angle_round_pivot(e.position)
 			var paddles := _paddles()
@@ -203,9 +211,16 @@ func _process(dt: float) -> void:
 		# Boosting: the chevrons flow left, quicker the further past the middle (0 at the middle, full at the right end).
 		var boost: float = (paddles_now.lever_share - 0.5) / 0.5
 		chevron_shift += dt * chevron_speed * boost / chevron_count
-	# Let go: the spring takes it back to the middle, clicking each notch it passes (Enrico), as when dragged.
-	if drag_index == -1 and lever != 0.0:
-		lever = move_toward(lever, 0.0, spring_back_speed * dt)
+	# Let go: the spring takes it back to the middle, overshoots and wiggles to a stop (Enrico), clicking each notch it
+	# passes, as when dragged. A spring with damping: the pull toward the middle grows with the distance from it, the
+	# damping brakes the swing; the speed changes by the two, then the lever moves by the speed.
+	if drag_index == -1 and (lever != 0.0 or lever_speed != 0.0):
+		var pull := -spring_stiffness * lever - spring_damping * lever_speed
+		lever_speed += pull * dt
+		lever = clampf(lever + lever_speed * dt, -1.0, 1.0)
+		if absf(lever) < 0.002 and absf(lever_speed) < 0.02:
+			lever = 0.0                     # still enough: it rests in the middle
+			lever_speed = 0.0
 		click_notches()
 		check_ends()                        # (only to notice it has left an end)
 	var paddles := _paddles()

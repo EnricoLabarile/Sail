@@ -309,7 +309,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   / `crank.gd` and node names; what follows about the crank and its winding is superseded):** a lever on a pivot at
   the bottom swinging ±45° (`MAX_ANGLE`) over a curved plate (ring segment, `PLATE_INNER` 26 / `PLATE_OUTER` 50 units
   from `PIVOT`), a striped grip like a spring, the knob on the pivot; `lever` −1..1, dragged by the finger's angle
-  round the pivot; let go, a **spring** brings it back to the middle (`spring_back_speed` 3), always, clicking each notch it passes (`click_notches`, as when dragged). Its place sets the
+  round the pivot; let go, a **spring** brings it back to the middle, always, clicking each notch it passes (`click_notches`, as when dragged): **a real spring that wiggles** (Enrico): `lever_speed` changes by −`spring_stiffness` 80 × lever − `spring_damping` 7 × lever_speed, so from an end it reaches the middle in ~0.2 s, swings about a quarter past it and settles after two or three wiggles (rest below 0.002; a grab stops the swing); the speed share follows the wiggle (keep the damping above ~5, or the swing could reach the left end). Its place sets the
   most she may go (`paddles.set_lever_share`, `speed_share()`): left end 0%, middle 50%, right end 100%, linear. **Ends**
   (each works once per arrival, `at_left_end` / `at_right_end`, `END` 0.98): right end while she's off (anchored, tied
   up, or battery empty) → `paddles.turn_on()` (anchor up / cast off, battery full) and the lever springs back
