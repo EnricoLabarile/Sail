@@ -1,11 +1,11 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b007tnjdl5asi"]
 
-[ext_resource type="Script" path="res://Assets/UI/crank/crank.gd" id="1_crank"]
+[ext_resource type="Script" uid="uid://b0px25jct80mb" path="res://Assets/UI/crank/crank.gd" id="1_crank"]
 
-[node name="Crank" type="CanvasLayer" groups=["hidden_at_start"]]
+[node name="Crank" type="CanvasLayer" unique_id=641738617 groups=["hidden_at_start"]]
 layer = 95
 
-[node name="Button" type="Control" parent="."]
+[node name="Button" type="Control" parent="." unique_id=2115182348]
 layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
@@ -16,3 +16,9 @@ offset_right = 126.0
 offset_bottom = -272.0
 grow_vertical = 0
 script = ExtResource("1_crank")
+chevron_count = null
+chevron_teeth = null
+chevron_speed = null
+refill_chevron_speed = null
+arrow_turn_deg = null
+arrow_loop_time = null

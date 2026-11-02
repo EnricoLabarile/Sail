@@ -42,11 +42,11 @@ extends Control
 # The chevrons flowing left in the filling while she goes faster than the middle (the battery drains faster):
 @export var chevron_count := 7          # how many chevrons across the whole plate
 @export var chevron_teeth := 3          # how many points each chevron column has, from the inner edge to the outer
-@export var chevron_speed := 1.2        # chevrons going by a second at full speed (slower just past the middle)
-@export var refill_chevron_speed := 3.0 # while it refills, the chevrons turn ">" and flow rightwards this fast (a second)
+@export var chevron_speed := 5        # chevrons going by a second at full speed (slower just past the middle)
+@export var refill_chevron_speed := 5 # while it refills, the chevrons turn ">" and flow rightwards this fast (a second)
 # The circular arrow in the knob when the battery can be filled:
 @export var arrow_turn_deg := 100.0     # how far it turns in one loop (then it starts again)
-@export var arrow_loop_time := 0.7      # seconds a loop takes
+@export var arrow_loop_time := 2.0      # seconds a loop takes
 
 const MAX_ANGLE := deg_to_rad(45.0)     # how far the lever swings either way from upright
 const PIVOT := Vector2(0.0, 26.0)       # the pivot, in the drawing's units (from the box's middle; y down)
