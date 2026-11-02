@@ -42,8 +42,8 @@ extends Control
 ## damping = how quickly the wiggle dies out (less = more wiggles, more = it just settles). With 80 and 7 it reaches
 ## the middle in ~0.2 s from an end, swings about a quarter past it and settles after two or three wiggles.
 ## (Keep the damping above ~5: with less, the swing past the middle could reach the left end.)
-@export var spring_stiffness := 80.0
-@export var spring_damping := 7.0
+@export var spring_stiffness := 160
+@export var spring_damping := 9.0
 @export var refill_show_time := 0.5    # seconds the filling takes to climb back when it's refilled (Enrico: seen filling, not at once)
 # The chevrons flowing left in the filling while she goes faster than the middle (the battery drains faster):
 @export var chevron_count := 7          # how many chevrons across the whole plate
