@@ -30,7 +30,6 @@
 [ext_resource type="PackedScene" uid="uid://ctmbupyadtu7w" path="res://Assets/Landscape/architecture/sm_tower_01_a.fbx" id="45_i5cs1"]
 [ext_resource type="PackedScene" uid="uid://cxyvsiocbqavr" path="res://Assets/Landscape/islands/sm_island_edge_32x16.fbx" id="45_pcmpt"]
 [ext_resource type="PackedScene" uid="uid://23afdjaes360" path="res://Assets/Landscape/islands/sm_island_center_16x16.fbx" id="46_klm3u"]
-[ext_resource type="Script" uid="uid://chulihs6hyy3x" path="res://Assets/Items/towable/towable.gd" id="49_oiq7i"]
 [ext_resource type="PackedScene" uid="uid://d0sdk8o8wvfxe" path="res://Assets/Items/barrel/barrel.tscn" id="49_to4lu"]
 [ext_resource type="PackedScene" path="res://Assets/Items/key/key.tscn" id="55_2r5vj"]
 [ext_resource type="PackedScene" uid="uid://c7qs5gjgfihdw" path="res://Assets/Landscape/architecture/sm_bridge_01_a.fbx" id="56_bwgkw"]
@@ -39,7 +38,6 @@
 [ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/harpoon.tres" id="94_harpoon_item"]
 [ext_resource type="Script" uid="uid://bdhc1006ybcng" path="res://Assets/Landscape/islands/island_grid.gd" id="95_island_grid"]
-[ext_resource type="PackedScene" path="res://Assets/Items/booster/booster.tscn" id="97_booster"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/lever/lever.tscn" id="98_lever"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/hook.tres" id="99_hook_item"]
 [ext_resource type="PackedScene" path="res://Assets/NPCs/raft_npc/raft_npc.tscn" id="100_raft_npc"]
@@ -63,8 +61,6 @@ _data = {
 "tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0)
 }
 point_count = 7
-
-[sub_resource type="BoxMesh" id="BoxMesh_8ksrx"]
 
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
@@ -230,36 +226,38 @@ land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
 [node name="Pickups" type="Node3D" parent="Gameplay" unique_id=1786065463]
 
 [node name="HookPickup" parent="Gameplay/Pickups" unique_id=1854585570 instance=ExtResource("91_pickup")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.6, 0, 56)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.050165, -3.8146973e-06, -3.6224442)
 item = ExtResource("99_hook_item")
 
 [node name="LeverTest" parent="Gameplay/Pickups" unique_id=399119077 instance=ExtResource("98_lever")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34, 0, -2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -157.84918, 0, -32.65285)
 rope_width = 0.3
 
-[node name="BoosterTest" parent="Gameplay/Pickups" unique_id=1724946626 instance=ExtResource("97_booster")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 0, 34)
-
 [node name="HarpoonPickup" parent="Gameplay/Pickups" unique_id=237842599 instance=ExtResource("91_pickup")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, 62)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.481476, 0, 157.68182)
 item = ExtResource("94_harpoon_item")
 count = 9
 
 [node name="AeolusJarPickup" parent="Gameplay/Pickups" unique_id=297391498 instance=ExtResource("91_pickup")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.776264, 0, 67.9648)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64.2625, 0, 34.317722)
+item = ExtResource("27_cra7r")
+count = 99
+
+[node name="AeolusJarPickup3" parent="Gameplay/Pickups" unique_id=941616171 instance=ExtResource("91_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 73.39917, 0, 36.897335)
 item = ExtResource("27_cra7r")
 count = 99
 
 [node name="AeolusJarPickup2" parent="Gameplay/Pickups" unique_id=891147415 instance=ExtResource("91_pickup")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.861847, 0, 69.37944)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.343323, 0, 165.06126)
 item = ExtResource("92_jar_item")
 count = 99
 
 [node name="RaftNPCTest" parent="Gameplay" unique_id=609462272 instance=ExtResource("100_raft_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, -10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.012848, 0, -92.173096)
 
 [node name="TowGoalTest" type="Node3D" parent="Gameplay" unique_id=37620220]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 139.30415, 0, -52.82539)
 script = ExtResource("101_tow_goal")
 goal_id = "castaway"
 
@@ -1454,7 +1452,7 @@ transform = Transform3D(0.99827325, 0, -0.05874306, 0, 1, 0, 0.05874306, 0, 0.99
 contents = ExtResource("27_cra7r")
 
 [node name="Key" parent="." unique_id=311401057 instance=ExtResource("55_2r5vj")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.004208, 1.612463, 52.99401)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.224045, 1.612463, 24.029308)
 key_id = "1"
 
 [node name="sm_bridge_01_a" parent="." unique_id=1021530131 instance=ExtResource("56_bwgkw")]
@@ -1464,10 +1462,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -272, 0, -72)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -272, 0, -72)
 key_id = "1"
 sink_extra = 0.0
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=866477700]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 40)
-mesh = SubResource("BoxMesh_8ksrx")
-
-[node name="Node3D" type="Node3D" parent="MeshInstance3D" unique_id=1284508284]
-script = ExtResource("49_oiq7i")
