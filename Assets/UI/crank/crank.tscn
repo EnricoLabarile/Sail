@@ -18,3 +18,7 @@ grow_vertical = 0
 script = ExtResource("1_crank")
 spring_stiffness = null
 spring_damping = null
+flywheel_speed = null
+overdrive_speed = null
+overdrive_time = null
+flywheel_weight = null

@@ -57,8 +57,8 @@ extends Control
 
 # The flywheel in the knob (turns a second; keep them under ~4: the phone may draw only 30 frames a second, and a wheel
 # turning much faster than that seems to stand still or go backwards):
-@export var flywheel_speed := 0.75      # turns a second with the lever in the middle (twice that all the way right, 0 all the way left)
-@export var overdrive_speed := 4.0      # turns a second in overdrive (started, or the battery refilled)
+@export var flywheel_speed := 1.0      # turns a second with the lever in the middle (twice that all the way right, 0 all the way left)
+@export var overdrive_speed := 3.0      # turns a second in overdrive (started, or the battery refilled)
 @export var overdrive_time := 1.5       # seconds of overdrive before it spins down to normal
 @export var flywheel_weight := 4.0      # how quickly its speed follows (more = lighter, it catches up sooner; less = heavier)
 
