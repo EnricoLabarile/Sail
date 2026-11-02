@@ -849,7 +849,12 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   **Towed NPCs** (`npc.gd`): `lines_after_delivery` (export), `towed`; `on_grabbed` (as if she left: `set_near_npc`
   false, so no speed limit, no talk, the bubble fades; the sensor and anchor ignore her while towed), `on_released`
   (near again if her SpotSensor overlaps, `get_overlapping_areas`; no auto-talk), `on_delivered` (lines =
-  `lines_after_delivery`, `boat.forget_talk_with(self)` so anchoring there talks again). **The castaway on the raft**
+  `lines_after_delivery`, `boat.forget_talk_with(self)` so anchoring there talks again, and `show_news()`).
+  **News** (Enrico, Nov 2026: so the player knows the goal was reached; any NPC, anything may call it): `npc.show_news()`
+  sets `has_news` and swaps the bubble's picture to `news_picture` (export, default `Assets/NPCs/npc/bubble_news.png`:
+  `bubble.png` with a "!" instead of the dots, a stand-in); while `has_news` (and not towed) the bubble shows and bobs
+  wherever the boat is, from afar too; `start_talk` calls `clear_news()` (back to `usual_picture`, read from the
+  material at start). **The castaway on the raft**
   (`Assets/NPCs/raft_npc/`: `raft_npc.tscn`, an inherited scene of `npc.tscn` with no script of its own: `Picture` a 5 m
   plane of `raft_npc.png` (96², a stand-in by `art_src/items/make_raft_npc.py`), the placeholder box hidden, a
   `Towable` (`tow_id` "castaway", `grab_reach` 8 = its `talk_radius`, since the anchor drops itself at the radius;

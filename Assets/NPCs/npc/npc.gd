@@ -42,6 +42,8 @@ extends Node3D
 @export var bob_height := 0.4      # metres the bubble goes up and down
 @export var bob_speed := 1.5       # bobs a second
 @export var fade_time := 0.3       # seconds to fade in or out
+## The bubble shown while it has news for the player (show_news): a "!" instead of the dots. Repaint it as you like.
+@export var news_picture: Texture2D = preload("res://Assets/NPCs/npc/bubble_news.png")
 
 var boat_near := false             # is the boat inside talk_radius now?
 var talking := false               # is the talk box showing this NPC's lines now?
@@ -49,6 +51,8 @@ var bubble_alpha := 0.0            # 0 = bubble hidden, 1 = fully shown
 var bubble_rest_y := 0.0           # the bubble's height as placed in npc.tscn (it bobs round it)
 var time := 0.0
 var towed := false                 # is the hook dragging it now? (then the boat doesn't count as near)
+var has_news := false              # something happened (show_news): the "!" bubble shows, from afar too, until she talks to it
+var usual_picture: Texture2D       # the bubble's own picture from npc.tscn (the dots), put back when the news is heard
 
 @onready var bubble: MeshInstance3D = $Bubble
 @onready var sensor: Area3D = $Sensor
@@ -61,6 +65,7 @@ func _ready() -> void:
 		_make_editor_disc()
 		return
 	bubble.material_override = bubble.material_override.duplicate()   # its own copy: each NPC fades on its own
+	usual_picture = bubble.material_override.albedo_texture
 	_set_bubble_alpha(0.0)
 	set_process(false)    # nothing to do until the boat comes near (the sensor switches it on: see _wake)
 	# The boat's SpotSensor (a small Area3D on the "sensors" layer) entering or leaving the radius tells us,
@@ -73,7 +78,10 @@ func _process(dt: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	# The bubble shows while the boat is near and no talk is going on; it fades in and out.
+	# With news it shows wherever the boat is (so she notices it from afar), until the talk starts.
 	var want := 1.0 if (boat_near and not talking and not _talked_to()) else 0.0
+	if has_news and not towed:
+		want = 1.0
 	bubble_alpha = move_toward(bubble_alpha, want, dt / fade_time)
 	if bubble_alpha <= 0.0:
 		bubble.visible = false
@@ -118,6 +126,7 @@ func start_talk() -> void:
 	if talk_box == null:
 		return
 	talking = true
+	clear_news()                          # she's come to hear it: back to the usual bubble
 	talk_box.open(speaker_name, portrait, lines, _on_talk_finished)
 
 
@@ -135,6 +144,23 @@ func _on_talk_finished() -> void:
 func _talked_to() -> bool:
 	var boat := get_tree().get_first_node_in_group("player_boat")
 	return boat != null and boat.has_talked_to(self)
+
+
+# ---- news ----
+
+## Something happened that the player should come and hear about (a TowGoal took it, a quest moved on…): the bubble
+## over its head shows a "!" (news_picture) and stays up wherever the boat is, until she starts talking to it.
+## Anything can call it (like a Blueprint event other actors call on an NPC).
+func show_news() -> void:
+	has_news = true
+	_set_bubble_picture(news_picture)
+	set_process(true)                     # the bubble fades in and bobs, even with the boat far away
+
+
+## The news has been heard (the talk started): the usual bubble again.
+func clear_news() -> void:
+	has_news = false
+	_set_bubble_picture(usual_picture)
 
 
 # ---- towed (connect its Towable child's signals to these: raft_npc.tscn does it) ----
@@ -161,17 +187,23 @@ func on_released() -> void:
 	set_process(true)
 
 
-## A TowGoal took it: from now on it says lines_after_delivery, and she may talk to it again at once.
+## A TowGoal took it: from now on it says lines_after_delivery, she may talk to it again at once, and the "!" bubble
+## tells her there's something to hear (show_news).
 func on_delivered(_goal: Node3D) -> void:
 	if not lines_after_delivery.is_empty():
 		lines = lines_after_delivery
 	var boat := get_tree().get_first_node_in_group("player_boat")
 	if boat and boat_near:
 		boat.forget_talk_with(self)       # it has something new to say
-	set_process(true)
+	show_news()
 
 
 # ---- helpers ----
+
+func _set_bubble_picture(picture: Texture2D) -> void:
+	var material: StandardMaterial3D = bubble.material_override
+	material.albedo_texture = picture
+
 
 func _set_bubble_alpha(alpha: float) -> void:
 	var material: StandardMaterial3D = bubble.material_override
