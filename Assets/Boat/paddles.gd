@@ -32,12 +32,12 @@ extends Node3D
 ## How much faster the battery runs down with the lever all the way right (the boost) than at rest in the middle
 ## (Enrico: a knob for it). 2 = twice as fast (as before), 1 = no extra cost, 3 = three times. Between the middle
 ## and the right end it grows in a straight line; below the middle it drains less, as before (25% = half as fast).
-@export var boost_drain := 2.0
+@export var boost_drain := 8.0
 ## Seconds the lever must be HELD before pushing it past the middle counts as a boost and drains faster (Enrico: the
 ## same move right refills the battery, so right after a refill or a grab it mustn't eat it at once). Counted from the
 ## grab and again from each refill (crank.gd sets `boost_counts`). Let go, the drain is back to normal at once, while
 ## the lever (and her speed) springs back to the middle.
-@export var boost_wait := 1.0
+@export var boost_wait := 0.25
 @export var recharge_window := 3.0     # the last seconds of the battery in which the lever, pushed right, fills it again (Enrico)
 @export var turn_mult := 1.5           # she turns this much quicker while they push
 @export var take_up_rate := 3.75            # how quickly they take up and let go as a push starts or ends
