@@ -29,6 +29,10 @@ extends Node3D
 
 
 @export var push_time := 20.0           # seconds a full battery keeps them pushing (at the lever's 50%)
+## How much faster the battery runs down with the lever all the way right (the boost) than at rest in the middle
+## (Enrico: a knob for it). 2 = twice as fast (as before), 1 = no extra cost, 3 = three times. Between the middle
+## and the right end it grows in a straight line; below the middle it drains less, as before (25% = half as fast).
+@export var boost_drain := 2.0
 @export var recharge_window := 3.0     # the last seconds of the battery in which the lever, pushed right, fills it again (Enrico)
 @export var turn_mult := 1.5           # she turns this much quicker while they push
 @export var take_up_rate := 3.75            # how quickly they take up and let go as a push starts or ends
@@ -102,9 +106,12 @@ func speed_share() -> float:
 	return lever_share
 
 
-## How fast the battery runs down (seconds of it per second): 1 at the lever's 50%, 2 at 100%, 0.5 at 25%.
+## How fast the battery runs down (seconds of it per second): 1 at the lever's 50%, boost_drain at 100%, 0.5 at 25%.
 func drain_rate() -> float:
-	return lever_share / 0.5
+	if lever_share <= 0.5:
+		return lever_share / 0.5                 # below the middle: slower, down to nothing at the left end
+	var past_middle := (lever_share - 0.5) / 0.5  # 0 at the middle, 1 at the right end
+	return lerpf(1.0, boost_drain, past_middle)
 
 
 ## A booster (Assets/Items/booster) adds `seconds` of battery, never more than full (push_time).
