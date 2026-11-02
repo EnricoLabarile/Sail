@@ -166,6 +166,7 @@ var boost_accel := 1.0      # how quickly she picks up speed while the boost las
 var berth: Node3D = null     # the pier's berth she's tied up at (null = not tied up)
 var calm_left := 0.0         # seconds left of the calm after casting off (no wind, no current)
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
+var heading_held := false          # turned with the wheel at anchor: she keeps that heading (the line doesn't swing her)
 var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
 var health := 3.0           # hearts left (0.5 = half a heart); set to max_hearts at start
 var sinking := false        # true from 0 hearts until she's back home (no sailing, no anchor)
@@ -257,6 +258,7 @@ func toggle_anchor() -> void:
 		cast_off()                   # tied up at a pier: the anchor button casts off
 		return
 	anchored = not anchored
+	heading_held = false             # a new anchoring (or none): the line swings her again until she's turned
 	if anchored:
 		anchor_point = bow_point()   # let go off the bow: it stays there
 		# Did it go down by a fishing spot? Each spot checks if the anchor is within its reach and, if it is,
@@ -408,6 +410,7 @@ func respawn() -> void:
 	caught_eye = null
 	fling_left = 0.0
 	rudder = 0.0
+	heading_held = false
 	anchored = true
 	anchor_point = bow_point()
 	sail.gather_up()
@@ -618,13 +621,20 @@ func _physics_process(dt: float) -> void:
 	target *= paddles.speed_share()
 	speed += (target - speed) * minf(1.0, dt * rate)
 
-	# She turns at the same rate whatever her speed, as in the prototype; not at anchor.
+	# She turns at the same rate whatever her speed, as in the prototype; at anchor too (on the spot).
 	var yaw_before := rotation.y
 	if berth != null:
 		glide_to_berth(dt)           # tied up at a pier: only gliding into place, nothing else moves her
 	else:
-		if not anchored:
-			rotate_y(-rudder * turn_rate * paddles.turn_factor() * dt)   # quicker while the paddles push
+		var turn: float = -rudder * turn_rate * paddles.turn_factor() * dt   # quicker while the paddles push
+		rotate_y(turn)
+		# At anchor too (Enrico, Nov 2026: turning her on the spot is handy, e.g. to aim a bomb): she pivots on her
+		# middle, and the anchor goes round her middle by the same turn, so it stays off her bow: the line still
+		# holds her where she is, and doesn't swing her back.
+		if anchored and turn != 0.0:
+			var middle := global_position
+			anchor_point = middle + (anchor_point - middle).rotated(Vector3.UP, turn)
+			heading_held = true      # and she keeps the heading she was given (see hold_at_anchor)
 		update_current(dt)
 		update_boiling(dt)
 		move_and_bounce(dt)
@@ -692,6 +702,17 @@ func rock_and_roll(dt: float) -> void:
 ## bow to the anchor, stern downstream. (The prototype's anchorPt.)
 func hold_at_anchor() -> void:
 	if not anchored:
+		return
+	# Turned with the wheel at anchor (heading_held): she keeps her heading, and the line only keeps her middle
+	# within reach of the anchor (rode + her bow), so the current can't carry her off nor swing her round.
+	if heading_held:
+		var off := global_position - anchor_point
+		off.y = 0.0
+		var reach := anchor_rode + bow_reach
+		if off.length() > reach:
+			global_position = anchor_point + off.normalized() * reach
+			speed = minf(speed, 0.0)
+			knock *= 0.5
 		return
 	var bow := bow_point()
 	var from_anchor := bow - anchor_point

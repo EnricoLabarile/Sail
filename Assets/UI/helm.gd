@@ -54,9 +54,11 @@ func _boat() -> Node:
 	return get_tree().get_first_node_in_group("player_boat")
 
 
-func _is_anchored() -> bool:
+## True when the wheel can't steer: only while she's tied up at a pier (the berth holds her). At anchor it steers
+## (Enrico, Nov 2026: she turns on the spot, see boat.gd).
+func _is_tied_up() -> bool:
 	var b := _boat()
-	return b != null and b.anchored
+	return b != null and b.berth != null
 
 
 ## How many screen pixels one of the prototype's pixels is (the Control may be a different size).
@@ -105,8 +107,8 @@ func _gui_input(e: InputEvent) -> void:
 	elif e is InputEventScreenDrag and e.index == drag_index:
 		var p := _local(e.position)
 		var a := p.angle()
-		# Too close to the middle the angle jumps about; and at anchor the wheel doesn't steer.
-		if p.length() < 14.0 * WHEEL_SCALE or _is_anchored():
+		# Too close to the middle the angle jumps about; and tied up at a pier the wheel doesn't steer.
+		if p.length() < 14.0 * WHEEL_SCALE or _is_tied_up():
 			last_a = a
 			accept_event()
 			return
@@ -121,11 +123,11 @@ func _process(dt: float) -> void:
 		queue_redraw()               # in the editor: only the drawing (its pictures are ready a frame later)
 		return
 	var b := _boat()
-	var anchored := _is_anchored()
+	var tied_up := _is_tied_up()
 
-	# The arrow keys turn it (not at anchor); with no finger and no key it spins back to the middle.
+	# The arrow keys turn it (not while tied up); with no finger and no key it spins back to the middle.
 	var keys := Input.get_axis("ui_left", "ui_right")
-	if keys != 0.0 and not anchored and drag_index == -1:
+	if keys != 0.0 and not tied_up and drag_index == -1:
 		wheel_angle = clampf(wheel_angle + keys * key_rate * dt, -lock_turn, lock_turn)
 		queue_redraw()
 	elif drag_index == -1 and wheel_angle != 0.0:

@@ -502,7 +502,12 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   tiny-dotted copy of each CPUParticles3D, for `FRAMES` 3 frames; then it all goes (59 materials, 2 emitters in the
   Overworld). Something new made later in code with a new kind of material: add its scene to `LATER`.
 - **Top speed** (`boat.gd` `top_speed`): **3.5 m/s** (Enrico: halved from 7, so the gusts' boosts matter). **Turning** (as the prototype): `turn_rate` 2.25 rad/s (Enrico: between the old 1.5 and the doubled 3) at full rudder whatever her speed (no slower with less way);
-  none at anchor; × the paddles' `turn_mult` while they push (see The paddles).
+  **at anchor too** (Enrico, Nov 2026: turning her on the spot, e.g. to aim a bomb): she pivots on her middle, the
+  anchor point goes round her middle by the same turn (so it stays off her bow) and `heading_held` is set: from then
+  `hold_at_anchor` only keeps her middle within `anchor_rode` + `bow_reach` of the anchor and doesn't swing her
+  heading (without it the current turned her back bow-to-anchor in ~3 s); cleared by `toggle_anchor` and `respawn`.
+  Not while tied up at a pier (the wheel doesn't steer there: `helm.gd` `_is_tied_up`). × the paddles' `turn_mult`
+  while they push (see The paddles). The interaction button's tools (bomb, jar, harpoon, hook) already work at anchor.
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
   `bow_point()` = middle + `bow_reach` forward) and stays there; the current now carries her at anchor too; once the
   bow is `anchor_rode` 3 m from it, `hold_at_anchor` holds the bow there and the hull trails from it, so she swings
