@@ -37,6 +37,10 @@ extends Control
 @export var spring_back_speed := 3.0    # how fast it springs back to the middle (a whole half-swing in 1/3 s)
 @export var refill_show_time := 0.5    # seconds the battery icon takes to fill up when it's refilled (Enrico: seen filling, not at once)
 @export var blink_per_second := 4.0     # the battery blinks this fast in its last seconds (when it can be filled again)
+# The moving dashes on the plate while the battery can be filled (Enrico: "push the lever to the right"):
+@export var dash_count := 5             # how many dashes across the plate at once
+@export var dash_share := 0.5           # how much of each dash-and-gap is dash (the rest is gap)
+@export var dash_speed := 0.8           # how many dashes go by a second, left to right
 
 const MAX_ANGLE := deg_to_rad(45.0)     # how far the lever swings either way from upright
 const PIVOT := Vector2(0.0, 26.0)       # the pivot, in the drawing's units (from the box's middle; y down)
@@ -61,6 +65,7 @@ var at_right_end := false
 ## all the way right again; holding it at 100% from before isn't enough, nor is a finger wobbling at the end.)
 var grabbed_in_window := false
 var was_free := true          # could the battery be filled a frame ago? (to hear the moment it can)
+var dash_time := 0.0          # the moving dashes' clock (seconds)
 
 
 func _paddles() -> Node:
@@ -179,6 +184,7 @@ func _process(dt: float) -> void:
 	if Engine.is_editor_hint() or not visible:
 		return
 	update_shown_charge(dt)
+	dash_time += dt
 	# Let go: the spring takes it back to the middle (silently).
 	if drag_index == -1 and lever != 0.0:
 		lever = move_toward(lever, 0.0, spring_back_speed * dt)
@@ -234,6 +240,13 @@ func _draw() -> void:
 	draw_polyline(closed, ink, 1.6, true)
 	draw_line(at(0.0, PLATE_INNER), at(0.0, PLATE_OUTER), ink, 0.8)
 
+	# 2. While the battery can be filled (anchor up): dashes running round the plate from left to right, again and
+	#    again, to say "push the lever over to the right" (Enrico).
+	var paddles_now := null if Engine.is_editor_hint() else _paddles()
+	var boat_now := null if Engine.is_editor_hint() else get_tree().get_first_node_in_group("player_boat")
+	if paddles_now and paddles_now.can_wind() and boat_now and not boat_now.anchored:
+		_draw_moving_dashes(ink)
+
 	# 3. The lever: a stem from the pivot, then the grip wound like a spring (an ink box with slanted stripes).
 	var angle := lever * MAX_ANGLE
 	draw_set_transform(size * 0.5 + PIVOT * k, angle, Vector2(k, k))   # now drawing in the lever's own frame (up = -y)
@@ -281,6 +294,25 @@ func _draw() -> void:
 		else:
 			_draw_anchor(right_spot, color, extra)                   # at anchor / tied up: all the way right weighs it
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## The moving dashes: a dashed line along the middle of the plate whose dashes slide from the left end to the right
+## end; each one appears at the left and goes at the right, so they seem to flow on and on.
+func _draw_moving_dashes(color: Color) -> void:
+	var radius := (PLATE_INNER + PLATE_OUTER) * 0.5      # along the middle of the plate
+	var step := 1.0 / dash_count                          # one dash and its gap, as a share of the plate's width
+	var shift := fmod(dash_time * dash_speed * step, step) # how far the pattern has slid along (loops every step)
+	var start := -step + shift                            # the first dash starts just off the left end
+	while start < 1.0:
+		var from := clampf(start, 0.0, 1.0)              # cut at the ends of the plate
+		var to := clampf(start + step * dash_share, 0.0, 1.0)
+		if to > from:
+			var points := PackedVector2Array()
+			for i in 5:                                   # a little curve along the plate (5 points)
+				var share := lerpf(from, to, i / 4.0)
+				points.append(at(lerpf(-MAX_ANGLE, MAX_ANGLE, share), radius))
+			draw_polyline(points, color, 2.0)
+		start += step
 
 
 ## The charge the icon shows: when the battery is filled (lever all the way right, a booster) it climbs to the new

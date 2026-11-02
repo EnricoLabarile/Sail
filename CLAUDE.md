@@ -326,7 +326,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   each end; line art, ink with a thin paper halo so they read on the dark sea): a little **anchor on the left** while the
   anchor is up (left end drops it), **on the right** while at anchor or tied up (right end weighs it); whenever the
   battery can be filled (its blinking last seconds, or empty while drifting), also a small empty **battery on the right**
-  (right end fills it; `paddles.can_wind()`). `PIVOT` (0, 26). Sounds: `Sfx.crank_click` every notch (`NOTCHES` 16, higher to the
+  (right end fills it; `paddles.can_wind()`). **Moving dashes** (Enrico, Nov 2026: "push the lever right"): while the
+  battery can be filled and the anchor is up, a dashed line along the middle of the plate whose dashes slide from the
+  left end to the right end and loop (`_draw_moving_dashes`, `dash_time`; exports `dash_count` 5 across, `dash_share`
+  0.5 dash vs gap, `dash_speed` 0.8 dashes a second), ink, under the lever. `PIVOT` (0, 26). Sounds: `Sfx.crank_click` every notch (`NOTCHES` 16, higher to the
   right), `Sfx.lever_done` at an end that does something (plus the anchor's), `Sfx.crank_unlock` when the battery can
   be filled again. Space on the PC does the same as the ends (off → on, running → off). The paddles push at
   boat.gd's `top_speed` × the share while running (Enrico: `paddle_speed` is gone, `top_speed` is the one speed knob); `turn_mult` while they push. **The wheels' look** (Enrico: too fast): they turn at (push × the lever's share, or
