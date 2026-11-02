@@ -323,7 +323,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   ring; `filling`). **Boosting** (lever past the middle, so it drains faster): paper **chevrons** "<" (columns of
   zig-zags, Enrico's pattern turned a quarter left) inside the filling flow leftwards (`_draw_chevrons`,
   `chevron_shift` grows by `chevron_speed` 1.2 chevrons a second × how far past the middle; `chevron_count` 7 across,
-  `chevron_teeth` 3). **When it can be filled** (`paddles.can_wind()`, anchor up): a **circular arrow** in the knob
+  `chevron_teeth` 3). **While it refills** (`filling`, the climb over `refill_show_time`; Enrico) they turn ">" and
+  flow **rightwards** instead (`chevron_shift` goes down by `refill_chevron_speed` 3 a second; `_draw_chevrons(share,
+  color, facing)`, facing −1 left / +1 right). **When it can be filled** (`paddles.can_wind()`, anchor up): a **circular arrow** in the knob
   (`_draw_turning_arrow`: three quarters of a ring and a head) turning clockwise `arrow_turn_deg` 100° in
   `arrow_loop_time` 0.7 s, eased, then starting again. **Held, only the lever is drawn black** (the grip ink, its stripes
   paper). **Anchor hints** (Enrico; `_draw_anchor`, `ICON_DISTANCE` 38, `ICON_PAST_END` 0.3 rad past each end; line

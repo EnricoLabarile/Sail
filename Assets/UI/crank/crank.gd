@@ -23,7 +23,8 @@ extends Control
 ##     "<" (zig-zags, like Enrico's pattern turned a quarter left) flowing leftwards, quicker the faster it drains.
 ##   - When it can be filled again (its last seconds, or empty, with the anchor up): a circular arrow in the knob that
 ##     turns clockwise in short loops: "push it round to the right".
-##   - Refilled: the filling climbs back over refill_show_time, and meanwhile the knob has its colours swapped.
+##   - Refilled: the filling climbs back over refill_show_time, and meanwhile the knob has its colours swapped and the
+##     chevrons turn ">" and flow rightwards (Enrico: the battery is filling up).
 ## THE HINTS (Enrico): a little anchor beside the end that works the anchor now: LEFT while the anchor is up (all the
 ## way left drops it), RIGHT while she's at anchor or tied up (all the way right weighs it and starts her).
 ## Its sounds (Enrico): a light click every notch (NOTCHES across the plate), higher toward the right
@@ -42,6 +43,7 @@ extends Control
 @export var chevron_count := 7          # how many chevrons across the whole plate
 @export var chevron_teeth := 3          # how many points each chevron column has, from the inner edge to the outer
 @export var chevron_speed := 1.2        # chevrons going by a second at full speed (slower just past the middle)
+@export var refill_chevron_speed := 3.0 # while it refills, the chevrons turn ">" and flow rightwards this fast (a second)
 # The circular arrow in the knob when the battery can be filled:
 @export var arrow_turn_deg := 100.0     # how far it turns in one loop (then it starts again)
 @export var arrow_loop_time := 0.7      # seconds a loop takes
@@ -191,7 +193,10 @@ func _process(dt: float) -> void:
 	update_shown_charge(dt)
 	arrow_time += dt
 	var paddles_now := _paddles()
-	if paddles_now and paddles_now.lever_share > 0.5:
+	if filling:
+		# Refilling (Enrico): the chevrons flow rightwards instead, the battery is filling up.
+		chevron_shift -= dt * refill_chevron_speed / chevron_count
+	elif paddles_now and paddles_now.lever_share > 0.5:
 		# Boosting: the chevrons flow left, quicker the further past the middle (0 at the middle, full at the right end).
 		var boost: float = (paddles_now.lever_share - 0.5) / 0.5
 		chevron_shift += dt * chevron_speed * boost / chevron_count
@@ -255,9 +260,11 @@ func _draw() -> void:
 	draw_colored_polygon(plate, paper)
 	if share > 0.005:
 		draw_colored_polygon(plate_points(share), ink)
-		# Boosting (past the middle): paper chevrons flowing leftwards inside the filling.
-		if paddles and paddles.lever_share > 0.5 and paddles.is_running():
-			_draw_chevrons(share, paper)
+		# Refilling: paper chevrons ">" flowing rightwards inside the filling. Boosting (past the middle): "<" leftwards.
+		if filling:
+			_draw_chevrons(share, paper, 1.0)
+		elif paddles and paddles.lever_share > 0.5 and paddles.is_running():
+			_draw_chevrons(share, paper, -1.0)
 	#    Its ink edge on top, and the middle marked by a thin line (as in the sketch).
 	var closed := plate.duplicate()
 	closed.append(plate[0])
@@ -322,19 +329,20 @@ func update_shown_charge(dt: float) -> void:
 
 ## The chevrons: columns of zig-zags (each one a "<", its points facing left) standing across the plate inside the
 ## filling (from its left end to `share`), sliding leftwards by chevron_shift: a column leaving the left end comes back
-## at the right one. Drawn in `color` (paper, over the ink filling).
-func _draw_chevrons(share: float, color: Color) -> void:
+## at the right one. Drawn in `color` (paper, over the ink filling). `facing` -1 = points to the left "<" (boosting),
+## +1 = points to the right ">" (refilling: then chevron_shift goes down, so they slide right).
+func _draw_chevrons(share: float, color: Color, facing: float) -> void:
 	var step := 1.0 / chevron_count                     # the gap between two columns, as a share of the plate's width
-	var depth := step * 0.35                            # how far each point reaches to the left
+	var depth := step * 0.35 * facing                   # how far each point reaches out (left if negative)
 	var first := fposmod(-chevron_shift, step)          # where the first column stands now (it slides left, then loops)
 	var x := first
 	while x <= share:
-		if x - depth >= 0.0:                            # the whole column inside the plate (and in the filling)
+		if x + minf(depth, 0.0) >= 0.0 and x + maxf(depth, 0.0) <= share:   # the whole column inside the filling
 			var points := PackedVector2Array()
 			var rows := chevron_teeth * 2
 			for i in rows + 1:
 				var radius := lerpf(PLATE_INNER + 3.0, PLATE_OUTER - 3.0, float(i) / rows)
-				var along := x - depth if i % 2 == 1 else x     # every other point juts out to the left
+				var along := x + depth if i % 2 == 1 else x     # every other point juts out (left or right)
 				points.append(at(lerpf(-MAX_ANGLE, MAX_ANGLE, along), radius))
 			draw_polyline(points, color, 1.6)
 		x += step
