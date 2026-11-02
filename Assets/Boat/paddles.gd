@@ -33,6 +33,11 @@ extends Node3D
 ## (Enrico: a knob for it). 2 = twice as fast (as before), 1 = no extra cost, 3 = three times. Between the middle
 ## and the right end it grows in a straight line; below the middle it drains less, as before (25% = half as fast).
 @export var boost_drain := 2.0
+## Seconds the lever must be HELD before pushing it past the middle counts as a boost and drains faster (Enrico: the
+## same move right refills the battery, so right after a refill or a grab it mustn't eat it at once). Counted from the
+## grab and again from each refill (crank.gd sets `boost_counts`). Let go, the drain is back to normal at once, while
+## the lever (and her speed) springs back to the middle.
+@export var boost_wait := 1.0
 @export var recharge_window := 3.0     # the last seconds of the battery in which the lever, pushed right, fills it again (Enrico)
 @export var turn_mult := 1.5           # she turns this much quicker while they push
 @export var take_up_rate := 3.75            # how quickly they take up and let go as a push starts or ends
@@ -49,6 +54,7 @@ var spin_left := 0.0      # the wheels' angles (radians)
 var spin_right := 0.0
 var splash_turn := 0.0    # how far the wheel has turned since the last splash (radians)
 var splash_level := 0.0   # how loud the splashes are now (0..1): 1 while they push, then down as she slows
+var boost_counts := false  # has the lever been held past boost_wait? (crank.gd, every frame): only then does a boost drain more
 var lever_share := 0.5    # the most she may go, 0..1 of her speed (set by the lever every frame; 0.5 = the lever at rest)
 
 @onready var boat: Node3D = owner                               # the boat (boat.tscn's root)
@@ -110,6 +116,8 @@ func speed_share() -> float:
 func drain_rate() -> float:
 	if lever_share <= 0.5:
 		return lever_share / 0.5                 # below the middle: slower, down to nothing at the left end
+	if not boost_counts:
+		return 1.0                               # past the middle, but just grabbed / refilled / let go: normal drain
 	var past_middle := (lever_share - 0.5) / 0.5  # 0 at the middle, 1 at the right end
 	return lerpf(1.0, boost_drain, past_middle)
 

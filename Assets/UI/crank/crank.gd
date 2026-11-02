@@ -70,6 +70,7 @@ var at_right_end := false
 ## Was the lever grabbed after the battery's last seconds began? (Enrico: to refill it the player must let go and push it
 ## all the way right again; holding it at 100% from before isn't enough, nor is a finger wobbling at the end.)
 var grabbed_in_window := false
+var held_time := 0.0         # seconds the finger has held it since the grab (or since the last refill): for paddles.boost_wait
 var was_free := true          # could the battery be filled a frame ago? (to hear the moment it can)
 var chevron_shift := 0.0      # how far the chevrons have flowed left (in plate shares; it grows while she boosts)
 var arrow_time := 0.0         # the circular arrow's clock (seconds)
@@ -121,6 +122,7 @@ func _gui_input(e: InputEvent) -> void:
 			# Every touch: a click; the lever is black while the finger holds it (Enrico: every button).
 			Sfx.button_press()
 			drag_index = e.index
+			held_time = 0.0                 # the boost's wait starts again
 			last_a = _angle_round_pivot(e.position)
 			var paddles := _paddles()
 			grabbed_in_window = paddles != null and paddles.is_running() and paddles.can_wind()
@@ -166,6 +168,7 @@ func check_ends() -> void:
 			elif paddles.can_wind() and grabbed_in_window:
 				# Running, battery nearly out, and this grab began in its last seconds: full again; she keeps the 100%.
 				paddles.refill()
+				held_time = 0.0             # just refilled: holding it here doesn't drain faster until boost_wait has passed
 				Sfx.lever_done()
 				grabbed_in_window = false   # once per grab
 	elif lever < END:
@@ -196,19 +199,24 @@ func _process(dt: float) -> void:
 	if filling:
 		# Refilling (Enrico): the chevrons flow rightwards instead, the battery is filling up.
 		chevron_shift -= dt * refill_chevron_speed / chevron_count
-	elif paddles_now and paddles_now.lever_share > 0.5:
+	elif paddles_now and paddles_now.lever_share > 0.5 and paddles_now.boost_counts:
 		# Boosting: the chevrons flow left, quicker the further past the middle (0 at the middle, full at the right end).
 		var boost: float = (paddles_now.lever_share - 0.5) / 0.5
 		chevron_shift += dt * chevron_speed * boost / chevron_count
-	# Let go: the spring takes it back to the middle (silently).
+	# Let go: the spring takes it back to the middle, clicking each notch it passes (Enrico), as when dragged.
 	if drag_index == -1 and lever != 0.0:
 		lever = move_toward(lever, 0.0, spring_back_speed * dt)
-		notch = int(round((lever + 1.0) * 0.5 * NOTCHES))
+		click_notches()
 		check_ends()                        # (only to notice it has left an end)
 	var paddles := _paddles()
 	if paddles:
 		# The most she may go: 0% all the way left, 50% in the middle, 100% all the way right.
 		paddles.set_lever_share(0.5 + 0.5 * lever)
+		# The boost drains more only while the finger holds it and has held it boost_wait seconds (since the grab or the
+		# last refill); let go, the drain is normal at once, while her speed eases down with the lever.
+		if drag_index != -1:
+			held_time += dt
+		paddles.boost_counts = drag_index != -1 and held_time >= paddles.boost_wait
 		# The moment the battery can be filled again (its last seconds, or empty): the unlock sound, once.
 		var free: bool = paddles.can_wind()
 		if free and not was_free:
