@@ -426,6 +426,14 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   usually killed by a bomb, whose blast covered it. Both made by `art_src/audio/make_danger_sounds.py` (numpy, scipy, ffmpeg); both keep
   overtones above 200 Hz on purpose, as a phone's speaker can't play their deep part.
   **The logbook** (Enrico: a page turning, opening and closing): `book_open.ogg` / `book_close.ogg` (players `BookOpen` / `BookClose` −8 dB, `Sfx.book(opening)`, from `logbook.gd` `set_open`: opening as the cover starts to swing, after the drop; closing at once): a paper flutter (noise band-passed 1.5–4.5 kHz and a lower rustle, flickering under a rise-and-fall swell), 0.35 s; closing 0.3 s of it and then the cover's soft thump (110 → 70 Hz and low-passed noise) at 0.3 s; made by `art_src/audio/make_page_turn.py`.
+  **The catch above the boat** (Enrico, Nov 2026, like Link's Awakening holding up a find; `Assets/Boat/item_show.gd`
+  on `Boat/ItemShow`, a CanvasLayer 94 inside the boat, so it's in the game view under the controls and the dither):
+  on `Inventory.came_aboard` the item's icon (`Inventory.icon_of`, `icon_size` 28 px on a paper disc with an ink ring,
+  `disc_padding` 5) appears `start_height` 10 px over the boat's middle on the screen (`camera.unproject_position` of
+  her interpolated place, every frame, so it follows her), fades in over `appear_time` 0.15 s, **rises gradually**
+  `rise_height` 30 px over `rise_time` 0.9 s (ease out: slowing at the top), stays `hold_time` 0.5 s, fades over
+  `fade_time` 0.3 s. The boat doesn't stop. Things one after the other wait in `queue` and are shown in turn (a pile
+  arriving at once is one show; no count shown). `_process` only while showing.
   **The boat hurt** (Enrico: one sound for every kind of damage): `boat_hurt.ogg` (player `BoatHurt` −6 dB,
   `Sfx.boat_hurt()`), played by `boat.gd` `take_damage` whenever she loses hearts (> 0; not while sinking or coming
   up), so fireballs, spikes, bombs, boiling water, maelstroms, waves and enemies all make it with nothing of their own; a

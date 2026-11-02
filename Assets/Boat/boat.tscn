@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://enqfotlib5l3" path="res://Assets/Items/trap/trap_setter.gd" id="10_trap_setter"]
 [ext_resource type="Script" path="res://Assets/Boat/sail.gd" id="11_sail"]
 [ext_resource type="Script" path="res://Assets/Boat/paddles.gd" id="12_paddles"]
+[ext_resource type="Script" path="res://Assets/Boat/item_show.gd" id="14_item_show"]
 [ext_resource type="PackedScene" path="res://Assets/Boat/paddle_wheel.tscn" id="12_paddle_wheel"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_wake"]
@@ -136,6 +137,10 @@ color_ramp = SubResource("Grad_wake")
 
 [node name="TrapSetter" type="Node" parent="." unique_id=1025484265]
 script = ExtResource("10_trap_setter")
+
+[node name="ItemShow" type="CanvasLayer" parent="."]
+layer = 94
+script = ExtResource("14_item_show")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=67420740]
 transform = Transform3D(0.82448035, 0, 0, 0, 1.0002527, 0, 0, 0, 0.9644745, 0.5699463, 1.0084839, 0.89263916)
