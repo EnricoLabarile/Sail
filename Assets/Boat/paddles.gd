@@ -28,6 +28,9 @@ extends Node3D
 ## refill(), turn_off(), set_lever_share().
 
 
+## Sent when she's started (turn_on) or the battery is refilled (refill): the lever's flywheel revs up (crank.gd).
+signal revved
+
 @export var push_time := 20.0           # seconds a full battery keeps them pushing (at the lever's 50%)
 ## How much faster the battery runs down with the lever all the way right (the boost) than at rest in the middle
 ## (Enrico: a knob for it). 2 = twice as fast (as before), 1 = no extra cost, 3 = three times. Between the middle
@@ -85,12 +88,14 @@ func turn_on() -> void:
 	if boat.anchored:
 		boat.toggle_anchor()
 	push_left = push_time
+	revved.emit()              # the lever's flywheel spins in overdrive (crank.gd)
 
 
 ## The lever all the way right while she runs, in the battery's last seconds: full again (not added to what was left).
 func refill() -> void:
 	if can_wind():
 		push_left = push_time
+		revved.emit()          # the lever's flywheel spins in overdrive (crank.gd)
 
 
 ## The lever all the way left: the anchor goes down (she stops) and the battery is emptied.

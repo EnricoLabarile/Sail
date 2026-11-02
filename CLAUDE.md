@@ -326,9 +326,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `chevron_shift` grows by `chevron_speed` 1.2 chevrons a second × how far past the middle; `chevron_count` 7 across,
   `chevron_teeth` 3). **While it refills** (`filling`, the climb over `refill_show_time`; Enrico) they turn ">" and
   flow **rightwards** instead (`chevron_shift` goes down by `refill_chevron_speed` 3 a second; `_draw_chevrons(share,
-  color, facing)`, facing −1 left / +1 right). **When it can be filled** (`paddles.can_wind()`, anchor up): a **circular arrow** in the knob
-  (`_draw_turning_arrow`: three quarters of a ring and a head) turning clockwise `arrow_turn_deg` 100° in
-  `arrow_loop_time` 0.7 s, eased, then starting again. **Held, only the lever is drawn black** (the grip ink, its stripes
+  color, facing)`, facing −1 left / +1 right). **The flywheel in the knob** (Enrico, Nov 2026, like a rowing machine's; it replaced the circular arrow): a rim, three spokes, a weight on one, a hub (`_draw_flywheel`), turning clockwise while the paddles run at `flywheel_speed` 0.75 turns/s × `lever_share` / 0.5 (middle = usual pace, right end twice, left end stopped; off = stopped); **overdrive** `overdrive_speed` 4 turns/s for `overdrive_time` 1.5 s when she's started or refilled (paddles.gd signal `revved` from `turn_on` / `refill` → `_on_revved`); its speed follows the target smoothly at `flywheel_weight` 4 (`update_flywheel`, `flywheel_spin`, `flywheel_angle`; keep speeds under ~4 turns/s, or at 30 fps it seems to stand or go backwards). **Held, only the lever is drawn black** (the grip ink, its stripes
   paper). **Anchor hints** (Enrico; `_draw_anchor`, `ICON_DISTANCE` 38, `ICON_PAST_END` 0.3 rad past each end; line
   art, ink with a thin paper halo): on the left while the anchor is up (left end drops it), on the right while at
   anchor or tied up (right end weighs it). `PIVOT` (0, 26). Sounds: `Sfx.crank_click` every notch (`NOTCHES` 16, higher to the

@@ -21,8 +21,10 @@ extends Control
 ## whole plate inked, half = up to the middle. (The battery icon in the knob, its blinking and the moving dashes are gone.)
 ##   - Pushed past the middle (she goes faster, so the battery runs down faster): the filling carries paper chevrons
 ##     "<" (zig-zags, like Enrico's pattern turned a quarter left) flowing leftwards, quicker the faster it drains.
-##   - When it can be filled again (its last seconds, or empty, with the anchor up): a circular arrow in the knob that
-##     turns clockwise in short loops: "push it round to the right".
+##   - THE FLYWHEEL in the knob (Enrico, like a rowing machine's): it spins as long as the paddles run, at its usual
+##     pace with the lever in the middle, faster pushed right, slower pushed left, stopped all the way left or when she's
+##     off. When she's started or the battery is refilled it revs up into OVERDRIVE for a moment, then spins down to
+##     normal, like an engine revving. It has weight: its speed follows the lever smoothly, never jumps.
 ##   - Refilled: the filling climbs back over refill_show_time, and meanwhile the knob has its colours swapped and the
 ##     chevrons turn ">" and flow rightwards (Enrico: the battery is filling up).
 ## THE HINTS (Enrico): a little anchor beside the end that works the anchor now: LEFT while the anchor is up (all the
@@ -50,13 +52,16 @@ extends Control
 @export var chevron_teeth := 3          # how many points each chevron column has, from the inner edge to the outer
 @export var chevron_speed := 5        # chevrons going by a second at full speed (slower just past the middle)
 @export var refill_chevron_speed := 5 # while it refills, the chevrons turn ">" and flow rightwards this fast (a second)
-# The circular arrow in the knob when the battery can be filled:
-@export var arrow_turn_deg := 100.0     # how far it turns in one loop (then it starts again)
-@export var arrow_loop_time := 2.0      # seconds a loop takes
+# The flywheel in the knob (turns a second; keep them under ~4: the phone may draw only 30 frames a second, and a wheel
+# turning much faster than that seems to stand still or go backwards):
+@export var flywheel_speed := 0.75      # turns a second with the lever in the middle (twice that all the way right, 0 all the way left)
+@export var overdrive_speed := 4.0      # turns a second in overdrive (started, or the battery refilled)
+@export var overdrive_time := 1.5       # seconds of overdrive before it spins down to normal
+@export var flywheel_weight := 4.0      # how quickly its speed follows (more = lighter, it catches up sooner; less = heavier)
 
 const MAX_ANGLE := deg_to_rad(45.0)     # how far the lever swings either way from upright
 const PIVOT := Vector2(0.0, 26.0)       # the pivot, in the drawing's units (from the box's middle; y down)
-const KNOB_R := 10.0                    # the knob on the pivot (the circular arrow shows inside it)
+const KNOB_R := 10.0                    # the knob on the pivot (the flywheel turns inside it)
 const ICON_DISTANCE := 38.0             # the anchor hints: this far from the pivot…
 const ICON_PAST_END := 0.3              # …and this many radians past each end of the plate
 const PLATE_INNER := 26.0               # the plate's inner and outer edge (distance from the pivot)
@@ -80,7 +85,9 @@ var grabbed_in_window := false
 var held_time := 0.0         # seconds the finger has held it since the grab (or since the last refill): for paddles.boost_wait
 var was_free := true          # could the battery be filled a frame ago? (to hear the moment it can)
 var chevron_shift := 0.0      # how far the chevrons have flowed left (in plate shares; it grows while she boosts)
-var arrow_time := 0.0         # the circular arrow's clock (seconds)
+var flywheel_angle := 0.0     # how far the flywheel has turned (radians)
+var flywheel_spin := 0.0      # how fast it turns now (turns a second): it follows its target smoothly
+var overdrive_left := 0.0     # seconds of overdrive still to go
 
 
 func _paddles() -> Node:
@@ -95,6 +102,13 @@ func _ready() -> void:
 		return
 	var paddles := _paddles()
 	was_free = paddles == null or paddles.can_wind()   # no unlock sound for the state it starts in
+	if paddles:
+		paddles.revved.connect(_on_revved)             # started or refilled: overdrive
+
+
+## She was started, or the battery refilled: the flywheel spins in overdrive for overdrive_time seconds.
+func _on_revved() -> void:
+	overdrive_left = overdrive_time
 
 
 ## How many screen pixels one of the drawing's units is.
@@ -202,7 +216,7 @@ func _process(dt: float) -> void:
 	if Engine.is_editor_hint() or not visible:
 		return
 	update_shown_charge(dt)
-	arrow_time += dt
+	update_flywheel(dt)
 	var paddles_now := _paddles()
 	if filling:
 		# Refilling (Enrico): the chevrons flow rightwards instead, the battery is filling up.
@@ -316,9 +330,8 @@ func _draw() -> void:
 	var knob_mark := paper if filling else ink
 	draw_circle(Vector2.ZERO, KNOB_R, knob_fill)
 	draw_arc(Vector2.ZERO, KNOB_R, 0.0, TAU, 32, knob_mark, 1.6)   # its ring swaps too (so it reads on the dark sea)
-	#    The battery can be filled now (its last seconds, or empty) with the anchor up: the circular arrow.
-	if paddles and paddles.can_wind() and boat and not boat.anchored:
-		_draw_turning_arrow(knob_mark)
+	#    The flywheel inside it, turning (see update_flywheel).
+	_draw_flywheel(knob_mark)
 
 	# 5. The hints beside the ends (see the notes at the top).
 	draw_set_transform(size * 0.5, 0.0, Vector2(k, k))
@@ -371,22 +384,34 @@ func _draw_chevrons(share: float, color: Color, facing: float) -> void:
 		x += step
 
 
-## The circular arrow in the knob: three quarters of a ring with an arrowhead, turning clockwise by arrow_turn_deg
-## over arrow_loop_time (quick at first, slowing), then starting again: "turn it to the right".
-func _draw_turning_arrow(color: Color) -> void:
-	var loop := fmod(arrow_time / arrow_loop_time, 1.0)
-	var eased := 1.0 - (1.0 - loop) * (1.0 - loop)
-	var turn := deg_to_rad(arrow_turn_deg) * eased
-	var radius := KNOB_R * 0.55
-	var start := -PI * 0.5 + turn                        # angles: 0 = right, growing clockwise (the screen's y is down)
-	var finish := start + PI * 1.5
-	draw_arc(Vector2.ZERO, radius, start, finish, 24, color, 1.6)
-	# The arrowhead at the end of the arc, pointing the way it turns (clockwise).
-	var tip := Vector2(cos(finish), sin(finish)) * radius
-	var ahead := Vector2(-sin(finish), cos(finish))      # the way the arc goes on, at its end
-	var outward := Vector2(cos(finish), sin(finish))
-	var head := PackedVector2Array([tip + ahead * 3.0, tip - ahead * 0.5 + outward * 2.4, tip - ahead * 0.5 - outward * 2.4])
-	draw_colored_polygon(head, color)
+## The flywheel's speed and angle, every frame. Its target: 0 when the paddles are off (anchored, tied up, battery
+## empty); otherwise flywheel_speed × the lever's share / 0.5 (the middle = its usual pace, all the way right twice
+## that, all the way left 0); in overdrive (just started or refilled) overdrive_speed. The real speed follows the target
+## smoothly (flywheel_weight), so it revs up and spins down like something heavy, and the angle moves by the speed.
+func update_flywheel(dt: float) -> void:
+	var paddles := _paddles()
+	var target := 0.0
+	if paddles and paddles.is_running():
+		target = flywheel_speed * paddles.lever_share / 0.5
+		if overdrive_left > 0.0:
+			target = overdrive_speed
+	overdrive_left = maxf(overdrive_left - dt, 0.0)
+	flywheel_spin = lerpf(flywheel_spin, target, 1.0 - exp(-flywheel_weight * dt))
+	flywheel_angle = wrapf(flywheel_angle + flywheel_spin * TAU * dt, 0.0, TAU)
+
+
+## The flywheel in the knob: a rim and three spokes from a small hub, one spoke ending in a weight (a dot), so even a
+## quick spin reads which way it turns. Drawn turned by flywheel_angle, clockwise.
+func _draw_flywheel(color: Color) -> void:
+	var radius := KNOB_R * 0.62
+	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 24, color, 1.4)          # the rim
+	for i in 3:
+		var a := flywheel_angle + i * TAU / 3.0
+		var tip := Vector2(cos(a), sin(a)) * radius
+		draw_line(Vector2.ZERO, tip, color, 1.4)                       # a spoke
+	var weight := Vector2(cos(flywheel_angle), sin(flywheel_angle)) * radius
+	draw_circle(weight, 1.8, color)                                    # the weight on the first spoke
+	draw_circle(Vector2.ZERO, 1.6, color)                              # the hub
 
 
 ## An anchor, line art: a ring at the top, the shank, the stock across, and the two curved arms with their points.
