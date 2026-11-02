@@ -52,6 +52,9 @@ extends Control
 @export var chevron_teeth := 3          # how many points each chevron column has, from the inner edge to the outer
 @export var chevron_speed := 5        # chevrons going by a second at full speed (slower just past the middle)
 @export var refill_chevron_speed := 5 # while it refills, the chevrons turn ">" and flow rightwards this fast (a second)
+# The LED on the lever's tip: it blinks black and white, with three little rays, while the battery can be refilled:
+@export var led_blinks_per_second := 3.0   # how many times a second it lights up
+
 # The flywheel in the knob (turns a second; keep them under ~4: the phone may draw only 30 frames a second, and a wheel
 # turning much faster than that seems to stand still or go backwards):
 @export var flywheel_speed := 0.75      # turns a second with the lever in the middle (twice that all the way right, 0 all the way left)
@@ -321,6 +324,8 @@ func _draw() -> void:
 		draw_line(Vector2(-5.0, y + 3.0), Vector2(5.0, y), stripe_color, 1.4)
 		y += 4.0
 	draw_rect(grip, ink, false, 1.6)
+	#    The LED on the grip's tip (Enrico): it blinks while the battery can be refilled (see _draw_led).
+	_draw_led(paddles, ink, paper)
 
 	# 4. The knob on the pivot (not turned: the battery inside stays level): paper with an ink ring.
 	draw_set_transform(size * 0.5 + PIVOT * k, 0.0, Vector2(k, k))
@@ -382,6 +387,34 @@ func _draw_chevrons(share: float, color: Color, facing: float) -> void:
 				points.append(at(lerpf(-MAX_ANGLE, MAX_ANGLE, along), radius))
 			draw_polyline(points, color, 1.6)
 		x += step
+
+
+## The LED on the tip of the grip (Enrico, from his sketch), drawn in the lever's own frame so it tilts with it: a
+## little dome sitting on the grip's top. While the battery can be refilled (paddles running and in its last
+## recharge_window seconds) it blinks led_blinks_per_second times a second: lit = a paper dome with a glint and three
+## ink rays round it (one straight up, two slanted); off = an ink dome and no rays. The rest of the time it's off.
+func _draw_led(paddles: Node, ink: Color, paper: Color) -> void:
+	var middle := Vector2(0.0, -LEVER_LENGTH)               # the middle of the dome's flat bottom, on the grip's top
+	var radius := 4.0
+	var lit := false
+	if paddles and paddles.is_running() and paddles.can_wind():
+		var phase := fmod(Time.get_ticks_msec() / 1000.0 * led_blinks_per_second, 1.0)
+		lit = phase < 0.5                                   # lit half of each blink, off the other half
+	# The dome: half a circle (from left to right over the top), filled, with an ink outline.
+	var dome := PackedVector2Array()
+	for i in 13:
+		var a := PI + PI * i / 12.0                         # PI (left) to TAU (right), through the top
+		dome.append(middle + Vector2(cos(a), sin(a)) * radius)
+	draw_colored_polygon(dome, paper if lit else ink)
+	dome.append(dome[0])
+	draw_polyline(dome, ink, 1.4)
+	if not lit:
+		return
+	# Lit: a glint (a short ink stroke inside, top left) and the three rays.
+	draw_arc(middle, radius * 0.55, PI * 1.15, PI * 1.4, 4, ink, 1.0)
+	for degrees in [-45.0, 0.0, 45.0]:                       # from straight up, clockwise +
+		var way := Vector2(sin(deg_to_rad(degrees)), -cos(deg_to_rad(degrees)))
+		draw_line(middle + way * (radius + 2.5), middle + way * (radius + 7.5), ink, 1.6)
 
 
 ## The flywheel's speed and angle, every frame. Its target: 0 when the paddles are off (anchored, tied up, battery
