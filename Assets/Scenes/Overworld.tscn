@@ -155,7 +155,7 @@ active = true
 picture = ExtResource("13_7dbbo")
 print_path = "uid://c83coim1pxjpi"
 area_size = 120
-land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
+land_roots = Array[NodePath]([NodePath("Islands"), NodePath("../../Coast")])
 
 [node name="MapMarker_2" parent="Gameplay/MapMarkers" unique_id=1657906072 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 96.85657, 0, -102.05079)
@@ -163,7 +163,7 @@ active = true
 picture = ExtResource("14_yvevl")
 print_path = "uid://b6qbcnpowxg62"
 area_size = 120
-land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
+land_roots = Array[NodePath]([NodePath("Islands"), NodePath("../../Coast")])
 
 [node name="MapMarker_3" parent="Gameplay/MapMarkers" unique_id=1014403933 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -344.80643, 0, 224.90878)
@@ -171,7 +171,7 @@ active = true
 picture = ExtResource("15_cra7r")
 print_path = "uid://djxmu6wgjgyf4"
 area_size = 120
-land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
+land_roots = Array[NodePath]([NodePath("Islands"), NodePath("../../Coast")])
 
 [node name="MapMarker_4" parent="Gameplay/MapMarkers" unique_id=420391385 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3863144, 0, -444.4792)
@@ -179,7 +179,7 @@ active = true
 picture = ExtResource("16_7dbbo")
 print_path = "uid://c617rra5aj0xu"
 area_size = 120
-land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
+land_roots = Array[NodePath]([NodePath("Islands"), NodePath("../../Coast")])
 
 [node name="MapMarker_5" parent="Gameplay/MapMarkers" unique_id=2052585054 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 321.08615, -6.1035156e-05, -226.39828)
@@ -187,7 +187,7 @@ active = true
 picture = ExtResource("16_6qrm0")
 print_path = "uid://hnn81g38o6uf"
 area_size = 120
-land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
+land_roots = Array[NodePath]([NodePath("Islands"), NodePath("../../Coast")])
 
 [node name="MapMarker_6" parent="Gameplay/MapMarkers" unique_id=310641992 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 337.9991, 0, 107.66171)
@@ -195,7 +195,7 @@ active = true
 picture = ExtResource("18_yvevl")
 print_path = "uid://lbxke3w5qaqw"
 area_size = 120
-land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
+land_roots = Array[NodePath]([NodePath("Islands"), NodePath("../../Coast")])
 
 [node name="MapMarker_7" parent="Gameplay/MapMarkers" unique_id=117887675 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -143.16531, 0, 340.66904)
@@ -203,7 +203,7 @@ active = true
 picture = ExtResource("18_lnn7p")
 print_path = "uid://cton1id1qykod"
 area_size = 120
-land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
+land_roots = Array[NodePath]([NodePath("Islands"), NodePath("../../Coast")])
 
 [node name="MapMarker_8" parent="Gameplay/MapMarkers" unique_id=1174949156 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -343.57813, 0, -112.89627)
@@ -211,7 +211,7 @@ active = true
 picture = ExtResource("19_2gwdg")
 print_path = "uid://1uidvi0ohqho"
 area_size = 120
-land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
+land_roots = Array[NodePath]([NodePath("Islands"), NodePath("../../Coast")])
 
 [node name="MapMarker_9" parent="Gameplay/MapMarkers" unique_id=354153416 instance=ExtResource("29_map_marker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 231.50058, 0, 349.09677)
@@ -219,7 +219,7 @@ active = true
 picture = ExtResource("20_i5cs1")
 print_path = "uid://bhne6rrir7xw7"
 area_size = 120
-land_roots = Array[NodePath]([NodePath(""), NodePath("../../Coast")])
+land_roots = Array[NodePath]([NodePath("Islands"), NodePath("../../Coast")])
 
 [node name="Piers" type="Node3D" parent="Gameplay" unique_id=788276141]
 
@@ -280,6 +280,15 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -304
 [node name="sm_island_center_32x32" parent="Islands" unique_id=1984804689 instance=ExtResource("42_i5cs1")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 120, 0, 48.888885)
 
+[node name="sm_island_center_32x216" parent="Islands" unique_id=1404388366 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 152, 0, -15.1111145)
+
+[node name="sm_island_center_32x217" parent="Islands" unique_id=1281684212 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 152, 0, -15.1111145)
+
+[node name="sm_island_center_32x218" parent="Islands" unique_id=996185012 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 152, 0, 16.888885)
+
 [node name="sm_island_center_32x34" parent="Islands" unique_id=435820123 instance=ExtResource("42_i5cs1")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 120, 0, 80.888885)
 
@@ -294,6 +303,18 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 56.0
 
 [node name="sm_island_center_32x38" parent="Islands" unique_id=166138030 instance=ExtResource("42_i5cs1")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 88, 0, 112.888885)
+
+[node name="sm_island_center_32x223" parent="Islands" unique_id=1452720409 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 120, 0, 112.888885)
+
+[node name="sm_island_center_32x224" parent="Islands" unique_id=1084853815 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 152, 0, 48.888885)
+
+[node name="sm_island_center_32x225" parent="Islands" unique_id=923167911 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 152, 0, 80.888885)
+
+[node name="sm_island_center_32x226" parent="Islands" unique_id=646054693 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 152, 0, 112.888885)
 
 [node name="sm_island_center_32x39" parent="Islands" unique_id=406326331 instance=ExtResource("42_i5cs1")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 24.000004, 0, 112.888885)
@@ -329,16 +350,28 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -104
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -200, 0, -47.11111)
 
 [node name="sm_island_center_32x210" parent="Islands" unique_id=724038824 instance=ExtResource("42_i5cs1")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -184, 0, -79.111115)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -200, 0, -79.111115)
+
+[node name="sm_island_center_32x219" parent="Islands" unique_id=1727990527 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -200, 0, -111.111115)
 
 [node name="sm_island_center_32x211" parent="Islands" unique_id=1668990947 instance=ExtResource("42_i5cs1")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -216, 0, -79.111115)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -232, 0, -79.111115)
 
 [node name="sm_island_center_32x213" parent="Islands" unique_id=1234469334 instance=ExtResource("42_i5cs1")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -328, 0, -79.111115)
 
 [node name="sm_island_center_32x212" parent="Islands" unique_id=1255927180 instance=ExtResource("42_i5cs1")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -152, 0, -79.111115)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -168, 0, -79.111115)
+
+[node name="sm_island_center_32x220" parent="Islands" unique_id=109284601 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -136, 0, -79.111115)
+
+[node name="sm_island_center_32x221" parent="Islands" unique_id=1515307815 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -168, 0, -111.111115)
+
+[node name="sm_island_center_32x222" parent="Islands" unique_id=106607284 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -136, 0, -111.111115)
 
 [node name="sm_island_center_32x52" parent="Islands" unique_id=1342614270 instance=ExtResource("42_i5cs1")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -104, 0, -79.111115)
@@ -850,9 +883,6 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -56,
 [node name="sm_island_corner_out_16x23" parent="Islands" unique_id=917843310 instance=ExtResource("44_84ff5")]
 transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, -120, 0, 0.8888855)
 
-[node name="sm_island_corner_out_16x24" parent="Islands" unique_id=1522137560 instance=ExtResource("44_84ff5")]
-transform = Transform3D(1.3113416e-07, 0, 1, 0, 1, 0, -1, 0, 1.3113416e-07, -120, 0, -127.111115)
-
 [node name="sm_island_corner_out_16x18" parent="Islands" unique_id=1420599594 instance=ExtResource("44_84ff5")]
 transform = Transform3D(1.3113416e-07, 0, -1, 0, 1, 0, 1, 0, 1.3113416e-07, 7.999996, 0, -31.111115)
 
@@ -862,9 +892,6 @@ transform = Transform3D(1, 0, 1.7484555e-07, 0, 1, 0, -1.7484555e-07, 0, 1, 7.99
 [node name="sm_island_corner_out_16x25" parent="Islands" unique_id=1405566855 instance=ExtResource("44_84ff5")]
 transform = Transform3D(1, 0, 1.7484555e-07, 0, 1, 0, -1.7484555e-07, 0, 1, -24.000004, 0, -95.111115)
 
-[node name="sm_island_corner_out_16x26" parent="Islands" unique_id=643105202 instance=ExtResource("44_84ff5")]
-transform = Transform3D(1, 0, 1.7484555e-07, 0, 1, 0, -1.7484555e-07, 0, 1, -88, 0, -127.111115)
-
 [node name="sm_island_edge_32x16" parent="Islands" unique_id=764487304 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 104, 0, 16.888885)
 
@@ -873,6 +900,12 @@ transform = Transform3D(1, 0, 1.7484555e-07, 0, 1, 0, -1.7484555e-07, 0, 1, 168,
 
 [node name="sm_island_edge_32x32" parent="Islands" unique_id=22039783 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(1, 0, 1.7484555e-07, 0, 1, 0, -1.7484555e-07, 0, 1, 168, 0, 16.888885)
+
+[node name="sm_island_edge_32x31" parent="Islands" unique_id=2071784837 instance=ExtResource("45_pcmpt")]
+transform = Transform3D(1, 0, 1.7484555e-07, 0, 1, 0, -1.7484555e-07, 0, 1, 168, 0, 48.888885)
+
+[node name="sm_island_edge_32x120" parent="Islands" unique_id=1161788968 instance=ExtResource("45_pcmpt")]
+transform = Transform3D(1, 0, 1.7484555e-07, 0, 1, 0, -1.7484555e-07, 0, 1, 168, 0, 80.888885)
 
 [node name="sm_island_edge_32x23" parent="Islands" unique_id=1904175624 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 152, 0, -31.111115)
@@ -930,12 +963,6 @@ transform = Transform3D(1.3113416e-07, 0, -1, 0, 1, 0, 1, 0, 1.3113416e-07, -104
 
 [node name="sm_island_edge_32x26" parent="Islands" unique_id=1803098784 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(-1, 0, -8.742277e-08, 0, 1, 0, 8.742277e-08, 0, -1, -120, 0, -15.1111145)
-
-[node name="sm_island_edge_32x28" parent="Islands" unique_id=1655000877 instance=ExtResource("45_pcmpt")]
-transform = Transform3D(-1, 0, -8.742277e-08, 0, 1, 0, 8.742277e-08, 0, -1, -120, 0, -79.111115)
-
-[node name="sm_island_edge_32x29" parent="Islands" unique_id=1526272701 instance=ExtResource("45_pcmpt")]
-transform = Transform3D(-1, 0, -8.742277e-08, 0, 1, 0, 8.742277e-08, 0, -1, -120, 0, -111.111115)
 
 [node name="sm_island_edge_32x21" parent="Islands" unique_id=679511568 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -8, 0, -31.111115)
@@ -1378,15 +1405,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.999996, 0, -47.111115)
 [node name="sm_island_edge_32x24" parent="Islands" unique_id=1198514779 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -40.000004, 0, -95.111115)
 
-[node name="sm_island_edge_32x31" parent="Islands" unique_id=42484362 instance=ExtResource("45_pcmpt")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -104, 0, -127.111115)
-
-[node name="sm_island_center_16x16" parent="Islands" unique_id=1082020792 instance=ExtResource("46_klm3u")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -240, 0, -87.111115)
-
-[node name="sm_island_center_16x17" parent="Islands" unique_id=970221531 instance=ExtResource("46_klm3u")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -240, 0, -71.111115)
-
 [node name="sm_island_center_16x18" parent="Islands" unique_id=1790378790 instance=ExtResource("46_klm3u")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -304, 0, -87.111115)
 
@@ -1394,16 +1412,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -304, 0, -87.111115)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -304, 0, -71.111115)
 
 [node name="sm_island_center_32x214" parent="Islands" unique_id=1953380551 instance=ExtResource("42_i5cs1")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -216, 0, -111.111115)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -232, 0, -111.111115)
 
 [node name="sm_island_center_32x215" parent="Islands" unique_id=916066656 instance=ExtResource("42_i5cs1")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -328, 0, -111.111115)
-
-[node name="sm_island_center_16x20" parent="Islands" unique_id=1289817948 instance=ExtResource("46_klm3u")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -240, 0, -119.111115)
-
-[node name="sm_island_center_16x21" parent="Islands" unique_id=1339496103 instance=ExtResource("46_klm3u")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -240, 0, -103.111115)
 
 [node name="sm_island_center_16x22" parent="Islands" unique_id=750728353 instance=ExtResource("46_klm3u")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -304, 0, -119.111115)

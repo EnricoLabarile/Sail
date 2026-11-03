@@ -3,21 +3,21 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/start_screen.tscn" id="1_start"]
 [ext_resource type="PackedScene" path="res://Assets/UI/game_over.tscn" id="2_game_over"]
 [ext_resource type="PackedScene" path="res://Assets/UI/talk_box/talk_box.tscn" id="3_talk_box"]
-[ext_resource type="PackedScene" path="res://Assets/UI/helm.tscn" id="4_helm"]
+[ext_resource type="PackedScene" uid="uid://r4iisyleixnd" path="res://Assets/UI/helm.tscn" id="4_helm"]
 [ext_resource type="PackedScene" uid="uid://bhqupmdfm8my" path="res://Assets/UI/wind_vane.tscn" id="5_vane"]
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="6_logbook"]
 [ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="7_bomb_button"]
 [ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="8_jar_button"]
 [ext_resource type="PackedScene" path="res://Assets/UI/harpoon_button/harpoon_button.tscn" id="9_harpoon_button"]
 [ext_resource type="PackedScene" path="res://Assets/UI/hook_button/hook_button.tscn" id="10_hook_button"]
-[ext_resource type="PackedScene" path="res://Assets/UI/crank/crank.tscn" id="11_crank"]
+[ext_resource type="PackedScene" uid="uid://b007tnjdl5asi" path="res://Assets/UI/crank/crank.tscn" id="11_crank"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="12_health"]
 
 [node name="UILayout" type="Node" unique_id=2057268536]
 
 [node name="Helm" parent="." unique_id=983948778 instance=ExtResource("4_helm")]
-offset = Vector2(65.79, 25.49)
-transform = Transform2D(1, 0, 0, 1, 65.79, 25.49)
+offset = Vector2(73.725, 50.14)
+transform = Transform2D(1, 0, 0, 1, 73.725, 50.14)
 
 [node name="Crank" parent="." unique_id=554795623 instance=ExtResource("11_crank")]
 offset = Vector2(10.285, 255.775)
@@ -47,6 +47,10 @@ transform = Transform2D(1, 0, 0, 1, 0.03, -110.68)
 
 [node name="BookIcon" parent="Logbook/IconLayer" index="0"]
 layout_mode = 3
+offset_left = 129.97
+offset_top = 60.679993
+offset_right = 172.97
+offset_bottom = 101.67999
 
 [node name="Book" parent="Logbook/BookLayer" index="0"]
 layout_mode = 3

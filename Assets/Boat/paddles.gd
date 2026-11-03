@@ -31,7 +31,7 @@ extends Node3D
 ## Sent when she's started (turn_on) or the battery is refilled (refill): the lever's flywheel revs up (crank.gd).
 signal revved
 
-@export var push_time := 20.0           # seconds a full battery keeps them pushing (at the lever's 50%)
+@export var push_time := 40.0          # seconds a full battery keeps them pushing (at the lever's 50%)
 ## How much faster the battery runs down with the lever all the way right (the boost) than at rest in the middle
 ## (Enrico: a knob for it). 2 = twice as fast (as before), 1 = no extra cost, 3 = three times. Between the middle
 ## and the right end it grows in a straight line; below the middle it drains less, as before (25% = half as fast).
