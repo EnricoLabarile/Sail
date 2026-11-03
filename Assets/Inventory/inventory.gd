@@ -24,6 +24,8 @@ extends Node
 
 ## Sent whenever something comes in or goes out (the open logbook listens, to draw the pages again).
 signal changed
+## The purse changed (add_coins): the coins under the hearts listen to it (health.gd).
+signal coins_changed(coins: int)
 ## Sent when what's equipped changes (the item buttons and the logbook listen).
 signal equipped_changed
 ## Sent when something comes aboard (anything: a pickup, a caught imp, the fish from a haul, a buy at a counter).
@@ -93,6 +95,7 @@ func is_equippable(item: String) -> bool:
 func add_coins(amount: int) -> void:
 	coins += amount
 	changed.emit()
+	coins_changed.emit(coins)
 
 
 ## Puts `count` of `item` in the hold, as many as there's room for. Gives back how many went in.

@@ -573,13 +573,15 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (0.5 = half), `hit_damage` 0 a bump (Enrico; was 0.5; in `bump()`, after its cooldown and minimum speed), `take_damage(hearts)` (does nothing for 0 hearts; for more: the sound, the hearts' flash, the shake and signal **`hurt`**, which makes the hook button let go of what it holds, Enrico),
   `add_heart_container()` (one more heart and the hull whole), signal `health_changed(hurt)`. **At 0 she sinks** (Enrico): `start_sinking()` (no sailing, anchor or bumps; the water mask off so the sea covers her inside; no wake or bow wave), `update_sinking` takes `Model` down `sink_depth` 2.5 m and over `sink_lean_deg` 25° in `sink_time` 2 s (eased in), then signal `sank`; `respawn()` puts her back home (`home_position` / `home_turn`, where she was placed in Overworld) at anchor, hull whole, keeping the hold and heart containers. **She spawns by coming up out of the water** (Enrico: the sinking played backwards): `start_emerging()` at the level's start (`emerge_on_start`, on) and at the end of `respawn()`; `update_emerging` raises `Model` from `sink_depth` under and `sink_lean_deg` over to its place in `sink_time` ((1 − share)², quick at first, slowing at the surface), the water mask off till she's up; while `emerging` no sailing or damage, but the fog clears round her, and **the anchor can already be weighed** (Enrico: one press after "Set sail"; she sets off once she's up). **The game over card** (`Assets/UI/game_over.tscn` + `.gd`, made like the start screen: CanvasLayer 130, process_mode Always, hidden): on `sank` it pauses the game and shows "Shipwrecked", "The hull gave way. Back home to mend it." and "Set sail again", which calls `respawn()` and unpauses.
   Shown top left by `Assets/UI/health/` (`health.tscn`: CanvasLayer 110, crisp; Control `Hearts` 12, 20; `health.gd`,
-  `@tool`): a paper panel, 2 px ink border, a hard 3 px ink shadow, "Hull" and a 17 px heart a heart (the prototype's SVG
-  path as Béziers), full, half (its left half) or empty; drawn again only on `health_changed`; hurt, the panel is ink
-  for `HURT_FLASH` 0.35 s (`_process` runs only then). **As big as the wind arrow** (Enrico): drawn at that small size
-  and scaled up (`draw_set_transform`) so it's `panel_height` 60 px tall, its top at 20 like the arrow's tip; "Hull" is
-  drawn at the real big font size (scaled up it was blurry). With 4+ hearts it reaches the arrow. **FPS counter** under
-  it (`Fps`, a Label in health.tscn, `fps_counter.gd`: "n fps" from `Engine.get_frames_per_second()`, refreshed by its
-  own Timer every `update_every` 0.5 s, not every frame); the floating shop's purse moved below it (top 124).
+  `@tool`): a paper panel, 2 px ink border, a hard 3 px ink shadow and a 17 px heart a heart (the prototype's SVG
+  path as Béziers), full, half (its left half) or empty; **no "Hull" word** (Enrico, Nov 2026); drawn again only on `health_changed`; hurt, the panel is ink
+  for `HURT_FLASH` 0.35 s (`_process` runs only then). Drawn small and scaled (`draw_set_transform`) to `panel_height`
+  **28** px tall (Enrico, Nov 2026: smaller, so **12 hearts** fit in one row, ~290 px of the phone's 360; was 60).
+  **The coins under it** (Enrico, Nov 2026): the Label `Coins` (top 56, the Fps label's paper style) shows "Coins  n",
+  written by `health.gd` `_show_coins` only when the purse changes (`Inventory.coins_changed(coins)`, sent by
+  `add_coins`; export `coins_label`; in the .tscn the node needs `node_paths=PackedStringArray("coins_label")`). **FPS
+  counter** under it (`Fps`, top 84, a Label, `fps_counter.gd`: "n fps" from `Engine.get_frames_per_second()`, refreshed by its
+  own Timer every `update_every` 0.5 s, not every frame); the floating shop's purse is below it (top 124).
 - **Fishing spots** (Enrico; `Assets/Landscape/fishing_spots/`: `fishing_spot.tscn` + `fishing_spot.gd` (`@tool`),
   `fishing_spot.gdshader`, `fishing_spot.png`; instanced by hand under `FishingSpots` in Overworld, for now `FishSpot`
   (−12, 0, −50) and `HeartSpot` (20, 0, −62)): the prototype's drawSpot (a dark soft patch, rings welling up), a

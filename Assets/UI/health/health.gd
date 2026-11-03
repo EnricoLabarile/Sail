@@ -1,7 +1,10 @@
 @tool
 extends Control
-## THE HEARTS, top left: the boat's health ("Hull"), as the prototype's: a paper panel with an ink border and
-## a hard shadow, the word "Hull" and one heart for every heart she has, each full, half or empty (Zelda's way).
+## THE HEARTS, top left: the boat's health, as the prototype's: a paper panel with an ink border and a hard
+## shadow, and one heart for every heart she has, each full, half or empty (Zelda's way). Small (Enrico, Nov 2026:
+## no "Hull" word, and room for 12 hearts or more in one row across the phone's screen).
+## Under it, THE COINS: the `coins_label` Label (in health.tscn), written again only when the purse changes
+## (Inventory's coins_changed signal), not every frame.
 ## When she's hurt the panel flashes ink for a moment (the prototype's "hurt").
 ## It listens to the boat's health_changed signal (boat.gd), so it's drawn again only when something changes,
 ## not every frame. (In Unreal: a UMG widget bound to an event dispatcher on the pawn.)
@@ -10,9 +13,9 @@ extends Control
 const PAPER := Color("ebe7dc")
 const INK := Color("1b1a17")
 
-## How tall the panel is on screen, in pixels (Enrico: as big as the wind arrow top right, 60). Everything in it
-## (the word, the hearts, the border and the shadow) is drawn at its own small size and then scaled up to this.
-@export var panel_height := 60.0:
+## How tall the panel is on screen, in pixels (28: 12 hearts take ~290 px of the phone's 360). Everything in it
+## (the hearts, the border and the shadow) is drawn at its own small size and then scaled to this.
+@export var panel_height := 28.0:
 	set(value):
 		panel_height = value
 		queue_redraw()
@@ -21,8 +24,6 @@ const HURT_FLASH := 0.35          # seconds the panel stays ink after a hit
 const HEART_SIZE := 17.0          # one heart, in pixels
 const HEART_GAP := 3.0            # the space between two hearts
 const PADDING := Vector2(9, 4)    # paper round what's inside the panel (as the prototype's CSS)
-const LABEL_GAP := 8.0            # the space between "Hull" and the first heart
-const FONT_SIZE := 13
 const CURVE_STEPS := 6            # points along each curve of the heart (more = rounder)
 
 # The heart's outline, from the prototype's SVG, in a 16 x 16 box: it starts at the point at the bottom and
@@ -38,6 +39,9 @@ const HEART_CURVES := [
 	[Vector2(15, 8.6), Vector2(12, 11.2), Vector2(8, 14.6)],    # down the right side to the point
 ]
 
+## The Label under the hearts that shows the coins (health.tscn: the `Coins` node).
+@export var coins_label: Label
+
 var max_hearts := 3.0      # how many hearts she has
 var health := 3.0          # how many are left (0.5 = half a heart)
 var _flash := 0.0          # seconds of the hurt flash left
@@ -52,6 +56,8 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	set_process(false)                 # nothing to do every frame: only while the hurt flash counts down
+	Inventory.coins_changed.connect(_show_coins)   # the coins: written again only when the purse changes
+	_show_coins(Inventory.coins)
 	_find_boat.call_deferred()         # deferred: after the boat's own _ready (she joins her group there)
 
 
@@ -61,6 +67,12 @@ func _find_boat() -> void:
 	if _boat:
 		_boat.health_changed.connect(_on_health_changed)
 		_on_health_changed(false)
+
+
+## The purse changed (or the game started): write the coins under the hearts.
+func _show_coins(coins: int) -> void:
+	if coins_label:
+		coins_label.text = "Coins  %d" % coins
 
 
 ## Only while the hurt flash is on (switched on by _on_health_changed): count it down, then rest again.
@@ -83,10 +95,8 @@ func _on_health_changed(hurt: bool) -> void:
 
 func _draw() -> void:
 	var count := ceili(max_hearts)
-	var font := get_theme_default_font()
-	var label_w := font.get_string_size("Hull", HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x
 	var hearts_w := count * HEART_SIZE + (count - 1) * HEART_GAP
-	var panel := Rect2(Vector2.ZERO, PADDING * 2.0 + Vector2(label_w + LABEL_GAP + hearts_w, HEART_SIZE))
+	var panel := Rect2(Vector2.ZERO, PADDING * 2.0 + Vector2(hearts_w, HEART_SIZE))
 	# Drawn at its small size, then everything scaled up so the panel is panel_height tall (like a widget's scale).
 	var grow := panel_height / panel.size.y
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(grow, grow))
@@ -101,21 +111,10 @@ func _draw() -> void:
 	draw_rect(panel, back)
 	draw_rect(panel, INK, false, 2.0)
 
-	# 2. "Hull", in the middle of the panel's height.
-	var middle_y := PADDING.y + HEART_SIZE * 0.5
-	var baseline := middle_y + (font.get_ascent(FONT_SIZE) - font.get_descent(FONT_SIZE)) * 0.5
-	# The word is drawn at its real big size (a scaled-up small word would be blurry): no scaling for it, its
-	# place and font size multiplied by `grow` instead; then the scaling back on for the hearts.
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	var big_size := roundi(FONT_SIZE * grow)
-	var big_baseline := middle_y * grow + (font.get_ascent(big_size) - font.get_descent(big_size)) * 0.5
-	draw_string(font, Vector2(PADDING.x * grow, big_baseline), "Hull", HORIZONTAL_ALIGNMENT_LEFT, -1, big_size, front)
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2(grow, grow))
-
-	# 3. The hearts: each one full, half or empty, depending on how much health is left for it.
+	# 2. The hearts: each one full, half or empty, depending on how much health is left for it.
 	var heart_scale := HEART_SIZE / 16.0
 	for i in count:
-		var corner := Vector2(PADDING.x + label_w + LABEL_GAP + i * (HEART_SIZE + HEART_GAP), PADDING.y)
+		var corner := Vector2(PADDING.x + i * (HEART_SIZE + HEART_GAP), PADDING.y)
 		var left := clampf(health - i, 0.0, 1.0)          # this heart's share: 1 full, 0.5 half, 0 empty
 		if left >= 1.0:
 			draw_colored_polygon(_placed(_full_heart, corner, heart_scale), front)
