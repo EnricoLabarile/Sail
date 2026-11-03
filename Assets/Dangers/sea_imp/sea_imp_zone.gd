@@ -90,6 +90,7 @@ func _ready() -> void:
 		return
 	add_to_group("sea_imps")    # so bombs and traps find it (bomb.gd, trap.gd: hit_imp_at)
 	add_to_group("hookable")    # so the harpoon can catch it (harpoon.gd)
+	add_to_group("enemies")     # so a sea mine knows where it is (sea_mine.gd: touch_place)
 	imp.material_override = imp.material_override.duplicate()   # its own copy, so only this imp blinks
 	hearts = max_hearts
 	lurk()
@@ -181,6 +182,17 @@ func emerge_at(spot: Vector3) -> void:
 	patch.visible = true
 	patch.global_position = Vector3(spot.x, 0.05, spot.z)
 	imp.global_position = Vector3(spot.x, 0.0, spot.z)
+	# A sea mine near where it comes up goes off (Enrico): each mine checks the distance itself (sea_mine.gd).
+	for mine in get_tree().get_nodes_in_group("sea_mines"):
+		mine.imp_emerging_at(spot)
+
+
+## Where it can touch things now (a sea mine asks, sea_mine.gd): the imp's place while it's out of the water and alive
+## (up, hurt or stunned), null while it's under water, lurking or dead.
+func touch_place() -> Variant:
+	if state == State.UP or state == State.HURT or state == State.STUNNED:
+		return imp.global_position
+	return null
 
 
 ## Up: the imp shows where the patch was.

@@ -71,10 +71,18 @@ func _ready() -> void:
 	hearts = max_hearts
 	add_to_group("bomb_targets")          # so a bomb's blast checks it (bomb.gd explode)
 	add_to_group("hookable")              # so the harpoon can catch it (harpoon.gd)
+	add_to_group("enemies")               # so a sea mine knows where it is (sea_mine.gd: touch_place)
 	# Its own copy of the picture's material, so blinking one urchin doesn't blink the others.
 	var picture := $Urchin/Picture as MeshInstance3D
 	picture_material = (picture.mesh.surface_get_material(0) as StandardMaterial3D).duplicate()
 	picture.material_override = picture_material
+
+
+## Where it can touch things now (a sea mine asks, sea_mine.gd): the urchin's place while it's alive, null once dead.
+func touch_place() -> Variant:
+	if state == State.DEAD:
+		return null
+	return urchin.global_position
 
 
 func _process(dt: float) -> void:

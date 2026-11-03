@@ -886,6 +886,19 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   **`opened`**) and the key `use_up()`; the gate sinks by `height` (the mesh's height in the Gate's space, through its
   scales, `mesh_height()`, 6 m) + `sink_extra` 0 in `open_time` 1.5 s, smoothstep, then the box is disabled and it stays
   open for good. In Overworld: `BridgeLock` (Enrico moved it under the bridge, (−272, 0, −72)) and `Key` (−25, 1.6, 53), `key_id` "1" both. No sounds (not asked), no test ones placed in the levels.
+- **Sea mines** (Enrico, Nov 2026; `Assets/Items/sea_mine/`: `sea_mine.tscn` + `sea_mine.gd` (`@tool`), `sea_mine.png` a
+  64² stand-in by `art_src/items/make_sea_mine.py`; placed by hand, none in the levels yet): `Picture` a 3 m PlaneMesh
+  lying 0.1 m up (as the key's), bobbing (`bob_height` 0.1, `bob_speed` 2); towed with the hook through its `Towable`
+  child (`grab_reach` 5, `rope_length` 4, `tow_slowdown` 0.85, `size` 1.5). Groups `sea_mines` and `bomb_targets`. It
+  **blows up** (`blow_up`: a `bomb.tscn` made at its place with `time` = `fuse_time` and `explode()` called at once, so
+  exactly the bomb's blast, damage, shake and sound; the mine freed, the rope let go) when: the boat's middle comes
+  within `touch_radius` 2.5 m while she's **not** towing it; any enemy's `touch_place()` (group **`enemies`**) comes
+  within `touch_radius`, **towed or not** (Enrico); a **sea imp starts to emerge** within `emerge_radius` 6 m
+  (`sea_imp_zone.gd` `emerge_at` calls `imp_emerging_at(spot)` on every mine); **a blast catches it** (`blast_at`,
+  `bomb.in_blast(it, body_radius 1.2)`, deferred), so **mines go off in a chain** (Enrico). Checked every physics frame
+  (plain distances on the water, `flat_distance`).
+  **The `enemies` group** (a rule for new enemies, so mines see them): `add_to_group("enemies")` and `touch_place()` →
+  its place while it's solid / can touch, `null` otherwise. Done for the imp (UP, HURT, STUNNED) and the urchin (alive).
 - **Traps** (Enrico; `Assets/Items/trap/`: `trap.tscn` + `trap.gd`, `trap.png` (a stand-in, seen from above),
   `trap_setter.gd` on `Boat/TrapSetter` in boat.tscn): boat.gd sends `anchor_dropped` when the anchor goes down
   (`toggle_anchor`, not at a pier); with a trap equipped (and one aboard) TrapSetter lays one where she is (a 2.4 m
