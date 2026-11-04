@@ -9,6 +9,8 @@ extends CanvasLayer
 ## Every frame it works out where the boat is on the screen and draws the icon there, a little higher as time goes by.
 ## Several things one after the other (a bomb, then a key…) wait in a queue and are shown in turn; a pile coming
 ## aboard at once (two bombs from a barrel) is one show.
+## Things that don't go into the hold (a fishing spot's coins or heart container) are shown too: whoever brings
+## them calls `show_picture(their icon)` on this node (the Boat's child `ItemShow`).
 
 const INK := Color("1b1a17")
 const PAPER := Color("ebe7dc")
@@ -22,9 +24,8 @@ const PAPER := Color("ebe7dc")
 @export var icon_size := 28.0      # the icon's size on the screen, in pixels
 @export var disc_padding := 5.0    # paper round the icon (a disc with an ink ring, so it reads on the dark sea)
 
-var queue: Array[String] = []      # what's waiting to be shown, in order
-var item := ""                     # what's being shown now ("" = nothing)
-var icon: Texture2D                # its picture
+var queue: Array[Texture2D] = []   # the pictures waiting to be shown, in order
+var icon: Texture2D                # the picture being shown now (null = nothing)
 var time := 0.0                    # seconds since it started showing
 var picture: Control               # where it's drawn (made in _ready)
 
@@ -42,22 +43,29 @@ func _ready() -> void:
 	set_process(false)               # nothing to do until something comes aboard
 
 
-## Something came into the hold: show it now, or after the one being shown.
+## Something came into the hold: show its icon.
 func _on_came_aboard(new_item: String, _count: int) -> void:
-	queue.append(new_item)
-	if item == "":
+	show_picture(Inventory.icon_of(new_item))
+
+
+## Shows a picture over the boat: now, or after the one being shown. Anything may call it (fishing_spot.gd does,
+## for coins and heart containers, which never go into the hold).
+func show_picture(picture_to_show: Texture2D) -> void:
+	if picture_to_show == null:
+		return
+	queue.append(picture_to_show)
+	if icon == null:
 		show_next()
 
 
 ## Takes the next thing from the queue and starts showing it (or stops, if the queue is empty).
 func show_next() -> void:
 	if queue.is_empty():
-		item = ""
+		icon = null
 		set_process(false)
 		picture.queue_redraw()       # clears the last picture
 		return
-	item = queue.pop_front()
-	icon = Inventory.icon_of(item)
+	icon = queue.pop_front()
 	time = 0.0
 	set_process(true)
 
@@ -79,7 +87,7 @@ func boat_on_screen() -> Vector2:
 
 
 func _draw_picture() -> void:
-	if item == "" or icon == null:
+	if icon == null:
 		return
 	# 1. How high: it rises over rise_time, quick at first and slowing as it gets there (ease out), then stays.
 	var share := clampf(time / rise_time, 0.0, 1.0)

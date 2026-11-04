@@ -144,12 +144,10 @@ cloud_count = 128
 
 [node name="FishSpot" parent="Gameplay/FishingSpots" unique_id=2122243808 instance=ExtResource("26_fishing_spot")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.122238, 0, 163.4654)
-reach = 4
 
 [node name="HeartSpot" parent="Gameplay/FishingSpots" unique_id=1191537044 instance=ExtResource("26_fishing_spot")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 95.867874, 0, -100.36296)
 loot = 1
-reach = 4
 
 [node name="MapMarkers" type="Node3D" parent="Gameplay" unique_id=161406149]
 

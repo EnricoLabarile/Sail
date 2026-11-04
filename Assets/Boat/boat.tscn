@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://yhirdrptudop" path="res://Assets/Boat/paddles.gd" id="12_paddles"]
 [ext_resource type="PackedScene" uid="uid://bkkrdnkxvkeca" path="res://Assets/Boat/paddle_wheel.tscn" id="12_paddle_wheel"]
 [ext_resource type="Script" uid="uid://5kqqr0ff2vwa" path="res://Assets/Boat/item_show.gd" id="14_item_show"]
+[ext_resource type="Script" uid="uid://dmm0vlbgyd76b" path="res://Assets/Boat/anchor_chain.gd" id="15_anchor_chain"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_wake"]
 render_priority = 1
@@ -141,6 +142,9 @@ script = ExtResource("10_trap_setter")
 [node name="ItemShow" type="CanvasLayer" parent="." unique_id=2032089266]
 layer = 94
 script = ExtResource("14_item_show")
+
+[node name="AnchorChain" type="Node3D" parent="."]
+script = ExtResource("15_anchor_chain")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=67420740]
 transform = Transform3D(0.82448035, 0, 0, 0, 1.0002527, 0, 0, 0, 0.9644745, 0.5699463, 1.0084839, 0.89263916)

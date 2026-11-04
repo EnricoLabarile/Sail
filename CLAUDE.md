@@ -442,7 +442,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   her interpolated place, every frame, so it follows her), fades in over `appear_time` 0.15 s, **rises gradually**
   `rise_height` 30 px over `rise_time` 0.9 s (ease out: slowing at the top), stays `hold_time` 0.5 s, fades over
   `fade_time` 0.3 s. The boat doesn't stop. Things one after the other wait in `queue` and are shown in turn (a pile
-  arriving at once is one show; no count shown). `_process` only while showing.
+  arriving at once is one show; no count shown). `_process` only while showing. Things that never go into the hold
+  (a fishing spot's coins or heart) are shown through `show_picture(texture)` (the queue holds pictures).
   **The boat hurt** (Enrico: one sound for every kind of damage): `boat_hurt.ogg` (player `BoatHurt` −6 dB,
   `Sfx.boat_hurt()`), played by `boat.gd` `take_damage` whenever she loses hearts (> 0; not while sinking or coming
   up), so fireballs, spikes, bombs, boiling water, maelstroms, waves and enemies all make it with nothing of their own; a
@@ -520,9 +521,19 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
   `bow_point()` = middle + `bow_reach` forward) and stays there; the current now carries her at anchor too; once the
   bow is `anchor_rode` 3 m from it, `hold_at_anchor` holds the bow there and the hull trails from it, so she swings
-  round it, bow to the anchor (carried > 4 × the rode off, it drags and bites again). At anchor the sail is gathered
+  round it, bow to the anchor (carried > 4 × the rode off, it drags and bites again); **the taut line swings her round**
+  (Enrico, Nov 2026: run on past the anchor she hung with it under her keel, the chain hidden): `back` turned toward
+  the anchor-to-bow direction by at most `anchor_swing_speed` 1.2 rad/s (`swing_toward`; exactly opposite → to her
+  right). At anchor the sail is gathered
   onto the boom (`update_furl`: `sm_boat_sail` scale.y → `furled_height` 0.06 at `furl_rate` 2.2, spread again at
-  `unfurl_rate` 3.5). No line drawn yet.
+  `unfurl_rate` 3.5). **The anchor seen** (Enrico, Nov 2026; `Assets/Boat/anchor_chain.gd` on `Boat/AnchorChain`,
+  top_level, all made in code): while at anchor (`is_at_anchor`: anchored, no `berth`, not sinking) a **chain** of
+  small TorusMesh links (ink, unshaded, `link_size` 0.13, `link_thickness` 0.045, stretched 1.6 along, every other one
+  on edge, every `link_step` 0.26 m, at most `MAX_LINKS` 60) from her drawn (interpolated) bow at `bow_height` 0.4 m
+  to `anchor_point` on the water, hanging `sag` 0.15 m in the middle; and **rings** on the water there (paper
+  TorusMesh, render_priority 1, at most 4): one every `ripple_every` 0.9 s, growing `ripple_start` 0.3 → `ripple_size`
+  1.6 m over `ripple_time` 1.6 s (ease out), fading over its second half. `_process` only while at anchor: switched on
+  by `anchor_dropped`, at the start (deferred) and after respawn (`health_changed`); off when weighed, tied up or sunk.
 - **The wheel** (NOTE, Nov 2026: the hub's anchor, its hold, its glyphs, its press flash and the fading at anchor are
   GONE: the middle is the interaction button, see below; the wheel stays at anchor, drawn darker by an NPC, and doesn't
   steer there; helm.gd keeps `hub_middle()` / `hub_radius()` for the button. The old description follows.)
@@ -593,12 +604,17 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (−12, 0, −50) and `HeartSpot` (20, 0, −62)): the prototype's drawSpot (a dark soft patch, rings welling up), a
   4 × 4 flipbook (frames 64², a stand-in for Enrico to redraw) on a 1 m PlaneMesh `Picture` 0.05 m up, scaled to
   `radius` 3.3 m × 2 (scaled, as the mesh is shared); unshaded, render_priority 1, the sea's stencil read (not over the
-  boat's inside), material local to scene (`phase` random, `fade`). Inspector: `loot` (FISH or HEART_CONTAINER),
-  `fish_count`, `reach` 4.5 m (the anchor must fall that close to the middle: a bit more than the patch), `fishing_time`
-  3 s, `fade_time` 1.8 s. `boat.gd` `toggle_anchor` calls `try_fishing(boat)` on every spot (group `fishing_spots`) when
-  the anchor goes down; still at anchor after `fishing_time`, the haul: fish into the Inventory (hold full: nothing, the
-  spot stays) or `add_heart_container()`; then it fades and is freed. Weighed before: nothing, it stays. No net,
-  popup or sound yet. **The wheel's hub shows a question mark** (Enrico, the prototype's `bankHint` glyph) instead of the anchor
+  boat's inside), material local to scene (`phase` random, `fade`). Inspector: `loot` (**COINS or HEART_CONTAINER**,
+  Enrico, Nov 2026: the fish are gone), `coin_amount` 5 (per spot), `reach` **5.5** m (Enrico: a little more than the
+  patch, it was tight; the Overworld's overrides of 4 removed), `fishing_time` 3 s, `fade_time` 1.8 s. `boat.gd`
+  `toggle_anchor` calls `try_fishing(boat)` on every spot (group `fishing_spots`) when the anchor goes down: within
+  `reach` if the anchor **or her middle** is (`flat_distance`; the anchor lies 2.2 m off her bow); still at anchor
+  after `fishing_time`, the haul: `Inventory.add_coins(coin_amount)` or `add_heart_container()`, and its icon rises
+  over the boat (`_show_over_boat`: `Sfx.came_aboard()` and `ItemShow.show_picture`, `COIN_ICON` / `HEART_ICON` =
+  `Assets/Inventory/icons/coin.png` / `heart_container.png`, stand-ins by `art_src/items/make_spot_icons.py`); then it
+  fades and is freed. Weighed before: nothing, it stays. **A tap on the interaction button's question mark drops the
+  anchor** (`interaction_button.gd` `fish_here`: `toggle_anchor()`; already at anchor, each spot's `try_fishing`
+  again; tied up, nothing). **The wheel's hub shows a question mark** (Enrico, the prototype's `bankHint` glyph) instead of the anchor
   while she's over a spot, **event-driven** (Enrico: no checks every frame): each spot has `Sensor` (Area3D, a
   `CylinderShape3D` of radius `reach`, local to scene, height 4; mask = physics layer 4 "sensors", not monitorable) and
   the boat `SpotSensor` (Area3D, a 0.3 m sphere on layer 4, not monitoring); `area_entered` / `area_exited` →

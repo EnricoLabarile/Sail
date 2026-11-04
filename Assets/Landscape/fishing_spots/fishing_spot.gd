@@ -2,8 +2,11 @@
 extends Node3D
 ## A FISHING SPOT: a patch of darker water with rings welling up (fishing_spot.gdshader). Drop the anchor
 ## within `reach` metres of its middle (a little more than the patch you see) and she starts fishing; after
-## `fishing_time` seconds still at anchor, the haul comes in: fish into the hold (the Inventory autoload) or
-## a heart container (one more heart, the hull mended). Then the spot is fished out: it fades away and is gone.
+## `fishing_time` seconds still at anchor, the haul comes in: coins into the purse (the Inventory autoload) or
+## a heart container (one more heart, the hull mended), its icon shown rising over the boat (Assets/Boat/item_show.gd,
+## like anything brought aboard). Then the spot is fished out: it fades away and is gone.
+## (Enrico, Nov 2026: a tap on the interaction button's question mark drops the anchor here by itself, and the
+## anchor counts as within reach if either it or her middle is: see try_fishing.)
 ## Weigh anchor before the haul and the nets come back empty (the spot stays, try again).
 ##
 ## To place one: instance fishing_spot.tscn (like placing a Blueprint) under FishingSpots in Overworld, move
@@ -15,17 +18,22 @@ extends Node3D
 ## out. The spot then tells the boat "you're over me" / "not any more" (boat.gd set_over_fishing_spot), and the
 ## boat tells the wheel, which shows a question mark instead of the anchor. Nothing is checked every frame.
 
-enum Loot { FISH, HEART_CONTAINER }
+## What a haul can bring up (Enrico, Nov 2026: coins or a heart container, for now; the fish are gone).
+enum Loot { COINS, HEART_CONTAINER }
 
-@export var loot := Loot.FISH       # what the haul brings up
-@export var fish_count := 1         # how many fish (only for FISH; as many as fit in the hold)
+const COIN_ICON := preload("res://Assets/Inventory/icons/coin.png")                  # shown over the boat for coins
+const HEART_ICON := preload("res://Assets/Inventory/icons/heart_container.png")      # ...and for a heart container
+
+@export var loot := Loot.COINS      # what the haul brings up
+@export var coin_amount := 5        # how many coins (only for COINS): set it on each spot
 ## The patch's radius on the water, in metres (the picture is twice this across).
 @export var radius := 3.3:
 	set(value):
 		radius = value
 		_fit_picture()
-## Metres from the middle the anchor may fall to fish here (a bit more than radius); the sensor is this big too.
-@export var reach := 11:
+## Metres from the middle the boat may be to fish here (Enrico: a little more than the patch you see, so it isn't
+## tight); the sensor is this big too, so it's also where the question mark shows.
+@export var reach := 5.5:
 	set(value):
 		reach = value
 		_fit_sensor()
@@ -113,9 +121,9 @@ func _material() -> ShaderMaterial:
 func try_fishing(boat: Node3D) -> void:
 	if _fished_out or _fishing_left >= 0.0:
 		return
-	var off: Vector3 = boat.anchor_point - global_position
-	off.y = 0.0                                   # only the distance across the water
-	if off.length() > reach:
+	# Close enough if the anchor OR her middle is within reach (the anchor lies off her bow, up to 2.2 m further:
+	# where the question mark shows, anchoring must always work).
+	if flat_distance(boat.anchor_point) > reach and flat_distance(boat.global_position) > reach:
 		return
 	_boat = boat
 	_player = boat
@@ -147,14 +155,30 @@ func _process(dt: float) -> void:
 		_haul()
 
 
-## The haul comes in.
+## The distance across the water (the height doesn't count) from the spot's middle to a point.
+func flat_distance(point: Vector3) -> float:
+	var off := point - global_position
+	off.y = 0.0
+	return off.length()
+
+
+## The haul comes in: the coins or the heart, and its icon rises over the boat so it's clear what was found.
 func _haul() -> void:
 	_fishing_left = -1.0
-	if loot == Loot.FISH:
-		var caught := Inventory.add("fish", fish_count)
-		if caught == 0:
-			return                                # the hold is full: nothing caught, the spot stays
+	if loot == Loot.COINS:
+		Inventory.add_coins(coin_amount)          # the purse under the hearts counts up (health.gd)
+		_show_over_boat(COIN_ICON)
 	else:
 		_boat.add_heart_container()
+		_show_over_boat(HEART_ICON)
 	_fished_out = true
 	_update_boat_here()                           # nothing left here: the wheel shows the anchor again
+
+
+## The haul's icon rising over the boat (the Boat's child ItemShow, item_show.gd), with the "came aboard" sound, like
+## anything brought aboard (the fish of a haul made it before, going through the hold).
+func _show_over_boat(icon: Texture2D) -> void:
+	Sfx.came_aboard()
+	var shower := _boat.get_node_or_null("ItemShow")
+	if shower:
+		shower.show_picture(icon)

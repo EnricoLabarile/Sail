@@ -5,7 +5,8 @@ extends Control
 ## moment (the first that fits, top to bottom):
 ##   1. someone is talking            -> an arrow: a tap shows the whole page, then the next one (talk_box.tap)
 ##   2. near an NPC not yet talked to -> a speech bubble with a glint: a tap drops the anchor and starts the talk
-##   3. over a fishing spot           -> a question mark: only a hint (fish by dropping anchor with the lever)
+##   3. over a fishing spot           -> a question mark: a tap drops the anchor there and the fishing starts
+##                                       (Enrico, Nov 2026; already at anchor: it fishes where she is)
 ##   4. a thing in hand               -> its icon (bomb, jar, harpoon, hook, trap): a tap uses it (its action's use())
 ##   5. nothing                       -> an empty face, faint
 ## Every press clicks, and it's black for as long as the finger holds it (Enrico's rule for every button: it shows
@@ -181,7 +182,23 @@ func press(click := true) -> void:
 			var action := current_action()
 			if action != null and action.can_use():
 				action.use()
-		# "fishing" and "empty": only the click (and black while held).
+		"fishing":
+			fish_here(boat)
+		# "empty": only the click (and black while held).
+
+
+## The question mark tapped (Enrico, Nov 2026): the anchor goes down by itself (with its sound), and dropping it
+## starts the fishing (boat.gd toggle_anchor asks every spot, fishing_spot.gd try_fishing). Already at anchor (dropped
+## a little outside the spot): each spot is asked again, so she fishes where she is. Tied up at a pier nothing
+## happens (there the anchor button casts off).
+func fish_here(boat: Node3D) -> void:
+	if boat.berth != null:
+		return
+	if not boat.anchored:
+		boat.toggle_anchor()
+		return
+	for spot in get_tree().get_nodes_in_group("fishing_spots"):
+		spot.try_fishing(boat)
 
 
 # ---- drawing it ----

@@ -46,6 +46,8 @@ extends Node3D
 # The anchor (the prototype's ANCHOR_RODE): it stays where it fell, off the bow. The current carries her
 # until the line is taut; then the line holds her bow and she swings round the anchor, stern downstream.
 @export var anchor_rode := 3.0          # metres of anchor line from the bow to the anchor
+@export var anchor_swing_speed := 1.2   # rad/s the taut line swings her round to face the anchor (Enrico, Nov 2026: she
+                                        # drifted on past it and hung there with the anchor under her keel, the chain hidden)
 
 # The waves: she rocks gently on them, side to side (roll) and bow to stern (pitch).
 @export var wave_roll_deg := 3.0    # how far she rolls each way on the waves, in degrees
@@ -744,6 +746,11 @@ func hold_at_anchor() -> void:
 	var bow_to_middle := global_position - bow
 	bow_to_middle.y = 0.0
 	var back := bow_to_middle.normalized()
+	# 2b. The line swings her round (Enrico, Nov 2026): at rest the hull lies on the far side of the bow from the
+	#     anchor (back = the way from the anchor to the bow). Run on past the anchor she'd hang the other way, the
+	#     anchor under her keel; so `back` is turned toward that rest direction by at most anchor_swing_speed a
+	#     second. Right on top of each other (exactly the wrong way) she swings to her right.
+	back = swing_toward(back, from_anchor / distance, anchor_swing_speed * get_physics_process_delta_time())
 	global_position = bow + back * bow_reach
 	# 3. She faces the anchor: her forward (-Z) points from her middle to her bow, the opposite of `back`.
 	#    A turn of rotation.y = a points her +Z along (sin a, 0, cos a), so a = atan2(back.x, back.z).
@@ -751,6 +758,15 @@ func hold_at_anchor() -> void:
 	# 4. The line takes her way off.
 	speed = minf(speed, 0.0)
 	knock *= 0.5
+
+
+## Turns the flat direction `from` toward `to` (both length 1, on the water) by at most `max_turn` radians.
+func swing_toward(from: Vector3, to: Vector3, max_turn: float) -> Vector3:
+	var angle := atan2(from.cross(to).y, from.dot(to))   # the turn from one to the other, + = anticlockwise from above
+	if absf(angle) > PI - 0.01:
+		angle = -PI                                      # exactly opposite: either way would do, go to her right
+	var turn := clampf(angle, -max_turn, max_turn)
+	return from.rotated(Vector3.UP, turn)
 
 
 ## The wake (the CPUParticles3D node in boat.tscn, like a small CPU Niagara emitter: its look is set in the
