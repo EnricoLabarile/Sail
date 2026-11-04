@@ -1,8 +1,13 @@
 extends Node3D
 ## ONE SPIKE, shot by a sea urchin (sea_urchin.gd): it flies straight across the water, the way it was shot. If it
-## comes within `hit_radius` of the boat's middle she loses `damage` hearts and it's gone; it's also gone when it
+## touches the boat's HULL (Enrico, Nov 2026: before, only within `hit_radius` of her middle, so spikes crossing her
+## bow or stern did nothing) she loses `damage` hearts and it's gone; it's also gone when it
 ## reaches land or has flown `range_left` metres (it missed).
 ## (In Unreal: a small projectile actor moving itself every Tick, overlap-tested against the player's pawn.)
+##
+## The hull is seen as a CAPSULE lying on the water (like a capsule collision in Unreal, turned with the boat): the
+## line from her stern to her bow (boat.stern_point() / bow_point(), bow_reach either way of her middle), and
+## everything within `hit_radius` of that line (her half width).
 ##
 ## Its picture (spike.png, on the flat plane `Picture`) has its point at the TOP: the plane is turned so the top
 ## points the way it flies. All its numbers come from the urchin that shoots it (launch).
@@ -11,7 +16,7 @@ extends Node3D
 
 var velocity := Vector3.ZERO     # metres a second across the water
 var damage := 0.5                # hearts it takes off the boat
-var hit_radius := 1.2            # metres: this close to the boat's middle, it hits her
+var hit_radius := 1.2            # metres: this close to the line from her stern to her bow, it hits her (her half width)
 var range_left := 15.0           # metres it can still fly before it's gone
 
 
@@ -35,12 +40,21 @@ func _process(dt: float) -> void:
 	if range_left <= 0.0 or Land.is_land(global_position):
 		queue_free()
 		return
-	# Close enough to the boat's middle: it hits her (take_damage does nothing while she sinks or comes up).
+	# Touching the hull: it hits her (take_damage does nothing while she sinks or comes up).
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if boat == null:
 		return
-	var off := boat.global_position - global_position
-	off.y = 0.0                        # only the distance across the water
-	if off.length() < hit_radius:
+	if distance_to_hull(boat) < hit_radius:
 		boat.take_damage(damage)
 		queue_free()
+
+
+## How far the spike is from the line stern → bow, across the water (the height doesn't count).
+## Geometry2D.get_closest_point_to_segment gives the point of that line nearest the spike; on the water x and z
+## are the two flat directions, so the line and the spike are put into 2D as (x, z).
+func distance_to_hull(boat: Node3D) -> float:
+	var stern: Vector3 = boat.stern_point()
+	var bow: Vector3 = boat.bow_point()
+	var me := Vector2(global_position.x, global_position.z)
+	var nearest := Geometry2D.get_closest_point_to_segment(me, Vector2(stern.x, stern.z), Vector2(bow.x, bow.z))
+	return me.distance_to(nearest)

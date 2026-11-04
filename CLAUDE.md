@@ -649,7 +649,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   land), then **ATTACKING** for `attack_time` 2 s standing still: `shot_count` 3 rounds spread evenly over it (round n at
   n × attack_time / shot_count), each `shoot_round` = 8 spikes N, NE, E… from its middle, 0.3 m up; then WALKING again.
   A spike (`spike.gd`, `launch`): flies straight at `spike_speed` 8 m/s, its 1.2 × 2.4 m picture turned so its top points
-  the way it flies, for `spike_range` 15 m; within `spike_hit_radius` 1.2 m of her middle `take_damage(spike_damage 0.5)`
+  the way it flies, for `spike_range` 15 m; touching her **hull** (Enrico, Nov 2026: before only within 1.2 m of her middle, so spikes
+  crossing her bow or stern did nothing): within `spike_hit_radius` 1.2 m (her half width) of the line stern → bow
+  (`distance_to_hull`, `Geometry2D.get_closest_point_to_segment` on x/z: a capsule) `take_damage(spike_damage 0.5)`
   and gone; gone on land. All numbers are the urchin's exports. **Bombs kill it** (Enrico): group `bomb_targets`,
   `blast_at(bomb)`: within `bomb.in_blast(urchin, body_radius 1.5)` it loses `bomb.damage` of `max_hearts` 3 and blinks
   black (`hurt_time` 0.5 s at `hurt_blinks_per_second` 12: its own copy of the picture's material, `albedo_color` black /

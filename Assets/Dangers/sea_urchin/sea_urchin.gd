@@ -34,7 +34,7 @@ enum State { WALKING, ATTACKING, DEAD }
 @export var spike_speed := 6.0        # metres a second a spike flies (the boat does 7 at top speed)
 @export var spike_range := 30.0       # metres a spike flies before it's gone
 @export var spike_damage := 0.5       # hearts a spike takes off the boat (Enrico: half a heart)
-@export var spike_hit_radius := 1.2   # metres from the boat's middle a spike must come to hit her
+@export var spike_hit_radius := 1.2   # metres from the line stern → bow (her half width) a spike must come to hit her
 @export var max_hearts := 3.0         # how much a bomb must take off it to kill it (Enrico: 3 for now)
 @export var body_radius := 1.5        # metres: a bomb's blast reaching this close to its middle hits it
 @export var touch_radius := 3.0       # metres: the boat's middle this close to it = she ran into it (bounce, half a heart)
