@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://Assets/Inventory/item_data.gd" id="1_item"]
 [ext_resource type="Texture2D" uid="uid://bdjxso8k15fk8" path="res://Assets/Inventory/icons/trap.png" id="2_icon"]
+[ext_resource type="AudioStream" uid="uid://8twk8hs52qxb" path="res://Assets/SFX/equip_trap.ogg" id="9_equip_sound"]
 
 [resource]
 script = ExtResource("1_item")
@@ -12,3 +13,4 @@ buy_price = 6
 sell_price = 3
 stackable = true
 equippable = true
+equip_sound = ExtResource("9_equip_sound")

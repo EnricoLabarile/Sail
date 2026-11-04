@@ -11,7 +11,8 @@ extends Node
 ##                    (played higher and quieter: BombBlast's Pitch Scale 1.5 and Volume -6 dB in sfx.tscn, Enrico)
 ##   hull_bump.ogg    the hull knocking against a shore or a barrel: a dull thud, a woody knock, a little scrape
 ##                    (made by art_src/audio/make_bump.py)
-##   equip_bomb.ogg   the bomb equipped: two dry metallic clicks, like a gun being loaded (art_src/audio/make_equip.py)
+##   equip_*.ogg      a thing put in hand, each its own (bomb, trap, hook, harpoon, aeolus_jar; art_src/audio/make_equip.py):
+##                    the item's .tres says which (`equip_sound`), Sfx.equip(item) plays it on the `Equip` player
 ##   gust_whoosh.ogg  a very mild whoosh: the boat caught a wind gust (art_src/audio/make_whoosh.py)
 ##   button_press.ogg a button pressed: a soft low tock, 70 ms, 170 -> 130 Hz (art_src/audio/make_button_press.py)
 ##   book_open.ogg / book_close.ogg  the logbook: a page turning; closing, also the cover's soft thump (art_src/audio/make_page_turn.py)
@@ -37,7 +38,7 @@ extends Node
 @onready var imp_death_sound: AudioStreamPlayer = $ImpDeath
 @onready var bomb_blast_sound: AudioStreamPlayer = $BombBlast
 @onready var hull_bump_sound: AudioStreamPlayer = $HullBump
-@onready var equip_bomb_sound: AudioStreamPlayer = $EquipBomb
+@onready var equip_sound: AudioStreamPlayer = $Equip
 @onready var talk_blip_sound: AudioStreamPlayer = $TalkBlip
 @onready var gust_whoosh_sound: AudioStreamPlayer = $GustWhoosh
 @onready var button_press_sound: AudioStreamPlayer = $ButtonPress
@@ -136,9 +137,14 @@ func hull_bump(strength: float) -> void:
 	hull_bump_sound.play()
 
 
-## The bomb equipped (bomb_button.gd): a snappy click-clack.
-func equip_bomb() -> void:
-	equip_bomb_sound.play()
+## A thing put in hand (the interaction button, when it changes): that thing's own sound, its ItemData's
+## `equip_sound` (nothing if it has none). One player for all of them: its stream is swapped each time.
+func equip(item: String) -> void:
+	var info := Inventory.data(item)
+	if info == null or info.equip_sound == null:
+		return
+	equip_sound.stream = info.equip_sound
+	equip_sound.play()
 
 
 ## One syllable of a talking NPC (talk_box.gd, while the letters are typed out): the blip at a random pitch.

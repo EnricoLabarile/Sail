@@ -699,7 +699,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `buy_price` (what a merchant asks; fish 4, bomb 5, trap 6, imp 0 = not sold), `sell_price` (what a merchant pays;
   fish 2, bomb 2, trap 3, imp 15; 0 = not bought), `stackable`, `equippable`. The `Inventory` reads the folder at start
   (`load_catalogue`, `ResourceLoader.list_directory`) into `catalogue`; `data(id)`, `icon_of`, `is_stackable`,
-  `is_equippable` replace the old ICONS / STACKABLE / EQUIPPABLE lists. A new kind of item = a new `.tres`. **The purse**:
+  `is_equippable` replace the old ICONS / STACKABLE / EQUIPPABLE lists. **`equip_sound`** (AudioStream, Enrico, Nov 2026: each thing its own sound when put in hand): bomb `equip_bomb.ogg`, trap `equip_trap.ogg` (a spring winding, the jaws snapping), hook `equip_hook.ogg` (chain rattle, a clang), harpoon `equip_harpoon.ogg` (a rising zing, the catch locking), Aeolus jar `equip_aeolus_jar.ogg` (a cork's pop, a breath of wind), all made by `art_src/audio/make_equip.py`; the interaction button's `_on_equipped_changed` calls `Sfx.equip(item)`, which swaps the stream of the one player `Equip` (−4 dB, sfx.tscn; was `EquipBomb`) and plays it (bomb_button.gd no longer plays its own). A new kind of item = a new `.tres`. **The purse**:
   `Inventory.coins` (`START_COINS` 10 for now, `add_coins`; no slot), shown in the logbook's Cargo heading ("n coins  2/9";
   0 in the editor, where the Inventory doesn't run). `slots_of(list)` works out the slots of any list (a trade's result).
 - **Stores** (Enrico; `Assets/Landscape/store/`: `store.tscn` + `store.gd`, `store_counter.tscn` + `.gd`; for now one in
@@ -767,7 +767,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   the button `Assets/UI/bomb_button/`: `bomb_button.tscn` (CanvasLayer 95, in `DITHERED`; Control `Button` bottom right,
   80 px, where the slingshot was) + `bomb_button.gd` (`@tool`)): the button shows only while a bomb is equipped **and at least one is aboard** (Enrico: 0 bombs = hidden, so no taps; `_update_shown` on `equipped_changed` and `Inventory.changed`); **when a bomb gets equipped**
   (`_on_equipped_changed`, `was_equipped`) two rings pulse out round it (`_draw_equip_rings`, ink over paper, `equip_anim_time` 0.6 s,
-  `equip_ring_grow` 22 px) and `Sfx.equip_bomb()` plays (`equip_bomb.ogg`, player `EquipBomb` −4 dB: two dry metallic clicks 70 ms
+  `equip_ring_grow` 22 px) and its equip sound plays (`equip_bomb.ogg`, now through `Sfx.equip`, see Items; player `Equip` −4 dB: two dry metallic clicks 70 ms
   apart, like a gun being loaded, made by `art_src/audio/make_equip.py`); a tap
   (touch) takes one bomb out of the hold (then the button rests `cooldown` 2 s, Enrico: taps do nothing, a see-through ink pie of the wait still left shrinking clockwise from the top, `cooldown_left`, `_draw_pie`) and drops it `bow_offset` 2.2 m ahead of her middle (Enrico: off the bow), on the water, into the
   world. The bomb: a 1.6 m camera-facing picture (`stone.gdshader`, render_priority 2) whose spark blinks quicker and

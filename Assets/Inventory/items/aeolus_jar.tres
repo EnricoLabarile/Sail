@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://Assets/Inventory/item_data.gd" id="1_item"]
 [ext_resource type="Texture2D" path="res://Assets/Inventory/icons/aeolus_jar.png" id="2_icon"]
+[ext_resource type="AudioStream" uid="uid://c65nrpj1fo7q3" path="res://Assets/SFX/equip_aeolus_jar.ogg" id="9_equip_sound"]
 
 [resource]
 script = ExtResource("1_item")
@@ -13,3 +14,4 @@ sell_price = 3
 stackable = true
 equippable = true
 equip_on_pickup = true
+equip_sound = ExtResource("9_equip_sound")

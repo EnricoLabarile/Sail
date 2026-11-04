@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://Assets/Inventory/item_data.gd" id="1_item"]
 [ext_resource type="Texture2D" path="res://Assets/Inventory/icons/harpoon.png" id="2_icon"]
+[ext_resource type="AudioStream" uid="uid://cwxe5nfvd8lpp" path="res://Assets/SFX/equip_harpoon.ogg" id="9_equip_sound"]
 
 [resource]
 script = ExtResource("1_item")
@@ -13,3 +14,4 @@ sell_price = 2
 stackable = true
 equippable = true
 equip_on_pickup = true
+equip_sound = ExtResource("9_equip_sound")

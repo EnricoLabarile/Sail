@@ -18,3 +18,6 @@ extends Resource
 @export var toggle_on_tap := false
 ## Equipped by itself whenever one comes aboard, in the first empty slot (A, then B).
 @export var equip_on_pickup := false
+## Its own sound when it's put in hand (Enrico: each thing a different one, to tell them apart); empty = none.
+## Sfx.equip plays it (Assets/SFX/equip_*.ogg, made by art_src/audio/make_equip.py).
+@export var equip_sound: AudioStream

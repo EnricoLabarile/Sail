@@ -58,13 +58,15 @@ func _boat() -> Node:
 	return get_tree().get_first_node_in_group("player_boat")
 
 
-## Something else put in hand: the button flips like a coin to show it (Enrico); a bomb also gets its rings (its
-## click-clack is played by bomb_button.gd).
+## Something else put in hand: the button flips like a coin to show it and that thing's own sound plays (Enrico:
+## each one different, its ItemData's equip_sound); a bomb also gets its rings.
 func _on_equipped_changed() -> void:
 	flip_from = shown_item
 	shown_item = Inventory.equipped
 	if flip_from != shown_item:
 		flip_left = flip_time
+		if shown_item != "":
+			Sfx.equip(shown_item)
 	if Inventory.equipped == "bomb":
 		equip_anim_left = equip_anim_time
 

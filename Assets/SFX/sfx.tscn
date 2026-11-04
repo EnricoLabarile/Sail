@@ -59,7 +59,7 @@ pitch_scale = 1.5
 stream = ExtResource("12_bump")
 volume_db = -8.0
 
-[node name="EquipBomb" type="AudioStreamPlayer" parent="." unique_id=527884300]
+[node name="Equip" type="AudioStreamPlayer" parent="." unique_id=527884300]
 stream = ExtResource("13_equip")
 volume_db = -4.0
 

@@ -3,7 +3,7 @@ extends Control
 ## (Inventory.equipped), a tap on the interaction button (Assets/UI/interaction_button) calls `use()`: a bomb off the
 ## boat's bow (Assets/Items/bomb/bomb.tscn), one out of the hold; when the last one goes, nothing is in hand any more.
 ## After each bomb it rests `cooldown` seconds (the interaction button draws the ink pie from `cooldown_share()`).
-## When a bomb is equipped, a snappy click-clack plays, like a gun being loaded (Sfx.equip_bomb); the interaction
+## When a bomb is equipped, a snappy click-clack plays, like a gun being loaded (Sfx.equip, from bomb.tres); the interaction
 ## button pulses its rings.
 ## Every item action has the same few things (the interaction button uses them): ITEM, ICON, use(), can_use(),
 ## cooldown_share(), is_active(). (In Unreal: a small component per tool, called through the same interface.)
@@ -28,12 +28,9 @@ func _ready() -> void:
 	was_equipped = Inventory.is_equipped(ITEM)
 
 
-## The moment a bomb gets equipped: the click-clack.
+## The moment a bomb gets equipped (its click-clack is now played by the interaction button, Sfx.equip, as every thing's).
 func _on_equipped_changed() -> void:
-	var now := Inventory.is_equipped(ITEM)
-	if now and not was_equipped:
-		Sfx.equip_bomb()
-	was_equipped = now
+	was_equipped = Inventory.is_equipped(ITEM)
 
 
 func _process(dt: float) -> void:
