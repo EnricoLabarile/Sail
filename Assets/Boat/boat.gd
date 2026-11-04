@@ -328,6 +328,10 @@ func dock_at(spot: Node3D) -> void:
 	anchored = true
 	speed = 0.0
 	knock = Vector3.ZERO
+	# Tied up at a pier, the hull is mended (Enrico): every heart full again; the hearts are drawn again.
+	if health < max_hearts:
+		health = max_hearts
+		health_changed.emit(false)
 
 
 ## Leaves the pier (the anchor button): free to sail, already facing out to sea.
