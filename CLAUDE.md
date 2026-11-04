@@ -899,6 +899,22 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (plain distances on the water, `flat_distance`).
   **The `enemies` group** (a rule for new enemies, so mines see them): `add_to_group("enemies")` and `touch_place()` →
   its place while it's solid / can touch, `null` otherwise. Done for the imp (UP, HURT, STUNNED) and the urchin (alive).
+- **Destructible: the bomb-breakable component** (Enrico, Nov 2026: like the Towable, a child that gives its parent
+  health; `Assets/Items/destructible/destructible.gd`, `class_name Destructible`, `@tool`, `@icon` the bomb's icon, no
+  .tscn: Add Child Node → Destructible, placed at the thing's middle: the area is round THIS node). Group
+  `bomb_targets`: `blast_at(bomb)` → `is_inside_area_of`: `shape` CIRCLE (`bomb.in_blast(it, radius)`) or BOX
+  (`box_size` width × depth along its own x / z, turned with it; a grid of points every `box_step` 2 m, corners and
+  edges included, each `in_blast`); hit → −`bomb.damage` of `max_hearts` (1: one bomb breaks it), the parent blinks
+  black (`hurt_time` 0.5 s at `hurt_blinks_per_second` 12: an unshaded black `material_overlay` on its meshes); at 0
+  (deferred) → signal **`destroyed`**, then the parent freed (`free_parent`, on) or hidden with its CollisionShape3D /
+  CollisionPolygon3D disabled. Editor helper: the area as a see-through red disc / plane (render_priority 10, no depth
+  test, no owner). No sound or effect yet (Enrico: it just disappears).
+  **The secret wall** (Zelda 1's bombable walls; `Assets/Landscape/secret_wall/secret_wall.tscn`, no script): `Wall`
+  (an instance of Enrico's `sm_island_edge_8x4.fbx`, the same piece as the coasts, with its own StaticBody3D, so it
+  looks like any other shore and `Land` sees it: the boat bumps on it) and `Destructible` (BOX 16 × 8.3 at (0, 0,
+  −4.15), the piece's footprint). Identical to the other walls (Enrico: no crack, no hint). Placed by hand, none in the
+  levels yet. Under `Islands` the shore baker bakes foam along it, which stays after it's gone: keep it out of
+  `land_roots`' nodes, or bake without it.
 - **Traps** (Enrico; `Assets/Items/trap/`: `trap.tscn` + `trap.gd`, `trap.png` (a stand-in, seen from above),
   `trap_setter.gd` on `Boat/TrapSetter` in boat.tscn): boat.gd sends `anchor_dropped` when the anchor goes down
   (`toggle_anchor`, not at a pier); with a trap equipped (and one aboard) TrapSetter lays one where she is (a 2.4 m
