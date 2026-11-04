@@ -643,12 +643,10 @@ func _physics_process(dt: float) -> void:
 		var turn: float = -rudder * turn_rate * paddles.turn_factor() * dt   # quicker while the paddles push
 		rotate_y(turn)
 		# At anchor too (Enrico, Nov 2026: turning her on the spot is handy, e.g. to aim a bomb): she pivots on her
-		# middle, and the anchor goes round her middle by the same turn, so it stays off her bow: the line still
-		# holds her where she is, and doesn't swing her back.
+		# middle and keeps the heading she was given (heading_held, see hold_at_anchor). The anchor itself never
+		# moves (Enrico, Nov 2026: it lies on the bottom where it fell, so the chain's end and its rings stay put).
 		if anchored and turn != 0.0:
-			var middle := global_position
-			anchor_point = middle + (anchor_point - middle).rotated(Vector3.UP, turn)
-			heading_held = true      # and she keeps the heading she was given (see hold_at_anchor)
+			heading_held = true
 		update_current(dt)
 		update_boiling(dt)
 		move_and_bounce(dt)
@@ -732,10 +730,6 @@ func hold_at_anchor() -> void:
 	var from_anchor := bow - anchor_point
 	from_anchor.y = 0.0
 	var distance := from_anchor.length()
-	# Carried very far off some other way (a bump, say): the anchor drags and bites again where she is.
-	if distance > anchor_rode * 4.0:
-		anchor_point = bow
-		return
 	# Slack line: nothing to do, she drifts.
 	if distance <= anchor_rode:
 		return
