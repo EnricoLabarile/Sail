@@ -11,6 +11,9 @@ extends Node
 ##   3. ...until the boat crosses a WIND ZONE (Assets/Landscape/wind_zone), which turns it to a new direction
 ##      (one set in the zone's Inspector, or a random one): turn_to(). It turns smoothly over a few seconds,
 ##      then stays again until the next zone.
+##   4. RANDOM SHIFTS (Enrico, Nov 2026; switch: RANDOM_WIND below): if on, every SHIFT_EVERY_MIN..MAX seconds
+##      it turns by itself to a new direction, at most SHIFT_MAX_DEG either way from where it is now. A wind zone
+##      or an Aeolus jar still turns it at once, and the count starts again from there (so the jar's wind lasts).
 ## The wind's strength never changes: only its direction does.
 ##
 ## THE CURRENT lives here too (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, so the sea
@@ -25,6 +28,11 @@ signal direction_changed
 # ---- Knobs (constants: values you set here by hand, they never change while playing) ----
 
 const START_FROM_DEG := 180.0             # where the wind comes from when a level starts: 180 = from the south, so it blows north
+const RANDOM_WIND := true                 # true = the wind shifts by itself now and then; false = only zones and jars turn it
+const SHIFT_EVERY_MIN := 20.0             # seconds between two random shifts: at least...
+const SHIFT_EVERY_MAX := 40.0             # ...and at most (a new random wait each time)
+const SHIFT_MAX_DEG := 90.0               # a random shift turns it at most this many degrees either way (180 = anywhere)
+const SHIFT_TURN_TIME := 4.0              # seconds a random shift takes to turn (as a wind zone's turn_time)
 const CURRENT_SPEED := 2.0                # m/s the current carries floating things downwind (boat, bombs, a dead imp)
 
 
@@ -45,20 +53,35 @@ var _turn_start_deg := 0.0                # the direction when the turn began
 var _turn_amount := 0.0                   # how many degrees this turn turns it (+ = clockwise)
 var _turn_elapsed := 0.0                  # seconds since the turn began
 var _turn_duration := 0.0                 # how many seconds this turn lasts
+var _next_shift_left := 0.0               # seconds until the next random shift (RANDOM_WIND)
 
 
 func _ready() -> void:
 	# An autoload lives on when another level is loaded (the start screen's level list): so each new level
 	# starts again with the wind blowing north. scene_changed = "the new level is in".
 	get_tree().scene_changed.connect(reset)
-	set_process(false)                    # nothing to do until a zone turns it
+	reset()
 
 
-## Back to the start: blowing north, not turning.
+## Back to the start: blowing north, not turning, the wait for the first random shift begun.
 func reset() -> void:
 	from_deg = START_FROM_DEG
 	_turning = false
-	set_process(false)
+	_start_shift_wait()
+	# _process runs every frame only when there is something to do: the random shifts' countdown (RANDOM_WIND)
+	# or a turn. With random shifts off it rests until a zone turns it.
+	set_process(RANDOM_WIND)
+
+
+## A new random wait before the next random shift.
+func _start_shift_wait() -> void:
+	_next_shift_left = randf_range(SHIFT_EVERY_MIN, SHIFT_EVERY_MAX)
+
+
+## A random shift: a new direction at most SHIFT_MAX_DEG either way from now, turned over SHIFT_TURN_TIME.
+func _random_shift() -> void:
+	var change := randf_range(-SHIFT_MAX_DEG, SHIFT_MAX_DEG)
+	turn_to(from_deg + change, SHIFT_TURN_TIME)
 
 
 ## Turns the wind so it comes FROM `new_from_deg`, smoothly over `seconds` (0 = at once).
@@ -66,10 +89,11 @@ func reset() -> void:
 ## Called by a wind zone when the boat crosses it.
 func turn_to(new_from_deg: float, seconds: float) -> void:
 	new_from_deg = fposmod(new_from_deg, 360.0)
+	_start_shift_wait()                   # any turn (zone, jar or random) restarts the wait for the next random one
 	if seconds <= 0.0:
 		from_deg = new_from_deg
 		_turning = false
-		set_process(false)
+		set_process(RANDOM_WIND)          # keep counting toward the next random shift, if they're on
 		return
 	_turning = true
 	_turn_start_deg = from_deg
@@ -80,9 +104,19 @@ func turn_to(new_from_deg: float, seconds: float) -> void:
 	set_process(true)                     # _process runs only while it turns
 
 
-## Godot calls _process once every frame (like Event Tick in Unreal), here only while the wind turns.
-## dt is the time since the last frame, in seconds.
+## Godot calls _process once every frame (like Event Tick in Unreal), here only while the wind turns or the
+## random shifts count down. dt is the time since the last frame, in seconds. (The game paused, it waits too.)
 func _process(dt: float) -> void:
+	# The countdown to the next random shift (not while a turn is going on).
+	if RANDOM_WIND and not _turning:
+		_next_shift_left -= dt
+		if _next_shift_left <= 0.0:
+			_random_shift()
+		return
+	if not _turning:
+		set_process(false)                # nothing to do (random shifts off): rest until a zone turns it
+		return
+
 	_turn_elapsed += dt
 
 	# progress goes from 0 (turn just begun) to 1 (turn done).
@@ -96,9 +130,9 @@ func _process(dt: float) -> void:
 	# fposmod(..., 360) keeps the angle between 0 and 360 (e.g. 370° becomes 10°).
 	from_deg = fposmod(_turn_start_deg + _turn_amount * eased, 360.0)
 
-	if progress >= 1.0:                   # the turn is over: it stays like this until the next zone
+	if progress >= 1.0:                   # the turn is over: it stays like this until the next zone (or random shift)
 		_turning = false
-		set_process(false)
+		set_process(RANDOM_WIND)          # random shifts on: back to counting down
 
 
 ## The direction the wind comes from as an arrow lying on the sea (a Vector3 of length 1).
