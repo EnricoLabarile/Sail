@@ -689,7 +689,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   of radius `dock_radius` 8, local to scene; mask layer 4 "sensors", the boat's `SpotSensor`). In the editor a blue
   disc (the radius) and an arrow on the berth (her heading), made in code with no owner. `area_entered` with the boat
   not at anchor → `boat.dock_at(berth)`: `berth` set, `anchored` true (sail gathered, no steering, hub dark), speed 0,
-  **the hull mended** (Enrico, Nov 2026: `health` = `max_hearts`, `health_changed`);
+  **the hull mended once she's alongside** (Enrico, Nov 2026: in `glide_to_berth`, within `berth_arrive_distance` 0.3 m
+  of the berth, once per docking, `mended_at_berth`: `health` = `max_hearts`, `health_changed`);
   every physics frame `glide_to_berth` (instead of steering / current / bumps / the anchor line) moves her x/z and
   `rotation.y` (`lerp_angle`) toward the berth by 1 − exp(−`dock_speed` 3 × dt). The anchor button (`toggle_anchor`)
   while tied up → `cast_off()`: `berth` null, `anchored` false (no sound); **then a calm and a push** (Enrico: so the

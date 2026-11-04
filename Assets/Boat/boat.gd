@@ -30,6 +30,7 @@ extends Node3D
 
 # Tying up at a pier (Assets/Landscape/pier): she glides to the pier's berth and turns to its heading.
 @export var dock_speed := 3.0   # how quickly she glides into place (higher = quicker; about 1/3 s to get most of the way)
+@export var berth_arrive_distance := 0.3   # metres from the berth that count as arrived: the hull is mended then (Enrico)
 # Casting off (Enrico): so the wind can't pin her against the shore by the pier, for a moment after she leaves it
 # the wind and the current don't touch her, and she gets a push forward (her bow points the way the berth does).
 @export var cast_off_calm_time := 3.0   # seconds after casting off with no wind and no current
@@ -321,6 +322,8 @@ func update_caught(dt: float) -> void:
 
 ## A pier's berth (pier.gd) tells her to tie up there: she stops, gathers the sail (as at anchor, so the wheel
 ## doesn't steer), and glides into place (glide_to_berth, every physics frame).
+var mended_at_berth := false        # has this docking mended the hull yet? (glide_to_berth, once she's alongside)
+
 func dock_at(spot: Node3D) -> void:
 	if sinking or berth != null:
 		return
@@ -328,10 +331,7 @@ func dock_at(spot: Node3D) -> void:
 	anchored = true
 	speed = 0.0
 	knock = Vector3.ZERO
-	# Tied up at a pier, the hull is mended (Enrico): every heart full again; the hearts are drawn again.
-	if health < max_hearts:
-		health = max_hearts
-		health_changed.emit(false)
+	mended_at_berth = false          # the hull is mended once she has glided all the way in (glide_to_berth)
 
 
 ## Leaves the pier (the anchor button): free to sail, already facing out to sea.
@@ -351,6 +351,14 @@ func glide_to_berth(dt: float) -> void:
 	global_position.x = lerpf(global_position.x, target.x, share)
 	global_position.z = lerpf(global_position.z, target.z, share)
 	rotation.y = lerp_angle(rotation.y, berth.global_rotation.y, share)   # lerp_angle: the short way round
+	# Arrived (Enrico: not when she enters the pier's radius, but once she's alongside): the hull is mended, every
+	# heart full again, once per docking; the hearts are drawn again.
+	var left := Vector2(target.x - global_position.x, target.z - global_position.z).length()
+	if not mended_at_berth and left <= berth_arrive_distance:
+		mended_at_berth = true
+		if health < max_hearts:
+			health = max_hearts
+			health_changed.emit(false)
 
 
 ## Takes `hearts` off her health (never below 0) and tells the hearts top left. At 0 she starts to sink.
