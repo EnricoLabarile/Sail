@@ -990,7 +990,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   empty face. **A long press** (Enrico, Nov 2026: held `hold_time` 0.5 s; `check_long_press`, `held_for`,
   `long_press_done`) puts the **next equippable thing** in hand (`Inventory.equip_next()`: the logbook's slot order, round
   and round; nothing in hand → the first; one only → no change) with a second click; so **a tap acts when the finger comes
-  off** (`press(false)`), only if it wasn't a long press; not while talking (there it turns pages). Every press: `Sfx.button_press()` (on touch down), and **black only while the finger holds it** (Enrico, Nov 2026, the rule for
+  off** (`press(false)`), only if it wasn't a long press; not while talking (there it turns pages). **The coin flip** (Enrico, Nov 2026): whenever the thing in hand changes (`_on_equipped_changed`: `flip_from`, `shown_item`), the button squeezes sideways to edge-on and opens again over `flip_time` 0.3 s (`draw_set_transform` scale x = |cos(share × π)|), the old icon on the first half, the new on the second; after a long press switched it the black of the held finger goes, so the flip shows. Every press: `Sfx.button_press()` (on touch down), and **black only while the finger holds it** (Enrico, Nov 2026, the rule for
   every button: no more 0.12 s flash; `press_flash` is gone); Enter does the same on the PC (a click, no black).
   **The hook's pictures** (Enrico, Nov 2026: the hook is the core way to interact): an action may have `current_icon()`
   (the button draws it instead of the item's icon); the hook's (`hook_button.gd`, `nearest_in_reach()`): holding something

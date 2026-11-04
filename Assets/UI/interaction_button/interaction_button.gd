@@ -32,6 +32,7 @@ const PAPER := Color("ebe7dc")
 @export var equip_anim_time := 0.6   # seconds the rings pulse out when a bomb is put in hand
 @export var equip_ring_grow := 22.0  # pixels each ring grows past the edge before it fades away
 
+@export var flip_time := 0.3         # seconds the button takes to flip like a coin when the thing in hand changes
 @export var hold_time := 0.5         # seconds the finger must stay on it for a long press (the next thing in hand)
 
 var finger := -1                     # the finger on it (-1 = none): black while it's down
@@ -39,6 +40,9 @@ var held_for := 0.0                  # seconds the finger has been on it
 var long_press_done := false         # this press already switched the thing in hand (so letting go does nothing)
 var shimmer_t := 0.0                 # the glint's clock
 var equip_anim_left := 0.0           # seconds left of the equip rings (0 = none)
+var flip_left := 0.0                 # seconds left of the coin flip (0 = not flipping)
+var flip_from := ""                  # what was in hand before the flip: shown on the first half of it
+var shown_item := ""                 # what's in hand as far as the button knows (to know what it flips from)
 var paper_icons := {}                # icon -> the same icon in paper (for the inked face while the hook holds)
 
 
@@ -47,14 +51,20 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	Inventory.equipped_changed.connect(_on_equipped_changed)
+	shown_item = Inventory.equipped
 
 
 func _boat() -> Node:
 	return get_tree().get_first_node_in_group("player_boat")
 
 
-## The bomb just put in hand: the rings pulse out (its click-clack is played by bomb_button.gd).
+## Something else put in hand: the button flips like a coin to show it (Enrico); a bomb also gets its rings (its
+## click-clack is played by bomb_button.gd).
 func _on_equipped_changed() -> void:
+	flip_from = shown_item
+	shown_item = Inventory.equipped
+	if flip_from != shown_item:
+		flip_left = flip_time
 	if Inventory.equipped == "bomb":
 		equip_anim_left = equip_anim_time
 
@@ -97,6 +107,7 @@ func _process(dt: float) -> void:
 		position = wheel.hub_middle() - size * 0.5
 	if not Engine.is_editor_hint():
 		equip_anim_left = maxf(0.0, equip_anim_left - dt)
+		flip_left = maxf(0.0, flip_left - dt)
 		shimmer_t += dt
 		check_long_press(dt)
 	queue_redraw()
@@ -184,7 +195,15 @@ func _draw() -> void:
 	var action := current_action() if now == "item" else null
 	var inked: bool = action != null and action.is_active()     # the hook holding something, a harpoon out
 
-	draw_set_transform(middle, 0.0, Vector2(s, s))
+	# The coin flip (when the thing in hand changes): the button is squeezed sideways to nothing and opens again, as
+	# a coin turning over seen edge-on; the first half still shows what was in hand before, the second half the new.
+	var squeeze := 1.0
+	var first_half := false
+	if flip_left > 0.0 and now == "item":
+		var share := 1.0 - flip_left / flip_time        # 0 → 1 over the flip
+		squeeze = maxf(absf(cos(share * PI)), 0.05)     # 1 → 0 (edge-on, halfway) → 1
+		first_half = share < 0.5
+	draw_set_transform(middle, 0.0, Vector2(s * squeeze, s))
 	_draw_face(inked, now == "empty")
 
 	# The glyph: ink on the light face, paper on the inked one.
@@ -205,7 +224,12 @@ func _draw() -> void:
 				icon = action.current_icon()
 			if action != null and action.has_method("current_icon_frames"):
 				frames = action.current_icon_frames()
-			_draw_icon(icon, inked, frames)
+			if first_half:
+				# The first half of the flip: what was in hand before (nothing before: an empty face).
+				icon = Inventory.icon_of(flip_from) if flip_from != "" else null
+				frames = Vector2i(1, 1)
+			if icon != null:
+				_draw_icon(icon, inked, frames)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# Resting after a use: the ink pie of what's left of the wait.
@@ -217,8 +241,9 @@ func _draw() -> void:
 	# A bomb just put in hand: the rings.
 	if equip_anim_left > 0.0:
 		_draw_equip_rings(middle, size.x * 0.5)
-	# Held down: all black, for as long as the finger is on it.
-	if finger != -1:
+	# Held down: all black, for as long as the finger is on it (once a long press has switched the thing in hand, the
+	# black goes, so the flip shows).
+	if finger != -1 and not long_press_done:
 		draw_circle(middle, size.x * 0.5, INK)
 
 
