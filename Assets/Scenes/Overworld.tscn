@@ -30,16 +30,17 @@
 [ext_resource type="PackedScene" uid="uid://ctmbupyadtu7w" path="res://Assets/Landscape/architecture/sm_tower_01_a.fbx" id="45_i5cs1"]
 [ext_resource type="PackedScene" uid="uid://cxyvsiocbqavr" path="res://Assets/Landscape/islands/sm_island_edge_32x16.fbx" id="45_pcmpt"]
 [ext_resource type="PackedScene" uid="uid://23afdjaes360" path="res://Assets/Landscape/islands/sm_island_center_16x16.fbx" id="46_klm3u"]
+[ext_resource type="PackedScene" uid="uid://cw2t2edse5qr" path="res://Assets/Landscape/pier/pier.tscn" id="48_pcmpt"]
 [ext_resource type="PackedScene" uid="uid://d0sdk8o8wvfxe" path="res://Assets/Items/barrel/barrel.tscn" id="49_to4lu"]
 [ext_resource type="PackedScene" path="res://Assets/Items/key/key.tscn" id="55_2r5vj"]
 [ext_resource type="PackedScene" uid="uid://c7qs5gjgfihdw" path="res://Assets/Landscape/architecture/sm_bridge_01_a.fbx" id="56_bwgkw"]
 [ext_resource type="PackedScene" uid="uid://b7h4qd0bbash4" path="res://Assets/Landscape/architecture/bridge_lock.tscn" id="57_c7or3"]
 [ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="91_pickup"]
-[ext_resource type="Resource" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
-[ext_resource type="Resource" path="res://Assets/Inventory/items/harpoon.tres" id="94_harpoon_item"]
+[ext_resource type="Resource" uid="uid://csuyk4mlmhp74" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
+[ext_resource type="Resource" uid="uid://dayqau56xji38" path="res://Assets/Inventory/items/harpoon.tres" id="94_harpoon_item"]
 [ext_resource type="Script" uid="uid://bdhc1006ybcng" path="res://Assets/Landscape/islands/island_grid.gd" id="95_island_grid"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/lever/lever.tscn" id="98_lever"]
-[ext_resource type="Resource" path="res://Assets/Inventory/items/hook.tres" id="99_hook_item"]
+[ext_resource type="Resource" uid="uid://xiyg0s4vdup6" path="res://Assets/Inventory/items/hook.tres" id="99_hook_item"]
 [ext_resource type="PackedScene" path="res://Assets/NPCs/raft_npc/raft_npc.tscn" id="100_raft_npc"]
 [ext_resource type="Script" uid="uid://droldh1rpljoo" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
@@ -100,6 +101,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -220.87094, -3.8146973e-06, 1
 
 [node name="SeaImpZone2" parent="Dangers" unique_id=1741884461 instance=ExtResource("28_sea_imp_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 107.09172, 1.1444092e-05, -172.54735)
+
+[node name="SeaImpZone3" parent="Dangers" unique_id=1880735035 instance=ExtResource("28_sea_imp_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.90828, 1.1444092e-05, 67.45265)
 
 [node name="Maelstrom" parent="Dangers" unique_id=455210000 instance=ExtResource("28_ubo31")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 213.08022, 0, 323.4227)
@@ -1474,3 +1478,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -272, 0, -72)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -272, 0, -72)
 key_id = "1"
 sink_extra = 0.0
+
+[node name="Pier" parent="." unique_id=96918305 instance=ExtResource("48_pcmpt")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -3, 0, -11)

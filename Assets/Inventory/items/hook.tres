@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="ItemData" format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://xiyg0s4vdup6"]
 
-[ext_resource type="Script" path="res://Assets/Inventory/item_data.gd" id="1_item"]
-[ext_resource type="Texture2D" path="res://Assets/Inventory/icons/hook.png" id="2_icon"]
+[ext_resource type="Script" uid="uid://cuk7atfycnyit" path="res://Assets/Inventory/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://bin042hirx16l" path="res://Assets/Inventory/icons/hook.png" id="2_icon"]
 [ext_resource type="AudioStream" uid="uid://p4cv1y2cys3y" path="res://Assets/SFX/equip_bomb.ogg" id="9_equip_sound"]
 
 [resource]
@@ -11,7 +11,6 @@ display_name = "Hook"
 icon = ExtResource("2_icon")
 buy_price = 6
 sell_price = 3
-stackable = false
 equippable = true
 equip_on_pickup = true
 equip_sound = ExtResource("9_equip_sound")

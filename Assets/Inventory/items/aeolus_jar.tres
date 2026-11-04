@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="ItemData" format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://csuyk4mlmhp74"]
 
-[ext_resource type="Script" path="res://Assets/Inventory/item_data.gd" id="1_item"]
-[ext_resource type="Texture2D" path="res://Assets/Inventory/icons/aeolus_jar.png" id="2_icon"]
+[ext_resource type="Script" uid="uid://cuk7atfycnyit" path="res://Assets/Inventory/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://vd0xjy626akh" path="res://Assets/Inventory/icons/aeolus_jar.png" id="2_icon"]
 [ext_resource type="AudioStream" uid="uid://p4cv1y2cys3y" path="res://Assets/SFX/equip_bomb.ogg" id="9_equip_sound"]
 
 [resource]
