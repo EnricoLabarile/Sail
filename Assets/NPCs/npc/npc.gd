@@ -43,6 +43,10 @@ extends Node3D
 @export var bob_speed := 1.5       # bobs a second
 @export var fade_time := 0.3       # seconds to fade in or out
 ## The bubble shown while it has news for the player (show_news): a "!" instead of the dots. Repaint it as you like.
+## Carried by the current once the hook lets it go (Enrico: the castaway on the raft drifts away if she unhooks it).
+## Off for NPCs that stay put. It drifts only after it has been towed and let go, never before (so it's where it was
+## placed when she finds it) and never once a TowGoal has taken it (it's safe there).
+@export var drifts_with_current := false
 @export var news_picture: Texture2D = preload("res://Assets/NPCs/npc/bubble_news.png")
 
 var boat_near := false             # is the boat inside talk_radius now?
@@ -52,6 +56,7 @@ var bubble_rest_y := 0.0           # the bubble's height as placed in npc.tscn (
 var time := 0.0
 var towed := false                 # is the hook dragging it now? (then the boat doesn't count as near)
 var has_news := false              # something happened (show_news): the "!" bubble shows, from afar too, until she talks to it
+var drifting := false             # let go by the hook (drifts_with_current): the current carries it now
 var usual_picture: Texture2D       # the bubble's own picture from npc.tscn (the dots), put back when the news is heard
 
 @onready var bubble: MeshInstance3D = $Bubble
@@ -68,6 +73,7 @@ func _ready() -> void:
 	usual_picture = bubble.material_override.albedo_texture
 	_set_bubble_alpha(0.0)
 	set_process(false)    # nothing to do until the boat comes near (the sensor switches it on: see _wake)
+	set_physics_process(false)    # no drifting until the hook lets it go (on_released)
 	# The boat's SpotSensor (a small Area3D on the "sensors" layer) entering or leaving the radius tells us,
 	# as with the fishing spots: no checks every frame.
 	sensor.area_entered.connect(_on_sensor_entered)
@@ -93,6 +99,19 @@ func _process(dt: float) -> void:
 	# Bob up and down: sin goes smoothly from -1 to 1 and back, bob_speed times a second.
 	time += dt
 	bubble.position.y = bubble_rest_y + sin(time * bob_speed * TAU) * bob_height
+
+
+## Let go by the hook (drifting): every physics frame the current (the Wind autoload's, Wind.current(), downwind)
+## carries it, as it does the boat, a burning bomb and a dead imp. Its Sensor moves with it, so the speech bubble and
+## the talk follow it. It stops where the next step would be on land: it washes up against the shore.
+## (Physics frames: its Towable child switched its physics interpolation on, so it's drawn smoothly.)
+func _physics_process(dt: float) -> void:
+	if Engine.is_editor_hint() or not drifting:
+		return
+	var next_place: Vector3 = global_position + Wind.current() * dt
+	next_place.y = global_position.y
+	if not Land.is_land(next_place):
+		global_position = next_place
 
 
 # ---- the boat ----
@@ -168,6 +187,7 @@ func clear_news() -> void:
 ## The hook took it: as if she had sailed out of its radius (no speed limit, no talk, the bubble fades).
 func on_grabbed(_boat: Node3D) -> void:
 	towed = true
+	_stop_drifting()                      # the rope moves it now
 	var boat := get_tree().get_first_node_in_group("player_boat")
 	if boat and boat_near:
 		boat.set_near_npc(self, false)
@@ -179,6 +199,9 @@ func on_grabbed(_boat: Node3D) -> void:
 ## No talk starts by itself here: she's already beside it.
 func on_released() -> void:
 	towed = false
+	if drifts_with_current:
+		drifting = true                   # the current takes it away (_physics_process)
+		set_physics_process(true)
 	for area in sensor.get_overlapping_areas():
 		var boat := area.get_parent()
 		if boat != null and boat.is_in_group("player_boat"):
@@ -190,6 +213,7 @@ func on_released() -> void:
 ## A TowGoal took it: from now on it says lines_after_delivery, she may talk to it again at once, and the "!" bubble
 ## tells her there's something to hear (show_news).
 func on_delivered(_goal: Node3D) -> void:
+	_stop_drifting()                      # safe at the goal: it stays there (released came just before this)
 	if not lines_after_delivery.is_empty():
 		lines = lines_after_delivery
 	var boat := get_tree().get_first_node_in_group("player_boat")
@@ -199,6 +223,12 @@ func on_delivered(_goal: Node3D) -> void:
 
 
 # ---- helpers ----
+
+## The current no longer carries it.
+func _stop_drifting() -> void:
+	drifting = false
+	set_physics_process(false)
+
 
 func _set_bubble_picture(picture: Texture2D) -> void:
 	var material: StandardMaterial3D = bubble.material_override

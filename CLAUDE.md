@@ -873,7 +873,11 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   plane of `raft_npc.png` (96², a stand-in by `art_src/items/make_raft_npc.py`), the placeholder box hidden, a
   `Towable` (`tow_id` "castaway", `grab_reach` 8 = its `talk_radius`, since the anchor drops itself at the radius;
   `rope_length` 4, `tow_slowdown` 0.8, `size` 2.5) whose three signals are connected in the .tscn to `on_grabbed`,
-  `on_released`, `on_delivered`; "Castaway", two test pages before and two after). Tests in Overworld:
+  `on_released`, `on_delivered`; "Castaway", two test pages before and two after). **Let go, the current takes it**
+  (Enrico, Nov 2026): `npc.gd` export `drifts_with_current` (on in raft_npc.tscn, off by default): after `on_released`
+  (`drifting`) its `_physics_process` moves it by `Wind.current()` × dt, stopping where the next step would be land (as
+  the bomb and the dead imp); not before the first tow (it stays where placed), stopped while towed (`on_grabbed`) and
+  for good once delivered (`on_delivered`, `_stop_drifting`). Tests in Overworld:
   `Gameplay/RaftNPCTest` (25, 0, −10) and `Gameplay/TowGoalTest` (30, 0, −30), `goal_id` "castaway".
 - **Keys and bridge locks** (Enrico, Oct 2026; a key towed with the hook opens a gate under a bridge):
   **the key** (`Assets/Items/key/`: `key.tscn` + `key.gd` (`@tool`), `key.png` a 64² stand-in by

@@ -22,6 +22,7 @@ speaker_name = "Castaway"
 lines = Array[String](["My oar snapped and the current won't let me row.", "Could you tow me to the old pier? Use your hook."])
 lines_after_delivery = Array[String](["Solid planks under my feet again!", "Thank you, sailor. I won't forget it."])
 talk_radius = 8
+drifts_with_current = true
 
 [node name="MeshInstance3D" parent="." index="2"]
 visible = false
