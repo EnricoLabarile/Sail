@@ -47,7 +47,7 @@ extends Node3D
 # until the line is taut; then the line holds her bow and she swings round the anchor, stern downstream.
 @export var anchor_rode := 3.0          # metres of anchor line from the bow to the anchor
 @export var anchor_swing_speed := 1.2   # rad/s the taut line swings her round to face the anchor (Enrico, Nov 2026: she
-                                        # drifted on past it and hung there with the anchor under her keel, the chain hidden)
+										# drifted on past it and hung there with the anchor under her keel, the chain hidden)
 
 # The waves: she rocks gently on them, side to side (roll) and bow to stern (pitch).
 @export var wave_roll_deg := 3.0    # how far she rolls each way on the waves, in degrees
