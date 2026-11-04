@@ -971,7 +971,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (Enrico) the NPC calls `boat.done_talking_with(self)`: the boat keeps `npcs_talked_to`, and until she leaves its radius
   (`set_near_npc(…, false)` drops it) that NPC no longer counts for `talk_hint()` (= talking or `npcs_waiting()`): the hub shows
   the anchor again (so it's clear she can sail on), no shimmer, its 3D bubble fades out, and anchoring there again doesn't
-  restart the talk (`has_talked_to`); out and back in, it's as new. While the hub shows the speech bubble **the wheel is drawn
+  restart the talk (`has_talked_to`). **Heard stays heard** (Enrico, Nov 2026: chasing the drifting castaway, she had
+  to hear it again before the hook showed): leaving the radius no longer forgets it (`set_near_npc` only drops it from
+  `npcs_near`); it counts as heard until it has news: `npc.show_news()` calls `boat.forget_talk_with(self)` wherever she
+  is (so `on_delivered` talks again). While the hub shows the speech bubble **the wheel is drawn
   darker** (`helm.gd` `talk_wheel_shade` 0.6, a modulate on the wheel's picture).
 - **The talk box** (`Assets/UI/talk_box/`: `talk_box.tscn` (CanvasLayer 115, crisp, not in `DITHERED`; Control `Box`
   at the top, full width less 12 px, y 92–222) + `talk_box.gd`; in Overworld as `TalkBox`, group `talk_box`): a paper

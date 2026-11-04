@@ -501,14 +501,17 @@ func set_near_npc(npc: Node3D, near: bool) -> void:
 		npcs_near.append(npc)
 	if not near:
 		npcs_near.erase(npc)
-		npcs_talked_to.erase(npc)        # gone out of its radius: coming back, she can talk to it again
+		# (Enrico, Nov 2026: leaving its radius no longer makes her forget the talk. An NPC she has heard stays heard
+		# until it has something new to say, forget_talk_with: so chasing a drifting castaway, the interaction button
+		# shows the hook, not the same talk again.)
 	if talk_hint() != had_hint:
 		talk_hint_changed.emit()
 
 
-## An NPC tells her their talk is over (npc.gd, when the talk box closes). Until she leaves its radius it counts as
-## talked to: the interaction button stops showing the speech bubble (Enrico: so it's clear she can sail on) and anchoring there again
-## doesn't start the same talk over. (In Unreal: the NPC calling an interface function on the pawn.)
+## An NPC tells her their talk is over (npc.gd, when the talk box closes). From now on it counts as talked to, even
+## after she has sailed away and come back (Enrico, Nov 2026), until it has news (forget_talk_with): the interaction
+## button stops showing the speech bubble for it (so it's clear she can sail on, and the thing in hand shows) and the
+## same talk doesn't start over. (In Unreal: the NPC calling an interface function on the pawn.)
 func done_talking_with(npc: Node3D) -> void:
 	var had_hint := talk_hint()
 	if not npcs_talked_to.has(npc):
@@ -526,7 +529,7 @@ func forget_talk_with(npc: Node3D) -> void:
 		talk_hint_changed.emit()
 
 
-## Has she already talked to this NPC since she came into its radius?
+## Has she already heard what this NPC has to say? (Until it has news.)
 func has_talked_to(npc: Node3D) -> bool:
 	return npcs_talked_to.has(npc)
 

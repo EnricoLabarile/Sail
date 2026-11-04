@@ -159,7 +159,7 @@ func _on_talk_finished() -> void:
 	set_process(true)                     # the bubble fades out
 
 
-## Has the boat already talked to us since she came into our radius? (boat.gd keeps the list.)
+## Has the boat already heard what we have to say? (boat.gd keeps the list; it forgets us only when we have news.)
 func _talked_to() -> bool:
 	var boat := get_tree().get_first_node_in_group("player_boat")
 	return boat != null and boat.has_talked_to(self)
@@ -172,6 +172,11 @@ func _talked_to() -> bool:
 ## Anything can call it (like a Blueprint event other actors call on an NPC).
 func show_news() -> void:
 	has_news = true
+	# Something new to say: the boat no longer counts us as heard, wherever she is (near: the speech bubble shows on
+	# the interaction button at once; far: when she comes back).
+	var boat := get_tree().get_first_node_in_group("player_boat")
+	if boat:
+		boat.forget_talk_with(self)
 	_set_bubble_picture(news_picture)
 	set_process(true)                     # the bubble fades in and bobs, even with the boat far away
 
@@ -216,10 +221,7 @@ func on_delivered(_goal: Node3D) -> void:
 	_stop_drifting()                      # safe at the goal: it stays there (released came just before this)
 	if not lines_after_delivery.is_empty():
 		lines = lines_after_delivery
-	var boat := get_tree().get_first_node_in_group("player_boat")
-	if boat and boat_near:
-		boat.forget_talk_with(self)       # it has something new to say
-	show_news()
+	show_news()                           # it has something new to say (show_news makes the boat forget the old talk)
 
 
 # ---- helpers ----
