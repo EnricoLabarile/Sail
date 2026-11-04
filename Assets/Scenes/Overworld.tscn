@@ -118,12 +118,12 @@ fling_time = 1.2
 [node name="SeaUrchinTest" parent="Dangers" unique_id=1237544682 instance=ExtResource("103_sea_urchin")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -44)
 walk_speed = 0.0
-drop_item = null
+drop_chance = 0.0
 
 [node name="SeaUrchinTest2" parent="Dangers" unique_id=916170001 instance=ExtResource("103_sea_urchin")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 96, 0, -20)
 walk_speed = 0.0
-drop_item = null
+drop_chance = 0.0
 
 [node name="Decorative" type="Node" parent="." unique_id=958528587]
 

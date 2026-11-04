@@ -10,7 +10,7 @@ extends Node3D
 ## things also make them:
 ##   - the floating shop puts one on each slot, with a `price` (store_alternative.gd decides whether she can
 ##     have it: `auto_take` off, it listens to `touched`);
-##   - a sea imp leaves some when it's killed (sea_imp_zone.gd, `drop_item`).
+##   - a sea imp leaves some when it's killed (sea_imp_zone.gd, `drop_pool`).
 ## The harpoon can hook it (group "hookable", harpoon.gd) and pull it close, until the magnet takes it.
 
 signal touched(pickup: Node3D, boat: Node3D)   # the boat came over it (sent always, taken or not)
@@ -163,16 +163,21 @@ func take(boat: Node3D) -> void:
 
 ## EVERY ENEMY'S REWARD (Enrico's rule: when an enemy dies it drops something; sea_imp_zone.gd, sea_urchin.gd).
 ## With a chance of `chance` (0..1: 1 = always, 0.5 = one time in two) it leaves between count_min and count_max
-## pickups of `item`, each on its own spot of water within `spread` metres of `middle`, added to `parent` (the level,
-## not the enemy, so they stay put whatever it does next). `item` null = nothing.
+## pickups, each on its own spot of water within `spread` metres of `middle`, added to `parent` (the level, not the
+## enemy, so they stay put whatever it does next). THE POOL (Enrico, Nov 2026): each pickup is a thing picked at
+## random from `pool` (an enemy's `drop_pool`), so a kill may leave a bomb and a harpoon. A thing put in the pool twice
+## comes twice as often. An empty pool = nothing.
 ## static: it belongs to the script, not to a pickup, so an enemy calls it as Pickup.drop_loot(…) (like a static
 ## function in a Blueprint Function Library).
-static func drop_loot(parent: Node, item: ItemData, middle: Vector3, chance: float, count_min: int, count_max: int,
-		spread: float) -> void:
-	if item == null or randf() >= chance:
+static func drop_loot(parent: Node, pool: Array[ItemData], middle: Vector3, chance: float, count_min: int,
+		count_max: int, spread: float) -> void:
+	if pool.is_empty() or randf() >= chance:
 		return
 	var scene: PackedScene = load("res://Assets/Items/pickup/pickup.tscn")
 	for i in randi_range(count_min, count_max):
+		var item: ItemData = pool.pick_random()       # this pickup's thing, drawn from the pool
+		if item == null:
+			continue                                  # an empty entry in the pool: nothing this time
 		var pickup := scene.instantiate()
 		pickup.item = item
 		parent.add_child(pickup)

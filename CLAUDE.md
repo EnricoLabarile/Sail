@@ -23,9 +23,11 @@
   `enemy_touch_cooldown` 1 s (`enemy_wait`) before it can happen again. Done for the urchin (3 m) and the imp (2 m, up or hurt).
 - **Every enemy, when killed, makes the death sound and drops something** (Enrico's rule, Oct 2026): `Sfx.enemy_death()`
   (`imp_death.ogg`, `enemy_death_delay` 0.25 s after, so the bomb's bang doesn't cover it) and `Pickup.drop_loot(parent,
-  item, place, chance, min, max, spread)` (a static function in `pickup.gd`: with `chance` 0..1 it leaves `min`–`max`
-  pickups of `item` on water within `spread` m, `loot_spot`); each enemy has the exports `drop_item` (default
-  `bomb.tres`; empty = nothing), `drop_chance` (1 = always), `drop_min` 1, `drop_max` 2, `drop_spread` 3 m.
+  pool, place, chance, min, max, spread)` (a static function in `pickup.gd`: with `chance` 0..1 it leaves `min`–`max`
+  pickups on water within `spread` m, `loot_spot`, **each drawn at random from the pool**, Enrico, Nov 2026: a thing in
+  it twice comes twice as often; empty = nothing); each enemy has the exports **`drop_pool`** (`Array[ItemData]`,
+  default [`bomb.tres`]; it replaced `drop_item`), `drop_chance` (1 = always), `drop_min` 1, `drop_max` 2, `drop_spread`
+  3 m. (The two `SeaUrchinTest`s in Overworld, set to drop nothing before, now have `drop_chance` 0.)
 - **No camera-facing (billboard) shaders or nodes** (Enrico's rule, Oct 2026): pictures in the world are plain
   planes/quads that keep the node's own rotation; Enrico decides himself whether and how to tilt an element to the
   camera's angle. (Already made before the rule: `stone.gdshader`, used by the bomb and the fireball, and
@@ -647,7 +649,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   and gone; gone on land. All numbers are the urchin's exports. **Bombs kill it** (Enrico): group `bomb_targets`,
   `blast_at(bomb)`: within `bomb.in_blast(urchin, body_radius 1.5)` it loses `bomb.damage` of `max_hearts` 3 and blinks
   black (`hurt_time` 0.5 s at `hurt_blinks_per_second` 12: its own copy of the picture's material, `albedo_color` black /
-  white); at 0 → `State.DEAD`: `Sfx.enemy_death()`, `Pickup.drop_loot` (its `drop_item` bomb, `drop_chance` 1, 1–2 within
+  white); at 0 → `State.DEAD`: `Sfx.enemy_death()`, `Pickup.drop_loot` (its `drop_pool`, bombs, `drop_chance` 1, 1–2 within
   3 m), it stops, blinks, and is freed. Traps don't touch it. **Running into it**: `check_touch`,
   the boat's middle within `touch_radius` 3 m → `boat.bump_into_enemy` (bounce, half a heart). No sounds. `spike.tscn` is in the shader warm-up's `LATER`.
 - **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
@@ -749,7 +751,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   by then: it stops where it got to). The floating shop's goods (`auto_take` off) aren't pulled. `take(boat)`: `Inventory.add(id, count)`, coins out if priced, `Sfx.pickup()`, the shake,
   signal `taken`, freed; no room: it stays. (Its sound is the boat's "came aboard", see Sound.) Placed by hand anywhere, made by the floating shop, and **dropped by a killed
   enemy** (`Pickup.drop_loot`, see the rule at the top: the imp's `defeat()`, the urchin's death; `drop_chance`,
-  `drop_min`–`drop_max` 1–2 pickups of `drop_item` (bomb.tres) within `drop_spread` 3 m, on water, added next to the
+  `drop_min`–`drop_max` 1–2 pickups drawn from `drop_pool` (bomb.tres) within `drop_spread` 3 m, on water, added next to the
   enemy so they stay put).
 - **Barrels** (Enrico, like Zelda's pots; `Assets/Items/barrel/`: `barrel.tscn` + `barrel.gd` (`@tool`),
   `barrel.gdshader`, `barrel.png` a 4 × 4 flipbook (frames 64², a big barrel lying on its side, rocking, a foam ring;

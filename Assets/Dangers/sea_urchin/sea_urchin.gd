@@ -15,7 +15,7 @@ extends Node3D
 ## then WALKING again.
 ## A bomb hurts it (Enrico: every enemy can be bombed): in the blast it loses `damage` hearts of its `max_hearts` and
 ## blinks black for `hurt_time`; at 0 it blinks and is gone (bomb.gd calls blast_at on the group "bomb_targets"),
-## with the enemies' death sound (Sfx.enemy_death) and its reward (drop_item, as every enemy: Pickup.drop_loot).
+## with the enemies' death sound (Sfx.enemy_death) and its reward (drop_pool, as every enemy: Pickup.drop_loot).
 ## The harpoon can hook it (group "hookable", harpoon.gd): it loses the harpoon's damage (blinking) and is STUNNED,
 ## harmless and still, while it's pulled and for the harpoon's stun_time after it's let go; then it wanders again
 ## (back into its area, if it was pulled out).
@@ -40,7 +40,9 @@ enum State { WALKING, ATTACKING, DEAD }
 @export var touch_radius := 3.0       # metres: the boat's middle this close to it = she ran into it (bounce, half a heart)
 @export var hurt_time := 0.5          # seconds it blinks black when hurt (and before it's gone, when killed)
 @export var hurt_blinks_per_second := 12.0
-@export var drop_item: ItemData = preload("res://Assets/Inventory/items/bomb.tres")   # what it leaves when killed (none = nothing)
+## What it may leave when killed (Enrico: a POOL): each pickup is drawn at random from this list (drag .tres files
+## in; one twice = twice as likely; empty = nothing). Pickup.drop_loot does it.
+@export var drop_pool: Array[ItemData] = [preload("res://Assets/Inventory/items/bomb.tres")]
 @export_range(0.0, 1.0) var drop_chance := 1.0   # how likely it drops it: 1 = always, 0.5 = one time in two
 @export var drop_min := 1             # how many it leaves, at least…
 @export var drop_max := 2             # …and at most
@@ -199,7 +201,7 @@ func lose_hearts(amount: float) -> void:
 	if hearts <= 0.0:
 		state = State.DEAD
 		Sfx.enemy_death()
-		Pickup.drop_loot(get_parent(), drop_item, urchin.global_position, drop_chance, drop_min, drop_max, drop_spread)
+		Pickup.drop_loot(get_parent(), drop_pool, urchin.global_position, drop_chance, drop_min, drop_max, drop_spread)
 
 
 # ---- on the harpoon (harpoon.gd: the functions every hookable thing has) ----

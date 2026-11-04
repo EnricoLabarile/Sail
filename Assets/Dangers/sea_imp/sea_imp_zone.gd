@@ -15,7 +15,7 @@ extends Node3D
 ## It has `max_hearts` 3: a bomb's blast or a trap (bomb.gd, trap.gd → hit_imp_at) takes one while it's emerging
 ## or up, and blinks black (HURT, `hurt_time`); if it has some left it then goes under (and the cycle goes on). At 0 it's DEFEATED: it stays up,
 ## harmless, black (dead), drifting with the current; the boat sailing over it (within `collect_radius`) takes it into the hold ("imp").
-## Killed, it also leaves `drop_min`–`drop_max` pickups of `drop_item` (bombs) round it, `drop_spread` metres
+## Killed, it also leaves `drop_min`–`drop_max` pickups drawn from `drop_pool` (bombs for now) round it, `drop_spread` metres
 ## apart (Assets/Items/pickup/pickup.tscn: they float where they fell until she sails over them).
 ## Lost hearts stay lost.
 ## The harpoon can hook it while it's up (group "hookable", harpoon.gd): it loses the harpoon's damage (blinking) and
@@ -62,7 +62,9 @@ const Pickup := preload("res://Assets/Items/pickup/pickup.gd")   # for Pickup.dr
 @export var spit_height := 1.5             # metres above the water the fireball leaves its mouth
 @export var hurt_time := 0.5               # seconds it stays up blinking black when hit, before it goes under
 @export var hurt_blinks_per_second := 12.0 # how fast it blinks black while hurt
-@export var drop_item: ItemData = preload("res://Assets/Inventory/items/bomb.tres")   # what it leaves when killed (none = nothing)
+## What it may leave when killed (Enrico: a POOL): each pickup is drawn at random from this list (drag .tres files
+## in; one twice = twice as likely; empty = nothing). Pickup.drop_loot does it.
+@export var drop_pool: Array[ItemData] = [preload("res://Assets/Inventory/items/bomb.tres")]
 @export_range(0.0, 1.0) var drop_chance := 1.0   # how likely it drops it: 1 = always, 0.5 = one time in two
 @export var drop_min := 1                  # how many pickups it leaves, at least…
 @export var drop_max := 2                  # …and at most (Enrico: 1 or 2 bombs)
@@ -231,7 +233,7 @@ func defeat() -> void:
 	patch.visible = false
 	imp.visible = true
 	Sfx.enemy_death()
-	Pickup.drop_loot(get_parent(), drop_item, imp.global_position, drop_chance, drop_min, drop_max, drop_spread)
+	Pickup.drop_loot(get_parent(), drop_pool, imp.global_position, drop_chance, drop_min, drop_max, drop_spread)
 
 
 # ---- what it does ----
