@@ -987,7 +987,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   light face, inked with a paper icon while `is_active()` (the hook holding, a harpoon out), the ink pie from
   `cooldown_share()`, the two rings when a bomb is put in hand (`equip_anim_time`, `equip_ring_grow`), a tap → its
   action's `use()` (if `can_use()`); the trap has no action (only shown; laid on anchoring); **nothing** → a faint
-  empty face. Every press: `Sfx.button_press()`, and **black only while the finger holds it** (Enrico, Nov 2026, the rule for
+  empty face. **A long press** (Enrico, Nov 2026: held `hold_time` 0.5 s; `check_long_press`, `held_for`,
+  `long_press_done`) puts the **next equippable thing** in hand (`Inventory.equip_next()`: the logbook's slot order, round
+  and round; nothing in hand → the first; one only → no change) with a second click; so **a tap acts when the finger comes
+  off** (`press(false)`), only if it wasn't a long press; not while talking (there it turns pages). Every press: `Sfx.button_press()` (on touch down), and **black only while the finger holds it** (Enrico, Nov 2026, the rule for
   every button: no more 0.12 s flash; `press_flash` is gone); Enter does the same on the PC (a click, no black).
   **The hook's pictures** (Enrico, Nov 2026: the hook is the core way to interact): an action may have `current_icon()`
   (the button draws it instead of the item's icon); the hook's (`hook_button.gd`, `nearest_in_reach()`): holding something

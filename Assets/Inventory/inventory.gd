@@ -182,6 +182,26 @@ func equip(item: String) -> void:
 	equipped_changed.emit()
 
 
+## Puts the NEXT equippable thing of the hold in hand (Enrico: a long press on the interaction button), in the
+## logbook's order (its slots, left to right, top to bottom), going round to the first after the last. Nothing in hand:
+## the first one. Nothing equippable aboard: nothing changes. Gives back whether something new was put in hand.
+func equip_next() -> bool:
+	var choices: Array[String] = []            # the equippable things aboard, in the slots' order
+	for slot in slots():
+		if is_equippable(slot["item"]):
+			choices.append(slot["item"])
+	if choices.is_empty():
+		return false
+	var next := 0                              # nothing in hand (or it's not in the list): the first one
+	var now := choices.find(equipped)          # where the thing in hand is in the list (-1 = not there)
+	if now != -1:
+		next = (now + 1) % choices.size()      # the one after it, back to the first after the last
+	if choices[next] == equipped:
+		return false                           # only one equippable thing aboard, and it's already in hand
+	equip(choices[next])
+	return true
+
+
 ## Takes `item` off (holding the finger on its slot, or the last one spent).
 func unequip(item: String) -> void:
 	if equipped == item and item != "":

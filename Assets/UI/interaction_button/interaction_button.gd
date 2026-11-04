@@ -10,6 +10,9 @@ extends Control
 ##   5. nothing                       -> an empty face, faint
 ## Every press clicks, and it's black for as long as the finger holds it (Enrico's rule for every button: it shows
 ## "you're keeping this pressed").
+## A LONG PRESS (held `hold_time` seconds, Enrico) puts the NEXT equippable thing of the hold in hand instead
+## (Inventory.equip_next, the logbook's order, round and round); so a tap now acts when the finger comes off, and only
+## if it came off before hold_time. (Not while someone is talking: there the button turns the pages.)
 ##
 ## The thing in hand is Inventory.equipped (one at a time, picked in the logbook). What each one does lives in its
 ## "item action" node (bomb_button.gd, jar_button.gd, harpoon_button.gd, hook_button.gd in ui_layout.tscn): this
@@ -29,7 +32,11 @@ const PAPER := Color("ebe7dc")
 @export var equip_anim_time := 0.6   # seconds the rings pulse out when a bomb is put in hand
 @export var equip_ring_grow := 22.0  # pixels each ring grows past the edge before it fades away
 
+@export var hold_time := 0.5         # seconds the finger must stay on it for a long press (the next thing in hand)
+
 var finger := -1                     # the finger on it (-1 = none): black while it's down
+var held_for := 0.0                  # seconds the finger has been on it
+var long_press_done := false         # this press already switched the thing in hand (so letting go does nothing)
 var shimmer_t := 0.0                 # the glint's clock
 var equip_anim_left := 0.0           # seconds left of the equip rings (0 = none)
 var paper_icons := {}                # icon -> the same icon in paper (for the inked face while the hook holds)
@@ -91,6 +98,7 @@ func _process(dt: float) -> void:
 	if not Engine.is_editor_hint():
 		equip_anim_left = maxf(0.0, equip_anim_left - dt)
 		shimmer_t += dt
+		check_long_press(dt)
 	queue_redraw()
 
 
@@ -106,12 +114,29 @@ func _gui_input(e: InputEvent) -> void:
 		return
 	if e is InputEventScreenTouch:
 		if e.pressed and finger == -1:
+			# The finger comes down: the click at once; what it does waits to see if it's a tap or a long press.
 			finger = e.index
-			press()
+			held_for = 0.0
+			long_press_done = false
+			Sfx.button_press()
 			accept_event()
 		elif not e.pressed and e.index == finger:
+			# The finger comes off: a tap (it wasn't held long enough to switch the thing in hand) does this moment's thing.
 			finger = -1
+			if not long_press_done:
+				press(false)
 			accept_event()
+
+
+## While the finger stays on it: once it has been held hold_time seconds, the next thing goes in hand (once a press).
+func check_long_press(dt: float) -> void:
+	if finger == -1 or long_press_done:
+		return
+	held_for += dt
+	if held_for >= hold_time and mode() != "talk_next":
+		long_press_done = true
+		if Inventory.equip_next():
+			Sfx.button_press()           # a second click: it switched
 
 
 ## Enter on the PC does the same as a tap.
@@ -122,9 +147,10 @@ func _unhandled_key_input(e: InputEvent) -> void:
 		press()
 
 
-## A press: the click always; then whatever this moment does.
-func press() -> void:
-	Sfx.button_press()
+## A press: the click (unless it was already played when the finger came down); then whatever this moment does.
+func press(click := true) -> void:
+	if click:
+		Sfx.button_press()
 	var boat := _boat()
 	match mode():
 		"talk_next":
