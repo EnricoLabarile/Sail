@@ -29,7 +29,7 @@ signal delivered(goal: Node3D)
 @export var tow_id := ""
 @export var grab_reach := 8.0       # metres from the parent's middle her middle may be for the hook to grab it
 @export var rope_length := 4.0      # metres of rope from her stern to the thing's edge while towed
-@export var tow_slowdown := 0.9     # her speed × this while she tows it (1 = it doesn't hold her back)
+@export var tow_slowdown := 0.2     # her speed × this while she tows it (1 = it doesn't hold her back)
 @export var size := 1.0             # metres from the thing's middle to its edge (where the rope ends)
 @export var towable_after_delivery := false   # once a goal took it, can it be towed again?
 @export var rope_width := 0.15      # metres
