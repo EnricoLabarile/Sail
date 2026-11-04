@@ -104,7 +104,7 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	var paddles := _paddles()
-	was_free = paddles == null or paddles.can_wind()   # no unlock sound for the state it starts in
+	was_free = paddles == null or paddles.can_refill()   # no unlock sound for the state it starts in
 	if paddles:
 		paddles.revved.connect(_on_revved)             # started or refilled: overdrive
 
@@ -150,7 +150,7 @@ func _gui_input(e: InputEvent) -> void:
 			held_time = 0.0                 # the boost's wait starts again
 			last_a = _angle_round_pivot(e.position)
 			var paddles := _paddles()
-			grabbed_in_window = paddles != null and paddles.is_running() and paddles.can_wind()
+			grabbed_in_window = paddles != null and paddles.is_running() and paddles.can_refill()
 			accept_event()
 		elif not e.pressed and e.index == drag_index:
 			drag_index = -1                 # let go: _process springs it back to the middle
@@ -190,7 +190,7 @@ func check_ends() -> void:
 				paddles.turn_on()           # off: she starts (anchor up, battery full)…
 				Sfx.lever_done()
 				let_go()                    # …and the lever springs back to the middle
-			elif paddles.can_wind() and grabbed_in_window:
+			elif paddles.can_refill() and grabbed_in_window:
 				# Running, battery nearly out, and this grab began in its last seconds: full again; she keeps the 100%.
 				paddles.refill()
 				held_time = 0.0             # just refilled: holding it here doesn't drain faster until boost_wait has passed
@@ -250,7 +250,7 @@ func _process(dt: float) -> void:
 			held_time += dt
 		paddles.boost_counts = drag_index != -1 and held_time >= paddles.boost_wait
 		# The moment the battery can be filled again (its last seconds, or empty): the unlock sound, once.
-		var free: bool = paddles.can_wind()
+		var free: bool = paddles.can_refill()
 		if free and not was_free:
 			Sfx.crank_unlock()
 		was_free = free
@@ -397,7 +397,7 @@ func _draw_led(paddles: Node, ink: Color, paper: Color) -> void:
 	var middle := Vector2(0.0, -LEVER_LENGTH)               # the middle of the dome's flat bottom, on the grip's top
 	var radius := 4.0
 	var lit := false
-	if paddles and paddles.is_running() and paddles.can_wind():
+	if paddles and paddles.is_running() and paddles.can_refill():
 		var phase := fmod(Time.get_ticks_msec() / 1000.0 * led_blinks_per_second, 1.0)
 		lit = phase < 0.5                                   # lit half of each blink, off the other half
 	# The dome: half a circle (from left to right over the top), filled, with an ink outline.

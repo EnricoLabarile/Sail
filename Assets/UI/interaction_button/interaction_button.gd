@@ -7,7 +7,7 @@ extends Control
 ##   2. near an NPC not yet talked to -> a speech bubble with a glint: a tap drops the anchor and starts the talk
 ##   3. over a fishing spot           -> a question mark: a tap drops the anchor there and the fishing starts
 ##                                       (Enrico, Nov 2026; already at anchor: it fishes where she is)
-##   4. a thing in hand               -> its icon (bomb, jar, harpoon, hook, trap): a tap uses it (its action's use())
+##   4. a thing in hand               -> its icon (bomb, jar, hook): a tap uses it (its action's use())
 ##   5. nothing                       -> an empty face, faint
 ## Every press clicks, and it's black for as long as the finger holds it (Enrico's rule for every button: it shows
 ## "you're keeping this pressed").
@@ -16,9 +16,8 @@ extends Control
 ## if it came off before hold_time. (Not while someone is talking: there the button turns the pages.)
 ##
 ## The thing in hand is Inventory.equipped (one at a time, picked in the logbook). What each one does lives in its
-## "item action" node (bomb_button.gd, jar_button.gd, harpoon_button.gd, hook_button.gd in ui_layout.tscn): this
-## button finds the one whose ITEM is the equipped thing (group "item_actions") and calls it. The trap has no action:
-## it's laid when the anchor goes down while it's in hand (trap_setter.gd), so here it's only shown.
+## "item action" node (bomb_button.gd, jar_button.gd, hook_button.gd in ui_layout.tscn): this button finds the one
+## whose ITEM is the equipped thing (group "item_actions") and calls it.
 ## (In Unreal terms: a context-sensitive "Interact" button that asks a few systems in turn who wants the press.)
 ##
 ## It sits as a child of the wheel (helm.tscn) and puts itself on the wheel's middle, the size of the old hub,
@@ -92,7 +91,7 @@ func mode() -> String:
 	return "empty"
 
 
-## The action node of the thing in hand (null for the trap, or nothing in hand).
+## The action node of the thing in hand (null with nothing in hand).
 func current_action() -> Node:
 	for action in get_tree().get_nodes_in_group("item_actions"):
 		if action.ITEM == Inventory.equipped:
@@ -212,7 +211,7 @@ func _draw() -> void:
 	var s := size.x * 0.5 / 15.0          # the hub is drawn in units where its radius is 15 (as the prototype's)
 	var now := mode()
 	var action := current_action() if now == "item" else null
-	var inked: bool = action != null and action.is_active()     # the hook holding something, a harpoon out
+	var inked: bool = action != null and action.is_active()     # the hook holding something
 
 	# The coin flip (when the thing in hand changes): the button is squeezed sideways to nothing and opens again, as
 	# a coin turning over seen edge-on; the first half still shows what was in hand before, the second half the new.

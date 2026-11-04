@@ -7,7 +7,7 @@ extends Control
 ##   - the leather cover: dark, with a fine dotted grain, stitching round the edge and metal corners;
 ##   - two paper pages with the edges of the pages beneath showing at the sides;
 ##   - the top half: the hold ("Cargo", the Inventory autoload): its slots in a grid of 3 across, each thing
-##     aboard drawn in its slot (its picture from its ItemData, Inventory.icon_of; a pile of bombs or traps with its number in
+##     aboard drawn in its slot (its picture from its ItemData, Inventory.icon_of; a pile of bombs or jars with its number in
 ##     the corner), the empty slots dashed and faint. Tapping an equippable thing's slot puts it in hand (one at a time,
 ##     for the interaction button): the equipped slot has a thick double frame (Inventory.tap_equip; held, unequip);
 ##   - the bottom half: the map, the world cut into 9 x 9 squares (A..I from the west, 1..9 from the north,
@@ -94,7 +94,6 @@ func _ready() -> void:
 		return
 	Inventory.changed.connect(refresh)   # something came aboard or went out: the hold's page changes
 	Inventory.equipped_changed.connect(refresh)   # something was equipped or unequipped
-	Inventory.toggled.connect(_on_toggled)   # the sail switched on or off
 
 
 ## Called by logbook.gd when the book is opened (and by the Inventory when the hold changes): reads what the
@@ -249,10 +248,6 @@ func _wait_for_hold(touch: int) -> void:
 
 
 
-## The sail (or another toggle thing) was switched on or off: draw the pages again.
-func _on_toggled(_item: String, _on: bool) -> void:
-	refresh()
-
 ## Turns the page by `step` (1 = next, -1 = back), if there is one that way.
 func turn_page(step: int) -> void:
 	var new_page := clampi(page + step, 0, PAGE_COUNT - 1)
@@ -367,8 +362,6 @@ func _draw_hold(area: Rect2) -> void:
 			var item: String = _slots[i]["item"]
 			var amount: int = _slots[i]["count"]
 			_half_frame(r, INK, 1.5, false)
-			if Inventory.is_on(item):
-				_half_frame(r.grow(-3.0), INK, 2.0, false)      # switched on (the sail set): the thick frame, no letter
 			if Inventory.is_equipped(item):
 				_half_frame(r.grow(-3.0), INK, 2.0, false)      # equipped (in hand): a second, thick frame inside
 			var icon := Inventory.icon_of(item)

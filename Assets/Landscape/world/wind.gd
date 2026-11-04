@@ -1,23 +1,28 @@
 extends Node
-## THE WIND, for the whole game.
+## THE WIND AND THE CURRENT, for the whole game.
 ##
 ## This script is an Autoload (Project Settings → Globals → Autoload, name "Wind"): Godot creates it
 ## once when the game starts and any other script can read it by writing `Wind.from_deg`.
 ## (In Unreal it would be a World Subsystem.)
 ##
-## What it does (Enrico):
-##   1. every level starts with the wind blowing NORTH (coming from the south);
-##   2. it never changes by itself: it stays as it is...
-##   3. ...until the boat crosses a WIND ZONE (Assets/Landscape/wind_zone), which turns it to a new direction
-##      (one set in the zone's Inspector, or a random one): turn_to(). It turns smoothly over a few seconds,
-##      then stays again until the next zone.
-##   4. RANDOM SHIFTS (Enrico, Nov 2026; switch: RANDOM_WIND below): if on, every SHIFT_EVERY_MIN..MAX seconds
-##      it turns by itself to a new direction, at most SHIFT_MAX_DEG either way from where it is now. A wind zone
-##      or an Aeolus jar still turns it at once, and the count starts again from there (so the jar's wind lasts).
-## The wind's strength never changes: only its direction does.
+## WHAT THE WIND IS FOR NOW (Enrico, Nov 2026: there's no sail any more, so the wind never pushes the boat):
+##   - GAMEPLAY: it sets which way THE CURRENT flows (below). The current is what matters: it carries the boat, a
+##     burning bomb, a dead imp, a castaway let go, and a sea imp comes up on the side it flows toward. A wind zone
+##     or an Aeolus jar turning the wind is really turning the current.
+##   - THE LOOK: things drawn along it follow it (the sea's texture, the clouds, the wind lines, the gulls, the
+##     gusts and the big waves, which also travel with it).
 ##
-## THE CURRENT lives here too (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, so the sea
-## carries what floats on it downwind. Anything can ask `Wind.current()` for that push: the boat, a bomb, a dead imp.
+## Its direction (Enrico):
+##   1. every level starts with it blowing NORTH (coming from the south);
+##   2. a WIND ZONE (Assets/Landscape/wind_zone) the boat crosses turns it to a new direction (one set in the zone's
+##      Inspector, or a random one), and so does an Aeolus jar: turn_to(). It turns smoothly over a few seconds;
+##   3. RANDOM SHIFTS (switch: RANDOM_WIND below): if on, every SHIFT_EVERY_MIN..MAX seconds it turns by itself to a
+##      new direction, at most SHIFT_MAX_DEG either way from where it is now. Any turn_to (a zone, a jar) starts the
+##      count again (so the jar's current lasts).
+## Its strength never changes: only its direction does.
+##
+## THE CURRENT (the HTML prototype's CURRENT_DRIFT): the wind sets the water moving, so the sea carries what floats on
+## it the way the wind blows, at CURRENT_SPEED. Anything can ask `Wind.current()` for that push.
 
 
 ## Sent every time the wind's direction changes (at a wind zone, a jar, a new level, and every frame while it
@@ -33,7 +38,7 @@ const SHIFT_EVERY_MIN := 20.0             # seconds between two random shifts: a
 const SHIFT_EVERY_MAX := 40.0             # ...and at most (a new random wait each time)
 const SHIFT_MAX_DEG := 90.0               # a random shift turns it at most this many degrees either way (180 = anywhere)
 const SHIFT_TURN_TIME := 4.0              # seconds a random shift takes to turn (as a wind zone's turn_time)
-const CURRENT_SPEED := 2.0                # m/s the current carries floating things downwind (boat, bombs, a dead imp)
+const CURRENT_SPEED := 2.0                # m/s the current carries floating things the way the wind blows (boat, bombs, a dead imp)
 
 
 # ---- The value other scripts read ----

@@ -159,7 +159,7 @@ func place_handle() -> void:
 
 
 ## The rope: a thin flat ink strip from the handle to her stern (a 1 x 1 plane moved to the middle, turned along the
-## line and stretched to its length, as the harpoon's).
+## line and stretched to its length).
 func draw_rope(stern: Vector3) -> void:
 	var start := handle.global_position
 	start.y = rope_height

@@ -7,18 +7,15 @@ extends Node
 ## An item is just its name (a String), e.g. "fish". Everything else about it (its picture, its prices, whether it
 ## stacks or can be equipped) is in its ItemData file, Assets/Inventory/items/<name>.tres, read at the start into
 ## `catalogue` (see item_data.gd). A new kind of item = a new .tres in that folder.
-## Most things take a slot each (two fish = two slots). Stackable things (bombs, traps) pile up in ONE slot,
+## Most things take a slot each (two fish = two slots). Stackable things (bombs, jars) pile up in ONE slot,
 ## however many there are, with their number drawn on it. When all the slots are taken, nothing new fits.
 ##
 ## EQUIPPING (Enrico, Nov 2026: ONE thing at a time, used with the interaction button in the middle of the wheel,
-## Assets/UI/interaction_button): `equipped` is what's in hand ("" = nothing). Any equippable thing (bomb, trap, Aeolus
-## Jar, harpoon, hook). In the logbook a tap on a thing's slot equips it (whatever was equipped is put back); holding
+## Assets/UI/interaction_button): `equipped` is what's in hand ("" = nothing). Any equippable thing (bomb, Aeolus Jar,
+## hook). In the logbook a tap on a thing's slot equips it (whatever was equipped is put back); holding
 ## the finger on it takes it off (unequip).
-## Things with ItemData.equip_on_pickup (bomb, jar, harpoon, hook) are equipped by themselves when they come aboard, if
+## Things with ItemData.equip_on_pickup (bomb, jar, hook) are equipped by themselves when they come aboard, if
 ## nothing is equipped yet.
-##
-## SWITCHED ON / OFF (Enrico): things with ItemData.toggle_on_tap (the sail) aren't put in hand: a tap on their slot
-## in the logbook switches them on or off (toggle), kept in `switched_on`; is_on(item) = aboard and on.
 ##
 ## The purse: `coins`, taken in and spent at the stores. It takes no slot.
 
@@ -31,30 +28,25 @@ signal equipped_changed
 ## Sent when something comes aboard (anything: a pickup, a caught imp, the fish from a haul, a buy at a counter).
 ## The boat listens and plays the "came aboard" sound (boat.gd). Not sent for the things she sets out with.
 signal came_aboard(item: String, count: int)
-## Sent when a thing is switched on or off (the sail, sail.gd, listens; so does the logbook).
-signal toggled(item: String, on: bool)
 
 const SLOTS := 9   # how many slots the hold has
 const ITEMS_FOLDER := "res://Assets/Inventory/items"   # one ItemData .tres per kind of item
 
-## What she sets out with (Enrico: no bombs and no Aeolus Jars, she finds them; 9 traps, to try them).
-## (The paddles aren't an item any more, Enrico: they're always fitted, boat's paddles.gd.)
-const START_ITEMS := {}   # (Enrico, Nov 2026: no sail any more; the paddles are always fitted)
-const START_ON: Array[String] = []     # of those, the ones switched on at the start (the sail is struck)
+## What she sets out with: item name → how many, e.g. {"bomb": 3} (Enrico: nothing for now, she finds things).
+## (The paddles aren't an item: they're always fitted, the boat's paddles.gd.)
+const START_ITEMS := {}
 const START_COINS := 10             # coins in the purse at the start (10 for now, Enrico: to try the floating shop)
 
 var catalogue := {}                 # every kind of item: its name → its ItemData (read from ITEMS_FOLDER)
 var items: Array[String] = []   # what's aboard, one entry per thing, in the order it came in
 var equipped := ""                  # what's in hand, used with the interaction button ("" = nothing)
 var coins := START_COINS            # the purse
-var switched_on: Array[String] = [] # the toggle things switched on now (the sail)
 
 
 func _ready() -> void:
 	load_catalogue()
 	for item in START_ITEMS:
 		add(item, START_ITEMS[item])
-	switched_on.assign(START_ON)
 
 
 ## Reads every ItemData file in ITEMS_FOLDER into `catalogue`, by its id. (ResourceLoader.list_directory works
@@ -162,13 +154,9 @@ func is_full() -> bool:
 	return slots().size() >= SLOTS
 
 
-## A tap on a thing's slot in the logbook: equips it (whatever was in hand is put back in the hold). Toggle things (the
-## sail) are switched on or off instead. Only equippable things that are aboard.
+## A tap on a thing's slot in the logbook: equips it (whatever was in hand is put back in the hold). Only equippable
+## things that are aboard.
 func tap_equip(item: String) -> void:
-	var info := data(item)
-	if info and info.toggle_on_tap:
-		toggle(item)                      # the sail: on or off
-		return
 	if not is_equippable(item) or count(item) == 0:
 		return
 	equip(item)
@@ -212,19 +200,3 @@ func unequip(item: String) -> void:
 ## Is `item` the thing in hand now?
 func is_equipped(item: String) -> bool:
 	return item != "" and equipped == item
-
-
-## Switches a toggle thing (the sail) on or off, if it's aboard.
-func toggle(item: String) -> void:
-	if count(item) == 0:
-		return
-	if switched_on.has(item):
-		switched_on.erase(item)
-	else:
-		switched_on.append(item)
-	toggled.emit(item, switched_on.has(item))
-
-
-## Is `item` aboard and switched on? (The sail: is it set?)
-func is_on(item: String) -> bool:
-	return switched_on.has(item) and count(item) > 0

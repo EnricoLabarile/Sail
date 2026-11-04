@@ -88,7 +88,7 @@ than the upgrade costs, so the player explores for fishing spots. Meanwhile town
 terror of the local seas: met before the upgrade it can't be beaten. It shows as pieces breaking the water (head,
 tentacles): dodge the lashing tentacles, place traps tactically to hurt it and make it vulnerable, then ram it at full
 speed. (Alternative to ram and traps: a **bomb**, dropped (now off the bow) with its own button, timed to blow up on the enemy.)
-For now (Enrico): bombs AND traps both in, to see which plays better; **the slingshot is gone**.
+For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are gone**, like the slingshot before).
 
 ## Keeping the project folder clean (Enrico's rules)
 - **Before creating any new file, show Enrico where it will go and wait for his ok** (Enrico's rule, Oct 2026): list
@@ -101,7 +101,10 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   replaces the lower-case `boat/ world/ ui/ shared/` plan below (the other rules still hold, and since the folders now
   have capitals, spell every `res://` path exactly as on disk: the web export is case-sensitive).
 - **Autoloads** (project.godot): `PhoneFrame` (`Assets/Scenes/phone_frame.gd`, a phone-shaped frame on wide screens, **PC only**: on a phone (`is_phone()`: `mobile` / `web_android` / `web_ios` feature tags only; no longer "a touch screen", Enrico, Nov 2026: Godot reports one on many PCs, even under xvfb, so a laptop's browser got no frame and a stretched, broken view) it's always `EXPAND`, never the frame (Enrico: after turning the phone sideways and back the game stayed squeezed between black bars, the frame's `KEEP`); in the browser `listen_for_turns` adds a little JavaScript (`window.vvAskSizeAgain`, on `orientationchange`, `screen.orientation` change, trusted `resize`, `visibilitychange`, and on focus in) that re-sends `resize` 0.1, 0.5 and 1 s later (Godot polls `innerWidth/innerHeight` every frame, `library_godot_display.js` `updateSize`); `lock_upright` asks `screen.orientation.lock('portrait')`, which browsers allow only in full screen / home-screen apps, so in a normal tab the page still turns) and
-  `Wind` (`Assets/Landscape/world/wind.gd`): **no random wind any more** (Enrico): every level starts blowing **north** (`START_FROM_DEG` 180 = from the south; `reset()` on `scene_changed`), constant strength, and it changes only when the boat crosses a **wind zone** (below): `Wind.turn_to(from_deg, seconds)`, the short way round, smoothstep; **random shifts again** (Enrico, Nov 2026,
+  `Wind` (`Assets/Landscape/world/wind.gd`), **the wind and the current**: since the sail is gone (Nov 2026) **the
+  wind never pushes the boat**; it's only (1) the way **the current** flows (gameplay: boat, bombs, dead imp, castaway,
+  the imp coming up downstream; a wind zone or an Aeolus jar turning it turns the current) and (2) what the look
+  follows (sea texture, clouds, wind lines, gulls, gusts, big waves). Every level starts blowing **north** (`START_FROM_DEG` 180 = from the south; `reset()` on `scene_changed`), constant strength, and it changes only when the boat crosses a **wind zone** (below): `Wind.turn_to(from_deg, seconds)`, the short way round, smoothstep; **random shifts again** (Enrico, Nov 2026,
   switch `RANDOM_WIND` in the Knobs, on; false = only zones and jars turn it): every `SHIFT_EVERY_MIN`–`MAX` 20–40 s
   (`_next_shift_left`, `_start_shift_wait`) `_random_shift` turns it at most `SHIFT_MAX_DEG` 90° either way over
   `SHIFT_TURN_TIME` 4 s; any `turn_to` (zone, jar, random) restarts the wait, so a jar's wind lasts a whole wait;
@@ -151,10 +154,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   Static Body, or name it with the `-col` suffix in Blender), which is what `Land` hits. When her middle or bow (`bow_reach`) would be on land she **bumps** (the prototype's
   `impact()`, in `boat.gd`: `move_and_bounce`, `bump`; knobs `bounce_*`): only moving into the shore at ≥ 0.4 m/s,
   0.6 s cooldown; a push `knock` along `Land.way_to_sea()` of 2 + 0.9 × the hit speed, fading at 3.5/s; speed × 0.25;
-  the bow swung off up to 0.3 rad toward the open side; the hull loses `hit_damage` (**0 now**, Enrico: no damage from the landscape; with 0 `bump` doesn't call `take_damage` at all, only `camera.shake()`, so the hearts don't flash and the hook doesn't let go; was half a heart, see Health) and the hull knocks (`Sfx.hull_bump`, see Sound). No wobble (Enrico removed it), no buzz yet. In the **shallows** (land within
-  `shallows_width` 6 m of her middle, `Land.is_near_land`: 3 rings × 16 rays, looked again only every `shallows_check_time`
-  0.2 s, `in_shallows`) the sail's drive is ×
-  `shallows_sail` 0.3 (Enrico: less wind by the coast). **The current** (prototype's `CURRENT_DRIFT`): `drift` =
+  the bow swung off up to 0.3 rad toward the open side; the hull loses `hit_damage` (**0 now**, Enrico: no damage from the landscape; with 0 `bump` doesn't call `take_damage` at all, only `camera.shake()`, so the hearts don't flash and the hook doesn't let go; was half a heart, see Health) and the hull knocks (`Sfx.hull_bump`, see Sound). No wobble (Enrico removed it), no buzz yet. (The shallows no longer slow her: they were the sail's; `shallows_width` on the boat is only where the sea's deep
+  water starts darkening, sea.gd.) **The current** (prototype's `CURRENT_DRIFT`): `drift` =
   `Wind.current()` (downwind × `Wind.CURRENT_SPEED` 1.5 m/s) × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; also at
   anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
@@ -275,23 +276,8 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   the PC, only when a cell is seen); `seen_box` limits a full re-blur to what's been seen. The shader's own `falloff`
   stays at 0 (it still works if set by hand). Tall objects are fogged as the water just behind them. The boat is drawn under it but she's
   always in seen water. Made in code, so the editor shows the whole map. Nothing is always clear yet.
-- **The boat's hierarchy** (Enrico's, Oct 2026): `Boat / Model / sm_boat_hull / sm_boat_mast / Rig / sm_boat_sail`
-  (+ `Boat/Camera3D`). `Model` heels, bobs and rocks (`rock_and_roll`, the prototype's damped springs: roll pulled toward heel + lean out of a turn + the waves' roll, pitch toward the speed's bow lift + the waves' pitch, `roll_stiffness` 16 / `roll_damping` 3.2, `pitch_stiffness` 22 / `pitch_damping` 4.5, clamped ±0.6 / ±0.3 rad; the lean out of a turn is the measured `turn_speed` / `turn_rate` × speed / `top_speed` × `turn_lean_deg` 22°; **speed lifts the bow and it stays up** (Enrico, like a motorboat; it replaced the prototype's surge): pitch target = (speed / `top_speed`)^`bow_lift_curve` (2) × `bow_lift_deg` (8°), the pitch clamp's top raised to fit; the waves `wave_roll_deg` 3°, `wave_pitch_deg` 2°, `wave_period` 3 s and 0.8× that; everything follows), `Rig` (at the mast's foot) turns the
-  boom to leeward (half the wind's angle off the bow, 8° to `boom_max_deg` 30° either side: never across her), the sail's shape keys `Inflated_Right` / `Inflated_Left` make its belly. `boat.gd` finds `Rig` and
-  `sm_boat_sail` with `find_child` (by name, anywhere inside), so the hierarchy can change as long as the names stay.
-- **The sail is its own item and script** (Enrico, Oct 2026: as much of the sail's code as possible on the sail itself):
-  **`Assets/Boat/sail.gd`** on the `Rig` node of boat.tscn (an Actor Component in Unreal terms) holds the curve (`POLAR`,
-  `polar`), the wind's push `drive()` (0..1 of top speed; 0 when not set or at anchor; × `shallows_sail` 0.5 when
-  `boat.in_shallows`), and the look `update_look(dt, push)`: boom to leeward (`boom_max_deg`), belly
-  (`sail_fill_rate`, shape keys), gathered up at anchor (`furl_rate`, `unfurl_rate`, `furled_height`), the boom's trail
-  (`sail_trail_threshold`, `SailTip`, `SailTrail`); `stop_trail`, `gather_up`. boat.gd only does `sail.drive()` (× top
-  speed; still 0 during `calm_left`) and `sail.update_look`; the heel follows the drive. **Item `sail.tres`**
-  (`toggle_on_tap`, not equippable, buy/sell 0: the counter won't buy it, it stays aboard; icon `icons/sail.png`, a
-  stand-in by `art_src/items/make_sail_icon.py`), one slot, aboard and set at the start (`Inventory.START_ITEMS`,
-  `START_ON`). **A tap on its slot in the logbook sets or strikes it** (`Inventory.tap_equip` → `toggle`; `is_on`,
-  `switched_on`, signal `toggled(item, on)`; the slot has the thick frame, no A/B letter). **Struck**: the mast and
-  everything on it hidden (`sm_boat_mast.visible`, Enrico), no wind push (gusts' boost × 0 too), the current still
-  carries her; set again it comes back gathered up and spreads.
+- **The boat's hierarchy** (Enrico's, Oct 2026; the mast, `Rig` and the sail removed Nov 2026): `Boat / Model /
+  sm_boat_hull (/ sm_boat_hull_inner)`, `Model / Paddles` (+ `Boat/Camera3D`). `Model` leans, bobs and rocks (`rock_and_roll`, the prototype's damped springs: roll pulled toward the lean out of a turn + the waves' roll, pitch toward the speed's bow lift + the waves' pitch, `roll_stiffness` 16 / `roll_damping` 3.2, `pitch_stiffness` 22 / `pitch_damping` 4.5, clamped ±0.6 / ±0.3 rad; the lean out of a turn is the measured `turn_speed` / `turn_rate` × speed / `top_speed` × `turn_lean_deg` 22°; **speed lifts the bow and it stays up** (Enrico, like a motorboat; it replaced the prototype's surge): pitch target = (speed / `top_speed`)^`bow_lift_curve` (2) × `bow_lift_deg` (8°), the pitch clamp's top raised to fit; the waves `wave_roll_deg` 3°, `wave_pitch_deg` 2°, `wave_period` 3 s and 0.8× that; everything follows). `boat.gd` finds `Paddles` and the wake / bow-wave nodes with `find_child` (by name, anywhere inside), so the hierarchy can change as long as the names stay.
 - **The paddles** (Enrico, Oct 2026: the paddle wheels and the crank back, as an item like the sail; their code on
   themselves): **`Assets/Boat/paddles.gd`** on `Model/Paddles` in boat.tscn, holding `PaddleWheelLeft` / `Right`
   (`Assets/Boat/paddle_wheel.tscn`, the old stand-in from git with `toon_shade` materials, x ±1.75, y 0.1, z 0.1; `Spin`
@@ -301,7 +287,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   (counted down only under way; none at anchor); `power` eases at `take_up_rate` 3.75; the boat's target speed =
   max(sail, `push_speed()`) picked up at `bite` 5.25; turning × `turn_mult` 1.5 while they push (`turn_factor`); the
   current still carries her. **Locked while it pushes, except the last `recharge_window` 2 s** (Enrico: keep it going
-  without stopping): `can_wind()`; a full turn then refills to `push_time` (not added). Wheels: pushed or freewheeling
+  without stopping): `can_refill()` (was `can_wind`, from winding the spring; renamed Nov 2026 so it isn't read as the wind); a full turn then refills to `push_time` (not added). Wheels: pushed or freewheeling
   with her speed, outside wheel faster in a turn (`half_beam`, `paddle_radius`). `stop()` on respawn.
   **The speed setting** (Enrico, Oct 2026; it replaced a brake): the crank **held turned anticlockwise** sets how fast she
   may go: `crank.gd` `_process` sends `paddles.set_turned_back(-crank_angle / TAU)` every frame while the finger is on it
@@ -333,14 +319,14 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `chevron_teeth` 3). **While it refills** (`filling`, the climb over `refill_show_time`; Enrico) they turn ">" and
   flow **rightwards** instead (`chevron_shift` goes down by `refill_chevron_speed` 3 a second; `_draw_chevrons(share,
   color, facing)`, facing −1 left / +1 right). **The flywheel in the knob** (Enrico, Nov 2026, like a rowing machine's; it replaced the circular arrow): a rim, three spokes, a weight on one, a hub (`_draw_flywheel`), turning clockwise while the paddles run at `flywheel_speed` 0.75 turns/s × `lever_share` / 0.5 (middle = usual pace, right end twice, left end stopped; off = stopped); **overdrive** `overdrive_speed` 4 turns/s for `overdrive_time` 1.5 s when she's started or refilled (paddles.gd signal `revved` from `turn_on` / `refill` → `_on_revved`); its speed follows the target smoothly at `flywheel_weight` 4 (`update_flywheel`, `flywheel_spin`, `flywheel_angle`; keep speeds under ~4 turns/s, or at 30 fps it seems to stand or go backwards). **Held, only the lever is drawn black** (the grip ink, its stripes
-  paper). **The LED on the grip's tip** (Enrico, Nov 2026, from his sketch; `_draw_led`, in the lever's frame so it tilts with it): a little dome on the grip's top; while the battery can be refilled (running and `can_wind()`) it blinks `led_blinks_per_second` 3: lit = paper dome with a glint and three ink rays (up, ±45°), off = ink dome; otherwise off. **Anchor hints** (Enrico; `_draw_anchor`, `ICON_DISTANCE` 38, `ICON_PAST_END` 0.3 rad past each end; line
+  paper). **The LED on the grip's tip** (Enrico, Nov 2026, from his sketch; `_draw_led`, in the lever's frame so it tilts with it): a little dome on the grip's top; while the battery can be refilled (running and `can_refill()`) it blinks `led_blinks_per_second` 3: lit = paper dome with a glint and three ink rays (up, ±45°), off = ink dome; otherwise off. **Anchor hints** (Enrico; `_draw_anchor`, `ICON_DISTANCE` 38, `ICON_PAST_END` 0.3 rad past each end; line
   art, ink with a thin paper halo): on the left while the anchor is up (left end drops it), on the right while at
   anchor or tied up (right end weighs it). `PIVOT` (0, 26). Sounds: `Sfx.crank_click` every notch (`NOTCHES` 16, higher to the
   right), `Sfx.lever_done` at an end that does something (plus the anchor's), `Sfx.crank_unlock` when the battery can
   be filled again. Space on the PC does the same as the ends (off → on, running → off). The paddles push at
   boat.gd's `top_speed` × the share while running (Enrico: `paddle_speed` is gone, `top_speed` is the one speed knob); `turn_mult` while they push. **The wheels' look** (Enrico: too fast): they turn at (push × the lever's share, or
-  her own speed freewheeling) / `paddle_radius` × `spin_scale` 0.35, and the splashes (one a quarter turn) follow it. **No sail any more** (Enrico: `START_ITEMS`
-  {trap: 9}; sail.gd and its files stay, unused, and the mast is hidden as the sail isn't aboard).
+  her own speed freewheeling) / `paddle_radius` × `spin_scale` 0.35, and the splashes (one a quarter turn) follow it. **No sail any more** (Enrico, Nov 2026: removed
+  with its script, materials, the mast and the sail's meshes; the paddles are her only push, the current carries her).
   (Before:) **The crank** (`Assets/UI/crank/`: `crank.tscn` CanvasLayer 95, group `hidden_at_start`, in game_view `DITHERED`, in
   all 4 levels; Control `Button` 120 px, bottom-left anchored, offsets 6 / −392 / 126 / −272: up and left of the wheel,
   bigger than the old A/B buttons; `crank.gd`, `@tool`): **always on screen, at anchor too, and the only way to work the
@@ -363,14 +349,13 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   parameter `sun_direction`** (Project Settings > Shader Globals, like a Material Parameter Collection; default
   (-0.25, 0.94, -0.25)), set by `clouds.gd` `set_sun_direction()` from `shadow_offset` / `height`, so the boat is lit
   from where the clouds' shadows come (north-west, high). `toon_shade.gdshader` (`base_color` × the light) is used by
-  `m_hull.tres` (hooked to `sm_boat_hull.fbx`'s `boat_hull` material in its import, `use_external`) and `m_mast.tres`;
-  `Sail.gdshader` uses the same light, its normal turned round on the back face (`FRONT_FACING`).
+  `m_hull.tres` (hooked to `sm_boat_hull.fbx`'s `boat_hull` material in its import, `use_external`).
 - **She sits in the water; only her inside is never cut** (a stencil): `boat.gd` `add_water_mask()` puts
   `Assets/Boat/boat_mask.gdshader` (invisible, `stencil_mode write, compare_always, 1`, render_priority -1) as
   `material_overlay` only on meshes inside `Model` with `inner` in their name or their parent's (Enrico: the hull's
   inside as its own object, `sm_boat_hull_inner`); `sea.gdshader` reads it (`stencil_mode read, compare_not_equal, 1`)
   and writes `ALPHA = 1.0`, which puts it in the transparent pass, drawn after the boat: it skips those pixels, so the
-  floor of the boat (below y 0) shows. The outside of the hull, mast and sail have no mask: the sea covers what's
+  floor of the boat (below y 0) shows. The outside of the hull has no mask: the sea covers what's
   below the water. Until the inner mesh exists, nothing is masked (the sea shows over her floor). How deep she sits
   is `Model`'s y in `boat.tscn` (Enrico places it; −0.4 now): `boat.gd` reads it at start (`model_height`) and bobs round it.
 - **Wake and bow wave**: the wake (as the prototype's wake dots) is a `CPUParticles3D` child of `Boat` in `boat.tscn`
@@ -386,11 +371,6 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   for Enrico to redraw; uniforms `frames_x/y`, `frame`, `strength`). `boat.gd` `update_bow_wave()`: `strength` eases
   (×4/s) to her share of top speed (0 at anchor or slow), the wings grow from `bow_wave_min_size` 0.4 to full with it
   and hide below 0.02; the frame counts up at `bow_wave_fps` 12 × that share (at least 0.3).
-  **The sail's trail** (Enrico: the boom's end skimming the water in a hard turn): `SailTip` (a Marker3D in `Rig` at
-  the boom's end, (0, 0.12, 4.7); move it in boat.tscn) and `SailTrail` (CPUParticles3D, child of Boat, the wake's disc
-  mesh and colour ramp, 24 dots, life 1 s, no velocity, local_coords off, size curve 0.4 → 1 × 0.7); `update_sail_trail()`
-  (from `update_water_fx`) puts the emitter at the tip's x/z at y 0.05 and turns it on while |`turn_speed`| / `turn_rate` ×
-  speed / `top_speed` > `sail_trail_threshold` (0.4), not at anchor or sinking (a condition, not real contact).
 - **The slingshot: removed** (Enrico, Oct 2026; in git history: `Assets/UI/slingshot/`, `Assets/Boat/projectile/stone.*`).
   `Assets/Boat/projectile/stone.gdshader` stays: the camera-facing flipbook used by the fireball and the bomb. It keeps the node's scale (it once dropped it), so scaling `Picture` in `bomb.tscn` / `fireball.tscn` makes the picture bigger. Its
   sounds are gone too (bake.html can still make them).
@@ -506,7 +486,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   frame times under xvfb: 6–9 hitches of 80–320 ms on a first lap, where an island, the fishing spot or the first
   fireball first came into view; on a second lap only where something new showed; with the warm-up 1, unrelated to
   anything). At start it collects every 3D material in the tree (hidden ones too: the imp, the NPC's bubble; islands
-  out of view) plus those of the scenes in `LATER` (fireball with its debug ring, bomb and blast, trap, pickup, big
+  out of view) plus those of the scenes in `LATER` (fireball with its debug ring, bomb and blast, pickup, big
   wave: made once, hidden and disabled, to read their materials), skips the full-screen effects (shader code with
   `POSITION =`: fog, outline, cloud shadows), and draws each once on a 1 cm square 2 m in front of the camera, plus a
   tiny-dotted copy of each CPUParticles3D, for `FRAMES` 3 frames; then it all goes (59 materials, 2 emitters in the
@@ -518,16 +498,14 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `hold_at_anchor` only keeps her middle within `anchor_rode` + `bow_reach` of the anchor and doesn't swing her
   heading (without it the current turned her back bow-to-anchor in ~3 s); cleared by `toggle_anchor` and `respawn`.
   Not while tied up at a pier (the wheel doesn't steer there: `helm.gd` `_is_tied_up`). × the paddles' `turn_mult`
-  while they push (see The paddles). The interaction button's tools (bomb, jar, harpoon, hook) already work at anchor.
+  while they push (see The paddles). The interaction button's tools (bomb, jar, hook) already work at anchor.
 - **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
   `bow_point()` = middle + `bow_reach` forward) and stays there; the current now carries her at anchor too; once the
   bow is `anchor_rode` 3 m from it, `hold_at_anchor` holds the bow there and the hull trails from it, so she swings
   round it, bow to the anchor (it no longer drags: Enrico, Nov 2026, the anchor never moves once down); **the taut line swings her round**
   (Enrico, Nov 2026: run on past the anchor she hung with it under her keel, the chain hidden): `back` turned toward
   the anchor-to-bow direction by at most `anchor_swing_speed` 1.2 rad/s (`swing_toward`; exactly opposite → to her
-  right). At anchor the sail is gathered
-  onto the boom (`update_furl`: `sm_boat_sail` scale.y → `furled_height` 0.06 at `furl_rate` 2.2, spread again at
-  `unfurl_rate` 3.5). **The anchor seen** (Enrico, Nov 2026; `Assets/Boat/anchor_chain.gd` on `Boat/AnchorChain`,
+  right). **The anchor seen** (Enrico, Nov 2026; `Assets/Boat/anchor_chain.gd` on `Boat/AnchorChain`,
   top_level, all made in code): while at anchor (`is_at_anchor`: anchored, no `berth`, not sinking) a **chain** of
   small TorusMesh links (ink, unshaded, `link_size` 0.13, `link_thickness` 0.045, stretched 1.6 along, every other one
   on edge, every `link_step` 0.26 m, at most `MAX_LINKS` 60) from her drawn (interpolated) bow at `bow_height` 0.4 m
@@ -569,7 +547,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   now (Enrico): the two pages meet with no gap and no line down the middle (one sheet); a second spread, the marked places, see Map markers. Top half:
   the hold (see The inventory), "Cargo" and "n/9" over a 3-across grid of slots (`SLOT_MAX` 40 px), each thing in a solid
   frame with its icon at its own pixel size (a pile with its number bottom right; the equipped one with a second, thick
-  frame inside), empty slots dashed and faint. **A tap on a bomb's or trap's slot equips it** (`_gui_input`, touch, only
+  frame inside), empty slots dashed and faint. **A tap on a thing's slot puts it in hand** (`_gui_input`, touch, only
   fully open; `_slot_rects` kept by `_draw_hold`; `Inventory.tap_equip`: into A, A → B, B → A; **held** `HOLD_TIME` 0.5 s still (≤ `HOLD_SLOP` 10 px) it's taken off, `_wait_for_hold`, Enrico; the equipped slot shows its letter A or B top left); it refreshes on `equipped_changed` too. Bottom half: the 9×9 map A1..I9 (the
   prototype's 100-unit layout), a square as big as fits, its middle on the spine, labels at least `LABEL_MIN_SIZE` 8 px,
   the square she's in shaded (ink 0.3). Everything on the pages is laid out flat and drawn twice by `_draw_half`, the
@@ -579,14 +557,14 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   **The book itself is not redrawn every frame** (Enrico): `logbook.gd` calls `book.refresh()` on opening, which reads
   the square once; after that it's drawn again only while the cover turns (`unfold`'s setter).
 - **The inventory** (`Inventory` autoload, `Assets/Inventory/inventory.gd`, data only; the logbook draws it; icons in
-  `Assets/Inventory/icons/`: `fish.png`, `bomb.png`, `trap.png`, `imp.png`, stand-ins): `SLOTS` 9; an item is its name
-  (its ItemData, see Items); `items` one entry per thing; stackable ones (`bomb`, `trap`) pile up in ONE slot; `slots()` gives the slots as
+  `Assets/Inventory/icons/`: `fish.png`, `bomb.png`, `imp.png`, …, stand-ins): `SLOTS` 9; an item is its name
+  (its ItemData, see Items); `items` one entry per thing; stackable ones (`bomb`, `aeolus_jar`) pile up in ONE slot; `slots()` gives the slots as
   `{item, count}`; `add(item, count)` (as many as fit: a stackable already aboard needs no slot), `remove`, `count`,
-  `is_full`; signal `changed`. **Equipping** (Enrico): equippable ones (`bomb`, `trap`), one at a time, `equipped` ("" =
+  `is_full`; signal `changed`. **Equipping** (Enrico): equippable ones (`bomb`, `aeolus_jar`, `hook`), one at a time, `equipped` ("" =
   none), `tap_equip(item)`, `equip(item)`, `unequip(item)`, `is_equipped(item)` (the last one spent unequips), signal `equipped_changed`.
   **One thing in hand** (Enrico, Nov 2026: `Inventory.equipped`, one at a time, for the interaction button; a tap on a
   slot puts it in hand, a hold takes it off; `equip_on_pickup` things are put in hand when they come aboard only if
-  nothing is). `START_ITEMS` {trap: 9, sail: 1}. (Before, superseded: **two equip slots, A and B** (Enrico, like Zelda's item buttons; `equipped_a`, `equipped_b`; `ItemData.equip_slot` is gone): ANY equippable thing (bomb, trap, jar, harpoon) in either; a tap in the logbook puts it in A, again moves it to B, again back to A; moving onto the other one's slot swaps them, a new one replaces what was there; a hold takes it off. Each item button sits in its slot's place (`Hud.ITEM_BUTTON_TOP` {a: −252 above, b: −162 below}, `Hud.place_item_button`); the trap has no button (laid at anchor while equipped in either); the hook has one (see Levers and the hook). Things with `ItemData.equip_on_pickup` (bomb, jar, harpoon) **are equipped at once when they come aboard** in the first empty slot (A, then B; both taken: not equipped) (in `add`). A captured imp is `"imp"` (one slot).)
+  nothing is). `START_ITEMS` {} (nothing for now; the toggle things, `toggle_on_tap` / `switched_on` / `toggled`, went with the sail). (Before, superseded: **two equip slots, A and B** (Enrico, like Zelda's item buttons; `equipped_a`, `equipped_b`; `ItemData.equip_slot` is gone): ANY equippable thing (bomb, trap, jar, harpoon) in either; a tap in the logbook puts it in A, again moves it to B, again back to A; moving onto the other one's slot swaps them, a new one replaces what was there; a hold takes it off. Each item button sits in its slot's place (`Hud.ITEM_BUTTON_TOP` {a: −252 above, b: −162 below}, `Hud.place_item_button`); the trap has no button (laid at anchor while equipped in either); the hook has one (see Levers and the hook). Things with `ItemData.equip_on_pickup` (bomb, jar, harpoon) **are equipped at once when they come aboard** in the first empty slot (A, then B; both taken: not equipped) (in `add`). A captured imp is `"imp"` (one slot).)
 - **Health** (Enrico, the prototype's hull as Zelda's hearts): on the boat (`boat.gd`): `max_hearts` 3, `health` in hearts
   (0.5 = half), `hit_damage` 0 a bump (Enrico; was 0.5; in `bump()`, after its cooldown and minimum speed), `take_damage(hearts)` (does nothing for 0 hearts; for more: the sound, the hearts' flash, the shake and signal **`hurt`**, which makes the hook button let go of what it holds, Enrico),
   `add_heart_container()` (one more heart and the hull whole), signal `health_changed(hurt)`. **At 0 she sinks** (Enrico): `start_sinking()` (no sailing, anchor or bumps; the water mask off so the sea covers her inside; no wake or bow wave), `update_sinking` takes `Model` down `sink_depth` 2.5 m and over `sink_lean_deg` 25° in `sink_time` 2 s (eased in), then signal `sank`; `respawn()` puts her back home (`home_position` / `home_turn`, where she was placed in Overworld) at anchor, hull whole, keeping the hold and heart containers. **She spawns by coming up out of the water** (Enrico: the sinking played backwards): `start_emerging()` at the level's start (`emerge_on_start`, on) and at the end of `respawn()`; `update_emerging` raises `Model` from `sink_depth` under and `sink_lean_deg` over to its place in `sink_time` ((1 − share)², quick at first, slowing at the surface), the water mask off till she's up; while `emerging` no sailing or damage, but the fog clears round her, and **the anchor can already be weighed** (Enrico: one press after "Set sail"; she sets off once she's up). **The game over card** (`Assets/UI/game_over.tscn` + `.gd`, made like the start screen: CanvasLayer 130, process_mode Always, hidden): on `sank` it pauses the game and shows "Shipwrecked", "The hull gave way. Back home to mend it." and "Set sail again", which calls `respawn()` and unpauses.
@@ -647,7 +625,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   **The fireball** (`fireball.gd`): from `spit_height` 1.5 m, level, toward where she'll be in `aim_ahead` 0.5 s,
   `fireball_speed` 7.5 m/s; within `fireball_hit_radius` 1.3 m of her middle (the zone's value, passed in `launch`: it replaces the ball's own `hit_radius`; **debug**: `show_fireball_hit_radius` on the zone, on, draws an ink ring of that radius on the water under each ball (`make_hit_disc`, a TorusMesh 0.15 m thick, black, render_priority 10, no depth test; a red disc vanished in the dither, same grey as the sea)) `boat.take_damage(fireball_damage)` (1
   heart, Enrico); gone on land or after `fireball_life` 3 s; `stone.gdshader`'s billboard flipbook (a stand-in).
-  **Health**: `max_hearts` 3; bombs and traps call `hit_imp_at(point, reach, damage)` on every imp (group `sea_imps`):
+  **Health**: `max_hearts` 3; bombs call `hit_imp_at(point, reach, damage)` on every imp (group `sea_imps`):
   only while EMERGING or UP and within `reach`: −`damage` hearts and **it blinks black** (Enrico: feedback; `hurt_time`
   0.5 s at `hurt_blinks_per_second` 12, `update_flash` sets `sea_imp.gdshader`'s `flash`, its material duplicated per
   imp); left > 0 → **HURT** (up, harmless, blinking; hit while emerging it shows itself) then UNDER; 0 → **DEFEATED** (up,
@@ -673,7 +651,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `blast_at(bomb)`: within `bomb.in_blast(urchin, body_radius 1.5)` it loses `bomb.damage` of `max_hearts` 3 and blinks
   black (`hurt_time` 0.5 s at `hurt_blinks_per_second` 12: its own copy of the picture's material, `albedo_color` black /
   white); at 0 → `State.DEAD`: `Sfx.enemy_death()`, `Pickup.drop_loot` (its `drop_pool`, bombs, `drop_chance` 1, 1–2 within
-  3 m), it stops, blinks, and is freed. Traps don't touch it. **Running into it**: `check_touch`,
+  3 m), it stops, blinks, and is freed. **Running into it**: `check_touch`,
   the boat's middle within `touch_radius` 3 m → `boat.bump_into_enemy` (bounce, half a heart). No sounds. `spike.tscn` is in the shader warm-up's `LATER`.
 - **Big waves** (Enrico, the prototype's rollers, zones placed by hand; `Assets/Dangers/big_waves/`: `wave_zone.tscn` +
   `.gd` (`@tool`), `big_wave.tscn` + `.gd`, `big_wave.gdshader`, `big_wave.png`; under `BigWaves` in Overworld, for now
@@ -717,16 +695,16 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   every physics frame `glide_to_berth` (instead of steering / current / bumps / the anchor line) moves her x/z and
   `rotation.y` (`lerp_angle`) toward the berth by 1 − exp(−`dock_speed` 3 × dt). The anchor button (`toggle_anchor`)
   while tied up → `cast_off()`: `berth` null, `anchored` false (no sound); **then a calm and a push** (Enrico: so the
-  wind can't trap her on land): for `cast_off_calm_time` 3 s (`calm_left`) the sail's drive is 0 and there's no current
+  current can't trap her on land): for `cast_off_calm_time` 3 s (`calm_left`) there's no current
   (`drift_amount` back to 0, so it eases in again after), and her speed is set to `cast_off_push` 5 m/s forward (it
   fades at `accel`, ~7.5 m in the 3 s); she can steer meanwhile. She ties up again only after leaving the
   sensor and coming back (it's `area_entered`). `respawn()` clears `berth`.
 - **Items** (`Assets/Inventory/item_data.gd`, `class_name ItemData`, a Resource = a Data Asset): one `.tres` per kind
-  in `Assets/Inventory/items/` (`fish`, `bomb`, `trap`, `imp`): `id` (the name the code uses), `display_name`, `icon`,
-  `buy_price` (what a merchant asks; fish 4, bomb 5, trap 6, imp 0 = not sold), `sell_price` (what a merchant pays;
-  fish 2, bomb 2, trap 3, imp 15; 0 = not bought), `stackable`, `equippable`. The `Inventory` reads the folder at start
+  in `Assets/Inventory/items/` (`fish`, `bomb`, `aeolus_jar`, `hook`, `imp`): `id` (the name the code uses), `display_name`, `icon`,
+  `buy_price` (what a merchant asks; fish 4, bomb 5, imp 0 = not sold), `sell_price` (what a merchant pays;
+  fish 2, bomb 2, imp 15; 0 = not bought), `stackable`, `equippable`. The `Inventory` reads the folder at start
   (`load_catalogue`, `ResourceLoader.list_directory`) into `catalogue`; `data(id)`, `icon_of`, `is_stackable`,
-  `is_equippable` replace the old ICONS / STACKABLE / EQUIPPABLE lists. **`equip_sound`** (AudioStream, Enrico, Nov 2026: each thing its own sound when put in hand): **for now all of them `equip_bomb.ogg`** (Enrico didn't like the others: `equip_trap/hook/harpoon/aeolus_jar.ogg`, made by `art_src/audio/make_equip.py`, stay in `Assets/SFX/` unused); the interaction button's `_on_equipped_changed` calls `Sfx.equip(item)`, which swaps the stream of the one player `Equip` (−4 dB, sfx.tscn; was `EquipBomb`) and plays it (bomb_button.gd no longer plays its own). A new kind of item = a new `.tres`. **The purse**:
+  `is_equippable` replace the old ICONS / STACKABLE / EQUIPPABLE lists. **`equip_sound`** (AudioStream, Enrico, Nov 2026: each thing its own sound when put in hand): **for now all of them `equip_bomb.ogg`** (Enrico didn't like the others; they were deleted, Nov 2026, and `art_src/audio/make_equip.py` makes only this one); the interaction button's `_on_equipped_changed` calls `Sfx.equip(item)`, which swaps the stream of the one player `Equip` (−4 dB, sfx.tscn; was `EquipBomb`) and plays it (bomb_button.gd no longer plays its own). A new kind of item = a new `.tres`. **The purse**:
   `Inventory.coins` (`START_COINS` 10 for now, `add_coins`; no slot), shown in the logbook's Cargo heading ("n coins  2/9";
   0 in the editor, where the Inventory doesn't run). `slots_of(list)` works out the slots of any list (a trade's result).
 - **Stores** (Enrico; `Assets/Landscape/store/`: `store.tscn` + `store.gd`, `store_counter.tscn` + `.gd`; for now one in
@@ -763,7 +741,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   Controls on `Talk` (CanvasLayer 112) pinned each frame to the merchant's head / 2.6 m in front of each thing
   (`on_screen`: `camera.unproject_position` in the game view, as a share of it, times the screen); the bubble shows
   `line_time` s on entering the greet area (each time) and on a bounce; the tags only while she's in the greet area.
-  For now `Inventory.START_COINS` is 10 (Enrico: to try it; buying a bomb leaves 5, a trap at 6 bounces).
+  For now `Inventory.START_COINS` is 10 (Enrico: to try it; buying a bomb leaves 5).
 - **Pickups** (Enrico: every collectable is a thing on its own; `Assets/Items/pickup/`: `pickup.tscn` + `pickup.gd`
   (`@tool`)): an item floating on the water, the old shop item's look (`Float`, which bobs: a paper `Disc` r 1.8 with an
   ink `Rim` r 2, the icon on a 2.6 m plane made in code with no owner, so it shows in the editor and is never saved),
@@ -815,24 +793,6 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `boat.camera.shake_hard(shake_strength 1.5, shake_time 0.6)`, the bomb's exports; `boat_camera.gd` `shake_hard`: a
   weaker shake never cuts a stronger one short; `shake()` = `shake_hard(shake_strength 0.5, shake_time 0.3)`). No sound (not asked).
 - **The Aeolus Jar** (Enrico; item `aeolus_jar.tres`: stackable, equippable, `equip_on_pickup`, buy 8 / sell 3; icon `Assets/Inventory/icons/aeolus_jar.png`, an amphora with a wind swirl, a stand-in made by `art_src/items/make_aeolus_jar.py`; a test pickup `Gameplay/Pickups/AeolusJarPickup` at (−8, 0, −28) in Overworld): a consumable. Its button `Assets/UI/jar_button/` (`jar_button.tscn`, CanvasLayer 95, group `hidden_at_start`, in `DITHERED`; Control `Button` bottom right, 80 px, **in the place of its A/B slot** (`Hud.place_item_button`); `jar_button.gd`, `@tool`, the bomb button's look and pie): shown only while a jar is equipped and one is aboard; a tap (`uncork_jar`) takes one out of the hold and turns the wind to blow **from right astern**, the way her bow points (`Wind.turn_to(bow + 180, turn_time 1.5 s)`), where it stays until another jar or a wind zone; then `cooldown` 30 s (the ink pie). Instanced in every level next to `BombButton`.
-- **The harpoon** (Enrico, like Zelda's hookshot; `Assets/Items/harpoon/`: `harpoon.tscn` + `harpoon.gd`, `harpoon.png`
-  the head seen from above, point at the top; item `harpoon.tres`: stackable, equippable (A or B), `equip_on_pickup`, buy 4 / sell 2; icon `icons/harpoon.png`; stand-ins
-  by `art_src/items/make_harpoon.py`; a test pickup `Gameplay/Pickups/HarpoonPickup` (10, 0, 30), 9 of them). The button
-  `Assets/UI/harpoon_button/` (`harpoon_button.tscn` + `.gd`, `@tool`, the jar button's copy, in its A/B slot's place,
-  CanvasLayer 95, in game_view `DITHERED`, instanced in all 4 levels): shown while a harpoon is equipped and one is aboard;
-  a tap spends one (Enrico: consumed, bought again) and shoots it (`shoot_harpoon`; one out at a time, then `cooldown`
-  1 s, the pie). The harpoon (exports on its root, Enrico's knobs): the head flies straight from the bow (the way she
-  pointed when shot) at `shoot_speed` 30 m/s, `head_height` 0.3 m up, the rope (an ink strip `rope_width` 0.12 m) from
-  her bow (wherever it is now) to it; it hooks the first thing of the group **`hookable`** within `hook_radius` 1 m +
-  that thing's `hook_size()`; nothing within `max_length` 20 m (or land) → back at `return_speed` 40 and gone. Hooked →
-  pulled toward her bow at `pull_speed` 12 m/s until `stop_distance` 2 m from it (or land ahead), then let go.
-  **Enemies**: `damage` 0.5 hearts (blinking black) and stunned (harmless: no moving, shooting or bumping) while pulled
-  and `stun_time` 2 s after; **0 turns either off**. **The hookable interface** (a rule for new things that can be
-  pulled): `can_be_hooked()`, `hook_point()`, `hook_size()`, `hooked(harpoon)`, `still_hooked()`, `pulled_to(point)`,
-  `unhooked(harpoon)` (see harpoon.gd's notes). Now: **pickups** (free ones with `auto_take`, until the magnet takes
-  them), **the sea urchin** (`on_hook`, `stun_left`, `lose_hearts`, `update_stun`: then it wanders again), **the sea
-  imp** (only out of the water: UP, HURT, STUNNED, DEFEATED; new state `STUNNED`, then it goes under; a bomb hits it
-  stunned too; dead, its body is pulled in to be taken aboard). In the shader warm-up's `LATER`.
 - **Wind gusts** (Enrico; `Assets/Landscape/gust/`: `gust.tscn` + `gust.gd` (`@tool`), `gust.gdshader`, `gust.png` a 4 × 4 flipbook of 128² frames (three paper-and-ink gusts curling into spirals, whirling round a dashed ring; a stand-in made by `art_src/items/make_gust.py`)): `Picture` a 1 m PlaneMesh 0.08 m up scaled to `radius` × 2, unshaded, nearest, alpha-cut, no depth, render_priority 2, the sea's stencil read, its own `phase`; `Sensor` (Area3D mask layer 4, sized by `radius` 3 m, `_fit_sensor`). Her SpotSensor entering (not at anchor, tied up or sinking; again every time she comes back in) → `boat.boost(speed_multiplier 2, boost_time 1 s, boost_accel 4)` (boat.gd `boost_left`, `boost_multiplier`, `boost_accel`: her speed target × the multiplier whichever way she heads, gathered at that rate; cleared on respawn), `camera.shake_hard(shake_strength 0.2, shake_time 0.15)` and `Sfx.gust_whoosh()` (`gust_whoosh.ogg`, player `GustWhoosh` −12 dB: a very mild band-passed noise sweep, 0.6 s, made by `art_src/audio/make_whoosh.py`). **The picture turns with the wind**: its top points the way the wind blows (`face_the_wind`, `picture_turn_deg`), at start and on `Wind.direction_changed`. **They travel with the wind** (Enrico, Oct 2026: no longer placed on the map): `travel_speed` m/s downwind (`_process`, read from `Wind.from_vector()` every frame, so they turn with the wind; 0 = stays put, for one placed by hand). **The gust spawner** (`gust_spawner.gd`, a plain Node3D in every level: `Gameplay/Gusts/GustSpawner` in Overworld, at the root in the gyms; the old scatter is gone): once the boat has kept `full_speed_share` 0.95 of `top_speed` (not anchored or sinking) for `full_speed_time` 3 s in a row (`full_speed_for`; any slowing starts it again), a gust every `spawn_every_min/max` 0.8–1.6 s while fewer than `max_gusts` 3 are out (`gusts`): placed at a random point across the wind (`spread` 0.8 of the screen's half-width there, measured by `distance_to_screen_edge`: steps of 2 m until `camera.is_position_in_frustum` is false) and then pushed upwind to just past the screen's edge (+4 m), given `travel_speed` 9 m/s (she does 7 at top speed); freed once downwind of her and out of view, or 300 m away (`forget_finished_gusts`).
 - **Boosters** (Nov 2026, Enrico: they only refill the paddles' battery, `crank_refill` 5 s; no speed boost any more,
   its `speed_multiplier` / `boost_time` / `boost_accel` are gone. Older notes follow.) (Enrico; `Assets/Items/booster/`: `booster.tscn` + `booster.gd` (`@tool`); placed by hand, a test one
@@ -929,7 +889,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   `bomb.in_blast(it, body_radius 1.2)`, deferred), so **mines go off in a chain** (Enrico). Checked every physics frame
   (plain distances on the water, `flat_distance`).
   **The `enemies` group** (a rule for new enemies, so mines see them): `add_to_group("enemies")` and `touch_place()` →
-  its place while it's solid / can touch, `null` otherwise. Done for the imp (UP, HURT, STUNNED) and the urchin (alive).
+  its place while it's solid / can touch, `null` otherwise. Done for the imp (UP, HURT) and the urchin (alive).
 - **Destructible: the bomb-breakable component** (Enrico, Nov 2026: like the Towable, a child that gives its parent
   health; `Assets/Items/destructible/destructible.gd`, `class_name Destructible`, `@tool`, `@icon` the bomb's icon, no
   .tscn: Add Child Node → Destructible, placed at the thing's middle: the area is round THIS node). Group
@@ -946,13 +906,6 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   −4.15), the piece's footprint). Identical to the other walls (Enrico: no crack, no hint). Placed by hand, none in the
   levels yet. Under `Islands` the shore baker bakes foam along it, which stays after it's gone: keep it out of
   `land_roots`' nodes, or bake without it.
-- **Traps** (Enrico; `Assets/Items/trap/`: `trap.tscn` + `trap.gd`, `trap.png` (a stand-in, seen from above),
-  `trap_setter.gd` on `Boat/TrapSetter` in boat.tscn): boat.gd sends `anchor_dropped` when the anchor goes down
-  (`toggle_anchor`, not at a pier); with a trap equipped (and one aboard) TrapSetter lays one where she is (a 2.4 m
-  PlaneMesh 0.04 m up, StandardMaterial3D unshaded, alpha, render_priority 1). ARMING, faint (alpha 0.4): she must stay
-  at anchor `arm_time` 1.5 s, or it's taken back (nothing spent); then ACTIVE, solid, one trap out of the hold; it stays
-  when she sails away; an imp coming up within `radius` 2 m (`hit_imp_at`) loses `damage` 1 heart and the trap is
-  used up.
 - **NPCs** (Enrico; `Assets/NPCs/npc/`: `npc.tscn` + `npc.gd` (`@tool`, `@icon` `npc_icon.svg`, a speech bubble),
   `bubble.png` (a stand-in); instanced under `NPCs` in Overworld, for now `TestNPC` at (14, 0, −34), an "Old
   Fisherman" with three test pages): no look yet, the node is the pivot. Inspector: `speaker_name`, `portrait`
@@ -1008,7 +961,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   frame and an X (paper under ink) in the middle, no square's name (Enrico: the player finds it from the land) (`_draw_place`);
   empty slots dashed and faint, as the hold's. Page dots at the bottom (`_draw_page_dots`, `DOTS_HEIGHT`).
   **Swipe** to turn (`_gui_input`: where the finger came down is kept; lifted ≥ `SWIPE` 40 px sideways → `turn_page`,
-  left = next; less = a tap, which on page 0 equips a bomb or trap slot as before). It remembers its page.
+  left = next; less = a tap, which on page 0 puts a slot's thing in hand as before). It remembers its page.
 - **The interaction button** (Enrico, Nov 2026; `Assets/UI/interaction_button/`: `interaction_button.tscn` +
   `interaction_button.gd`, `@tool`; a child of `Helm/Wheel` in helm.tscn, putting itself every frame on the wheel's
   middle at the old hub's size, `hub_middle()` / `hub_radius()`): **the one button for everything**, where the anchor's
@@ -1018,9 +971,9 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   0.5 / `shimmer_every` 1.6) → the anchor drops (`boat.toggle_anchor()`, unless already down or tied up: Enrico, the boat
   stops for the talk) and `npc.start_talk()`; **over a fishing spot** (`boat.over_fishing_spot()`) → a question
   mark, only a hint (fish by anchoring with the crank); **a thing in hand** (`Inventory.equipped`) → its icon on the
-  light face, inked with a paper icon while `is_active()` (the hook holding, a harpoon out), the ink pie from
+  light face, inked with a paper icon while `is_active()` (the hook holding), the ink pie from
   `cooldown_share()`, the two rings when a bomb is put in hand (`equip_anim_time`, `equip_ring_grow`), a tap → its
-  action's `use()` (if `can_use()`); the trap has no action (only shown; laid on anchoring); **nothing** → a faint
+  action's `use()` (if `can_use()`); **nothing** → a faint
   empty face. **A long press** (Enrico, Nov 2026: held `hold_time` 0.5 s; `check_long_press`, `held_for`,
   `long_press_done`) puts the **next equippable thing** in hand (`Inventory.equip_next()`: the logbook's slot order, round
   and round; nothing in hand → the first; one only → no change) with a second click; so **a tap acts when the finger comes
@@ -1031,12 +984,12 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   → `t_interaction_grabbing.png` (a robotic hand holding a ball), something in reach → `t_interaction_grabbable_flipbook.png`
   (the empty hand, a 4 × 4 flipbook of 32² frames: `current_icon_frames()` gives the grid, the button plays it at `icon_fps` 12), else the hook's icon (both 32², Enrico's, in `Assets/UI/interaction_button/`).
   **Item actions** (the interface every tool has: `ITEM`, `ICON`, `use()`, `can_use()`, `cooldown_share()`,
-  `is_active()`; group `item_actions`): `bomb_button.gd`, `jar_button.gd`, `harpoon_button.gd`, `hook_button.gd`, still
+  `is_active()`; group `item_actions`): `bomb_button.gd`, `jar_button.gd`, `hook_button.gd`, still
   in ui_layout.tscn with their scenes' names (their numbers in the Inspector), but never drawn and never touched
   (`visible` false, mouse ignored). A new tool = a new action node with that interface.
 - **The UI layout scene** (Enrico, Nov 2026: to place all the UI in one view, like a master widget in UMG;
   `Assets/UI/ui_layout.tscn`, root `UILayout`, a plain Node): it instances every UI element (`Helm`, `Crank`,
-  `BombButton`, `JarButton`, `HarpoonButton`, `HookButton`, `Logbook`, `Health`, `WindVane`, `TalkBox`, `GameOver`,
+  `BombButton`, `JarButton`, `HookButton`, `Logbook`, `Health`, `WindVane`, `TalkBox`, `GameOver`,
   `StartScreen`). (`ItemSlots` / `SlotA` / `SlotB` and `Hud.place_item_button` / `put_in_frame` are GONE, Nov 2026:
   the four item nodes are now only actions, never drawn, see The interaction button. Before: it held **`ItemSlots`** (CanvasLayer 95) with two `ReferenceRect` frames, **`SlotA`** / **`SlotB`**
   (groups `item_slot_a` / `item_slot_b`, editor-only borders orange / blue, mouse ignored): `Hud.place_item_button`
@@ -1044,7 +997,7 @@ For now (Enrico): bombs AND traps both in, to see which plays better; **the slin
   on `ITEM_BUTTON_TOP` (`Hud.put_in_frame`, static: anchors, offsets, and the frame's CanvasLayer offset onto the button's
   layer, so moving the whole `ItemSlots` layer works too). **In the editor the four item buttons sit in their frame**
   (each one's `_process` in the editor calls `HUD.show_in_frame_in_editor(self, editor_slot)`, `HUD` = a preload of
-  hud.gd; export `editor_slot`: bomb and harpoon "a", jar and hook "b"), so moving SlotA / SlotB shows at once where
+  hud.gd; export `editor_slot`: bomb "a", jar and hook "b"), so moving SlotA / SlotB shows at once where
   they'll be.)
   **Each level instances only `UILayout`** under `UI and PostProcess` (next to `GameView` and
   `Dither`, which stay in the level); moving things in `ui_layout.tscn` moves them in every level. The names stay the

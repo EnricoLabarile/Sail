@@ -100,9 +100,8 @@ func _notification(what: int) -> void:
 
 
 ## The fog of war on screen (see the notes at the top).
-## The deep water starts darkening exactly where the shallows end (Enrico): the boat's shallows_width (where
-## her sail gives less) is sent to the shader as deep_from, so near the coast the light water is the slow water,
-## and from there out it darkens. Change shallows_width on the Boat and the colour follows.
+## The deep water starts darkening exactly where the shallows end (Enrico): the boat's shallows_width is sent to
+## the shader as deep_from, so near the coast the water is light, and from there out it darkens. Change shallows_width on the Boat and the colour follows.
 func match_deep_water_to_shallows() -> void:
 	var boat := get_tree().get_first_node_in_group("player_boat")
 	if boat == null:

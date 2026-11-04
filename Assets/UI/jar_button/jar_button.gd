@@ -2,7 +2,8 @@ extends Control
 ## THE AEOLUS JAR'S ACTION (Enrico, Nov 2026: no button of its own any more). When the jar is the thing in hand
 ## (Inventory.equipped), a tap on the interaction button (Assets/UI/interaction_button) calls `use()`: one jar out of
 ## the hold, and the wind swings round to blow from right astern, the way her bow points (Wind.turn_to over
-## `turn_time`); it stays so until another jar or a wind zone. Then it rests `cooldown` seconds (the ink pie).
+## `turn_time`), and with it THE CURRENT: it now carries her (and bombs) the way she's heading. It stays so until another
+## jar, a wind zone or the wind's next random shift (wind.gd). Then it rests `cooldown` seconds (the ink pie).
 ## The same few things as every item action: ITEM, ICON, use(), can_use(), cooldown_share(), is_active().
 ## This node stays in ui_layout.tscn only to hold its numbers (Inspector) and its timer; it's never drawn.
 

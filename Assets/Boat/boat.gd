@@ -1,16 +1,14 @@
 extends Node3D
-## The player's boat (like a Pawn in Unreal): she sails by the wind, turns with the rudder,
-## stops at anchor. The wheel (ui/helm) finds her through the group "player_boat" and sets
-## her rudder; Space works the anchor. Her camera (boat_camera.gd, on the Camera3D node) follows her.
+## The player's boat (like a Pawn in Unreal): the paddle wheels drive her (paddles.gd, worked by the throttle lever),
+## the current carries her, she turns with the rudder and stops at anchor. The wheel (ui/helm) finds her through the
+## group "player_boat" and sets her rudder; Space works the paddles and the anchor. Her camera (boat_camera.gd, on the Camera3D node) follows her.
 ## 1 unit = 10 px of the HTML prototype.
 
-@export var top_speed := 15.0      # m/s with the sail at its best (Enrico: halved from 7, the gusts boost it; the prototype had ~4.2)
+@export var top_speed := 15.0      # m/s with the paddles at full (the throttle lever all the way right); gusts boost it
 @export var accel := 3.0            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 4.0      # how quickly the anchor stops her
 @export var turn_rate := 2.0       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
-@export var heel_max_deg := 5		    # how far she leans with the wind on the sail
-# (The sail itself, its curve, boom, belly, gathering up and trail, is its own script: sail.gd, on the Rig node.)
 
 # Turning: she leans out of the turn (the prototype's "lean out of a turn"), more the quicker she turns
 # and the faster she goes.
@@ -22,7 +20,7 @@ extends Node3D
 @export var bow_lift_curve := 2.0     # how the lift grows with speed: 1 = evenly; 2 = little when slow, most near top speed
 
 # Big waves (Assets/Dangers/big_waves): surfing one from astern, or being hit by one head-on or broadside.
-@export var surf_boost := 3.2        # m/s on top of what the sail gives, while she surfs a wave
+@export var surf_boost := 3.2        # m/s on top of her own speed, while she surfs a wave
 @export var surf_time := 2.6         # seconds a surf lasts (the boost fades over its last 0.8 s)
 @export var wave_push := 4.5         # m/s a wave taken badly shoves her its way (× how strong it is)
 @export var wave_slowdown := 0.4     # her speed is multiplied by this when a wave hits her
@@ -31,9 +29,9 @@ extends Node3D
 # Tying up at a pier (Assets/Landscape/pier): she glides to the pier's berth and turns to its heading.
 @export var dock_speed := 3.0   # how quickly she glides into place (higher = quicker; about 1/3 s to get most of the way)
 @export var berth_arrive_distance := 0.3   # metres from the berth that count as arrived: the hull is mended then (Enrico)
-# Casting off (Enrico): so the wind can't pin her against the shore by the pier, for a moment after she leaves it
-# the wind and the current don't touch her, and she gets a push forward (her bow points the way the berth does).
-@export var cast_off_calm_time := 3.0   # seconds after casting off with no wind and no current
+# Casting off (Enrico): so the current can't pin her against the shore by the pier, for a moment after she leaves it
+# the current doesn't touch her, and she gets a push forward (her bow points the way the berth does).
+@export var cast_off_calm_time := 3.0   # seconds after casting off with no current
 @export var cast_off_push := 10	        # m/s of way she's given as she leaves (it fades as she slows down)
 
 # How she leans and pitches: not straight to where she should be, but like a weight on a spring, so she
@@ -54,16 +52,15 @@ extends Node3D
 @export var wave_pitch_deg := 2.0   # how far the bow rises and dips on the waves, in degrees
 @export var wave_period := 3.0      # seconds for one wave to pass under her (higher = slower rocking)
 
-# The shallows: near the coast there's less wind, so the sail gives less (how much less: sail.gd shallows_sail).
-@export var shallows_width := 3.0   # metres from the land that count as shallows
+# Where the deep water starts: the sea darkens from this many metres off the coast (sea.gd reads it, deep_from).
+@export var shallows_width := 3.0   # metres from the land that count as shallows (only the sea's look now)
 # Near an NPC (inside its talk radius, Enrico): she slows down, so it's easy to stop by and talk.
 @export var npc_speed_limit := 1  # her top speed there, as a share of top_speed (0.2 = 20%)
 # The bow wave (boat.tscn: BowWaveRight / BowWaveLeft, bow_wave.png, a 4 x 4 flipbook).
 @export var bow_wave_fps := 12.0        # frames a second it plays at top speed (slower when slower)
 @export var bow_wave_min_size := 0.4    # its size at a crawl, as a share of full size (full at top speed)
-@export var shallows_check_time := 0.2   # seconds between looks for land nearby (it's up to 48 rays: not every frame)
 
-# The current carries her downwind whatever the sail does, so she must steer to make up for it. At anchor too:
+# The current carries her downstream whatever the paddles do, so she must steer to make up for it. At anchor too:
 # the anchor line holds her. How strong it is lives in the Wind autoload (wind.gd, CURRENT_SPEED), shared with
 # everything else that floats; here only how it takes hold of her at the start.
 @export var current_ease := 0.8     # how quickly it takes hold at the start
@@ -113,8 +110,7 @@ signal hurt
 ## The wheel listens, to show a question mark instead of the anchor. The spots tell her (set_over_fishing_spot).
 signal over_fishing_spot_changed(over: bool)
 
-## Sent when the anchor goes down (not when she ties up at a pier). The trap setter listens (TrapSetter in
-## boat.tscn, Assets/Items/trap/trap_setter.gd): with a trap equipped, it lays one.
+## Sent when the anchor goes down (not when she ties up at a pier). The anchor chain listens (anchor_chain.gd).
 signal anchor_dropped
 
 ## Sent when the anchor comes up (not when she casts off from a pier). The start screen listens: weighing the
@@ -139,14 +135,12 @@ var rudder := 0.0      # -1 (port, left) .. 1 (starboard, right)
 var speed := 0.0
 var bow_wave_strength := 0.0   # how solid the bow wave is now, 0..1 (eased toward her speed share)
 var bow_wave_frame := 0.0      # the bow wave's flipbook frame, counting up
-var in_shallows := false     # land within shallows_width? (looked again every shallows_check_time seconds)
-var shallows_wait := 0.0     # seconds left before the next look
 ## At anchor (or tied up at a pier)? She starts at anchor: the throttle lever pushed all the way right weighs it (crank.gd;
 ## Space too, on the PC). The screen's icons stay as they are (Enrico, Nov 2026: nothing is hidden at anchor any more).
 var anchored := true
 var held_back := 1.0        # her target speed × this (1 = free; a lever's rope sets less while she pulls it: lever.gd)
 var knock := Vector3.ZERO   # the push of a bump (m/s, a direction on the sea): added to her motion, fades away
-var drift := Vector3.ZERO   # the current's push (m/s, downwind): added to her motion
+var drift := Vector3.ZERO   # the current's push (m/s, downstream): added to her motion
 var whirl_pull := Vector3.ZERO   # the maelstroms' pull this frame (m/s, toward their eye): added to her motion
 var caught_eye: Node3D = null    # the maelstrom's eye holding her (null = free): she spins in it, no helm, no anchor
 var caught_spin := 0.0           # how fast she spins while held (radians a second)
@@ -156,7 +150,6 @@ var boil_time := 0.0        # seconds she has been in boiling water since the la
 var drift_amount := 0.0     # 0..1: how much the current has her (eases in and out, see current_ease)
 var bump_wait := 0.0        # seconds left before another bump can count
 var enemy_wait := 0.0       # seconds left before running into an enemy can hurt her again (enemy_touch_cooldown)
-var heel := 0.0             # how far she leans with the wind (radians), without the waves' roll
 var turn_speed := 0.0       # how quickly she is turning now, in rad/s (+ = to the left), measured each frame
 var roll := 0.0             # her lean now (radians, + = to port), and how quickly it's changing (the spring)
 var roll_velocity := 0.0
@@ -167,12 +160,12 @@ var boost_left := 0.0       # seconds left of a wind gust's boost (0 = none; gus
 var boost_multiplier := 1.0 # her top speed × this while the boost lasts
 var boost_accel := 1.0      # how quickly she picks up speed while the boost lasts
 var berth: Node3D = null     # the pier's berth she's tied up at (null = not tied up)
-var calm_left := 0.0         # seconds left of the calm after casting off (no wind, no current)
+var calm_left := 0.0         # seconds left of the calm after casting off (no current)
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
 var heading_held := false          # turned with the wheel at anchor: she keeps that heading (the line doesn't swing her)
 var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
 var health := 3.0           # hearts left (0.5 = half a heart); set to max_hearts at start
-var sinking := false        # true from 0 hearts until she's back home (no sailing, no anchor)
+var sinking := false        # true from 0 hearts until she's back home (no steering, no anchor)
 var sunk_for := 0.0         # seconds since she started sinking
 var emerging := false       # true while she comes up out of the water (the sinking played backwards; no control)
 var emerged_for := 0.0      # seconds since she started coming up
@@ -185,9 +178,8 @@ var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over n
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
 # (children, children of children, and so on), so you can rearrange the hierarchy freely: only the
 # NAMES must stay the same. ($Model, with the $, is a fixed address: it must be a direct child of Boat.)
-@onready var model: Node3D = $Model            # heels and bobs: everything inside it follows
-@onready var sail: Node3D = find_child("Rig")   # the sail (sail.gd, on the Rig node): the wind's push and its look
-@onready var paddles: Node3D = find_child("Paddles")   # the paddle wheels (paddles.gd): a crank's push and their look
+@onready var model: Node3D = $Model            # leans and bobs: everything inside it follows
+@onready var paddles: Node3D = find_child("Paddles")   # the paddle wheels (paddles.gd): her push and their look
 @onready var camera: Camera3D = $Camera3D   # her camera, with its own script (boat_camera.gd)
 @onready var wake: CPUParticles3D = find_child("Wake")          # the dots left behind the stern
 @onready var bow_wave_right: Node3D = find_child("BowWaveRight") # the water thrown up and out at the bow (Wind
@@ -223,7 +215,7 @@ func _on_came_aboard(_item: String, _count: int) -> void:
 
 ## Puts the boat's mask (Assets/Boat/boat_mask.gdshader) on the INSIDE of the hull only, as a
 ## material_overlay: an extra invisible layer that marks those pixels, so the sea doesn't draw over them.
-## Everything else (the outside of the hull, mast, sail) has no mask: where it sits below the water
+## Everything else (the outside of the hull, the paddle wheels) has no mask: where it sits below the water
 ## (y = 0) the sea covers it, so she looks partly sunk in the water, as a real boat.
 ## The inside is any mesh with "inner" in its name, or in its parent's name (e.g. sm_boat_hull_inner,
 ## made in Blender as an object of its own): the floor of the boat lies below the water line, and
@@ -322,8 +314,8 @@ func update_caught(dt: float) -> void:
 	rock_and_roll(dt)                # she keeps bobbing
 
 
-## A pier's berth (pier.gd) tells her to tie up there: she stops, gathers the sail (as at anchor, so the wheel
-## doesn't steer), and glides into place (glide_to_berth, every physics frame).
+## A pier's berth (pier.gd) tells her to tie up there: she stops (as at anchor, so the wheel doesn't steer), and
+## glides into place (glide_to_berth, every physics frame).
 var mended_at_berth := false        # has this docking mended the hull yet? (glide_to_berth, once she's alongside)
 
 func dock_at(spot: Node3D) -> void:
@@ -336,11 +328,11 @@ func dock_at(spot: Node3D) -> void:
 	mended_at_berth = false          # the hull is mended once she has glided all the way in (glide_to_berth)
 
 
-## Leaves the pier (the anchor button): free to sail, already facing out to sea.
+## Leaves the pier (the throttle lever): free to go, already facing out to sea.
 func cast_off() -> void:
 	berth = null
 	anchored = false
-	calm_left = cast_off_calm_time   # for a moment neither the wind nor the current touches her…
+	calm_left = cast_off_calm_time   # for a moment the current doesn't touch her…
 	speed = cast_off_push            # …and she's pushed off forward, out of the berth
 
 
@@ -389,7 +381,6 @@ func start_sinking() -> void:
 	set_water_mask(false)            # the sea may cover her inside now
 	if wake:
 		wake.emitting = false        # no wake behind a wreck
-	sail.stop_trail()
 	for wing in [bow_wave_right, bow_wave_left]:
 		if wing:
 			wing.visible = false
@@ -427,7 +418,6 @@ func respawn() -> void:
 	heading_held = false
 	anchored = true
 	anchor_point = bow_point()
-	sail.gather_up()
 	paddles.stop()
 	roll = 0.0
 	roll_velocity = 0.0
@@ -595,25 +585,15 @@ func _physics_process(dt: float) -> void:
 		else:
 			paddles.turn_on()
 
-	var wind_from: Vector3 = Wind.from_vector()                 # the wind (Assets/Landscape/world/wind.gd)
-	# In the shallows (land within shallows_width metres) the sail gives less (sail.gd shallows_sail).
-	# The baked picture of the distances says how far the shore is (Land): cheap, so every frame.
-	in_shallows = Land.distance_to_shore(global_position) < shallows_width
-	# The wind's push: the sail's (sail.gd), 0 when it's not set or she's at anchor.
-	var drive: float = sail.drive()
-	# Just cast off from a pier: the wind gives nothing for calm_left seconds (she glides on the push).
-	if calm_left > 0.0:
-		calm_left = maxf(0.0, calm_left - dt)
-		drive = 0.0
+	# Just cast off from a pier: no current for calm_left seconds (update_current), she glides on the push.
+	calm_left = maxf(0.0, calm_left - dt)
 
-	# speed eases toward what the sail gives; the anchor takes her way off quickly
-	var target := top_speed * drive
-	var rate := anchor_bite if anchored else accel
-	# The paddle wheels (paddles.gd), run on their battery: if they give more than the sail, she goes at their push,
-	# picked up at their own (quicker) bite.
+	# Her speed eases toward what the paddle wheels give (paddles.gd, run on their battery), picked up at their
+	# own bite; with nothing pushing (paddles off, at anchor) it dies away, quickly at anchor.
 	paddles.update(dt)
-	if paddles.push_speed() > target:
-		target = paddles.push_speed()
+	var target: float = paddles.push_speed()
+	var rate := anchor_bite if anchored else accel
+	if target > 0.0:
 		rate = paddles.bite
 	# A wind gust's boost (gust.gd): her top speed × boost_multiplier while it lasts, picked up at boost_accel.
 	if boost_left > 0.0:
@@ -659,18 +639,14 @@ func _physics_process(dt: float) -> void:
 	turn_speed = wrapf(rotation.y - yaw_before, -PI, PI) / dt
 	Fog.reveal(global_position)                                 # clear the fog round her (fog.gd)
 
-	# the look: heel away from the wind (only as much as the sail drives her), a gentle bob; the sail's own look
-	# (boom, belly, gathered up at anchor, its trail) is the sail's (sail.gd)
-	var side := signf(global_transform.basis.x.dot(wind_from))   # + = wind from starboard
-	heel = side * deg_to_rad(heel_max_deg) * drive
+	# The look: she leans and pitches (rock_and_roll) and bobs gently up and down, round the height Model has in
+	# the scene (set it there to sink her more or less); then the wake and the bow wave.
 	rock_and_roll(dt)
-	# A gentle bob up and down, round the height Model has in the scene (set it there to sink her more or less).
 	model.position.y = model_height + sin(Time.get_ticks_msec() * 0.0013) * 0.04
-	sail.update_look(dt, drive)
 	update_water_fx(dt)
 
 ## How she leans (roll) and how her bow rises and dips (pitch). First where she should be:
-##   roll  = the heel from the wind + the lean out of a turn + the waves' roll
+##   roll  = the lean out of a turn + the waves' roll
 ##   pitch = the bow lifted by her speed (more the faster she goes) + the waves' pitch
 ## Then, instead of jumping there, she is pulled there like a weight on a spring (a damped spring):
 ## she swings a little past it and settles. That swing is what makes the boat feel alive when you turn.
@@ -694,7 +670,7 @@ func rock_and_roll(dt: float) -> void:
 	var wave_pitch := sin(seconds * TAU / (wave_period * 0.8)) * deg_to_rad(wave_pitch_deg)
 
 	# 4. Where she should be.
-	var roll_target := heel + turn_lean + wave_roll
+	var roll_target := turn_lean + wave_roll
 	var pitch_target := bow_lift + wave_pitch
 
 	# 5. The springs: the further she is from the target, the harder she's pulled toward it (stiffness);
@@ -813,7 +789,7 @@ func move_and_bounce(dt: float) -> void:
 	knock *= exp(-bounce_fade * dt)                      # the push of the last bump dies away
 
 	var fwd := -global_transform.basis.z
-	var own_way := fwd * speed                           # her own way, from the sail
+	var own_way := fwd * speed                           # her own way, from the paddles
 	# Spat out of a maelstrom: the push holds, then fades over its last 0.4 s.
 	var fling := Vector3.ZERO
 	if fling_left > 0.0:
@@ -849,7 +825,7 @@ func move_and_bounce(dt: float) -> void:
 		bump(out, into)
 
 
-## The current: the Wind autoload's (Wind.current(): downwind, at its CURRENT_SPEED). On her it eases in at the
+## The current: the Wind autoload's (Wind.current(): the way the wind blows, at its CURRENT_SPEED). On her it eases in at the
 ## start (drift_amount 0..1). It carries her at anchor too: the anchor line holds her (see hold_at_anchor).
 func update_current(dt: float) -> void:
 	# Just cast off from a pier: no current yet; afterwards it takes hold again gently (drift_amount from 0).
@@ -867,7 +843,7 @@ func update_current(dt: float) -> void:
 	# Eased, not switched: drift_amount slides toward the target a little every frame, so she isn't jolted.
 	drift_amount += (target - drift_amount) * minf(1.0, dt * current_ease)
 	# A strong current zone (SeaZone, kind CURRENT: Land.current_at) takes over from the usual current: its own
-	# direction and strength, whatever the wind. At its soft edge, where its push is still weaker than the usual
+	# direction and strength, whatever the usual current. At its soft edge, where its push is still weaker than the usual
 	# current, the two are mixed, so she slides into it rather than being yanked.
 	var zone_push := Land.current_at(global_position)
 	var zone_share := clampf(zone_push.length() / Wind.CURRENT_SPEED, 0.0, 1.0)   # 0 = no zone, 1 = the zone only

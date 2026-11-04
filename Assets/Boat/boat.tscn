@@ -2,13 +2,9 @@
 
 [ext_resource type="Script" uid="uid://dxb2hspq8rmba" path="res://Assets/Boat/boat.gd" id="1_boat"]
 [ext_resource type="PackedScene" uid="uid://gsohuvlddwlj" path="res://Assets/Boat/sm_boat_hull.fbx" id="2_da1jx"]
-[ext_resource type="PackedScene" uid="uid://da2mslnca7e31" path="res://Assets/Boat/sm_boat_mast.fbx" id="3_ee1eo"]
-[ext_resource type="PackedScene" uid="uid://bkhrx3gsk66tq" path="res://Assets/Boat/sm_boat_sail.fbx" id="4_og2vt"]
 [ext_resource type="Material" uid="uid://by3505ess6hus" path="res://Assets/Boat/m_bow_wave.tres" id="5_bow_wave"]
 [ext_resource type="PackedScene" uid="uid://bqcnv6p2wbfl6" path="res://Assets/Boat/sm_boat_hull_inner.fbx" id="5_ks1r1"]
 [ext_resource type="Script" uid="uid://6ghbvwsa1jbd" path="res://Assets/Boat/boat_camera.gd" id="9_camera"]
-[ext_resource type="Script" uid="uid://enqfotlib5l3" path="res://Assets/Items/trap/trap_setter.gd" id="10_trap_setter"]
-[ext_resource type="Script" uid="uid://bqcnlb7rin7kn" path="res://Assets/Boat/sail.gd" id="11_sail"]
 [ext_resource type="Script" uid="uid://yhirdrptudop" path="res://Assets/Boat/paddles.gd" id="12_paddles"]
 [ext_resource type="PackedScene" uid="uid://bkkrdnkxvkeca" path="res://Assets/Boat/paddle_wheel.tscn" id="12_paddle_wheel"]
 [ext_resource type="Script" uid="uid://5kqqr0ff2vwa" path="res://Assets/Boat/item_show.gd" id="14_item_show"]
@@ -41,10 +37,6 @@ size = Vector2(2, 2)
 [sub_resource type="SphereShape3D" id="Shape_spot_sensor"]
 radius = 0.3
 
-[sub_resource type="Curve" id="Curve_sail_trail_size"]
-_data = [Vector2(0, 0.4), 0.0, 0.6, 0, 1, Vector2(1, 1), 0.6, 0.0, 1, 0]
-point_count = 2
-
 [sub_resource type="BoxMesh" id="BoxMesh_8ksrx"]
 size = Vector3(1, 1.543457, 1)
 
@@ -56,18 +48,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23072204, 0)
 
 [node name="sm_boat_hull" parent="Model" unique_id=1085224572 instance=ExtResource("2_da1jx")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -0.217)
-
-[node name="sm_boat_mast" parent="Model/sm_boat_hull" unique_id=429624402 instance=ExtResource("3_ee1eo")]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.08832236, 0.9484325, 3.860701e-09)
-
-[node name="Rig" type="Node3D" parent="Model/sm_boat_hull/sm_boat_mast" unique_id=503799022]
-script = ExtResource("11_sail")
-
-[node name="sm_boat_sail" parent="Model/sm_boat_hull/sm_boat_mast/Rig" unique_id=139299008 instance=ExtResource("4_og2vt")]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0.23171997, 0)
-
-[node name="SailTip" type="Marker3D" parent="Model/sm_boat_hull/sm_boat_mast/Rig" unique_id=1900853989]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 4.7)
 
 [node name="sm_boat_hull_inner" parent="Model/sm_boat_hull" unique_id=973111920 instance=ExtResource("5_ks1r1")]
 
@@ -125,19 +105,6 @@ monitoring = false
 
 [node name="Shape" type="CollisionShape3D" parent="SpotSensor" unique_id=358062216]
 shape = SubResource("Shape_spot_sensor")
-
-[node name="SailTrail" type="CPUParticles3D" parent="." unique_id=489681064]
-emitting = false
-amount = 24
-mesh = SubResource("Mesh_wake")
-gravity = Vector3(0, 0, 0)
-scale_amount_min = 0.7
-scale_amount_max = 0.7
-scale_amount_curve = SubResource("Curve_sail_trail_size")
-color_ramp = SubResource("Grad_wake")
-
-[node name="TrapSetter" type="Node" parent="." unique_id=1025484265]
-script = ExtResource("10_trap_setter")
 
 [node name="ItemShow" type="CanvasLayer" parent="." unique_id=2032089266]
 layer = 94

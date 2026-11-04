@@ -5,7 +5,6 @@
 [ext_resource type="Texture2D" uid="uid://dwnrpahwcxioh" path="res://Assets/Landscape/store_alternative/merchant.png" id="2_merchant"]
 [ext_resource type="Shader" uid="uid://cun5pmnoonaa0" path="res://Assets/Boat/toon_shade.gdshader" id="3_toon"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/bomb.tres" id="4_bomb"]
-[ext_resource type="Resource" path="res://Assets/Inventory/items/trap.tres" id="5_trap"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/fish.tres" id="6_fish"]
 
 [sub_resource type="ShaderMaterial" id="Mat_raft"]
@@ -69,7 +68,7 @@ shadow_offset = Vector2(3, 3)
 
 [node name="StoreAlternative" type="Node3D" unique_id=279097789]
 script = ExtResource("1_shop")
-for_sale = Array[ExtResource("2_jq7js")]([ExtResource("4_bomb"), ExtResource("5_trap"), ExtResource("6_fish")])
+for_sale = Array[ExtResource("2_jq7js")]([ExtResource("4_bomb"), ExtResource("6_fish")])
 
 [node name="Merchant" type="Node3D" parent="." unique_id=461258791]
 

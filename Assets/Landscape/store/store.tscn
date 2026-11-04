@@ -6,7 +6,6 @@
 [ext_resource type="PackedScene" path="res://Assets/Landscape/store/store_counter.tscn" id="3_counter"]
 [ext_resource type="Shader" uid="uid://cun5pmnoonaa0" path="res://Assets/Boat/toon_shade.gdshader" id="4_toon"]
 [ext_resource type="Resource" path="res://Assets/Inventory/items/bomb.tres" id="5_bomb"]
-[ext_resource type="Resource" path="res://Assets/Inventory/items/trap.tres" id="6_trap"]
 
 [sub_resource type="ShaderMaterial" id="Mat_building"]
 render_priority = 0
@@ -20,7 +19,7 @@ size = Vector3(5, 3, 4)
 
 [node name="Store" type="Node3D" unique_id=1920875079]
 script = ExtResource("1_store")
-for_sale = Array[ExtResource("2_o8rgx")]([ExtResource("5_bomb"), ExtResource("6_trap")])
+for_sale = Array[ExtResource("2_o8rgx")]([ExtResource("5_bomb")])
 
 [node name="Pier" parent="." unique_id=300920557 instance=ExtResource("2_pier")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4.5155735, 0, -4.351101)

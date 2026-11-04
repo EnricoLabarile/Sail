@@ -44,7 +44,7 @@ const DESIGN_WIDTH := 360.0   # the game's width in the project settings: the co
 const TILT_SHIFT_SHADER := preload("res://Assets/Post_Process/tilt_shift/tilt_shift.gdshader")
 const TILT_SHIFT_LAYER := 90   # over the world, under the controls (95) and the dither (100)
 
-const DITHERED := ["Sea", "Coast", "Clouds", "WindLines", "Gulls", "Boat", "Dither", "Helm", "BombButton", "JarButton", "HarpoonButton", "HookButton", "Crank"]   # nodes of the level moved into the view (by name, anywhere in it)
+const DITHERED := ["Sea", "Coast", "Clouds", "WindLines", "Gulls", "Boat", "Dither", "Helm", "BombButton", "JarButton", "HookButton", "Crank"]   # nodes of the level moved into the view (by name, anywhere in it)
 
 var view: SubViewport         # where the dithered part of the game is drawn
 var screen: TextureRect       # the view's picture, stretched over the screen

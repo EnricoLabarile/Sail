@@ -10,7 +10,7 @@ extends Node3D
 ## up, they push her forward whichever way her bow points, at the boat's `top_speed` × the lever's share (Enrico: the
 ## one number for her speed is boat.gd's top_speed). Pushing the lever
 ## all the way right TURNS HER ON (`turn_on()`: anchor up, battery full) when she's off; while she runs, all the way
-## right again in the last `recharge_window` seconds of the battery fills it again (`can_wind()`), so a player who
+## right again in the last `recharge_window` seconds of the battery fills it again (`can_refill()`), so a player who
 ## keeps an eye on it never stops. All the way left TURNS HER OFF (the anchor goes down, the battery is emptied).
 ## The battery runs down faster the faster she's allowed to go (Enrico): at the lever's 50% at the normal rate (one
 ## second a second), at 100% twice as fast, at 25% half as fast (`drain_rate()`). A booster adds to it (add_push).
@@ -24,7 +24,7 @@ extends Node3D
 ## wheel, Sfx.paddle_splash) while they work; when the push ends it dies down as she slows (splash_level).
 ##
 ## The boat (boat.gd) calls: push_speed() and bite (her speed), speed_share(), turn_factor() (turning), update(dt)
-## every frame, stop() when she's back home after sinking. The lever calls: is_running(), can_wind(), turn_on(),
+## every frame, stop() when she's back home after sinking. The lever calls: is_running(), can_refill(), turn_on(),
 ## refill(), turn_off(), set_lever_share().
 
 
@@ -44,7 +44,7 @@ signal revved
 @export var recharge_window := 3.0     # the last seconds of the battery in which the lever, pushed right, fills it again (Enrico)
 @export var turn_mult := 1.5           # she turns this much quicker while they push
 @export var take_up_rate := 3.75            # how quickly they take up and let go as a push starts or ends
-@export var bite := 5.25               # how quickly her speed catches up with their push (the sail fills slower)
+@export var bite := 5.25               # how quickly her speed catches up with their push
 @export var paddle_radius := 0.7       # metres: the wheels' size (to turn them as fast as the water goes by)
 ## How fast the wheels LOOK like they turn, as a share of "as fast as the water goes by" (Enrico: at her top speed the
 ## real rate was ~4.5 turns a second, a blur). Only the look and the splashes: her speed doesn't change. 1 = real.
@@ -76,7 +76,7 @@ func is_running() -> bool:
 
 
 ## Can the battery be filled again now? When it's empty, or in its last recharge_window seconds.
-func can_wind() -> bool:
+func can_refill() -> bool:
 	return push_left <= recharge_window
 
 
@@ -93,7 +93,7 @@ func turn_on() -> void:
 
 ## The lever all the way right while she runs, in the battery's last seconds: full again (not added to what was left).
 func refill() -> void:
-	if can_wind():
+	if can_refill():
 		push_left = push_time
 		revved.emit()          # the lever's flywheel spins in overdrive (crank.gd)
 
@@ -155,7 +155,7 @@ func update(dt: float) -> void:
 	spin_wheels(dt)
 
 
-## The wheels turn with their push, or, under sail, freewheel, dragged round by the water going by; whichever is
+## The wheels turn with their push, or freewheel, dragged round by the water going by (carried by a wave, a gust…); whichever is
 ## quicker (as in the prototype). Turning, the wheel on the outside of the turn goes faster, the inside one slower.
 func spin_wheels(dt: float) -> void:
 	if not visible:
@@ -179,7 +179,7 @@ func spin_wheels(dt: float) -> void:
 
 ## The splashes: one every quarter turn of the wheel (every other of its 8 paddles), so they come quicker the faster
 ## it turns. Loud while they push; after a push it falls with her speed (she's coming to a halt) and fades within a
-## couple of seconds anyway (under sail the wheels only freewheel: no sound, Enrico asked for it while they work).
+## couple of seconds anyway (freewheeling makes no sound: Enrico asked for it only while they work).
 func update_splashes(dt: float, wheel_speed: float) -> void:
 	if push_left > 0.0 and not boat.anchored:
 		splash_level = 1.0                  # pushing: full

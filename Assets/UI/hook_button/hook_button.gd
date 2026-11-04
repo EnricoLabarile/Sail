@@ -6,7 +6,7 @@ extends Control
 ##   - holding something: it LETS IT GO.
 ## While she holds something `is_active()` is true: the interaction button is drawn inked.
 ## Any real damage to the boat makes her let go (boat.gd's signal `hurt`); so does taking the hook off.
-## The hook isn't spent (not like the bombs or the harpoon).
+## The hook isn't spent (not like the bombs or the jars).
 ## The same few things as every item action: ITEM, ICON, use(), can_use(), cooldown_share(), is_active().
 ## This node stays in ui_layout.tscn only to hold its state; it's never drawn.
 ##

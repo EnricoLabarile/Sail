@@ -37,7 +37,6 @@
 [ext_resource type="PackedScene" uid="uid://b7h4qd0bbash4" path="res://Assets/Landscape/architecture/bridge_lock.tscn" id="57_c7or3"]
 [ext_resource type="PackedScene" path="res://Assets/Items/pickup/pickup.tscn" id="91_pickup"]
 [ext_resource type="Resource" uid="uid://csuyk4mlmhp74" path="res://Assets/Inventory/items/aeolus_jar.tres" id="92_jar_item"]
-[ext_resource type="Resource" uid="uid://dayqau56xji38" path="res://Assets/Inventory/items/harpoon.tres" id="94_harpoon_item"]
 [ext_resource type="Script" uid="uid://bdhc1006ybcng" path="res://Assets/Landscape/islands/island_grid.gd" id="95_island_grid"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/lever/lever.tscn" id="98_lever"]
 [ext_resource type="Resource" uid="uid://xiyg0s4vdup6" path="res://Assets/Inventory/items/hook.tres" id="99_hook_item"]
@@ -234,11 +233,6 @@ item = ExtResource("99_hook_item")
 [node name="LeverTest" parent="Gameplay/Pickups" unique_id=399119077 instance=ExtResource("98_lever")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -157.84918, 0, -32.65285)
 rope_width = 0.3
-
-[node name="HarpoonPickup" parent="Gameplay/Pickups" unique_id=237842599 instance=ExtResource("91_pickup")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.481476, 0, 157.68182)
-item = ExtResource("94_harpoon_item")
-count = 9
 
 [node name="AeolusJarPickup" parent="Gameplay/Pickups" unique_id=297391498 instance=ExtResource("91_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64.2625, 0, 34.317722)

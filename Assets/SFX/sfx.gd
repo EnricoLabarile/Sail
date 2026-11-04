@@ -11,8 +11,8 @@ extends Node
 ##                    (played higher and quieter: BombBlast's Pitch Scale 1.5 and Volume -6 dB in sfx.tscn, Enrico)
 ##   hull_bump.ogg    the hull knocking against a shore or a barrel: a dull thud, a woody knock, a little scrape
 ##                    (made by art_src/audio/make_bump.py)
-##   equip_*.ogg      a thing put in hand, each its own (bomb, trap, hook, harpoon, aeolus_jar; art_src/audio/make_equip.py):
-##                    the item's .tres says which (`equip_sound`), Sfx.equip(item) plays it on the `Equip` player
+##   equip_bomb.ogg   a thing put in hand (art_src/audio/make_equip.py; for now every thing's): the item's .tres says
+##                    which sound (`equip_sound`), Sfx.equip(item) plays it on the `Equip` player
 ##   gust_whoosh.ogg  a very mild whoosh: the boat caught a wind gust (art_src/audio/make_whoosh.py)
 ##   button_press.ogg a button pressed: a soft low tock, 70 ms, 170 -> 130 Hz (art_src/audio/make_button_press.py)
 ##   book_open.ogg / book_close.ogg  the logbook: a page turning; closing, also the cover's soft thump (art_src/audio/make_page_turn.py)

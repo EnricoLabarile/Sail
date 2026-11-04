@@ -8,7 +8,6 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/logbook/logbook.tscn" id="6_logbook"]
 [ext_resource type="PackedScene" path="res://Assets/UI/bomb_button/bomb_button.tscn" id="7_bomb_button"]
 [ext_resource type="PackedScene" path="res://Assets/UI/jar_button/jar_button.tscn" id="8_jar_button"]
-[ext_resource type="PackedScene" path="res://Assets/UI/harpoon_button/harpoon_button.tscn" id="9_harpoon_button"]
 [ext_resource type="PackedScene" path="res://Assets/UI/hook_button/hook_button.tscn" id="10_hook_button"]
 [ext_resource type="PackedScene" uid="uid://b007tnjdl5asi" path="res://Assets/UI/crank/crank.tscn" id="11_crank"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="12_health"]
@@ -28,10 +27,6 @@ offset = Vector2(0.39, -144.22)
 transform = Transform2D(1, 0, 0, 1, 0.39, -144.22)
 
 [node name="JarButton" parent="." unique_id=1089303972 instance=ExtResource("8_jar_button")]
-offset = Vector2(0.39, -144.22)
-transform = Transform2D(1, 0, 0, 1, 0.39, -144.22)
-
-[node name="HarpoonButton" parent="." unique_id=1613413950 instance=ExtResource("9_harpoon_button")]
 offset = Vector2(0.39, -144.22)
 transform = Transform2D(1, 0, 0, 1, 0.39, -144.22)
 

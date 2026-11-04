@@ -13,10 +13,7 @@ extends Resource
 @export var sell_price := 0           # coins a merchant pays for one of yours (0 = merchants don't buy it)
 @export var stackable := false        # true: they pile up in ONE slot of the hold, with their number on it
 @export var equippable := false       # true: it can be put in hand for the interaction button (a tap on its slot in the logbook)
-## Switched on and off by a tap on its slot in the logbook, instead of being put in hand (the sail, Enrico):
-## Inventory.toggle / is_on. Leave `equippable` off for these.
-@export var toggle_on_tap := false
-## Equipped by itself whenever one comes aboard, in the first empty slot (A, then B).
+## Put in hand by itself whenever one comes aboard, if nothing is in hand yet.
 @export var equip_on_pickup := false
 ## Its own sound when it's put in hand (Enrico: each thing a different one, to tell them apart); empty = none.
 ## Sfx.equip plays it (Assets/SFX/equip_*.ogg, made by art_src/audio/make_equip.py).

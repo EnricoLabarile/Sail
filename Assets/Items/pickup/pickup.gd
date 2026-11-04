@@ -1,6 +1,6 @@
 @tool
 extends Node3D
-## A PICKUP: one kind of item (an ItemData: bomb, trap, fish…) floating on the water on a paper disc, bobbing.
+## A PICKUP: one kind of item (an ItemData: bomb, hook, jar…) floating on the water on a paper disc, bobbing.
 ## When the boat comes within `reach` (its Sensor, an Area3D like a Trigger Volume, feels her SpotSensor) it's
 ## MAGNETISED (Enrico): it flies to her, quicker and quicker, and once it reaches her middle it goes into the
 ## hold, with a blip and a little screen shake. If the hold has no room, it stays where it is.
@@ -11,7 +11,6 @@ extends Node3D
 ##   - the floating shop puts one on each slot, with a `price` (store_alternative.gd decides whether she can
 ##     have it: `auto_take` off, it listens to `touched`);
 ##   - a sea imp leaves some when it's killed (sea_imp_zone.gd, `drop_pool`).
-## The harpoon can hook it (group "hookable", harpoon.gd) and pull it close, until the magnet takes it.
 
 signal touched(pickup: Node3D, boat: Node3D)   # the boat came over it (sent always, taken or not)
 signal taken(pickup: Node3D)                   # it went into the hold (just before it's freed)
@@ -53,7 +52,6 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	$Sensor.area_entered.connect(_on_sensor_entered)
-	add_to_group("hookable")                         # the harpoon can pull it in (harpoon.gd)
 
 
 ## The sensor's cylinder is as wide as `reach`: `reach` is the one number to change, the shape just follows it.
@@ -118,38 +116,6 @@ func why_not() -> String:
 	return ""
 
 
-# ---- on the harpoon (harpoon.gd: the functions every hookable thing has) ----
-
-## Only a free one that takes itself (not the floating shop's goods) and isn't flying to her already.
-func can_be_hooked() -> bool:
-	return auto_take and price == 0 and pulled_by == null
-
-
-func hook_point() -> Vector3:
-	return global_position
-
-
-func hook_size() -> float:
-	return 1.5                                       # about its disc
-
-
-func hooked(_harpoon: Node3D) -> void:
-	pass                                             # nothing to do: it just comes along
-
-
-## On the hook until the magnet catches it (once close enough to her, as if she'd sailed to it).
-func still_hooked() -> bool:
-	return pulled_by == null
-
-
-func pulled_to(point: Vector3) -> void:
-	global_position = Vector3(point.x, global_position.y, point.z)
-
-
-func unhooked(_harpoon: Node3D) -> void:
-	pass
-
-
 ## Into the hold (and the coins out of the purse, if it has a price), a shake, and it's gone. (The sound is the
 ## boat's: anything coming aboard makes it, see boat.gd _on_came_aboard.)
 func take(boat: Node3D) -> void:
@@ -165,7 +131,7 @@ func take(boat: Node3D) -> void:
 ## With a chance of `chance` (0..1: 1 = always, 0.5 = one time in two) it leaves between count_min and count_max
 ## pickups, each on its own spot of water within `spread` metres of `middle`, added to `parent` (the level, not the
 ## enemy, so they stay put whatever it does next). THE POOL (Enrico, Nov 2026): each pickup is a thing picked at
-## random from `pool` (an enemy's `drop_pool`), so a kill may leave a bomb and a harpoon. A thing put in the pool twice
+## random from `pool` (an enemy's `drop_pool`), so a kill may leave a bomb and a jar. A thing put in the pool twice
 ## comes twice as often. An empty pool = nothing.
 ## static: it belongs to the script, not to a pickup, so an enemy calls it as Pickup.drop_loot(…) (like a static
 ## function in a Blueprint Function Library).
