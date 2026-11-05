@@ -31,6 +31,7 @@
 [ext_resource type="PackedScene" uid="uid://cxyvsiocbqavr" path="res://Assets/Landscape/islands/sm_island_edge_32x16.fbx" id="45_pcmpt"]
 [ext_resource type="PackedScene" uid="uid://23afdjaes360" path="res://Assets/Landscape/islands/sm_island_center_16x16.fbx" id="46_klm3u"]
 [ext_resource type="PackedScene" uid="uid://cw2t2edse5qr" path="res://Assets/Landscape/pier/pier.tscn" id="48_pcmpt"]
+[ext_resource type="PackedScene" path="res://Assets/Items/sea_mine/sea_mine.tscn" id="49_oiq7i"]
 [ext_resource type="PackedScene" uid="uid://d0sdk8o8wvfxe" path="res://Assets/Items/barrel/barrel.tscn" id="49_to4lu"]
 [ext_resource type="PackedScene" path="res://Assets/Items/key/key.tscn" id="55_2r5vj"]
 [ext_resource type="PackedScene" uid="uid://c7qs5gjgfihdw" path="res://Assets/Landscape/architecture/sm_bridge_01_a.fbx" id="56_bwgkw"]
@@ -142,8 +143,11 @@ cloud_count = 128
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.122238, 0, 163.4654)
 
 [node name="HeartSpot" parent="Gameplay/FishingSpots" unique_id=1191537044 instance=ExtResource("26_fishing_spot")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 95.867874, 0, -100.36296)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.867874, 0, 20.63704)
 loot = 1
+
+[node name="HeartSpot2" parent="Gameplay/FishingSpots" unique_id=789488759 instance=ExtResource("26_fishing_spot")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 53.867874, 0, 20.63704)
 
 [node name="MapMarkers" type="Node3D" parent="Gameplay" unique_id=161406149]
 
@@ -247,7 +251,7 @@ item = ExtResource("92_jar_item")
 count = 99
 
 [node name="RaftNPCTest" parent="Gameplay" unique_id=609462272 instance=ExtResource("100_raft_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.012848, 0, -92.173096)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.012848, 0, -3.1730957)
 
 [node name="TowGoalTest" type="Node3D" parent="Gameplay" unique_id=37620220]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 139.30415, 0, -52.82539)
@@ -1470,3 +1474,6 @@ sink_extra = 0.0
 
 [node name="Pier" parent="." unique_id=96918305 instance=ExtResource("48_pcmpt")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -3, 0, -11)
+
+[node name="SeaMine" parent="." unique_id=1082937340 instance=ExtResource("49_oiq7i")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 0, 34)
