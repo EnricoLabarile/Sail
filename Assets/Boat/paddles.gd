@@ -12,8 +12,8 @@ extends Node3D
 ## all the way right TURNS HER ON (`turn_on()`: anchor up, battery full) when she's off; while she runs, all the way
 ## right again in the last `recharge_window` seconds of the battery fills it again (`can_refill()`), so a player who
 ## keeps an eye on it never stops. All the way left TURNS HER OFF (the anchor goes down, the battery is emptied).
-## The battery runs down faster the faster she's allowed to go (Enrico): at the lever's 50% at the normal rate (one
-## second a second), at 100% twice as fast, at 25% half as fast (`drain_rate()`). A booster adds to it (add_push).
+## The battery runs down ONLY WHILE SHE BOOSTS (Enrico, Nov 2026): the lever held past the middle (`drain_rate()`);
+## at the middle or below it doesn't drain at all, so cruising is free. A booster adds to it (add_push).
 ## The current still carries her (the boat's).
 ##
 ## THE SPEED SETTING (Enrico): the lever's place says how fast she may go: all the way left 0%, in the middle (where its
@@ -31,10 +31,10 @@ extends Node3D
 ## Sent when she's started (turn_on) or the battery is refilled (refill): the lever's flywheel revs up (crank.gd).
 signal revved
 
-@export var push_time := 40.0          # seconds a full battery keeps them pushing (at the lever's 50%)
-## How much faster the battery runs down with the lever all the way right (the boost) than at rest in the middle
-## (Enrico: a knob for it). 2 = twice as fast (as before), 1 = no extra cost, 3 = three times. Between the middle
-## and the right end it grows in a straight line; below the middle it drains less, as before (25% = half as fast).
+@export var push_time := 40.0          # how much a full battery holds, in seconds of the drain below
+## Seconds of battery a second of boosting costs with the lever all the way right (Enrico's knob): with push_time 40
+## and 8 here, a full battery lasts 5 s of full boost. Between the middle (nothing) and the right end it grows in a
+## straight line; at the middle and below the battery doesn't drain.
 @export var boost_drain := 8.0
 ## Seconds the lever must be HELD before pushing it past the middle counts as a boost and drains faster (Enrico: the
 ## same move right refills the battery, so right after a refill or a grab it mustn't eat it at once). Counted from the
@@ -117,14 +117,14 @@ func speed_share() -> float:
 	return lever_share
 
 
-## How fast the battery runs down (seconds of it per second): 1 at the lever's 50%, boost_drain at 100%, 0.5 at 25%.
+## How fast the battery runs down (seconds of it per second). Only the boost costs (Enrico, Nov 2026): 0 at the
+## lever's middle and below, and past the middle only once the boost counts (held boost_wait seconds, crank.gd sets
+## boost_counts); then from 0 just past the middle up to boost_drain at the right end, in a straight line.
 func drain_rate() -> float:
-	if lever_share <= 0.5:
-		return lever_share / 0.5                 # below the middle: slower, down to nothing at the left end
-	if not boost_counts:
-		return 1.0                               # past the middle, but just grabbed / refilled / let go: normal drain
+	if lever_share <= 0.5 or not boost_counts:
+		return 0.0                               # cruising, or just grabbed / refilled / let go: free
 	var past_middle := (lever_share - 0.5) / 0.5  # 0 at the middle, 1 at the right end
-	return lerpf(1.0, boost_drain, past_middle)
+	return boost_drain * past_middle
 
 
 ## A booster (Assets/Items/booster) adds `seconds` of battery, never more than full (push_time).
@@ -142,7 +142,7 @@ func turn_factor() -> float:
 	return turn_mult if power > 0.01 else 1.0
 
 
-## Every frame (boat.gd): the battery runs down while she's under way (faster the faster the lever lets her go),
+## Every frame (boat.gd): the battery runs down while she boosts (drain_rate),
 ## the push eases in and out, and the wheels turn.
 func update(dt: float) -> void:
 	var pushing := is_running()

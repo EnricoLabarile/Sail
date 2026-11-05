@@ -15,7 +15,7 @@ extends Control
 ##   - ALL THE WAY LEFT, while the anchor is up: she TURNS OFF: the anchor goes down (paddles.turn_off). Then the
 ##     lever springs back to the middle.
 ## An end works once each time the lever gets there: to use it again, the lever must leave it first.
-## The battery runs down faster the faster the lever lets her go (paddles.gd drain_rate).
+## The battery runs down only while she boosts, the lever held past the middle (paddles.gd drain_rate).
 ##
 ## THE BATTERY (Enrico, Nov 2026): the charge left is an ink filling inside the plate, from its left end: full = the
 ## whole plate inked, half = up to the middle. (The battery icon in the knob, its blinking and the moving dashes are gone.)
@@ -244,8 +244,8 @@ func _process(dt: float) -> void:
 	if paddles:
 		# The most she may go: 0% all the way left, 50% in the middle, 100% all the way right.
 		paddles.set_lever_share(0.5 + 0.5 * lever)
-		# The boost drains more only while the finger holds it and has held it boost_wait seconds (since the grab or the
-		# last refill); let go, the drain is normal at once, while her speed eases down with the lever.
+		# The boost drains the battery only while the finger holds it and has held it boost_wait seconds (since the grab
+		# or the last refill); let go, no drain at once, while her speed eases down with the lever.
 		if drag_index != -1:
 			held_time += dt
 		paddles.boost_counts = drag_index != -1 and held_time >= paddles.boost_wait
