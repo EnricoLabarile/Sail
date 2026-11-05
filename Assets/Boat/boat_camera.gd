@@ -16,10 +16,10 @@ extends Camera3D
 # How far it sits from her, along the way it looks, in metres (perspective: further = more sea in view). It's
 # set at start and then eased by update_zoom between distance_sailing and distance_anchored, so the number typed
 # here is only where it would be before the first frame.
-@export var distance := 100.0
+@export var distance := 90
 # The zoom (Enrico): the distance eases between these two, further out while she sails, closer at anchor or tied up.
-@export var distance_sailing := 110     # metres back while she sails
-@export var distance_anchored := 100     # metres back while she's at anchor or tied up at a pier
+@export var distance_sailing := 90     # metres back while she sails
+@export var distance_anchored := 90     # metres back while she's at anchor or tied up at a pier
 @export var zoom_speed := 2             # how quickly it eases from one to the other (higher = quicker)
 @export var dead_zone := 3        # metres she can move before the camera follows (0 = always follow)
 @export var follow_speed := 9      # how quickly it catches up once she's out (higher = quicker)

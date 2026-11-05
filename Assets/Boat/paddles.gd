@@ -39,7 +39,7 @@ signal revved
 ## Seconds of battery a second of boosting costs with the lever all the way right (Enrico's knob): with push_time 40
 ## and 8 here, a full battery lasts 5 s of full boost. Between the middle (nothing) and the right end it grows in a
 ## straight line; at the middle and below the battery doesn't drain.
-@export var boost_drain := 8.0
+@export var boost_drain := 40.0
 ## Seconds the lever must be HELD before pushing it past the middle counts as a boost and drains faster (Enrico: the
 ## same move right refills the battery, so right after a refill or a grab it mustn't eat it at once). Counted from the
 ## grab and again from each refill (crank.gd sets `boost_counts`). Let go, the drain is back to normal at once, while
