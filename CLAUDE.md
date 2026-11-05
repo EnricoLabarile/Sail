@@ -309,7 +309,11 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   100%; only with a grab that began in that window, `grabbed_in_window`, Enrico: held at 100% from before, let go and push again); left end with the anchor up → `turn_off()` (anchor down, battery emptied) and springs back. **The battery**
   (`push_left`, `push_time` 40) **drains only while she boosts** (Enrico, Nov 2026; before, it ran down all the time):
   `drain_rate()` is 0 at the lever's middle and below, and past the middle only once the boost counts, then
-  `boost_drain` × how far past the middle (8 at the right end: a full battery = 5 s of full boost); **the boost counts
+  `boost_drain` × how far past the middle (8 at the right end: a full battery = 5 s of full boost); **and it fills up again
+  by itself** (Enrico, Nov 2026): `update_battery` — while `is_boosting()` (lever past the middle and `boost_counts`,
+  held with an empty battery too) `since_boost` is 0; otherwise it counts up, and from `recharge_delay` 0.5 s on the
+  battery climbs at `recharge_rate` 8 s a second (empty to full in 5 s) up to `push_time`, at anchor too. Empty while
+  boosting she stops (as before); let go, 0.5 s later the battery comes back and she runs again; **the boost counts
   only once the lever has been held `boost_wait`** (Enrico: refilling is the same move right; counted from the grab and
   again from each refill, crank.gd `held_time` → `paddles.boost_counts`; before that, and at once on letting go, no
   drain, while the lever and her speed spring back gradually; the chevrons flow only while it counts);

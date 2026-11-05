@@ -13,7 +13,9 @@ extends Node3D
 ## right again in the last `recharge_window` seconds of the battery fills it again (`can_refill()`), so a player who
 ## keeps an eye on it never stops. All the way left TURNS HER OFF (the anchor goes down, the battery is emptied).
 ## The battery runs down ONLY WHILE SHE BOOSTS (Enrico, Nov 2026): the lever held past the middle (`drain_rate()`);
-## at the middle or below it doesn't drain at all, so cruising is free. A booster adds to it (add_push).
+## at the middle or below it doesn't drain at all, so cruising is free. And it FILLS UP AGAIN BY ITSELF (Enrico):
+## `recharge_delay` seconds after the last boost it climbs back at `recharge_rate`, up to full. A booster adds to it
+## (add_push).
 ## The current still carries her (the boat's).
 ##
 ## THE SPEED SETTING (Enrico): the lever's place says how fast she may go: all the way left 0%, in the middle (where its
@@ -41,6 +43,8 @@ signal revved
 ## grab and again from each refill (crank.gd sets `boost_counts`). Let go, the drain is back to normal at once, while
 ## the lever (and her speed) springs back to the middle.
 @export var boost_wait := 0.25
+@export var recharge_delay := 0.5      # seconds after the last boost before the battery starts filling up again (Enrico)
+@export var recharge_rate := 8.0       # seconds of battery it gets back each second once it fills up (8: empty to full in 5 s)
 @export var recharge_window := 3.0     # the last seconds of the battery in which the lever, pushed right, fills it again (Enrico)
 @export var turn_mult := 1.5           # she turns this much quicker while they push
 @export var take_up_rate := 3.75            # how quickly they take up and let go as a push starts or ends
@@ -57,7 +61,8 @@ var spin_left := 0.0      # the wheels' angles (radians)
 var spin_right := 0.0
 var splash_turn := 0.0    # how far the wheel has turned since the last splash (radians)
 var splash_level := 0.0   # how loud the splashes are now (0..1): 1 while they push, then down as she slows
-var boost_counts := false  # has the lever been held past boost_wait? (crank.gd, every frame): only then does a boost drain more
+var boost_counts := false  # has the lever been held past boost_wait? (crank.gd, every frame): only then does a boost drain
+var since_boost := 0.0     # seconds since she last boosted (the battery fills up again once this reaches recharge_delay)
 var lever_share := 0.5    # the most she may go, 0..1 of her speed (set by the lever every frame; 0.5 = the lever at rest)
 
 @onready var boat: Node3D = owner                               # the boat (boat.tscn's root)
@@ -142,17 +147,35 @@ func turn_factor() -> float:
 	return turn_mult if power > 0.01 else 1.0
 
 
-## Every frame (boat.gd): the battery runs down while she boosts (drain_rate),
-## the push eases in and out, and the wheels turn.
+## Is she boosting now? The lever held past the middle long enough for the boost to count (boost_counts). Holding it
+## there with the battery empty counts too: the battery fills up again only once she lets go of the boost.
+func is_boosting() -> bool:
+	return lever_share > 0.5 and boost_counts
+
+
+## Every frame (boat.gd): the battery runs down while she boosts (drain_rate) and fills up again by itself once she
+## hasn't boosted for recharge_delay seconds; the push eases in and out, and the wheels turn.
 func update(dt: float) -> void:
+	update_battery(dt)
 	var pushing := is_running()
-	if pushing:
-		push_left = maxf(0.0, push_left - dt * drain_rate())
 	var want := 1.0 if pushing else 0.0
 	power += (want - power) * minf(1.0, dt * take_up_rate)
 	if power < 0.005:
 		power = 0.0
 	spin_wheels(dt)
+
+
+## The battery: boosting, it runs down (and the wait before it fills up starts again from 0); not boosting, the wait
+## counts up, and once it's past recharge_delay the battery climbs back at recharge_rate, never above full (push_time).
+func update_battery(dt: float) -> void:
+	if is_boosting():
+		since_boost = 0.0
+		if is_running():
+			push_left = maxf(0.0, push_left - dt * drain_rate())
+		return
+	since_boost += dt
+	if since_boost >= recharge_delay:
+		push_left = minf(push_time, push_left + dt * recharge_rate)
 
 
 ## The wheels turn with their push, or freewheel, dragged round by the water going by (carried by a wave, a gust…); whichever is
