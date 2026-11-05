@@ -14,7 +14,9 @@ extends Node3D
 ## keeps an eye on it never stops. All the way left TURNS HER OFF (the anchor goes down, the battery is emptied).
 ## The battery runs down ONLY WHILE SHE BOOSTS (Enrico, Nov 2026): the lever held past the middle (`drain_rate()`);
 ## at the middle or below it doesn't drain at all, so cruising is free. And it FILLS UP AGAIN BY ITSELF (Enrico):
-## `recharge_delay` seconds after the last boost it climbs back at `recharge_rate`, up to full. A booster adds to it
+## `recharge_delay` seconds after the last boost it climbs back at `recharge_rate`, up to full, but ONLY WHILE SHE'S
+## UNDER WAY (Enrico: not standing still, at anchor or with the lever pulled back; there only the lever pushed all the
+## way right fills it, turn_on / refill). A booster adds to it
 ## (add_push).
 ## The current still carries her (the boat's).
 ##
@@ -45,6 +47,7 @@ signal revved
 @export var boost_wait := 0.25
 @export var recharge_delay := 0.5      # seconds after the last boost before the battery starts filling up again (Enrico)
 @export var recharge_rate := 8.0       # seconds of battery it gets back each second once it fills up (8: empty to full in 5 s)
+@export var recharge_min_speed := 0.5  # m/s she must be going for it to fill up by itself (slower = standing still: no)
 @export var recharge_window := 3.0     # the last seconds of the battery in which the lever, pushed right, fills it again (Enrico)
 @export var turn_mult := 1.5           # she turns this much quicker while they push
 @export var take_up_rate := 3.75            # how quickly they take up and let go as a push starts or ends
@@ -183,7 +186,9 @@ func update(dt: float) -> void:
 
 
 ## The battery: boosting, it runs down (and the wait before it fills up starts again from 0); not boosting, the wait
-## counts up, and once it's past recharge_delay the battery climbs back at recharge_rate, never above full (push_time).
+## counts up, and once it's past recharge_delay the battery climbs back at recharge_rate, never above full (push_time),
+## as long as she's under way: running (anchor up, battery left) and going at least recharge_min_speed. Standing
+## still, nothing (Enrico: else pulling the lever back to stop filled it up for free).
 func update_battery(dt: float) -> void:
 	if is_boosting():
 		since_boost = 0.0
@@ -191,7 +196,8 @@ func update_battery(dt: float) -> void:
 			push_left = maxf(0.0, push_left - dt * drain_rate())
 		return
 	since_boost += dt
-	if since_boost >= recharge_delay:
+	var under_way: bool = is_running() and boat.speed >= recharge_min_speed
+	if since_boost >= recharge_delay and under_way:
 		push_left = minf(push_time, push_left + dt * recharge_rate)
 
 
