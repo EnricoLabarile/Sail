@@ -313,7 +313,10 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   by itself** (Enrico, Nov 2026): `update_battery` — while `is_boosting()` (lever past the middle and `boost_counts`,
   held with an empty battery too) `since_boost` is 0; otherwise it counts up, and from `recharge_delay` 0.5 s on the
   battery climbs at `recharge_rate` 8 s a second (empty to full in 5 s) up to `push_time`, at anchor too. Empty while
-  boosting she stops (as before); let go, 0.5 s later the battery comes back and she runs again; **the boost counts
+  boosting she stops (as before); let go, 0.5 s later the battery comes back and she runs again; **a bomb costs 75% of a full
+  battery** (Enrico, Nov 2026): `paddles.spend(share)` (takes `push_time` × share, false if there isn't that much;
+  restarts the wait, `since_boost` 0) and `has_charge(share)`; `bomb_button.gd` export `battery_cost` 0.75 (0 = free),
+  `can_use()` false with less left, `use()` spends it before the bomb leaves the hold; **the boost counts
   only once the lever has been held `boost_wait`** (Enrico: refilling is the same move right; counted from the grab and
   again from each refill, crank.gd `held_time` → `paddles.boost_counts`; before that, and at once on letting go, no
   drain, while the lever and her speed spring back gradually; the chevrons flow only while it counts);

@@ -147,6 +147,23 @@ func turn_factor() -> float:
 	return turn_mult if power > 0.01 else 1.0
 
 
+## Takes `share` (0..1) of a FULL battery out of it for something else that runs on it (Enrico, Nov 2026: a bomb
+## costs 0.75, bomb_button.gd). Not enough left: nothing is taken and it gives back false. Spending, like boosting,
+## starts the wait before the battery fills up again (since_boost back to 0).
+func spend(share: float) -> bool:
+	var cost := push_time * share
+	if push_left < cost:
+		return false
+	push_left -= cost
+	since_boost = 0.0
+	return true
+
+
+## Is there at least `share` (0..1) of a full battery left? (The bomb asks before it can be dropped.)
+func has_charge(share: float) -> bool:
+	return push_left >= push_time * share
+
+
 ## Is she boosting now? The lever held past the middle long enough for the boost to count (boost_counts). Holding it
 ## there with the battery empty counts too: the battery fills up again only once she lets go of the boost.
 func is_boosting() -> bool:

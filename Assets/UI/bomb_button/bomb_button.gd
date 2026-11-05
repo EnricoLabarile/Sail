@@ -3,6 +3,8 @@ extends Control
 ## (Inventory.equipped), a tap on the interaction button (Assets/UI/interaction_button) calls `use()`: a bomb off the
 ## boat's bow (Assets/Items/bomb/bomb.tscn), one out of the hold; when the last one goes, nothing is in hand any more.
 ## After each bomb it rests `cooldown` seconds (the interaction button draws the ink pie from `cooldown_share()`).
+## Each bomb also costs `battery_cost` of the paddles' battery (Enrico, Nov 2026: 75% of a full one; paddles.gd
+## spend): with less than that left, no bomb (the lever's filling shows how much there is).
 ## When a bomb is equipped, a snappy click-clack plays, like a gun being loaded (Sfx.equip, from bomb.tres); the interaction
 ## button pulses its rings.
 ## Every item action has the same few things (the interaction button uses them): ITEM, ICON, use(), can_use(),
@@ -15,6 +17,7 @@ const BOMB_SCENE := preload("res://Assets/Items/bomb/bomb.tscn")
 
 @export var bow_offset := 2.2        # metres ahead of the boat's middle the bomb is dropped (about her bow)
 @export var cooldown := 2.0          # seconds after a bomb before the next one can be dropped
+@export var battery_cost := 0.75     # share of a FULL paddles' battery each bomb takes (0.75 = 75%; 0 = free)
 
 var cooldown_left := 0.0             # seconds before it can drop another bomb (0 = ready)
 var was_equipped := false            # was a bomb equipped a moment ago? (to notice the moment it gets equipped)
@@ -38,9 +41,18 @@ func _process(dt: float) -> void:
 		cooldown_left = maxf(0.0, cooldown_left - dt)
 
 
-## Can a tap do something now? (A bomb aboard and not resting.)
+## Can a tap do something now? (A bomb aboard, not resting, and enough battery for it.)
 func can_use() -> bool:
-	return cooldown_left <= 0.0 and Inventory.count(ITEM) > 0
+	if cooldown_left > 0.0 or Inventory.count(ITEM) == 0:
+		return false
+	var paddles := _paddles()
+	return paddles == null or paddles.has_charge(battery_cost)
+
+
+## The boat's paddle wheels (paddles.gd, they hold the battery), or null if there's no boat.
+func _paddles() -> Node:
+	var boat := get_tree().get_first_node_in_group("player_boat")
+	return boat.paddles if boat else null
 
 
 ## The share of the rest still left (1 = just used, 0 = ready): the ink pie.
@@ -58,6 +70,8 @@ func use() -> void:
 	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
 	if boat == null or boat.sinking or not can_use():
 		return
+	if not boat.paddles.spend(battery_cost):
+		return                                   # not enough battery (can_use checked, but to be sure)
 	if not Inventory.remove(ITEM):
 		return
 	var bomb := BOMB_SCENE.instantiate()
