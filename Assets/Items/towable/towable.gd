@@ -13,6 +13,11 @@ extends Node3D
 ##   - towed, the parent follows her: kept at most `rope_length` metres from her stern to its edge (`size` is how big
 ##     the thing is), pulled along the rope when taut, left still when slack; never onto land (it stays stuck on the
 ##     shore); she goes at × `tow_slowdown`; an ink rope from her stern to it;
+##   - HOW HEAVY IT IS (Enrico, Nov 2026: things sorted by the strength it takes to pull them), `weight`:
+##       LIGHT (category 1): she just drags it along, as above;
+##       HEAVY (category 2): it moves only while she BOOSTS (the throttle lever held past the middle, paddles.gd
+##       is_boosting). Not boosting, once the rope is taut the thing stays put and holds HER instead, like an anchor:
+##       her stern can't get further than the rope from it (she can still turn round it, or come back);
 ##   - a second tap, any damage to the boat (hook_button.gd) or her sinking lets it go: it stays where it is;
 ##   - a TowGoal (tow_goal.gd) with the same id can take it (`deliver`): it's let go there for good.
 ## Its signals, for the parent to react (connect them in the Node dock, like binding an Event Dispatcher):
@@ -21,12 +26,16 @@ extends Node3D
 ## (The barrel stops being solid while towed, the NPC on the raft changes its lines when delivered: see their
 ## scripts. Something that needs nothing else, needs no script at all: only this component.)
 
+## How hard it is to pull (see the notes above): LIGHT = category 1, HEAVY = category 2.
+enum Weight { LIGHT, HEAVY }
+
 signal grabbed(boat: Node3D)
 signal released
 signal delivered(goal: Node3D)
 
 ## Which goals take it: a TowGoal with the same text (a goal with no id takes anything).
 @export var tow_id := ""
+@export var weight := Weight.LIGHT  # LIGHT: dragged along as she goes; HEAVY: only while she boosts, else it holds her
 @export var grab_reach := 8.0       # metres from the parent's middle her middle may be for the hook to grab it
 @export var rope_length := 4.0      # metres of rope from her stern to the thing's edge while towed
 @export var tow_slowdown := 0.2     # her speed × this while she tows it (1 = it doesn't hold her back)
@@ -129,6 +138,10 @@ func follow_boat() -> void:
 	var reach := rope_length + size                      # the rope plus the thing's own size, to its middle
 	if off.length() <= reach:
 		return                                           # slack: it doesn't move
+	# Taut. A HEAVY thing moves only while she boosts: otherwise it stays, and the rope holds her instead.
+	if weight == Weight.HEAVY and not tow_boat.paddles.is_boosting():
+		hold_boat(off, reach)
+		return
 	var place: Vector3 = stern + off.normalized() * reach
 	place.y = thing.global_position.y
 	# Not onto land: its middle and its edge on the way it goes must both be on water.
@@ -139,6 +152,18 @@ func follow_boat() -> void:
 	if Land.is_land(place) or Land.is_land(ahead):
 		return
 	thing.global_position = place
+
+
+## A HEAVY thing she pulls without boosting: it doesn't budge, so the rope holds HER, as the anchor's line does
+## (boat.gd hold_at_anchor). Her stern is put back at the rope's length from it, on the line from it to her stern, her
+## heading kept (so she can still turn round it, or come back toward it), and the way she had pulling off is lost.
+## `off` = from her stern to the thing; `reach` = the rope plus the thing's size.
+func hold_boat(off: Vector3, reach: float) -> void:
+	var stern: Vector3 = thing.global_position - off.normalized() * reach   # where her stern may be, at most
+	var forward: Vector3 = -tow_boat.global_transform.basis.z
+	var middle: Vector3 = stern + forward * tow_boat.bow_reach             # her middle is bow_reach ahead of her stern
+	tow_boat.global_position = Vector3(middle.x, tow_boat.global_position.y, middle.z)
+	tow_boat.speed = minf(tow_boat.speed, 0.0)                            # her way is taken off by the rope
 
 
 ## A thin flat ink strip from her stern to the thing's edge (a 1 x 1 plane moved to the middle, turned along the line

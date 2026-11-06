@@ -848,7 +848,11 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   child node, "Add Child Node" → Towable, left at the parent's middle): it moves its **parent**. Group `towable` (the
   hook button's interface). Exports: `tow_id` (for goals), `grab_reach` (from the parent's middle), `rope_length` (stern
   to the thing's edge), `tow_slowdown` (`held_back`), `size` (middle to edge), `towable_after_delivery` (false),
-  `rope_width` 0.15, `rope_height` 0.6. Towed: `follow_boat` (physics; taut → pulled to `rope_length` + `size` from her
+  `rope_width` 0.15, `rope_height` 0.6. **`weight`** (Enrico, Nov 2026: things sorted by the strength it takes to pull
+  them; enum `Weight`): **LIGHT** (category 1, the default) dragged along as below; **HEAVY** (category 2) moves only
+  while she boosts (`boat.paddles.is_boosting()`): not boosting, once the rope is taut it stays put and **holds her**
+  (`hold_boat`: her stern put back at `rope_length` + `size` from it on the line to her, her heading kept, her speed ≤ 0,
+  like the anchor's line), so she can turn round it or come back; boosting, it follows as a light one. Towed: `follow_boat` (physics; taut → pulled to `rope_length` + `size` from her
   stern, slack → still, never onto land: middle and half a size ahead), the ink rope (`make_rope`, `draw_rope`, from the
   interpolated places), the parent's physics interpolation on; she sank → let go. Signals **`grabbed(boat)`**,
   **`released`**, **`delivered(goal)`** for the parent; `deliver(goal)` (let go, `delivered_to`, can't be towed again
