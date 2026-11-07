@@ -885,7 +885,11 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   unless `towable_after_delivery`). Used by the barrel, the key and the raft NPC. **The tow goal**
   (`Assets/Items/towable/tow_goal.gd`, `class_name TowGoal`, `@tool`; a Node3D with the script): `goal_id` (empty = any),
   `radius` 8 (a green editor disc, render_priority 10, no depth test); every physics frame a `Towable` (not the lever)
-  with that `tow_id`, not yet delivered, within `radius` of it → `towable.deliver(self)` and signal **`arrived(towable)`**.
+  with that `tow_id`, not yet delivered, within `radius` of it → `towable.deliver(self)` and signal **`arrived(towable)`**. **No current inside it** (Enrico, Nov 2026): group `tow_goals`, static `TowGoal.calm_at(tree, point)`: boat.gd
+  `update_current` eases her drift to 0 there (as in an NPC's radius) and `Wind.drift` moves nothing there. (The
+  Overworld's `TowGoalTest` had been put as a CHILD of `RaftNPCTest`, so it moved with the raft and could never be
+  reached: it's under `Gameplay` again, at the same place, (56.3, 0, 39.2). A goal must never be inside the thing it
+  waits for.)
   **Towed NPCs** (`npc.gd`): `lines_after_delivery` (export), `towed`; `on_grabbed` (as if she left: `set_near_npc`
   false, so no speed limit, no talk, the bubble fades; the sensor and anchor ignore her while towed), `on_released`
   (near again if her SpotSensor overlaps, `get_overlapping_areas`; no auto-talk), `on_delivered` (lines =
@@ -904,7 +908,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   (`drifting`) its `_physics_process` moves it by `Wind.current()` × dt, stopping where the next step would be land (as
   the bomb and the dead imp); not before the first tow (it stays where placed), stopped while towed (`on_grabbed`) and
   for good once delivered (`on_delivered`, `_stop_drifting`). Tests in Overworld:
-  `Gameplay/RaftNPCTest` (25, 0, −10) and `Gameplay/TowGoalTest` (30, 0, −30), `goal_id` "castaway".
+  `Gameplay/RaftNPCTest` (32, 0, 40.8) and `Gameplay/TowGoalTest` (56.3, 0, 39.2), `goal_id` "castaway".
 - **Keys and bridge locks** (Enrico, Oct 2026; a key towed with the hook opens a gate under a bridge):
   **the key** (`Assets/Items/key/`: `key.tscn` + `key.gd` (`@tool`), `key.png` a 64² stand-in by
   `art_src/items/make_key.py`; placed by hand): `Picture` a 3 m PlaneMesh lying 0.1 m up (StandardMaterial3D unshaded,

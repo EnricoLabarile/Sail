@@ -155,8 +155,11 @@ func current() -> Vector3:
 
 ## Carries `thing` with the current for `dt` seconds (× `amount`: 1 = as fast as the water), at its own height. It
 ## stops where the next step would be on land, so it washes up against the shore instead of going through it.
-## Used by everything that floats: a burning bomb, a dead imp, the castaway let go.
+## Used by everything that floats: a burning bomb, a dead imp, the castaway let go. Inside a tow goal's green area
+## there's no current (Enrico, tow_goal.gd calm_at): it stays where it is.
 func drift(thing: Node3D, dt: float, amount := 1.0) -> void:
+	if TowGoal.calm_at(get_tree(), thing.global_position):
+		return
 	var next_place: Vector3 = thing.global_position + current() * amount * dt
 	if not Land.is_land(next_place):
 		thing.global_position = next_place

@@ -864,6 +864,8 @@ func update_current(dt: float) -> void:
 		target = 0.0                                      # close to the shore: none
 	if not npcs_near.is_empty():
 		target = 0.0                                      # in an NPC's radius: none either (Enrico), so she can stop by
+	if TowGoal.calm_at(get_tree(), global_position):
+		target = 0.0                                      # in a tow goal's green area: none (Enrico, tow_goal.gd)
 	# Eased, not switched: drift_amount slides toward the target a little every frame, so she isn't jolted.
 	drift_amount += (target - drift_amount) * minf(1.0, dt * current_ease)
 	# A strong current zone (SeaZone, kind CURRENT: Land.current_at) takes over from the usual current: its own

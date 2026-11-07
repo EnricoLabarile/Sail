@@ -7,6 +7,8 @@ extends Node3D
 ## let go there for good (its signal `delivered`, so its owner can react: the NPC on the raft changes its lines),
 ## and the goal sends `arrived` (connect it to anything else: a door, a reward…).
 ## In the editor a green disc shows `radius`.
+## THE CALM (Enrico, Nov 2026): inside the green area there's no current: the boat isn't carried and nothing drifts
+## (calm_at, asked by boat.gd update_current and by Wind.drift), so a thing towed there stays there.
 ## (In Unreal: a trigger volume that checks the overlapping actor for a component with a matching tag.)
 
 ## Sent when a Towable is delivered here.
@@ -22,9 +24,21 @@ signal arrived(towable: Node3D)
 
 
 func _ready() -> void:
+	add_to_group("tow_goals")           # so calm_at finds every goal of the level
 	if Engine.is_editor_hint():
 		_make_editor_disc()
 		return
+
+
+## Is `point` inside any goal's green area? There the current doesn't flow (Enrico). A static function belongs to the
+## script, not to one goal (like a Blueprint Function Library): call it as TowGoal.calm_at(get_tree(), point).
+static func calm_at(tree: SceneTree, point: Vector3) -> bool:
+	for goal in tree.get_nodes_in_group("tow_goals"):
+		var off: Vector3 = point - goal.global_position
+		off.y = 0.0
+		if off.length() <= goal.radius:
+			return true
+	return false
 
 
 ## Every physics frame: is a Towable that fits close enough? (A few towables in a level: cheap.)

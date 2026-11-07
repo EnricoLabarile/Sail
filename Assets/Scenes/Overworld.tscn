@@ -256,8 +256,8 @@ count = 99
 [node name="RaftNPCTest" parent="Gameplay" unique_id=609462272 instance=ExtResource("100_raft_npc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.012848, 0, 40.826904)
 
-[node name="TowGoalTest" type="Node3D" parent="Gameplay/RaftNPCTest" unique_id=37620220]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.291306, 0, -1.652298)
+[node name="TowGoalTest" type="Node3D" parent="Gameplay" unique_id=37620220]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56.304154, 0, 39.174606)
 script = ExtResource("101_tow_goal")
 goal_id = "castaway"
 
