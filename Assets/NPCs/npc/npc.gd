@@ -108,11 +108,7 @@ func _process(dt: float) -> void:
 func _physics_process(dt: float) -> void:
 	if Engine.is_editor_hint() or not drifting:
 		return
-	var next_place: Vector3 = global_position + Wind.current() * dt
-	next_place.y = global_position.y
-	if not Land.is_land(next_place):
-		global_position = next_place
-
+	Wind.drift(self, dt)
 
 # ---- the boat ----
 

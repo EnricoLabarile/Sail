@@ -49,20 +49,20 @@ func _physics_process(_dt: float) -> void:
 		return
 	# The boat: not while she's towing it (the rope keeps it behind her anyway).
 	var boat := Boat.current as Node3D
-	if boat and not towable.is_towed() and flat_distance(boat.global_position) <= touch_radius:
+	if boat and not towable.is_towed() and Land.flat_distance(boat.global_position, global_position) <= touch_radius:
 		blow_up()
 		return
 	# The enemies: each one says where it is while it's solid (touch_place), or null while it can't touch (under water).
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		var place: Variant = enemy.touch_place()
-		if place != null and flat_distance(place) <= touch_radius:
+		if place != null and Land.flat_distance(place, global_position) <= touch_radius:
 			blow_up()
 			return
 
 
 ## A sea imp starts to come up at `spot` (sea_imp_zone.gd emerge_at): close enough, the mine goes off.
 func imp_emerging_at(spot: Vector3) -> void:
-	if not blown and flat_distance(spot) <= emerge_radius:
+	if not blown and Land.flat_distance(spot, global_position) <= emerge_radius:
 		blow_up()
 
 
@@ -85,8 +85,3 @@ func blow_up() -> void:
 	bomb.time = bomb.fuse_time           # its fuse already burnt: the blast's flash starts from its beginning
 	bomb.explode()
 	queue_free()
-
-
-## The distance on the water (x and z only) from the mine's middle to `point`.
-func flat_distance(point: Vector3) -> float:
-	return Vector2(point.x - global_position.x, point.z - global_position.z).length()

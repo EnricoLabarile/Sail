@@ -1,5 +1,5 @@
 extends Node3D
-## ONE BOMB, dropped off the boat's bow (the bomb button, Assets/UI/bomb_button). It floats where it fell, carried by the current (drift_with_current),
+## ONE BOMB, dropped off the boat's bow (the bomb button, Assets/UI/bomb_button). It floats where it fell, carried by the current (Wind.drift),
 ## leaving a trail of white dots on the water behind it (the Trail particles, Enrico: so the player sees which way it drifts), its
 ## fuse burning (the picture blinks, quicker and quicker, and swells and shrinks once a second), and after `fuse_time` seconds it blows up.
 ## The blast has two parts (Enrico): a tight CIRCLE round the bomb, `blast_radius` metres, and long straight lines, the ARMS
@@ -54,7 +54,7 @@ func _process(dt: float) -> void:
 		var lit := int(time * blinks_per_second) % 2
 		picture.material_override.set_shader_parameter("frame", lit)
 		pulse()
-		drift_with_current(dt)
+		Wind.drift(self, dt, current_amount)   # while the fuse burns it floats with the current (wind.gd)
 		if time >= fuse_time:
 			explode()
 		return
@@ -146,16 +146,6 @@ func set_arms(length: float, opacity: float) -> void:
 func pulse() -> void:
 	var cycle := sin(time / pulse_time * TAU)          # TAU = a full circle (2 × PI): one cycle a pulse_time
 	picture.scale = picture_scale * (1.0 + pulse_amount * cycle)
-
-
-## While the fuse burns it floats: the current (the Wind autoload's, Wind.current(), downwind) carries it, as it
-## does the boat and a dead imp. It stops where the next step would be on land, so it washes up against the shore.
-## (Once it has blown up it stays put: the blast is where it went off.)
-func drift_with_current(dt: float) -> void:
-	var next_place: Vector3 = global_position + Wind.current() * current_amount * dt
-	next_place.y = global_position.y	
-	if not Land.is_land(next_place):
-		global_position = next_place
 
 
 ## Boom: the bomb's picture goes, the circle and the arms flash out, and everything in them is hit (in_blast).

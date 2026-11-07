@@ -123,7 +123,7 @@ func try_fishing(boat: Node3D) -> void:
 		return
 	# Close enough if the anchor OR her middle is within reach (the anchor lies off her bow, up to 2.2 m further:
 	# where the question mark shows, anchoring must always work).
-	if flat_distance(boat.anchor_point) > reach and flat_distance(boat.global_position) > reach:
+	if Land.flat_distance(boat.anchor_point, global_position) > reach and Land.flat_distance(boat.global_position, global_position) > reach:
 		return
 	_boat = boat
 	_player = boat
@@ -153,13 +153,6 @@ func _process(dt: float) -> void:
 	_fishing_left -= dt
 	if _fishing_left <= 0.0:
 		_haul()
-
-
-## The distance across the water (the height doesn't count) from the spot's middle to a point.
-func flat_distance(point: Vector3) -> float:
-	var off := point - global_position
-	off.y = 0.0
-	return off.length()
 
 
 ## The haul comes in: the coins or the heart, and its icon rises over the boat so it's clear what was found.

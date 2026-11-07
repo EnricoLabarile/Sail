@@ -71,6 +71,11 @@ func set_shore_picture(texture: Texture2D) -> void:
 	# that scripts can read (in Unreal: reading a texture's data on the CPU).
 	shore_image = texture.get_image()
 
+## The distance across the water between two points: only x and z count (not the height).
+func flat_distance(a: Vector3, b: Vector3) -> float:
+	return Vector2(a.x - b.x, a.z - b.z).length()
+
+
 ## True if this point of the world is land. Only x and z count (the height doesn't matter).
 func is_land(pos: Vector3) -> bool:
 	# 1. Outside the map: the edge, a wall. It counts as land.

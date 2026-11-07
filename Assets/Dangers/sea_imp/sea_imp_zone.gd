@@ -100,9 +100,9 @@ func _process(dt: float) -> void:
 		return
 	update_flash()
 	if state == State.DEFEATED:
-		# Beaten: black (update_flash), afloat and harmless, carried by the current (drift_with_current).
+		# Beaten: black (update_flash), afloat and harmless, carried by the current (Wind.drift).
 		# The boat sailing over it takes it aboard (if there's room).
-		drift_with_current(dt)
+		Wind.drift(imp, dt)
 		if boat != null and not boat.sinking and distance_to(boat, imp.global_position) <= collect_radius:
 			if Inventory.add("imp") == 1:
 				imp.visible = false
@@ -322,20 +322,9 @@ func update_flash() -> void:
 	imp.material_override.set_shader_parameter("flash", black)
 
 
-## Dead, it floats: the current (the Wind autoload's, Wind.current(), downwind) carries it, as it does the boat.
-## It stops where the next step would be on land, so it washes up against the shore instead of going through it.
-func drift_with_current(dt: float) -> void:
-	var next_place: Vector3 = imp.global_position + Wind.current() * dt
-	next_place.y = 0.0
-	if not Land.is_land(next_place):
-		imp.global_position = next_place
-
-
-## The distance across the water (not the height) from the boat to a point.
+## The distance across the water (not the height) from the boat to a point (Land.flat_distance).
 func distance_to(boat: Node3D, point: Vector3) -> float:
-	var off := boat.global_position - point
-	off.y = 0.0
-	return off.length()
+	return Land.flat_distance(boat.global_position, point)
 
 
 ## The patch (a 1 x 1 m plane) is scaled to lurk_size.

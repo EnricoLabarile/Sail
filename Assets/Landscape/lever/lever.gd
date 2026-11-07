@@ -74,7 +74,7 @@ func tow_reach() -> float:
 func start_tow(by_boat: Node3D) -> void:
 	boat = by_boat
 	state = State.HOOKED
-	hooked_distance = flat_distance(global_position, boat.stern_point())
+	hooked_distance = Land.flat_distance(global_position, boat.stern_point())
 	boat.held_back = slowdown             # the rope holds her back (boat.gd: her speed × this)
 	rope.visible = true
 
@@ -173,10 +173,3 @@ func draw_rope(stern: Vector3) -> void:
 	rope.global_position = (start + end) * 0.5
 	rope.global_rotation = Vector3(0.0, atan2(-line.x, -line.z), 0.0)
 	rope.scale = Vector3(rope_width, 1.0, length)
-
-
-## The distance across the water (not the height) between two points.
-func flat_distance(a: Vector3, b: Vector3) -> float:
-	var off := a - b
-	off.y = 0.0
-	return off.length()

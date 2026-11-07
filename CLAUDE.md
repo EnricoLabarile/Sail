@@ -513,7 +513,10 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   nearest thing in reach (for the button's picture) every `look_every` 0.2 s, only while in hand (`in_reach`; a tap
   still looks again). **The game over card** connects to `sank` once (deferred), no `_process`. **The maelstrom** sends
   its fade to the materials only while it fades. Gone: `paddles.is_on()`, `helm.gd` `lit_disc`, the bomb action's
-  unused `was_equipped`.
+  unused `was_equipped`. **Shared helpers in the autoloads** (no copies in each script): `Wind.drift(thing, dt,
+  amount = 1)` (the current carries something floating, at its own height, never onto land: the burning bomb, the dead
+  imp, the castaway let go) and `Land.flat_distance(a, b)` (the distance across the water, x and z only: the imp, the
+  mine, fishing spots, the lever).
 - **Shader warm-up** (Enrico: frame drops while sailing round; `Assets/Post_Process/shader_warmup.gd`,
   `class_name ShaderWarmup`, added by `game_view.gd` at the level's start, so every level has it): the first time a
   material is drawn its shader compiles, and on WebGL that stops a frame (measured sailing round the Overworld, real
@@ -621,7 +624,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   Enrico, Nov 2026: the fish are gone), `coin_amount` 5 (per spot), `reach` **5.5** m (Enrico: a little more than the
   patch, it was tight; the Overworld's overrides of 4 removed), `fishing_time` 3 s, `fade_time` 1.8 s. `boat.gd`
   `toggle_anchor` calls `try_fishing(boat)` on every spot (group `fishing_spots`) when the anchor goes down: within
-  `reach` if the anchor **or her middle** is (`flat_distance`; the anchor lies 2.2 m off her bow); still at anchor
+  `reach` if the anchor **or her middle** is (`Land.flat_distance`; the anchor lies 2.2 m off her bow); still at anchor
   after `fishing_time`, the haul: `Inventory.add_coins(coin_amount)` or `add_heart_container()`, and its icon rises
   over the boat (`_show_over_boat`: `Sfx.came_aboard()` and `ItemShow.show_picture`, `COIN_ICON` / `HEART_ICON` =
   `Assets/Inventory/icons/coin.png` / `heart_container.png`, stand-ins by `art_src/items/make_spot_icons.py`); then it
@@ -664,7 +667,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   0.5 s at `hurt_blinks_per_second` 12, `update_flash` sets `sea_imp.gdshader`'s `flash`, its material duplicated per
   imp); left > 0 → **HURT** (up, harmless, blinking; hit while emerging it shows itself) then UNDER; 0 → **DEFEATED** (up,
   harmless, after the same blinking **solid black** for good, dead (Enrico; a different picture later), and **carried by
-  the current** (`drift_with_current`: `Wind.current()` × dt, no step onto land, so it washes up on a shore)); the boat's middle within `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) →
+  the current** (`Wind.drift(imp, dt)`: `Wind.current()` × dt, no step onto land, so it washes up on a shore)); the boat's middle within `collect_radius` 2.5 m → `Inventory.add("imp")` (room needed) →
   CAPTURED, gone for good. Lost hearts stay lost. **Running into it** while UP or HURT (boat's middle within
   `touch_radius` 2 m) → `boat.bump_into_enemy` (bounce, half a heart). In the editor a red disc shows `radius`. No ripples, sounds, popups
   or buzz (not asked).
@@ -811,7 +814,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   (touch) takes one bomb out of the hold (then the button rests `cooldown` 2 s, Enrico: taps do nothing, a see-through ink pie of the wait still left shrinking clockwise from the top, `cooldown_left`, `_draw_pie`) and drops it `bow_offset` 2.2 m ahead of her middle (Enrico: off the bow), on the water, into the
   world. The bomb: a 1.6 m camera-facing picture (`stone.gdshader`, render_priority 2) whose spark blinks quicker and
   quicker (2 → 8 a second) and **pulses** (Enrico: shrinks and swells, `pulse_time` 1 s a cycle, ±`pulse_amount` 0.15
-  round the `Picture`'s own scale from bomb.tscn, `pulse()`), **carried by the current** while the fuse burns (Enrico; `drift_with_current`, as the dead
+  round the `Picture`'s own scale from bomb.tscn, `pulse()`), **carried by the current** while the fuse burns (Enrico; `Wind.drift(self, dt, current_amount)`, as the dead
   imp: `Wind.current()` × dt, no step onto land), leaving a **white trail** on the water (Enrico: shows which way it drifts; `Trail`, a
   CPUParticles3D in bomb.tscn, local_coords off, 30 white discs r 0.4 m, life 1.5 s, shrinking to 0.3 and fading; off at the blast); after `fuse_time` 2 s it blows. **The blast runs along lines, like Bomberman** (Enrico, Oct 2026; no
   longer only a circle): **a tight circle plus a long cross** (Enrico): the circle `blast_radius` 3 m round the bomb, and
@@ -925,7 +928,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   within `touch_radius`, **towed or not** (Enrico); a **sea imp starts to emerge** within `emerge_radius` 6 m
   (`sea_imp_zone.gd` `emerge_at` calls `imp_emerging_at(spot)` on every mine); **a blast catches it** (`blast_at`,
   `bomb.in_blast(it, body_radius 1.2)`, deferred), so **mines go off in a chain** (Enrico). Checked every physics frame
-  (plain distances on the water, `flat_distance`).
+  (plain distances on the water, `Land.flat_distance`).
   **The `enemies` group** (a rule for new enemies, so mines see them): `add_to_group("enemies")` and `touch_place()` →
   its place while it's solid / can touch, `null` otherwise. Done for the imp (UP, HURT) and the urchin (alive).
 - **Destructible: the bomb-breakable component** (Enrico, Nov 2026: like the Towable, a child that gives its parent

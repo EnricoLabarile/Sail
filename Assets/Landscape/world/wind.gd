@@ -151,3 +151,12 @@ func from_vector() -> Vector3:
 ## opposite of where the wind comes from, -from_vector()) at CURRENT_SPEED, and turns with the wind.
 func current() -> Vector3:
 	return -from_vector() * CURRENT_SPEED
+
+
+## Carries `thing` with the current for `dt` seconds (× `amount`: 1 = as fast as the water), at its own height. It
+## stops where the next step would be on land, so it washes up against the shore instead of going through it.
+## Used by everything that floats: a burning bomb, a dead imp, the castaway let go.
+func drift(thing: Node3D, dt: float, amount := 1.0) -> void:
+	var next_place: Vector3 = thing.global_position + current() * amount * dt
+	if not Land.is_land(next_place):
+		thing.global_position = next_place
