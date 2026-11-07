@@ -10,8 +10,10 @@ extends CanvasLayer
 ##   - "CPU" is the processor's work, the SLOWEST of the last second (Godot measures these as a maximum):
 ##     "process" (every _process of every node, the UI, the scene tree), "physics" (every _physics_process: the
 ##     boat) and "render prep" (the CPU getting the frames ready for the graphics card, the window and the game view).
-##   - The arrow says where the slowest frame went: if the worst frame is much longer than the CPU's work, the time
-##     went on the GRAPHICS CARD (GPU): too many pixels, heavy shaders, see-through layers; otherwise on the CPU.
+##   - The arrow says where the time goes, comparing the AVERAGE frame with the CPU's work: the CPU numbers are the
+##     slowest of the second, so if even they are well under the average frame, the rest must be the GRAPHICS CARD
+##     (GPU-bound: too many pixels, heavy shaders, see-through layers); if they reach it, it's the CPU (CPU-bound);
+##     in between, "mixed". (A single slow frame, a hitch, shows in "worst" and "hitches", not here.)
 ##   - "GPU" is the card's own time when the browser can measure it (often it can't on the web: "n/a").
 ##   - "Draw" is the drawing work: draw calls (each one costs, on a phone a few hundred is a lot), objects and
 ##     triangles. "VRAM" is the video memory used.
@@ -121,8 +123,12 @@ func report() -> String:
 		render_cpu += RenderingServer.viewport_get_measured_render_time_cpu(game_view.view.get_viewport_rid())
 	lines.append("CPU worst/s: process %.1f  physics %.1f  render prep %.1f ms" % [scripts, physics, render_cpu])
 	var cpu_total := scripts + physics + render_cpu
-	lines.append("CPU %.1f vs worst frame %.1f ms -> %s" % [cpu_total, worst,
-			"GPU-bound" if worst > cpu_total * 1.5 else "CPU-bound"])
+	var verdict := "mixed"
+	if average > cpu_total * 1.2:
+		verdict = "GPU-bound"
+	elif cpu_total >= average * 0.8:
+		verdict = "CPU-bound"
+	lines.append("CPU %.1f vs avg frame %.1f ms -> %s" % [cpu_total, average, verdict])
 	var gpu := RenderingServer.viewport_get_measured_render_time_gpu(viewport_rid)
 	if game_view:
 		gpu += RenderingServer.viewport_get_measured_render_time_gpu(game_view.view.get_viewport_rid())

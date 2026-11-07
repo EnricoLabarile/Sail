@@ -1092,7 +1092,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   frame of the last second, hitches over `HITCH_MS` 50 ms in the last `HITCH_WINDOW` 10 s; CPU (Godot's monitors are the
   WORST of the last second): process (`TIME_PROCESS`), physics, render prep (`viewport_get_measured_render_time_cpu` of
   the window and of the game view's SubViewport, found once, `find_game_view`, + `get_frame_setup_time_cpu`) and a verdict
-  (worst frame > 1.5 × the CPU's → GPU-bound); GPU time (`viewport_get_measured_render_time_gpu`, both viewports; "n/a"
+  (average frame > 1.2 × the CPU's worst → GPU-bound, CPU ≥ 0.8 × average → CPU-bound, else mixed); GPU time (`viewport_get_measured_render_time_gpu`, both viewports; "n/a"
   where not measured); draw calls, objects, triangles; VRAM and textures; RAM and node count; the graphics card's name
   (`get_video_adapter_name`); window and real pixels; the game view's size and `dot_scale`.
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
