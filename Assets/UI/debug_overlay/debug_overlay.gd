@@ -45,8 +45,8 @@ static var enabled := false
 const HITCH_MS := 50.0             # a frame slower than this counts as a hitch (a stutter the player sees)
 const HITCH_WINDOW := 10.0         # seconds the hitches are counted over
 const SWITCHES := ["Sea", "Dither", "Fog", "Shadows", "Clouds", "Outline", "Islands", "Effects", "UI"]
-## The resolutions the "Dots" button goes through (dots across the screen: game_view.gd dots_across; 360 = as usual).
-const RESOLUTIONS := [360, 540, 1080, 270, 180]
+## The resolutions the "Dots" button goes through (dots across the screen: game_view.gd dots_across; 540 = the default).
+const RESOLUTIONS := [540, 1080, 360, 270, 180]
 
 @export var refresh_every := 0.25  # seconds between two refreshes of the text (the measuring itself is every frame)
 @export var font_size := 10
@@ -124,10 +124,10 @@ func next_resolution() -> void:
 	show_resolution()
 
 
-## Writes the game view's dots_across on the button ("Dots 360").
+## Writes the game view's dots_across on the button ("Dots 540").
 func show_resolution() -> void:
 	find_game_view()
-	var dots: int = game_view.dots_across if game_view else 360
+	var dots: int = game_view.dots_across if game_view else 540
 	dots_button.text = "Dots %d" % dots
 
 

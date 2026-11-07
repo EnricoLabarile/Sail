@@ -528,7 +528,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   "folder" nodes, Core / Dangers / Decorative / Gameplay / UI and PostProcess) into a `SubViewport` drawn at the game's resolution, and shows its picture on a full-screen
   `TextureRect` (CanvasLayer 1, nearest filter: sharp dots). Size: real pixels of the game area
   (`get_visible_rect().size × get_final_transform().get_scale()`) / `dot_scale`, `dot_scale` = round(real width /
-  `dots_across`), ≥ 1 (**`dots_across`**, an export on `GameView`, 360 = the grain as it was; 540 = 2 × 2 real pixels a
+  `dots_across`), ≥ 1 (**`dots_across`**, an export on `GameView`, **540 by default** (Enrico, Nov 2026; was 360), 360 = the grain as it was; 540 = 2 × 2 real pixels a
   dot on a 1080 phone, ~2.25× the work; 1080 = 1 × 1, 9×; `@export_range` 90–1080, **live**: its setter calls `_fit`, so
   it can be changed while the game runs, from the editor's Remote tree or the overlay's "Dots" button; a dot is a whole
   number of real pixels, so on a 1080 phone only 1080 / n differ, and on the PC's 360-wide window nothing finer than 360). The controls inside keep their size whatever it is:
@@ -1181,7 +1181,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   Clouds (node hidden and its process disabled: no drift, no cloud-map updates), Islands (a plain Node: its children
   hidden, `set_node_shown`), Effects (Gulls, WindLines, Wake), UI (Helm, Crank, IconLayer, Health hidden); and **"Dots n"** (Enrico, Nov 2026: to see the
   game at different resolutions; it replaced "Half res"): each tap sets GameView's `dots_across` to the next of
-  `RESOLUTIONS` [360, 540, 1080, 270, 180] (`next_resolution`, `show_resolution`). Parts are found by node name in the level, as game_view.gd does.
+  `RESOLUTIONS` [540, 1080, 360, 270, 180] (`next_resolution`, `show_resolution`). Parts are found by node name in the level, as game_view.gd does.
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
   ```
   res://

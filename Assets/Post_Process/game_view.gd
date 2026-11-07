@@ -24,7 +24,7 @@ const DESIGN_WIDTH := 360.0   # the game's width in the project settings: the co
 ## overlay; the view is resized at once (the setter calls _fit). A dot is always a whole number of real pixels, so
 ## on a phone 1080 wide only 1080 / 1, 2, 3, 4… really differ (1080, 540, 360, 270, 216…): the overlay shows the
 ## real size ("game view … (xN)").
-@export_range(90, 1080, 1) var dots_across := 360:
+@export_range(90, 1080, 1) var dots_across := 540:   # Enrico, Nov 2026: 540 by default (was 360)
 	set(value):
 		dots_across = value
 		if view != null:
