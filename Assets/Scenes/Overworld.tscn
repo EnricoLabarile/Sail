@@ -31,6 +31,7 @@
 [ext_resource type="PackedScene" uid="uid://cxyvsiocbqavr" path="res://Assets/Landscape/islands/sm_island_edge_32x16.fbx" id="45_pcmpt"]
 [ext_resource type="PackedScene" uid="uid://23afdjaes360" path="res://Assets/Landscape/islands/sm_island_center_16x16.fbx" id="46_klm3u"]
 [ext_resource type="PackedScene" uid="uid://cw2t2edse5qr" path="res://Assets/Landscape/pier/pier.tscn" id="48_pcmpt"]
+[ext_resource type="PackedScene" path="res://Assets/NPCs/sign/sign.tscn" id="49_iyyhk"]
 [ext_resource type="PackedScene" path="res://Assets/Items/sea_mine/sea_mine.tscn" id="49_oiq7i"]
 [ext_resource type="PackedScene" uid="uid://d0sdk8o8wvfxe" path="res://Assets/Items/barrel/barrel.tscn" id="49_to4lu"]
 [ext_resource type="PackedScene" path="res://Assets/Items/key/key.tscn" id="55_2r5vj"]
@@ -41,7 +42,7 @@
 [ext_resource type="Script" uid="uid://bdhc1006ybcng" path="res://Assets/Landscape/islands/island_grid.gd" id="95_island_grid"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/lever/lever.tscn" id="98_lever"]
 [ext_resource type="Resource" uid="uid://xiyg0s4vdup6" path="res://Assets/Inventory/items/hook.tres" id="99_hook_item"]
-[ext_resource type="PackedScene" path="res://Assets/NPCs/raft_npc/raft_npc.tscn" id="100_raft_npc"]
+[ext_resource type="PackedScene" uid="uid://cpiehcteyiho3" path="res://Assets/NPCs/raft_npc/raft_npc.tscn" id="100_raft_npc"]
 [ext_resource type="Script" uid="uid://droldh1rpljoo" path="res://Assets/Landscape/sea_zones/sea_zone_baker.gd" id="100_zone_baker"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/sea_zones/sea_zone.tscn" id="101_sea_zone"]
 [ext_resource type="Script" uid="uid://bcjtpyaks0wvp" path="res://Assets/Items/towable/tow_goal.gd" id="101_tow_goal"]
@@ -62,9 +63,6 @@ _data = {
 "tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0)
 }
 point_count = 7
-
-[sub_resource type="BoxMesh" id="BoxMesh_8ksrx"]
-size = Vector3(9, 1, 1)
 
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
@@ -248,13 +246,9 @@ count = 99
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.012848, 0, 40.826904)
 
 [node name="TowGoalTest" type="Node3D" parent="Gameplay" unique_id=37620220]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56.304154, 0, 39.174606)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56.304153, 0, 39.174606)
 script = ExtResource("101_tow_goal")
 goal_id = "castaway"
-
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=1546812257]
-transform = Transform3D(8.5, 0, 0, 0, 1, 0, 0, 0, 5.9, 61.804153, 0, 30.174606)
-mesh = SubResource("BoxMesh_8ksrx")
 
 [node name="UI and PostProcess" type="Node" parent="." unique_id=58599448]
 
@@ -343,6 +337,9 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -104
 
 [node name="sm_island_center_32x209" parent="Islands" unique_id=774804600 instance=ExtResource("42_i5cs1")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -200, 0, -47.11111)
+
+[node name="sm_island_center_32x227" parent="Islands" unique_id=1827076301 instance=ExtResource("42_i5cs1")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -224, 0, 40.888885)
 
 [node name="sm_island_center_32x210" parent="Islands" unique_id=724038824 instance=ExtResource("42_i5cs1")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -200, 0, -79.111115)
@@ -953,6 +950,30 @@ transform = Transform3D(1.3113416e-07, 0, -1, 0, 1, 0, 1, 0, 1.3113416e-07, -72,
 [node name="sm_island_edge_32x25" parent="Islands" unique_id=1874077841 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(-2.1855693e-07, 0, 1, 0, 1, 0, -1, 0, -2.1855693e-07, -72, 0, 64.888885)
 
+[node name="sm_island_corner_out_16x24" parent="Islands" unique_id=689473178 instance=ExtResource("44_84ff5")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -240, 0, 24.888885)
+
+[node name="sm_island_corner_out_16x26" parent="Islands" unique_id=959488454 instance=ExtResource("44_84ff5")]
+transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 0.99999994, -208, 0, 24.888885)
+
+[node name="sm_island_corner_out_16x44" parent="Islands" unique_id=947298940 instance=ExtResource("44_84ff5")]
+transform = Transform3D(-4.3711385e-08, 0, -0.9999999, 0, 1, 0, 0.9999999, 0, -4.3711385e-08, -208, 0, 56.888885)
+
+[node name="sm_island_corner_out_16x45" parent="Islands" unique_id=1557161790 instance=ExtResource("44_84ff5")]
+transform = Transform3D(-0.9999999, 0, 8.742276e-08, 0, 1, 0, -8.742276e-08, 0, -0.9999999, -240, 0, 56.888885)
+
+[node name="sm_island_edge_32x27" parent="Islands" unique_id=772982265 instance=ExtResource("45_pcmpt")]
+transform = Transform3D(-2.1855693e-07, 0, 1, 0, 1, 0, -1, 0, -2.1855693e-07, -224, 0, 24.888885)
+
+[node name="sm_island_edge_32x29" parent="Islands" unique_id=1105428636 instance=ExtResource("45_pcmpt")]
+transform = Transform3D(-4.3711385e-08, 0, -0.99999994, 0, 1, 0, 0.99999994, 0, -4.3711385e-08, -224, 0, 56.888885)
+
+[node name="sm_island_edge_32x28" parent="Islands" unique_id=2093945053 instance=ExtResource("45_pcmpt")]
+transform = Transform3D(1, 0, 1.7484555e-07, 0, 1, 0, -1.7484555e-07, 0, 1, -208, 0, 40.888885)
+
+[node name="sm_island_edge_32x148" parent="Islands" unique_id=1699210685 instance=ExtResource("45_pcmpt")]
+transform = Transform3D(-0.99999994, 0, 8.742277e-08, 0, 1, 0, -8.742277e-08, 0, -0.99999994, -240, 0, 40.888885)
+
 [node name="sm_island_edge_32x20" parent="Islands" unique_id=1889082693 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(1.3113416e-07, 0, -1, 0, 1, 0, 1, 0, 1.3113416e-07, -104, 0, 0.8888855)
 
@@ -1475,3 +1496,7 @@ transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -3, 
 
 [node name="SeaMine" parent="." unique_id=1082937340 instance=ExtResource("49_oiq7i")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74, 0, 31)
+
+[node name="Sign" parent="." unique_id=1562975471 instance=ExtResource("49_iyyhk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37, 1, 1)
+talk_radius = 16
