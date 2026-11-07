@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://r4iisyleixnd"]
 
 [ext_resource type="Script" uid="uid://c6u0i2mlk0u4r" path="res://Assets/UI/helm.gd" id="1_helm"]
-[ext_resource type="PackedScene" path="res://Assets/UI/interaction_button/interaction_button.tscn" id="2_ib"]
+[ext_resource type="PackedScene" uid="uid://4m450b6nowoh" path="res://Assets/UI/interaction_button/interaction_button.tscn" id="2_ib"]
 
 [node name="Helm" type="CanvasLayer" unique_id=972221304]
 layer = 95
@@ -14,17 +14,17 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -86.0
-offset_top = -245.17194
-offset_right = 86.0
-offset_bottom = -56.828064
+offset_left = -98.0
+offset_top = -258.3122
+offset_right = 98.0
+offset_bottom = -43.687744
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("1_helm")
 
 [node name="InteractionButton" parent="Wheel" unique_id=1833446053 instance=ExtResource("2_ib")]
 layout_mode = 0
-offset_left = 55.647064
-offset_top = 71.60181
-offset_right = 116.352936
-offset_bottom = 132.30768
+offset_left = 63.411766
+offset_top = 81.592766
+offset_right = 132.58823
+offset_bottom = 150.76923

@@ -15,8 +15,8 @@
 [node name="UILayout" type="Node" unique_id=2057268536]
 
 [node name="Helm" parent="." unique_id=983948778 instance=ExtResource("4_helm")]
-offset = Vector2(73.725, 50.14)
-transform = Transform2D(1, 0, 0, 1, 73.725, 50.14)
+offset = Vector2(79.14, 43.815)
+transform = Transform2D(1, 0, 0, 1, 79.14, 43.815)
 
 [node name="Crank" parent="." unique_id=554795623 instance=ExtResource("11_crank")]
 offset = Vector2(10.285, 255.775)

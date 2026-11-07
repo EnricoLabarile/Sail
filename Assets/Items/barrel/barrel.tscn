@@ -43,4 +43,6 @@ shape = SubResource("Shape_sensor")
 
 [node name="Towable" type="Node3D" parent="." unique_id=505441674]
 script = ExtResource("4_towable")
+weight = 1
+tow_slowdown = 0.5
 size = 5.0

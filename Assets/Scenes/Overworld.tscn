@@ -63,6 +63,9 @@ _data = {
 }
 point_count = 7
 
+[sub_resource type="BoxMesh" id="BoxMesh_8ksrx"]
+size = Vector3(9, 1, 1)
+
 [node name="World_Origin" type="Node3D" unique_id=1254907948]
 
 [node name="Core" type="Node" parent="." unique_id=70268906]
@@ -228,7 +231,7 @@ land_roots = Array[NodePath]([NodePath("Islands"), NodePath("../../Coast")])
 [node name="Pickups" type="Node3D" parent="Gameplay" unique_id=1786065463]
 
 [node name="HookPickup" parent="Gameplay/Pickups" unique_id=1854585570 instance=ExtResource("91_pickup")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.050165, -3.8146973e-06, -3.6224442)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.050165, -3.8146973e-06, 50.377556)
 item = ExtResource("99_hook_item")
 
 [node name="LeverTest" parent="Gameplay/Pickups" unique_id=399119077 instance=ExtResource("98_lever")]
@@ -251,12 +254,16 @@ item = ExtResource("92_jar_item")
 count = 99
 
 [node name="RaftNPCTest" parent="Gameplay" unique_id=609462272 instance=ExtResource("100_raft_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.012848, 0, -3.1730957)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.012848, 0, 40.826904)
 
-[node name="TowGoalTest" type="Node3D" parent="Gameplay" unique_id=37620220]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 139.30415, 0, -52.82539)
+[node name="TowGoalTest" type="Node3D" parent="Gameplay/RaftNPCTest" unique_id=37620220]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.291306, 0, -1.652298)
 script = ExtResource("101_tow_goal")
 goal_id = "castaway"
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=1546812257]
+transform = Transform3D(8.5, 0, 0, 0, 1, 0, 0, 0, 5.9, 61.804153, 0, 30.174606)
+mesh = SubResource("BoxMesh_8ksrx")
 
 [node name="UI and PostProcess" type="Node" parent="." unique_id=58599448]
 
@@ -1476,4 +1483,4 @@ sink_extra = 0.0
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -3, 0, -11)
 
 [node name="SeaMine" parent="." unique_id=1082937340 instance=ExtResource("49_oiq7i")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 0, 34)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74, 0, 31)
