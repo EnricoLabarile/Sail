@@ -51,6 +51,10 @@ extends Node3D
 ## placed when she finds it) and never once a TowGoal has taken it (it's safe there).
 @export var drifts_with_current := false
 @export var news_picture: Texture2D = preload("res://Assets/NPCs/npc/bubble_news.png")
+## Can it be heard again? (Enrico, Nov 2026: A SIGN, Assets/NPCs/sign/sign.tscn, is an NPC with this on.) Once heard its
+## bubble stays off, as for anyone, but a tap on the interaction button (a plain speech bubble, no glint) reads it
+## again. Off: once heard, nothing more to say until it has news.
+@export var read_again := false
 
 @export_group("Reward after delivery")
 ## What it drops once it has been towed to its goal and she has heard it (drag any item's .tres here: coins.tres,
@@ -151,8 +155,8 @@ func _on_sensor_exited(area: Area3D) -> void:
 func start_talk() -> void:
 	if towed or not boat_near or talking or lines.is_empty():
 		return
-	if _talked_to():
-		return                            # already talked since she came in: she has to leave and come back
+	if _talked_to() and not read_again:
+		return                            # already heard: only a sign (read_again) can be read once more
 	var talk_box := get_tree().get_first_node_in_group("talk_box")
 	if talk_box == null:
 		return

@@ -70,7 +70,8 @@ func _on_equipped_changed() -> void:
 
 # ---- what it is now ----
 
-## Which of the five moments it is: "talk_next", "talk_start", "fishing", "item" or "empty".
+## Which of the six moments it is: "talk_next", "talk_start", "talk_again", "fishing", "item" or "empty".
+## "talk_again" (Enrico, Nov 2026): by a sign already read (npc.gd read_again): the same speech bubble, but no glint.
 func mode() -> String:
 	if Engine.is_editor_hint():
 		return "empty"
@@ -81,6 +82,8 @@ func mode() -> String:
 		return "talk_next"
 	if boat.npc_to_talk_to() != null:
 		return "talk_start"
+	if boat.npc_to_hear_again() != null:
+		return "talk_again"
 	if boat.over_fishing_spot():
 		return "fishing"
 	if Inventory.equipped != "":
@@ -196,6 +199,12 @@ func press(click := true) -> void:
 			if not boat.anchored:
 				boat.toggle_anchor()
 			npc.start_talk()
+		"talk_again":
+			# A sign read before: read it again (the same as above, the boat stops for it too).
+			var npc: Node3D = boat.npc_to_hear_again()
+			if not boat.anchored:
+				boat.toggle_anchor()
+			npc.start_talk()
 		"item":
 			var action := current_action()
 			if action != null and action.can_use():
@@ -248,7 +257,7 @@ func _draw() -> void:
 	match now:
 		"talk_next":
 			_draw_arrow(mark)
-		"talk_start":
+		"talk_start", "talk_again":
 			_draw_speech_bubble(mark)
 		"fishing":
 			_draw_question_mark(mark)

@@ -571,6 +571,15 @@ func npc_to_talk_to() -> Node3D:
 	return null
 
 
+## An NPC near her she HAS heard but that can be heard again (a sign, npc.gd read_again), or null. The interaction
+## button offers it quietly (a plain speech bubble, no glint): reading it again is up to the player.
+func npc_to_hear_again() -> Node3D:
+	for npc in npcs_near:
+		if npcs_talked_to.has(npc) and npc.read_again:
+			return npc
+	return null
+
+
 ## Is she over a fishing spot now? (The interaction button shows a question mark.)
 func over_fishing_spot() -> bool:
 	return not fishing_spots_under.is_empty()

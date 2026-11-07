@@ -982,6 +982,14 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   `npcs_near`); it counts as heard until it has news: `npc.show_news()` calls `boat.forget_talk_with(self)` wherever she
   is (so `on_delivered` talks again). While the hub shows the speech bubble **the wheel is drawn
   darker** (`helm.gd` `talk_wheel_shade` 0.6, a modulate on the wheel's picture).
+- **Signs** (Enrico, Nov 2026: a sign the player reads with the talk box; `Assets/NPCs/sign/sign.tscn`, an inherited
+  scene of `npc.tscn`, no script of its own): a placeholder look (`Post` and `Board`, wooden BoxMeshes; the NPC's box
+  hidden), `speaker_name` "Sign", `lines` = its text (Enrico writes it in the Inspector, a page an entry),
+  `talk_radius` 6, **`read_again`** on (npc.gd export, off for NPCs): its bubble shows until it's read, as an NPC's,
+  then stays off; but a tap still reads it again: boat.gd `npc_to_hear_again()` (a near NPC already heard with
+  `read_again`) → the interaction button's mode **`talk_again`** (after `talk_start`, before fishing and the thing
+  in hand): the same speech bubble with **no glint**, a tap drops the anchor and `start_talk()` (which lets a heard
+  `read_again` NPC talk). Like any NPC, in its radius the boat's speed is capped and there's no current.
 - **The talk box** (`Assets/UI/talk_box/`: `talk_box.tscn` (CanvasLayer 115, crisp, not in `DITHERED`; Control `Box`
   at the top, full width less 12 px, y 92–222) + `talk_box.gd`; in Overworld as `TalkBox`, group `talk_box`): a paper
   panel, 2 px ink border, 3 px ink shadow (as the hearts'); on the left `Portrait` (TextureRect 86 px, a double ink
@@ -1020,7 +1028,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   middle at the old hub's size, `hub_middle()` / `hub_radius()`): **the one button for everything**, where the anchor's
   hub was (the anchor is the crank's now: a whole turn back; Space still works it on the PC). What a tap does depends on
   the moment (`mode()`, the first that fits): **talking** → an arrow, `talk_box.tap()` (whole page, then the next, then
-  close); **near an NPC not yet talked to** (`boat.npc_to_talk_to()`) → a speech bubble with the glint (`shimmer_time`
+  close); (a sign already read, `read_again`: `talk_again`, the bubble without the glint, see Signs); **near an NPC not yet talked to** (`boat.npc_to_talk_to()`) → a speech bubble with the glint (`shimmer_time`
   0.5 / `shimmer_every` 1.6) → the anchor drops (`boat.toggle_anchor()`, unless already down or tied up: Enrico, the boat
   stops for the talk) and `npc.start_talk()`; **over a fishing spot** (`boat.over_fishing_spot()`) → a question
   mark, only a hint (fish by anchoring with the crank); **a thing in hand** (`Inventory.equipped`) → its icon on the
