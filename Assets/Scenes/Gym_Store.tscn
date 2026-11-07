@@ -23,7 +23,6 @@
 [node name="ShoreBaker" type="Node3D" parent="Core" unique_id=54035983]
 script = ExtResource("1_eel5a")
 save_path = "res://Assets/Landscape/shore/ShoreMask_Gym_Store.png"
-land_roots = Array[NodePath]([NodePath("../../Gameplay/Islands"), NodePath("../Coast")])
 
 [node name="Boat" parent="Core" unique_id=1762906152 instance=ExtResource("2_56yd8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.457729, -0.043405533, 136.63055)

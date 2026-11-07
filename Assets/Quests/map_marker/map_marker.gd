@@ -44,9 +44,10 @@ const CAMERA_HEIGHT := 200.0         # metres up the camera prints from: above a
 @export_file("*.png") var print_path := ""
 @export var area_size := 120        # metres across the area printed (the marker is in the middle)
 @export var picture_size := 140      # pixels a side of the picture (the book draws it at a whole multiple: 2 x on a phone)
-## The nodes whose meshes are the land (as the shore baker's): looked for by name anywhere in the level if the
-## path doesn't lead anywhere.
-@export var land_roots: Array[NodePath] = [NodePath("../../Islands"), NodePath("../../Coast")]
+## The NAMES of the nodes whose meshes are the land (as the shore baker's), looked for anywhere in the level: so the
+## level can be reorganised freely, and a name that isn't there (no Coast in the Overworld) is just skipped. (They were
+## node paths, Nov 2026: a path leading nowhere filled the editor's Output with "invalid node path" errors.)
+@export var land_roots: Array[String] = ["Islands", "Coast"]
 
 
 func _ready() -> void:
@@ -137,13 +138,10 @@ func take_photo() -> Image:
 	white.cull_mode = BaseMaterial3D.CULL_DISABLED
 	# The land: a white copy of every mesh under the land roots.
 	var level := owner if owner else get_tree().current_scene
-	for path in land_roots:
-		var root := get_node_or_null(path)
+	for root_name in land_roots:
+		var root := level.find_child(root_name, true, false)
 		if root == null:
-			root = level.find_child(path.get_name(path.get_name_count() - 1), true, false)
-		if root == null:
-			print("Map marker: no ", path, " found, skipped")
-			continue
+			continue                         # not in this level (the Overworld has no Coast): nothing to print from it
 		for found in root.find_children("*", "MeshInstance3D", true, false):
 			_copy_mesh(found, view, white)
 	# The camera: straight above the marker, looking down (turned -90 degrees round x), north (-Z) at the top.

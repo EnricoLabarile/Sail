@@ -33,7 +33,6 @@ size = Vector3(0.53808594, 1, 0.4716797)
 [node name="ShoreBaker" type="Node3D" parent="Core" unique_id=54035983]
 script = ExtResource("1_eel5a")
 save_path = "uid://cc1dk2viasrhn"
-land_roots = Array[NodePath]([NodePath("../../Gameplay/Islands"), NodePath("../Coast")])
 
 [node name="SeaZoneBaker" type="Node3D" parent="Core"]
 script = ExtResource("100_zone_baker")

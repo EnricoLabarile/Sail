@@ -28,9 +28,10 @@ const MAX_DISTANCE := 32.0
 @export_tool_button("Bake shore", "Bake") var bake_button := bake
 ## Where this level's picture is saved. A different file for every level, or one would overwrite the other.
 @export_file("*.png") var save_path := "res://Assets/Landscape/shore/shore_distance.png"
-## The nodes whose meshes are the land (everything inside them, however deep). If a path doesn't lead anywhere (the
-## node was moved into a "folder" node), the node is looked for by its name anywhere in the level.
-@export var land_roots: Array[NodePath] = [NodePath("../Islands"), NodePath("../Coast")]
+## The NAMES of the nodes whose meshes are the land (everything inside them, however deep), looked for anywhere in
+## the level, so they can sit in any "folder" node; a name that isn't there is skipped. (They were node paths, Nov
+## 2026: a path leading nowhere filled the editor's Output with "invalid node path" errors.)
+@export var land_roots: Array[String] = ["Islands", "Coast"]
 ## Metres a pixel of the picture covers (1 = a 1008 x 1008 picture for the 1008 m map; 2 = four times quicker
 ## to bake, smoother; 0.5 = sharper, four times slower).
 @export var metres_per_pixel := 1.0
@@ -91,13 +92,10 @@ func take_photo(side: int) -> PackedByteArray:
 	white.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	white.cull_mode = BaseMaterial3D.CULL_DISABLED
 	white.albedo_color = Color.WHITE
-	for path in land_roots:
-		var root := get_node_or_null(path)
+	for root_name in land_roots:
+		var root := owner.find_child(root_name, true, false)     # by its name, anywhere in the level
 		if root == null:
-			root = owner.find_child(path.get_name(path.get_name_count() - 1), true, false)   # by its name (Islands, Coast)
-		if root == null:
-			print("Shore baker: no ", path, " found, skipped")
-			continue
+			continue                                              # not in this level: nothing to bake from it
 		for found in root.find_children("*", "MeshInstance3D", true, false):
 			var original := found as MeshInstance3D
 			var copy := MeshInstance3D.new()
