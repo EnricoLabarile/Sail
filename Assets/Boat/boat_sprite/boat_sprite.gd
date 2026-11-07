@@ -55,9 +55,11 @@ var south_shift := 0.0                  # metres the lifted picture is moved sou
 
 
 func _ready() -> void:
+	# Nothing to do every frame until setup() has made the picture (and never in the editor: it's a @tool script,
+	# and in the editor _process would run with no boat).
+	set_process(false)
 	if Engine.is_editor_hint():
 		return
-	set_process(false)
 	if not use_sprite or sheet == null:
 		return                           # the 3D boat stays
 	boat = get_parent() as Node3D
@@ -110,6 +112,8 @@ func hide_3d_boat() -> void:
 
 ## Every frame: the picture at her drawn place, at Model's height (bobbing, sinking, coming up), showing her heading.
 func _process(_dt: float) -> void:
+	if quad == null:
+		return                           # not set up (yet): the 3D boat is shown
 	var drawn := boat.get_global_transform_interpolated()
 	var drop := 0.0
 	if model:
