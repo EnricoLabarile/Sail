@@ -28,6 +28,9 @@ extends Node3D
 ## drops `reward_count` of `reward_item` on the water next to it (a pickup, which flies to the boat like any other:
 ## coins by default, 5) and, with `leave_after_reward`, it's gone from the game: its job is done.
 
+## For the EventTrigger (Assets/Quests/event_trigger): sent when this thing's job is done (a talk with it ended).
+signal done
+
 ## The name shown in the talk box.
 @export var speaker_name := "Stranger"
 ## The picture in the talk box's frame, on the left (paint your own; any size, it's fitted into the frame).
@@ -173,6 +176,7 @@ func _on_talk_finished() -> void:
 	if boat:
 		boat.done_talking_with(self)
 	set_process(true)                     # the bubble fades out
+	done.emit()                           # before a reward, which may free it
 	if delivered:
 		give_reward()                     # brought to its goal and heard: the reward, and maybe goodbye
 

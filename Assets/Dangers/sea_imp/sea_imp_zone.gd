@@ -30,6 +30,9 @@ extends Node3D
 const FIREBALL_SCENE := preload("res://Assets/Dangers/sea_imp/fireball.tscn")
 const Pickup := preload("res://Assets/Items/pickup/pickup.gd")   # for Pickup.drop_loot (every enemy's reward)
 
+## For the EventTrigger (Assets/Quests/event_trigger): sent when this thing's job is done (defeated).
+signal done
+
 ## How far from its place it still hunts her, in metres: further than this, it goes back to lurking.
 @export var radius := 60:
 	set(value):
@@ -222,6 +225,7 @@ func defeat() -> void:
 	imp.visible = true
 	Sfx.enemy_death()
 	Pickup.drop_loot(get_parent(), drop_pool, imp.global_position, drop_chance, drop_min, drop_max, drop_spread)
+	done.emit()
 
 
 # ---- what it does ----

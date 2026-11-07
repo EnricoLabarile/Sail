@@ -18,6 +18,8 @@ extends Node3D
 ## First use: the secret wall (Assets/Landscape/secret_wall/secret_wall.tscn), Zelda 1's bombable walls.
 
 signal destroyed
+## For the EventTrigger (Assets/Quests/event_trigger): sent when this thing's job is done (destroyed).
+signal done
 
 enum Shape { CIRCLE, BOX }
 
@@ -110,6 +112,7 @@ func break_apart() -> void:
 		return
 	broken = true
 	destroyed.emit()
+	done.emit()
 	if free_parent:
 		thing.queue_free()
 		return

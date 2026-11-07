@@ -20,6 +20,8 @@ extends Node3D
 
 ## Sent once each time it's pulled all the way out.
 signal pulled
+## For the EventTrigger (Assets/Quests/event_trigger): sent when this thing's job is done (pulled all the way).
+signal done
 
 ## Metres from its middle her middle must be within for the hook to grab it.
 @export var touch_radius := 6.0
@@ -126,6 +128,7 @@ func pull(dt: float) -> void:
 	place_handle()
 	draw_rope(stern)
 	if progress >= 1.0:
+		done.emit()
 		pulled.emit()                      # all the way out: whatever is connected happens
 		Sfx.lever_done()
 		let_go()

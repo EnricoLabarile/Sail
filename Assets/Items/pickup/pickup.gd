@@ -14,6 +14,8 @@ extends Node3D
 
 signal touched(pickup: Node3D, boat: Node3D)   # the boat came over it (sent always, taken or not)
 signal taken(pickup: Node3D)                   # it went into the hold (just before it's freed)
+## For the EventTrigger (Assets/Quests/event_trigger): sent when this thing's job is done (taken).
+signal done
 
 ## What it is (drag a .tres from Assets/Inventory/items here).
 @export var item: ItemData:
@@ -129,6 +131,7 @@ func take(boat: Node3D) -> void:
 		Inventory.add_coins(-price)
 	boat.camera.shake_hard(take_shake_strength, take_shake_time)
 	taken.emit(self)
+	done.emit()
 	queue_free()
 
 

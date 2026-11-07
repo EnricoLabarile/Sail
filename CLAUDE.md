@@ -1057,6 +1057,19 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   NPC back. While open `boat.talking` is true: `toggle_anchor` does nothing (hub hold, Space) and the hub's ring
   doesn't fill. **While open, every node in the group `hidden_while_talking` is hidden** (Enrico: the
   `WindVane` and `Health` CanvasLayers, group set in their .tscn; `_show_hud`); add a node to it to hide it too.
+- **Events** (Enrico, Nov 2026: "when these things are done, make those happen", bare bones;
+  `Assets/Quests/event_trigger/event_trigger.gd`, `class_name EventTrigger`, `@tool`, `@icon` `event_trigger_icon.svg`
+  (a lightning bolt); no .tscn: Add Child Node → EventTrigger, e.g. under `Gameplay/Events`): `watch` (`Array[Node]`,
+  picked from the scene tree), `need` ALL / ANY; group "Then": `show_nodes` (hidden and Process Mode Disabled at the
+  game's start, so no scripts, collisions or sensors; still seen in the editor, to place them; switched back on when it
+  happens: the way to spawn something, or to swap an abandoned house for a mended one with the old one in
+  `remove_nodes`), `remove_nodes` (freed), `call_on` + `method` (a function called with no arguments, e.g. a
+  BridgeLock's `open`), `delay` s; once only; then signal `triggered`. Editor warnings (`_get_configuration_warnings`)
+  for nothing watched / a thing without `done` / a method missing. **The `done` signal** (a rule: every new element
+  that can "finish" gets `signal done` and emits it): Destructible destroyed, Pickup taken, Towable delivered, TowGoal
+  arrived, sea imp `defeat()`, sea urchin dead, NPC / sign `_on_talk_finished` (every talk; before a reward, which may
+  free it), lever pulled all the way, BridgeLock opened. Each watched thing counts once (`CONNECT_ONE_SHOT`). Not yet
+  (later, if wanted): inventory conditions, saving the world's state.
 - **Map markers** (Enrico; `Assets/Quests/map_marker/`: `map_marker.tscn` + `map_marker.gd` (`@tool`, `@icon`),
   `map_marker_icon.svg`; instanced under `MapMarkers` in Overworld, for now one at (60, 0, −150), F4, `active` on to
   try it): an invisible Node3D; in the editor a red X in a circle (the scene-tree icon, and in the 3D view a Sprite3D

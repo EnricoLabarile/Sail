@@ -32,6 +32,8 @@ enum Weight { LIGHT, HEAVY }
 signal grabbed(boat: Node3D)
 signal released
 signal delivered(goal: Node3D)
+## For the EventTrigger (Assets/Quests/event_trigger): sent when this thing's job is done (brought to its TowGoal).
+signal done
 
 ## Which goals take it: a TowGoal with the same text (a goal with no id takes anything).
 @export var tow_id := ""
@@ -121,6 +123,7 @@ func deliver(goal: Node3D) -> void:
 	stop_tow()
 	delivered_to = goal
 	delivered.emit(goal)
+	done.emit()
 
 
 # ---- following her ----

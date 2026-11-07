@@ -13,6 +13,8 @@ extends Node3D
 
 ## Sent when a Towable is delivered here.
 signal arrived(towable: Node3D)
+## For the EventTrigger (Assets/Quests/event_trigger): sent when this thing's job is done (the right thing arrived).
+signal done
 
 ## Which Towables it takes: the same text as their `tow_id` (empty = any).
 @export var goal_id := ""
@@ -57,6 +59,7 @@ func _physics_process(_dt: float) -> void:
 		if off.length() <= radius:
 			towable.deliver(self)
 			arrived.emit(towable)
+			done.emit()
 
 
 # ---------- In the editor only: radius drawn as a green disc on the water ----------

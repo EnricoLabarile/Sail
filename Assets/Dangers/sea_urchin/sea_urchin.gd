@@ -19,6 +19,9 @@ extends Node3D
 
 enum State { WALKING, ATTACKING, DEAD }
 
+## For the EventTrigger (Assets/Quests/event_trigger): sent when this thing's job is done (killed).
+signal done
+
 ## Metres round this node it wanders in (it never leaves this circle). The editor disc follows it.
 @export var area_radius := 20.0:
 	set(value):
@@ -193,6 +196,7 @@ func lose_hearts(amount: float) -> void:
 		state = State.DEAD
 		Sfx.enemy_death()
 		Pickup.drop_loot(get_parent(), drop_pool, urchin.global_position, drop_chance, drop_min, drop_max, drop_spread)
+		done.emit()
 
 
 ## The black blink: while hurt_left runs down, the picture switches between black and its own colours (its colour

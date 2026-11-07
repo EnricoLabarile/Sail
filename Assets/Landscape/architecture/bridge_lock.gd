@@ -18,6 +18,8 @@ extends Node3D
 
 ## Sent once, when a key opens it.
 signal opened
+## For the EventTrigger (Assets/Quests/event_trigger): sent when this thing's job is done (opened).
+signal done
 
 ## Which key opens it: the same text as the key's `key_id` (empty = any key).
 @export var key_id := ""
@@ -109,6 +111,7 @@ func distance_to_box(point: Vector3) -> float:
 func open() -> void:
 	is_open = true
 	opened.emit()
+	done.emit()
 
 
 ## Going down: the gate sinks by its own height over open_time; once all the way down it's no longer solid, and
