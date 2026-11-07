@@ -122,3 +122,4 @@ mesh = SubResource("BoxMesh_8ksrx")
 [node name="BoatSprite" type="Node3D" parent="." unique_id=1838210477]
 script = ExtResource("16_boat_sprite")
 sheet = ExtResource("17_boat_sheet")
+use_sprite = false

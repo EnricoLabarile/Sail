@@ -380,7 +380,8 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   straight down (Enrico: adjustable, not a perfect top-down), looking north; the copies turned `directions` 16 times
   (frame i = rotation.y of i / directions of a turn), pasted left to right, row by row (`sheet_columns`/`rows`), saved
   to `sheet_path`, reimported, put in `sheet` (save boat.tscn). **Bake again after changing the boat or the tilt.**
-  **In the game** (`use_sprite` on, `sheet` set; `setup`, deferred): every mesh under Model hidden (not the steam), a
+  **Off for now** (Enrico, Nov 2026: back to the 3D boat with its paddles: `use_sprite` false in boat.tscn; the tool and
+  the sheet stay). **In the game** (`use_sprite` on, `sheet` set; `setup`, deferred): every mesh under Model hidden (not the steam), a
   flat PlaneMesh (top_level, StandardMaterial3D unshaded, alpha scissor 0.5, nearest; `uv1_scale` = one cell) sized
   frame / pixels_per_metre, stretched north-south by 1 / cos(the game camera's `tilt_deg`) so that lying flat it's seen
   as photographed; every frame at her interpolated place, **`height_above_water` 1 m over the level's Sea node** (the
