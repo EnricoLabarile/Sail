@@ -535,7 +535,9 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   `size_2d_override` = real pixels / round(real width / 360), `size_2d_override_stretch` on. With 360: (phone 1080 wide → 360×655, ×3; the PC's 360×800 window → ×1; a wide PC screen in the phone frame
   405×900 → ×1). So the world, the shadows, the dither and the wheel are drawn ~9× smaller on the phone; what stays
   crisp at full resolution on top: the wind vane (110), the open book (120), the start screen (130). Taps and drags
-  on the picture are passed into the view (`_pass_input`: `push_input`, scaled to its pixels). In the editor the
+  on the picture are passed into the view (`_pass_input`: `push_input`, scaled to the view's **`size_2d_override`**, the
+  controls' own 360-wide units, NOT its pixels: Enrico, Nov 2026, at 540 dots the touches landed 1.5× off and the UI
+  stopped answering; checked under xvfb at 400×800, 720×1560, 1080×2160 with 180–1080 dots: the lever takes the touch). In the editor the
   scene looks as always. (Before: the 3D at 1/3 with `scaling_3d_scale`, the dither at full resolution; `dither.gd`
   is gone.) The 3D world is shared (the SubViewport uses the root's World3D: `Land`'s rays still work).
   **Tilt-shift (a test, Enrico, Nov 2026)**: the top and bottom of the world blurred, more toward the edge, for a

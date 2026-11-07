@@ -146,7 +146,14 @@ func _update_tilt_shift() -> void:
 	material.set_shader_parameter("blur_pixels", tilt_blur)
 
 
-## A tap or a drag on the picture: passed on to the SubViewport, its position turned into the view's pixels.
+## A tap or a drag on the picture: passed on to the SubViewport, its position turned into the units the controls
+## inside are laid out in. Those are the view's size_2d_override (the screen as if it were DESIGN_WIDTH 360 wide, see
+## _fit), NOT the view's pixels: with dots_across 360 on a phone the two happened to be the same, but at 540 the view
+## has 540 pixels across while the controls still think in 360, so a touch landed 1.5 times too far right and down
+## (Enrico, Nov 2026: "the UI stopped working"). Now a touch is in the same place whatever dots_across is.
 func _pass_input(event: InputEvent) -> void:
-	var to_view := Vector2(view.size) / screen.size
-	view.push_input(event.xformed_by(Transform2D.IDENTITY.scaled(to_view)), true)
+	var units := Vector2(view.size_2d_override)
+	if units.x <= 0.0 or units.y <= 0.0:
+		units = Vector2(view.size)                 # no override: the controls think in the view's pixels
+	var to_units := units / screen.size            # from the picture on the screen to the controls' units
+	view.push_input(event.xformed_by(Transform2D.IDENTITY.scaled(to_units)), true)
