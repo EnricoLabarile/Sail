@@ -217,9 +217,10 @@ func update(dt: float) -> void:
 
 
 ## The heat: boosting, it rises (and the wait before she cools starts again from 0); not boosting, the wait counts
-## up, and once it's past cool_delay it falls at cool_rate, never below cold, as long as she's under way: running and
-## going at least cool_min_speed. Standing still, nothing (Enrico: else pulling the lever back to stop cooled her for
-## free). Overheated, she isn't running, so she stays hot until the lever turns her on.
+## up, and once it's past cool_delay it falls at cool_rate, never below cold, as long as she's under way (running and
+## going at least cool_min_speed) OR switched off (Enrico, Nov 2026: at anchor or tied up the engine rests and cools,
+## overheated too; the lever's filling goes down with it). Standing still with the anchor up and the lever pulled back,
+## nothing (Enrico: that would cool her for free while she can still go).
 func update_heat(dt: float) -> void:
 	if is_boosting():
 		since_boost = 0.0
@@ -229,7 +230,8 @@ func update_heat(dt: float) -> void:
 		return
 	since_boost += dt
 	var under_way: bool = is_running() and boat.speed >= cool_min_speed
-	if since_boost >= cool_delay and under_way:
+	var switched_off: bool = boat.anchored             # at anchor or tied up at a pier
+	if since_boost >= cool_delay and (under_way or switched_off):
 		heat = maxf(0.0, heat - dt * cool_rate)
 
 

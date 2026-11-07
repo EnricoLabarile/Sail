@@ -318,8 +318,10 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   `paddles.take_hit()`; called by `bump_into_enemy`, the fireball and the urchin's spike; boiling water, waves,
   maelstroms and bombs don't heat her). **It cools by itself** (`update_heat`): `since_boost` is 0 while boosting (and
   after a bomb), otherwise it counts up, and from `cool_delay` 0.5 s on the heat falls at `cool_rate` 8 a second
-  (overheated to cold in 5 s), **only while she's under way** (running and `boat.speed` ≥ `cool_min_speed` 0.5 m/s;
-  standing still or at anchor it doesn't: there only the lever all the way right cools her, turn_on / vent). A booster
+  (overheated to cold in 5 s), **while she's under way** (running and `boat.speed` ≥ `cool_min_speed` 0.5 m/s) **or
+  switched off** (Enrico, Nov 2026: at anchor or tied up, `boat.anchored`, overheated too: the lever's filling goes
+  down with it); standing still with the anchor up (lever pulled back) it doesn't. The lever's right end still cools her
+  at once (turn_on / vent). A booster
   cools her (`paddles.cool(amount)`, booster.gd `cooling` 5). **At `max_heat` she overheats** (`check_overheat`):
   `is_overheated`, not running (no push, she stops as with the old empty battery), and signal **`overheated`** →
   **the boat blinks black** (boat.gd `blink_black`: a Tween sets a plain black unshaded `material_override` on every
