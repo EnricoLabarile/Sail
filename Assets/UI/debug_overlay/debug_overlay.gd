@@ -32,7 +32,8 @@ extends CanvasLayer
 ##   Islands   all the land pieces (365 meshes in the Overworld)
 ##   Effects   gulls, wind lines, the boat's wake (the bow wave stays: boat.gd shows it every frame; it's 2 quads)
 ##   UI        the wheel, the lever, the logbook and the hearts (not drawn)
-##   Half res  the world drawn with half as many dots across (the game view's dots_across 360 → 180)
+## And one more button, "Dots n": the game view's resolution (its dots_across), each tap the next of RESOLUTIONS, round
+## and round (Enrico, Nov 2026: to see the game at different resolutions; it replaced the old "Half res" switch).
 ##
 ## It lives in ui_layout.tscn (node DebugOverlay), so it's in every level; it stays out of the game view (it's not
 ## dithered) and keeps working while the game is paused (process_mode Always).
@@ -43,7 +44,9 @@ static var enabled := false
 
 const HITCH_MS := 50.0             # a frame slower than this counts as a hitch (a stutter the player sees)
 const HITCH_WINDOW := 10.0         # seconds the hitches are counted over
-const SWITCHES := ["Sea", "Dither", "Fog", "Shadows", "Clouds", "Outline", "Islands", "Effects", "UI", "Half res"]
+const SWITCHES := ["Sea", "Dither", "Fog", "Shadows", "Clouds", "Outline", "Islands", "Effects", "UI"]
+## The resolutions the "Dots" button goes through (dots across the screen: game_view.gd dots_across; 360 = as usual).
+const RESOLUTIONS := [360, 540, 1080, 270, 180]
 
 @export var refresh_every := 0.25  # seconds between two refreshes of the text (the measuring itself is every frame)
 @export var font_size := 10
@@ -57,6 +60,7 @@ var shown := false                     # was it on a frame ago? (to show / hide 
 var game_view: Node = null             # the level's GameView (game_view.gd), found once: its SubViewport draws the world
 var switched_off := {}                 # name of a switch → true while that part is off
 var buttons := {}                      # name of a switch → its button
+var dots_button: Button                # the "Dots n" button (the game view's resolution)
 var sea_material: Material             # the sea's own material, kept while the "Sea" switch puts a plain one on it
 
 
@@ -101,6 +105,30 @@ func make_panel() -> void:
 		grid.add_child(button)
 		buttons[switch_name] = button
 		paint_button(switch_name)
+	# The resolution button, last in the grid.
+	dots_button = Button.new()
+	dots_button.focus_mode = Control.FOCUS_NONE
+	dots_button.add_theme_font_size_override("font_size", font_size)
+	dots_button.pressed.connect(next_resolution)
+	grid.add_child(dots_button)
+	show_resolution()
+
+
+## The "Dots" button tapped: the game view goes to the next resolution of RESOLUTIONS (after the last, the first).
+func next_resolution() -> void:
+	find_game_view()
+	if game_view == null:
+		return
+	var at := RESOLUTIONS.find(game_view.dots_across)       # -1 if it's a value set by hand: then the first
+	game_view.dots_across = RESOLUTIONS[(at + 1) % RESOLUTIONS.size()]   # its setter resizes the view (game_view.gd)
+	show_resolution()
+
+
+## Writes the game view's dots_across on the button ("Dots 360").
+func show_resolution() -> void:
+	find_game_view()
+	var dots: int = game_view.dots_across if game_view else 360
+	dots_button.text = "Dots %d" % dots
 
 
 ## A switch tapped: that part off if it was on, on if it was off.
@@ -162,11 +190,6 @@ func switch_off(switch_name: String, off: bool) -> void:
 		"UI":
 			for node_name in ["Helm", "Crank", "IconLayer", "Health"]:
 				set_node_shown(level, node_name, not off)
-		"Half res":
-			find_game_view()
-			if game_view:
-				game_view.dots_across = 180 if off else 360
-				game_view._fit()
 
 
 ## Shows or hides the node of that name, wherever it is in the level (if it's there). A plain Node (a "folder" such

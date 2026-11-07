@@ -529,7 +529,9 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   `TextureRect` (CanvasLayer 1, nearest filter: sharp dots). Size: real pixels of the game area
   (`get_visible_rect().size × get_final_transform().get_scale()`) / `dot_scale`, `dot_scale` = round(real width /
   `dots_across`), ≥ 1 (**`dots_across`**, an export on `GameView`, 360 = the grain as it was; 540 = 2 × 2 real pixels a
-  dot on a 1080 phone, ~2.25× the work; 1080 = 1 × 1, 9×). The controls inside keep their size whatever it is:
+  dot on a 1080 phone, ~2.25× the work; 1080 = 1 × 1, 9×; `@export_range` 90–1080, **live**: its setter calls `_fit`, so
+  it can be changed while the game runs, from the editor's Remote tree or the overlay's "Dots" button; a dot is a whole
+  number of real pixels, so on a 1080 phone only 1080 / n differ, and on the PC's 360-wide window nothing finer than 360). The controls inside keep their size whatever it is:
   `size_2d_override` = real pixels / round(real width / 360), `size_2d_override_stretch` on. With 360: (phone 1080 wide → 360×655, ×3; the PC's 360×800 window → ×1; a wide PC screen in the phone frame
   405×900 → ×1). So the world, the shadows, the dither and the wheel are drawn ~9× smaller on the phone; what stays
   crisp at full resolution on top: the wind vane (110), the open book (120), the start screen (130). Taps and drags
@@ -1177,8 +1179,9 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   level starts with all on): Sea (a plain grey unshaded material in place of the sea's own, kept in `sea_material`), Dither
   (node hidden), Fog / Shadows / Outline (the screen-effect quads, found by their shader's file, `show_screen_effect`),
   Clouds (node hidden and its process disabled: no drift, no cloud-map updates), Islands (a plain Node: its children
-  hidden, `set_node_shown`), Effects (Gulls, WindLines, Wake), UI (Helm, Crank, IconLayer, Health hidden), Half res
-  (GameView `dots_across` 360 → 180 and `_fit()`). Parts are found by node name in the level, as game_view.gd does.
+  hidden, `set_node_shown`), Effects (Gulls, WindLines, Wake), UI (Helm, Crank, IconLayer, Health hidden); and **"Dots n"** (Enrico, Nov 2026: to see the
+  game at different resolutions; it replaced "Half res"): each tap sets GameView's `dots_across` to the next of
+  `RESOLUTIONS` [360, 540, 1080, 270, 180] (`next_resolution`, `show_resolution`). Parts are found by node name in the level, as game_view.gd does.
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
   ```
   res://
