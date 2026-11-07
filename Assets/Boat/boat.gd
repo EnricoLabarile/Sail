@@ -190,6 +190,7 @@ var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over n
 # NAMES must stay the same. ($Model, with the $, is a fixed address: it must be a direct child of Boat.)
 @onready var model: Node3D = $Model            # leans and bobs: everything inside it follows
 @onready var paddles: Node3D = find_child("Paddles")   # the paddle wheels (paddles.gd): her push and their look
+@onready var rope_attach: Node3D = find_child("RopeAttach")   # where the hook's rope is tied (like a socket in Unreal)
 @onready var camera: Camera3D = $Camera3D   # her camera, with its own script (boat_camera.gd)
 @onready var wake: CPUParticles3D = find_child("Wake")          # the dots left behind the stern
 @onready var bow_wave_right: Node3D = find_child("BowWaveRight") # the water thrown up and out at the bow (Wind
@@ -585,7 +586,26 @@ func over_fishing_spot() -> bool:
 	return not fishing_spots_under.is_empty()
 
 
-## Where her stern is now, on the water (a rope is tied there: lever.gd).
+## Where the hook's rope is tied, as seen from her middle: the `RopeAttach` Marker3D in boat.tscn (move it in the
+## viewport to move the rope), brought into the Boat's own space so it can be used with any of her places.
+## Without the marker: her stern, 0.6 m up.
+func rope_offset() -> Vector3:
+	if rope_attach == null:
+		return Vector3(0.0, 0.6, bow_reach)            # her forward is -Z, so her stern is +Z
+	return global_transform.affine_inverse() * rope_attach.global_position
+
+
+## Where the rope is tied now, in the world (for the physics: towing, the lever's pull).
+func rope_point() -> Vector3:
+	return global_transform * rope_offset()
+
+
+## The same, where she's DRAWN this frame (physics interpolation, see boat.gd _ready): for drawing the rope smoothly.
+func rope_point_drawn() -> Vector3:
+	return get_global_transform_interpolated() * rope_offset()
+
+
+## Where her stern is now, on the water (the urchin's spikes measure her hull from here to the bow).
 func stern_point() -> Vector3:
 	var fwd := -global_transform.basis.z
 	return global_position - fwd * bow_reach

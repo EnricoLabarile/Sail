@@ -44,7 +44,7 @@ signal done
 @export var size := 1.0             # metres from the thing's middle to its edge (where the rope ends)
 @export var towable_after_delivery := false   # once a goal took it, can it be towed again?
 @export var rope_width := 0.15      # metres
-@export var rope_height := 0.6      # metres above the water the rope runs
+@export var rope_height := 0.6      # metres above the water the rope reaches the thing (at the boat: her RopeAttach marker)
 
 var thing: Node3D                   # the parent: what moves
 var tow_boat: Node3D = null         # the boat towing it (null = not towed)
@@ -135,8 +135,8 @@ func follow_boat() -> void:
 	if not is_instance_valid(tow_boat) or tow_boat.sinking:
 		stop_tow()
 		return
-	var stern: Vector3 = tow_boat.stern_point()
-	var off: Vector3 = thing.global_position - stern     # from her stern to it
+	var stern: Vector3 = tow_boat.rope_point()           # where the rope is tied on her (boat.tscn's RopeAttach)
+	var off: Vector3 = thing.global_position - stern     # from there to it
 	off.y = 0.0
 	var reach := rope_length + size                      # the rope plus the thing's own size, to its middle
 	if off.length() <= reach:
@@ -162,33 +162,42 @@ func follow_boat() -> void:
 ## heading kept (so she can still turn round it, or come back toward it), and the way she had pulling off is lost.
 ## `off` = from her stern to the thing; `reach` = the rope plus the thing's size.
 func hold_boat(off: Vector3, reach: float) -> void:
-	var stern: Vector3 = thing.global_position - off.normalized() * reach   # where her stern may be, at most
-	var forward: Vector3 = -tow_boat.global_transform.basis.z
-	var middle: Vector3 = stern + forward * tow_boat.bow_reach             # her middle is bow_reach ahead of her stern
+	var stern: Vector3 = thing.global_position - off.normalized() * reach   # where the rope's end on her may be, at most
+	var tie: Vector3 = tow_boat.rope_point() - tow_boat.global_position     # from her middle to where the rope is tied
+	var middle: Vector3 = stern - tie                                       # so her middle goes there
 	tow_boat.global_position = Vector3(middle.x, tow_boat.global_position.y, middle.z)
 	tow_boat.speed = minf(tow_boat.speed, 0.0)                            # her way is taken off by the rope
 
 
-## A thin flat ink strip from her stern to the thing's edge (a 1 x 1 plane moved to the middle, turned along the line
-## and stretched to its length). Drawn every frame from the smoothed places of both.
+## A thin ink strip from where it's tied on her (her RopeAttach marker, at its own height) to the thing's edge at
+## rope_height. Drawn every frame from the smoothed places of both.
 func draw_rope() -> void:
 	if not is_instance_valid(tow_boat):
 		return
-	var boat_now: Transform3D = tow_boat.get_global_transform_interpolated()
-	var stern: Vector3 = boat_now.origin + boat_now.basis.z * tow_boat.bow_reach   # her stern (her forward is -Z)
+	var start: Vector3 = tow_boat.rope_point_drawn()
 	var middle: Vector3 = thing.get_global_transform_interpolated().origin
-	var line: Vector3 = middle - stern
+	var line: Vector3 = middle - start
 	line.y = 0.0
 	var length := line.length() - size * 0.5             # the rope ends at the thing's side, not its middle
 	if length < 0.05:
 		rope.visible = false
 		return
 	rope.visible = true
-	var direction := line.normalized()
-	var start := Vector3(stern.x, rope_height, stern.z)
-	rope.global_position = start + direction * length * 0.5
-	rope.global_rotation = Vector3(0.0, atan2(-direction.x, -direction.z), 0.0)
-	rope.scale = Vector3(rope_width, 1.0, length)
+	var end: Vector3 = start + line.normalized() * length
+	end.y = rope_height
+	Towable.place_strip(rope, start, end, rope_width)
+
+
+## Puts a 1 x 1 flat plane (a rope) as a strip from `start` to `end`, `width` wide, sloping if they're at different
+## heights. Shared with the lever (lever.gd). Basis.looking_at turns its -Z along the line (like Find Look at Rotation
+## in Unreal); then it's stretched: x to the width, z to the length.
+static func place_strip(strip: Node3D, start: Vector3, end: Vector3, width: float) -> void:
+	var line: Vector3 = end - start
+	var length := line.length()
+	if length < 0.01:
+		return
+	var turn := Basis.looking_at(line / length, Vector3.UP)
+	strip.global_transform = Transform3D(turn * Basis.from_scale(Vector3(width, 1.0, length)), (start + end) * 0.5)
 
 
 ## The rope: a 1 x 1 plane in plain ink (unshaded), placed in world space (top_level) and not smoothed (it's

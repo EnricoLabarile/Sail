@@ -30,7 +30,7 @@ signal done
 @export var handle_travel := 1.5      # metres the handle comes out at the end of the pull (only the look)
 @export var return_time := 0.6        # seconds the handle takes to slide back in
 @export var rope_width := 0.12        # metres
-@export var rope_height := 0.6        # metres above the water the rope runs
+@export var rope_height := 0.6        # metres above the water the rope leaves the handle (at the boat: her RopeAttach marker)
 @export var drag_full_speed := 4.0    # m/s the handle's pull must reach for the drag sound at full loudness
 
 const HOOK := "hook"   # the item that must be equipped (Assets/Inventory/items/hook.tres)
@@ -76,7 +76,7 @@ func tow_reach() -> float:
 func start_tow(by_boat: Node3D) -> void:
 	boat = by_boat
 	state = State.HOOKED
-	hooked_distance = Land.flat_distance(global_position, boat.stern_point())
+	hooked_distance = Land.flat_distance(global_position, boat.rope_point())
 	boat.held_back = slowdown             # the rope holds her back (boat.gd: her speed × this)
 	rope.visible = true
 
@@ -108,7 +108,7 @@ func pull(dt: float) -> void:
 	if not is_instance_valid(boat) or boat.sinking or not Inventory.is_equipped(HOOK):
 		stop_tow()                         # she sank, or took the hook off: the rope comes off
 		return
-	var stern: Vector3 = boat.stern_point()
+	var stern: Vector3 = boat.rope_point()   # where the rope is tied on her (boat.tscn's RopeAttach)
 	var off := stern - global_position
 	off.y = 0.0
 	if off.length() > 0.01:
@@ -126,7 +126,7 @@ func pull(dt: float) -> void:
 	drag_level = lerpf(drag_level, drag_target, minf(1.0, dt * 8.0))
 	Sfx.lever_drag(drag_level)
 	place_handle()
-	draw_rope(stern)
+	draw_rope()
 	if progress >= 1.0:
 		done.emit()
 		pulled.emit()                      # all the way out: whatever is connected happens
@@ -161,18 +161,14 @@ func place_handle() -> void:
 	handle.position = handle_rest + local_direction * handle_travel * progress
 
 
-## The rope: a thin flat ink strip from the handle to her stern (a 1 x 1 plane moved to the middle, turned along the
-## line and stretched to its length).
-func draw_rope(stern: Vector3) -> void:
+## The rope: a thin ink strip from the handle (at rope_height) to where it's tied on her (her RopeAttach marker,
+## where she's drawn this frame), placed by Towable.place_strip.
+func draw_rope() -> void:
 	var start := handle.global_position
 	start.y = rope_height
-	var end := stern
-	end.y = rope_height
+	var end: Vector3 = boat.rope_point_drawn()
 	var line := end - start
 	line.y = 0.0
-	var length := line.length()
-	if length < 0.05:
+	if line.length() < 0.05:
 		return
-	rope.global_position = (start + end) * 0.5
-	rope.global_rotation = Vector3(0.0, atan2(-line.x, -line.z), 0.0)
-	rope.scale = Vector3(rope_width, 1.0, length)
+	Towable.place_strip(rope, start, end, rope_width)

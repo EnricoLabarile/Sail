@@ -918,8 +918,8 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   button listens to the boat's `hurt` (any real damage) and lets go. The lever: grabbed within
   `touch_radius` 6 m of its middle → HOOKED (`hooked_distance` = her stern's distance then; `boat.held_back` = `slowdown` 0.5:
   boat.gd multiplies her target speed by it, after everything else); `progress` = (stern distance − hooked_distance) /
-  `pull_length` 15 m (coming back slides it back), the handle out `handle_travel` 1.5 m toward her, the rope from it to
-  `boat.stern_point()` at `rope_height` 0.6; at 1 → signal **`pulled`** (empty for now: connect a door…), `let_go()`
+  `pull_length` 15 m (coming back slides it back), the handle out `handle_travel` 1.5 m toward her, the rope from it (at `rope_height` 0.6) to
+  `boat.rope_point()` (her `RopeAttach`, see Towable); at 1 → signal **`pulled`** (empty for now: connect a door…), `let_go()`
   (held_back 1, rope hidden; the hook stays equipped) and RETURNING over `return_time` 0.6 s → IDLE (reusable). Sinking,
   taking the hook off or a second tap (`stop_tow`) lets go, the handle sliding back.
   **Its sounds** (Enrico; `art_src/audio/make_lever_sounds.py`, players in sfx.tscn): `lever_hook.ogg` (`LeverHook`
@@ -940,7 +940,13 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   (`hold_boat`: her stern put back at `rope_length` + `size` from it on the line to her, her heading kept, her speed ≤ 0,
   like the anchor's line), so she can turn round it or come back; boosting, it follows as a light one. Towed: `follow_boat` (physics; taut → pulled to `rope_length` + `size` from her
   stern, slack → still, never onto land: middle and half a size ahead), the ink rope (`make_rope`, `draw_rope`, from the
-  interpolated places), the parent's physics interpolation on; she sank → let go. Signals **`grabbed(boat)`**,
+  interpolated places). **Where the rope is tied on the boat** (Enrico, Nov 2026, like a socket in Unreal): the Marker3D
+  **`RopeAttach`** in boat.tscn (a child of Boat, (0, 0.6, 2.2): her stern, 0.6 m up; move it in the viewport):
+  boat.gd `rope_offset()` (the marker in her own space; none = that default), `rope_point()` (physics: the tow's pull,
+  the heavy hold, the lever's pull) and `rope_point_drawn()` (interpolated, for drawing); the rope runs from it, at its
+  height, to the thing's edge at the towable's / lever's `rope_height`, sloping (`Towable.place_strip`, static, shared
+  with lever.gd: `Basis.looking_at` and stretched). `stern_point()` stays her stern on the water (`bow_reach` back: the
+  urchin's spikes use it), the parent's physics interpolation on; she sank → let go. Signals **`grabbed(boat)`**,
   **`released`**, **`delivered(goal)`** for the parent; `deliver(goal)` (let go, `delivered_to`, can't be towed again
   unless `towable_after_delivery`). Used by the barrel, the key and the raft NPC. **The tow goal**
   (`Assets/Items/towable/tow_goal.gd`, `class_name TowGoal`, `@tool`; a Node3D with the script): `goal_id` (empty = any),
