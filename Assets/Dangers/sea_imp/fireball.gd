@@ -48,7 +48,7 @@ func _process(dt: float) -> void:
 		queue_free()
 		return
 	# Close enough to the boat: it hits her.
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	if boat == null or boat.sinking:
 		return
 	var off: Vector3 = boat.global_position - global_position

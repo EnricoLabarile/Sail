@@ -56,6 +56,7 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		_make_editor_disc()          # in the editor only: the zone drawn as a see-through disc
 		return                       # in the editor: just the look, it doesn't move
+	set_fade(fade)                   # invisible to start with (from then on set only while it fades)
 	appear()
 	
 var _editor_disc: MeshInstance3D
@@ -94,8 +95,9 @@ func _process(dt: float) -> void:
 	
 		# Fade toward 1 while it's showing, toward 0 while it's gone.
 	var wanted := 1.0 if showing else 0.0
-	fade = move_toward(fade, wanted, dt / fade_time)
-	set_fade(fade)
+	if fade != wanted:                         # only while it fades in or out (the materials needn't hear it every frame)
+		fade = move_toward(fade, wanted, dt / fade_time)
+		set_fade(fade)
 	
 	outer.rotate_y(-spin_speed * dt)          # minus: clockwise seen from above
 	core.rotate_y(-spin_speed * 2.0 * dt)     # the core turns faster
@@ -163,7 +165,7 @@ func is_active() -> bool:
 ## Pulls the boat toward the eye while she's inside the outer ring: nothing at the ring's edge,
 ## pull_strength at the core's edge (and inside it).
 func pull_boat() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null:
 		return
 	# From the boat to the eye, flat on the sea (y = 0, so she's never pulled up or down).
@@ -190,7 +192,7 @@ func _physics_process(dt: float) -> void:
 
 ## The boat in the core (while it's active): it catches her.
 func try_catch() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null or boat.sinking or boat.berth != null or boat.caught_eye != null:
 		return                       # no boat, sinking, tied up, or already caught
 	var to_eye := whirl.global_position - boat.global_position

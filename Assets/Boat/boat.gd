@@ -1,8 +1,14 @@
+class_name Boat
 extends Node3D
 ## The player's boat (like a Pawn in Unreal): the paddle wheels drive her (paddles.gd, worked by the throttle lever),
-## the current carries her, she turns with the rudder and stops at anchor. The wheel (ui/helm) finds her through the
-## group "player_boat" and sets her rudder; Space works the paddles and the anchor. Her camera (boat_camera.gd, on the Camera3D node) follows her.
+## the current carries her, she turns with the rudder and stops at anchor. Every other script reaches her as
+## `Boat.current` (below; like GetPlayerPawn in Unreal); the wheel (ui/helm) sets her rudder; Space works the paddles and the anchor. Her camera (boat_camera.gd, on the Camera3D node) follows her.
 ## 1 unit = 10 px of the HTML prototype.
+
+## The boat of the level being played (set when she enters the tree, cleared when she leaves it; null before she's ready or in
+## the editor). A static var belongs to the script, not to one boat, so anyone can read it: `Boat.current`. It replaced
+## looking her up in the group "player_boat" every frame (the group stays, for is_in_group checks).
+static var current: Boat = null
 
 @export var top_speed := 15.0      # m/s with the paddles at full (the throttle lever all the way right); gusts boost it
 @export var accel := 3.0            # how quickly she gathers way (higher = quicker)
@@ -210,6 +216,19 @@ func _ready() -> void:
 	paddles.overheated.connect(blink_black)   # overheated: she blinks black (like an Event Dispatcher bound in BeginPlay)
 	if emerge_on_start:
 		start_emerging()
+
+
+## She enters the tree: she's the current boat. (Also when the game view moves her into its SubViewport at the start,
+## game_view.gd: moving a node takes it out of the tree and puts it back, without a second _ready.)
+func _enter_tree() -> void:
+	current = self
+
+
+## She leaves the tree (a new level is loaded, or she's being moved): no current boat any more, unless another one
+## took her place already.
+func _exit_tree() -> void:
+	if current == self:
+		current = null
 
 
 ## Something came into the hold (Inventory.came_aboard): the "came aboard" sound. One sound for everything, for

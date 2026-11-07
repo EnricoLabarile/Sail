@@ -76,7 +76,7 @@ func _process(dt: float) -> void:
 
 ## Takes a free line from the pool and puts it somewhere round the boat, along the wind.
 func start_line(downwind: Vector3) -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null:
 		return
 	for i in lines.size():

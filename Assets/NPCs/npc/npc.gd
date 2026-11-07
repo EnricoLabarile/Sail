@@ -153,7 +153,7 @@ func start_talk() -> void:
 ## she leaves our radius), and let the bubble over our head fade out (we've had our say).
 func _on_talk_finished() -> void:
 	talking = false
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	if boat:
 		boat.done_talking_with(self)
 	set_process(true)                     # the bubble fades out
@@ -161,7 +161,7 @@ func _on_talk_finished() -> void:
 
 ## Has the boat already heard what we have to say? (boat.gd keeps the list; it forgets us only when we have news.)
 func _talked_to() -> bool:
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	return boat != null and boat.has_talked_to(self)
 
 
@@ -174,7 +174,7 @@ func show_news() -> void:
 	has_news = true
 	# Something new to say: the boat no longer counts us as heard, wherever she is (near: the speech bubble shows on
 	# the interaction button at once; far: when she comes back).
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	if boat:
 		boat.forget_talk_with(self)
 	_set_bubble_picture(news_picture)
@@ -193,7 +193,7 @@ func clear_news() -> void:
 func on_grabbed(_boat: Node3D) -> void:
 	towed = true
 	_stop_drifting()                      # the rope moves it now
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	if boat and boat_near:
 		boat.set_near_npc(self, false)
 	boat_near = false

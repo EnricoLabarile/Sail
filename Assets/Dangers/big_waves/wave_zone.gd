@@ -70,7 +70,7 @@ func _on_sensor_exited(area: Area3D) -> void:
 func _process(dt: float) -> void:
 	if Engine.is_editor_hint() or not boat_inside:
 		return
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null or boat.sinking or boat.berth != null:
 		return
 	# 1. Every few seconds, a wave upwind of her (if there's room for one more).

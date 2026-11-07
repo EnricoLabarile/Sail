@@ -21,17 +21,15 @@ const GUST_SCENE := preload("res://Assets/Landscape/gust/gust.tscn")
 @export var travel_speed := 30      # metres a second they travel downwind (she does 7 at top speed)
 @export var spread := 0.8             # how far across the screen they may appear: 1 = anywhere along the edge, 0.5 = the middle half
 
-var boat: Node3D = null               # found once, then kept
 var full_speed_for := 0.0             # seconds she has been at top speed without a break
 var next_spawn := 0.0                 # seconds left until the next gust may appear
 var gusts: Array[Node3D] = []         # the gusts on their way now
 
 
 func _process(dt: float) -> void:
+	var boat := Boat.current
 	if boat == null:
-		boat = get_tree().get_first_node_in_group("player_boat") as Node3D
-		if boat == null:
-			return
+		return
 	forget_finished_gusts()
 	# 1. The condition: she's at top speed (and sailing) for full_speed_time seconds in a row. Any slowing down
 	#    starts the count again.
@@ -51,6 +49,7 @@ func _process(dt: float) -> void:
 
 ## A new gust just outside the screen, on the side the wind comes from, somewhere across the wind.
 func spawn_gust() -> void:
+	var boat := Boat.current
 	var upwind: Vector3 = Wind.from_vector()           # where the wind comes FROM
 	upwind.y = 0.0
 	upwind = upwind.normalized()
@@ -71,7 +70,7 @@ func spawn_gust() -> void:
 ## Metres from `from` along `direction` (on the water) to the edge of what the camera sees: steps out 2 m at a
 ## time until the point is out of view (at most 200 m).
 func distance_to_screen_edge(from: Vector3, direction: Vector3) -> float:
-	var camera: Camera3D = boat.camera
+	var camera: Camera3D = Boat.current.camera
 	var distance := 0.0
 	while distance < 200.0:
 		var point := from + direction * distance
@@ -84,6 +83,7 @@ func distance_to_screen_edge(from: Vector3, direction: Vector3) -> float:
 
 ## Frees the gusts that have crossed the screen: downwind of her and out of the camera's view.
 func forget_finished_gusts() -> void:
+	var boat := Boat.current
 	var downwind: Vector3 = -Wind.from_vector()
 	downwind.y = 0.0
 	for gust in gusts.duplicate():

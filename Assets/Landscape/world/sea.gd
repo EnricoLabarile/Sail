@@ -51,7 +51,6 @@ const WindScript := preload("res://Assets/Landscape/world/wind.gd")   # for CURR
 var fog_material: ShaderMaterial      # the fog's material (made at start; once it exists, a new falloff goes to the Fog)
 var texture_angle := 0.0              # where the texture is turned now (radians, clockwise from north)
 var texture_offset := Vector2.ZERO    # a shift that keeps the water under the boat still while it turns
-var boat: Node3D                      # the boat (found the first time it's needed)
 var sea_material: ShaderMaterial      # this sea's own copy of the material (the shore picture, the angle and the shift)
 
 
@@ -103,7 +102,7 @@ func _notification(what: int) -> void:
 ## The deep water starts darkening exactly where the shallows end (Enrico): the boat's shallows_width is sent to
 ## the shader as deep_from, so near the coast the water is light, and from there out it darkens. Change shallows_width on the Boat and the colour follows.
 func match_deep_water_to_shallows() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	if boat == null:
 		return                       # no boat in this level: the shader keeps its own deep_from
 	sea_material.set_shader_parameter("deep_from", boat.shallows_width)
@@ -146,8 +145,7 @@ func _process(dt: float) -> void:
 	#    work out where that point is in the texture with the old angle and with the new one, and shift the
 	#    texture by the difference. (When the angle doesn't change, the shift doesn't either: as she sails,
 	#    the drawing stays fixed on the water.)
-	if boat == null:
-		boat = get_tree().get_first_node_in_group("player_boat")   # found once, then kept
+	var boat := Boat.current
 	if boat:
 		var under_boat := Vector2(boat.global_position.x, boat.global_position.z)
 		texture_offset += under_boat.rotated(-texture_angle) - under_boat.rotated(-new_angle)

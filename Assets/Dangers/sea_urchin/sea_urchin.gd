@@ -161,7 +161,7 @@ func shoot_round() -> void:
 ## The boat's middle within touch_radius of the urchin: she ran into it (or it walked into her). The boat does the
 ## rest (boat.gd bump_into_enemy: she bounces back and loses half a heart, once in a while, not every frame).
 func check_touch() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null:
 		return
 	var off := boat.global_position - urchin.global_position

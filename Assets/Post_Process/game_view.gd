@@ -105,7 +105,7 @@ func _build() -> void:
 	_fit()
 
 	# 5. Every material drawn once now, so none stutters the first time it comes into view (shader_warmup.gd).
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	if boat:
 		var warmup := ShaderWarmup.new()
 		add_child(warmup)

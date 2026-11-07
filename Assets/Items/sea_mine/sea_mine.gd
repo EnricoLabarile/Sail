@@ -48,7 +48,7 @@ func _physics_process(_dt: float) -> void:
 	if Engine.is_editor_hint() or blown:
 		return
 	# The boat: not while she's towing it (the rope keeps it behind her anyway).
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat and not towable.is_towed() and flat_distance(boat.global_position) <= touch_radius:
 		blow_up()
 		return

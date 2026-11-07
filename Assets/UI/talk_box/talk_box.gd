@@ -116,7 +116,7 @@ func _show_hud(show: bool) -> void:
 
 ## The boat ignores the anchor while someone is talking (boat.gd toggle_anchor).
 func _set_boat_talking(on: bool) -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	if boat:
 		boat.talking = on
 

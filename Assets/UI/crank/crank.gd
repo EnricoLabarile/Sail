@@ -91,10 +91,11 @@ var chevron_shift := 0.0      # how far the chevrons have flowed right (in plate
 var flywheel_angle := 0.0     # how far the flywheel has turned (radians)
 var flywheel_spin := 0.0      # how fast it turns now (turns a second): it follows its target smoothly
 var overdrive_left := 0.0     # seconds of overdrive still to go
+var last_look := []           # what the drawing showed last time (redrawn only when this changes)
 
 
 func _paddles() -> Node:
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	if boat == null:
 		return null
 	return boat.paddles
@@ -209,7 +210,7 @@ func check_ends() -> void:
 	# All the way left.
 	if lever <= -END and not at_left_end:
 		at_left_end = true
-		var boat := get_tree().get_first_node_in_group("player_boat")
+		var boat := Boat.current
 		if paddles and boat and not boat.anchored:
 			paddles.turn_off()              # she stops: anchor down…
 			Sfx.lever_done()
@@ -220,7 +221,7 @@ func check_ends() -> void:
 
 ## Is she stopped at anchor or tied up at a pier (not just overheated)?
 func _is_stopped() -> bool:
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	return boat == null or boat.anchored
 
 
@@ -234,13 +235,13 @@ func _process(dt: float) -> void:
 		return
 	update_shown_heat(dt)
 	update_flywheel(dt)
-	var paddles_now := _paddles()
+	var paddles := _paddles()
 	if venting:
 		# Vented (Enrico): the chevrons flow leftwards instead, the heat going out.
 		chevron_shift -= dt * vent_chevron_speed / chevron_count
-	elif paddles_now and paddles_now.is_boosting():
+	elif paddles and paddles.is_boosting():
 		# Boosting: the chevrons flow right, quicker the further past the middle (0 at the middle, full at the right end).
-		var boost: float = (paddles_now.lever_share - 0.5) / 0.5
+		var boost: float = (paddles.lever_share - 0.5) / 0.5
 		chevron_shift += dt * chevron_speed * boost / chevron_count
 	# Let go: the spring takes it back to the middle, overshoots and wiggles to a stop (Enrico), clicking each notch it
 	# passes, as when dragged. A spring with damping: the pull toward the middle grows with the distance from it, the
@@ -254,7 +255,6 @@ func _process(dt: float) -> void:
 			lever_speed = 0.0
 		click_notches()
 		check_ends()                        # (only to notice it has left an end)
-	var paddles := _paddles()
 	if paddles:
 		# The most she may go: 0% all the way left, 50% in the middle, 100% all the way right.
 		paddles.set_lever_share(0.5 + 0.5 * lever)
@@ -268,7 +268,18 @@ func _process(dt: float) -> void:
 		if free and not was_free:
 			Sfx.crank_unlock()
 		was_free = free
-	queue_redraw()                          # the filling follows the heat every frame
+	redraw_if_changed()
+
+
+## Draws it again only when something it shows has changed (it used to be drawn every frame, at anchor too): where
+## the lever is, held or not, the heat, the vent, the flywheel, the chevrons, the LED, the anchor hint.
+func redraw_if_changed() -> void:
+	var boat := Boat.current
+	var look := [lever, drag_index != -1, shown_heat, venting, flywheel_angle, chevron_shift, _led_lit(),
+			boat != null and boat.anchored]
+	if look != last_look:
+		last_look = look
+		queue_redraw()
 
 
 # ---- the drawing ----
@@ -304,7 +315,7 @@ func _draw() -> void:
 	var held := drag_index != -1             # the finger on it: the lever (only the lever, Enrico) is drawn black
 
 	var paddles := null if Engine.is_editor_hint() else _paddles()
-	var boat := null if Engine.is_editor_hint() else get_tree().get_first_node_in_group("player_boat")
+	var boat := null if Engine.is_editor_hint() else Boat.current
 	var share := 0.5                                   # the heat shown, 0..1 (half in the editor, to see the filling)
 	if paddles:
 		share = shown_heat
@@ -410,10 +421,7 @@ func _draw_chevrons(share: float, color: Color, facing: float) -> void:
 func _draw_led(paddles: Node, ink: Color, paper: Color) -> void:
 	var middle := Vector2(0.0, -LEVER_LENGTH)               # the middle of the dome's flat bottom, on the grip's top
 	var radius := 4.0
-	var lit := false
-	if paddles and paddles.is_running() and paddles.can_vent():
-		var phase := fmod(Time.get_ticks_msec() / 1000.0 * led_blinks_per_second, 1.0)
-		lit = phase < 0.5                                   # lit half of each blink, off the other half
+	var lit := false if paddles == null else _led_lit()
 	# The dome: half a circle (from left to right over the top), filled, with an ink outline.
 	var dome := PackedVector2Array()
 	for i in 13:
@@ -429,6 +437,14 @@ func _draw_led(paddles: Node, ink: Color, paper: Color) -> void:
 	for degrees in [-45.0, 0.0, 45.0]:                       # from straight up, clockwise +
 		var way := Vector2(sin(deg_to_rad(degrees)), -cos(deg_to_rad(degrees)))
 		draw_line(middle + way * (radius + 2.5), middle + way * (radius + 7.5), ink, 1.6)
+
+
+## Is the LED lit now? Only while she can be vented, and then half of each blink (led_blinks_per_second).
+func _led_lit() -> bool:
+	var paddles := _paddles()
+	if paddles == null or not paddles.is_running() or not paddles.can_vent():
+		return false
+	return fmod(Time.get_ticks_msec() / 1000.0 * led_blinks_per_second, 1.0) < 0.5
 
 
 ## The flywheel's speed and angle, every frame. Its target: 0 when the paddles are off (anchored, tied up,

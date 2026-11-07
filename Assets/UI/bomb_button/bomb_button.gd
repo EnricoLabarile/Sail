@@ -20,25 +20,20 @@ const BOMB_SCENE := preload("res://Assets/Items/bomb/bomb.tscn")
 @export var heat_cost := 0.75        # share of the paddles' overheat bar each bomb adds (0.75 = 75%; 0 = none)
 
 var cooldown_left := 0.0             # seconds before it can drop another bomb (0 = ready)
-var was_equipped := false            # was a bomb equipped a moment ago? (to notice the moment it gets equipped)
 
 
 func _ready() -> void:
 	visible = false                      # never drawn: the interaction button shows it
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_to_group("item_actions")         # so the interaction button finds it
-	Inventory.equipped_changed.connect(_on_equipped_changed)
-	was_equipped = Inventory.is_equipped(ITEM)
+	set_process(false)                   # nothing to count until a bomb is dropped
 
 
-## The moment a bomb gets equipped (its click-clack is now played by the interaction button, Sfx.equip, as every thing's).
-func _on_equipped_changed() -> void:
-	was_equipped = Inventory.is_equipped(ITEM)
-
-
+## Only while it rests after a use (switched on in use()): the wait counts down, then it switches itself off.
 func _process(dt: float) -> void:
-	if cooldown_left > 0.0:
-		cooldown_left = maxf(0.0, cooldown_left - dt)
+	cooldown_left = maxf(0.0, cooldown_left - dt)
+	if cooldown_left == 0.0:
+		set_process(false)
 
 
 ## Can a tap do something now? (A bomb aboard, and not resting.)
@@ -58,7 +53,7 @@ func is_active() -> bool:
 
 ## A bomb off the bow, one out of the hold.
 func use() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null or boat.sinking or not can_use():
 		return
 	if not Inventory.remove(ITEM):
@@ -71,3 +66,4 @@ func use() -> void:
 	bomb.global_position = boat.global_position + ahead.normalized() * bow_offset
 	bomb.global_position.y = 0.0
 	cooldown_left = cooldown
+	set_process(true)                    # the rest counts down (_process)

@@ -41,7 +41,7 @@ func _process(dt: float) -> void:
 		queue_free()
 		return
 	# Touching the hull: it hits her (take_damage does nothing while she sinks or comes up).
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null:
 		return
 	if distance_to_hull(boat) < hit_radius:

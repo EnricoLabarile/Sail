@@ -53,7 +53,7 @@ func _process(dt: float) -> void:
 
 ## A flock of 1 to 3 gulls, starting just off the screen on the upwind side, flying across past the boat.
 func start_flock() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null:
 		return
 	# Which way: downwind (the way the clouds drift), give or take 40 degrees.

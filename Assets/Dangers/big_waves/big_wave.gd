@@ -48,7 +48,7 @@ func launch(owner_zone: Node3D, spot: Vector3, travel: Vector3, crest_length: fl
 
 
 func _process(dt: float) -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	# 1. Its pace and its age (a wave hurrying after her also lives a little longer).
 	var life_rate := 1.0
 	if boat:

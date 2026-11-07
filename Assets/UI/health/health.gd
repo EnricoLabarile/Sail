@@ -63,7 +63,7 @@ func _ready() -> void:
 
 ## Find the boat once and listen to her: from then on it's drawn again only when her health changes.
 func _find_boat() -> void:
-	_boat = get_tree().get_first_node_in_group("player_boat") as Node3D
+	_boat = Boat.current as Node3D
 	if _boat:
 		_boat.health_changed.connect(_on_health_changed)
 		_on_health_changed(false)

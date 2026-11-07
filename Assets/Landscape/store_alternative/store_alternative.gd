@@ -178,7 +178,7 @@ func on_screen(camera: Camera3D, point: Vector3) -> Vector2:
 
 
 func get_boat_camera() -> Camera3D:
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	if boat == null:
 		return null
 	return boat.camera

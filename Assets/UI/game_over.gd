@@ -7,21 +7,16 @@ extends CanvasLayer
 
 @onready var again_button: Button = $Card/Margin/Lines/Again
 
-var _boat: Node3D
-
-
 func _ready() -> void:
 	hide()                                      # not there until she sinks
 	again_button.pressed.connect(_on_again)     # when the button is pressed, call _on_again
+	_listen_to_boat.call_deferred()             # deferred: after the boat's own _ready (Boat.current is set there)
 
 
-## Every frame until it's found: find the boat and listen for her sinking (then nothing more to do here).
-func _process(_dt: float) -> void:
-	if _boat:
-		return
-	_boat = get_tree().get_first_node_in_group("player_boat") as Node3D
-	if _boat:
-		_boat.sank.connect(_on_sank)
+## Listens for her sinking, once (it used to look for her every frame).
+func _listen_to_boat() -> void:
+	if Boat.current:
+		Boat.current.sank.connect(_on_sank)
 
 
 ## She's gone under: hold the game and show the card.
@@ -32,6 +27,6 @@ func _on_sank() -> void:
 
 ## "Set sail again": back home, whole, and the game goes on.
 func _on_again() -> void:
-	_boat.respawn()
+	Boat.current.respawn()
 	get_tree().paused = false
 	hide()

@@ -20,11 +20,14 @@ func _ready() -> void:
 	visible = false                      # never drawn: the interaction button shows it
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_to_group("item_actions")         # so the interaction button finds it
+	set_process(false)                   # nothing to count until a jar is uncorked
 
 
+## Only while it rests after a use (switched on in use()): the wait counts down, then it switches itself off.
 func _process(dt: float) -> void:
-	if cooldown_left > 0.0:
-		cooldown_left = maxf(0.0, cooldown_left - dt)
+	cooldown_left = maxf(0.0, cooldown_left - dt)
+	if cooldown_left == 0.0:
+		set_process(false)
 
 
 ## Can a tap do something now? (A jar aboard and not resting.)
@@ -43,7 +46,7 @@ func is_active() -> bool:
 
 ## One jar out of the hold, and the wind swings round to blow from right astern.
 func use() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null or boat.sinking or not can_use():
 		return
 	if not Inventory.remove(ITEM):
@@ -55,3 +58,4 @@ func use() -> void:
 	# The wind must blow the way she's heading, so it comes FROM right behind her: half a turn round.
 	Wind.turn_to(bow_deg + 180.0, turn_time)
 	cooldown_left = cooldown
+	set_process(true)                    # the rest counts down (_process)

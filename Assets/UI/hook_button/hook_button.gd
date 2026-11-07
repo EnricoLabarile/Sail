@@ -27,7 +27,12 @@ const GRABBABLE_ICON := preload("res://Assets/UI/interaction_button/t_interactio
 const GRABBABLE_FRAMES := Vector2i(4, 4)    # columns x rows of its grid
 const GRABBING_ICON := preload("res://Assets/UI/interaction_button/t_interaction_grabbing.png")
 
+## Seconds between two looks for the nearest thing in reach (for the button's picture only; a tap always looks again).
+@export var look_every := 0.2
+
 var towed: Node3D = null             # what she's holding now (null = nothing)
+var in_reach: Node3D = null          # the nearest thing in reach at the last look (for the picture)
+var look_left := 0.0                 # seconds to the next look
 
 
 func _ready() -> void:
@@ -41,7 +46,7 @@ func _ready() -> void:
 ## Enrico: whenever the boat really takes damage (anything: a fireball, a spike, a bomb, boiling water…), the hook
 ## lets go of what it holds. The boat sends `hurt` for that (boat.gd take_damage; a bump on the shore doesn't).
 func _listen_to_boat() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	if boat:
 		boat.hurt.connect(let_go)
 
@@ -52,10 +57,16 @@ func _on_equipped_changed() -> void:
 		let_go()
 
 
-func _process(_dt: float) -> void:
+func _process(dt: float) -> void:
 	# The thing let go by itself (a lever pulled all the way, a barrel blown up, she sank): forget it.
 	if towed != null and not is_holding():
 		towed = null
+	# The nearest thing in reach, for the button's picture: looked for a few times a second (it used to be every
+	# frame), and only while the hook is in hand.
+	look_left -= dt
+	if look_left <= 0.0:
+		look_left = look_every
+		in_reach = nearest_in_reach() if Inventory.is_equipped(ITEM) else null
 
 
 ## The hook can always be tapped (to grab or to let go).
@@ -86,25 +97,25 @@ func is_holding() -> bool:
 
 
 ## The picture the interaction button shows for the hook (it asks every frame): holding something → the full hand;
-## something in reach to grab → the empty hand; else the hook.
+## something in reach to grab (at the last look) → the empty hand; else the hook.
 func current_icon() -> Texture2D:
 	if is_holding():
 		return GRABBING_ICON
-	if nearest_in_reach() != null:
+	if is_instance_valid(in_reach):
 		return GRABBABLE_ICON
 	return ICON
 
 
 ## The grid of current_icon()'s picture, if it's a flipbook (columns x rows); (1, 1) = a still picture.
 func current_icon_frames() -> Vector2i:
-	if not is_holding() and nearest_in_reach() != null:
+	if not is_holding() and is_instance_valid(in_reach):
 		return GRABBABLE_FRAMES
 	return Vector2i(1, 1)
 
 
 ## Grabs the nearest towable thing whose reach her middle is in. Nothing in reach: nothing happens.
 func grab() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null or boat.sinking or boat.emerging:
 		return
 	var nearest := nearest_in_reach()
@@ -117,7 +128,7 @@ func grab() -> void:
 
 ## The nearest towable thing whose reach her middle is in, or null (nothing to grab here).
 func nearest_in_reach() -> Node3D:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null:
 		return null
 	var nearest: Node3D = null

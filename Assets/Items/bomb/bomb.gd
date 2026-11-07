@@ -178,7 +178,7 @@ func explode() -> void:
 	for barrel in get_tree().get_nodes_in_group("barrels"):
 		barrel.blast_at(self)
 	# The boat, if she's in the circle or on an arm (between two arms, outside the circle, she's safe).
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat:
 		if in_blast(boat.global_position):
 			boat.take_damage(damage)

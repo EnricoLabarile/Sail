@@ -281,7 +281,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
 - **The paddles** (Enrico, Oct 2026: the paddle wheels and the crank back, as an item like the sail; their code on
   themselves): **`Assets/Boat/paddles.gd`** on `Model/Paddles` in boat.tscn, holding `PaddleWheelLeft` / `Right`
   (`Assets/Boat/paddle_wheel.tscn`, the old stand-in from git with `toon_shade` materials, x ±1.75, y 0.1, z 0.1; `Spin`
-  turns). **Always fitted** (Enrico, Nov 2026: the item `paddles.tres` is gone; `is_on()` is always true; the icon
+  turns). **Always fitted** (Enrico, Nov 2026: the item `paddles.tres` is gone (and `is_on()` with it); the icon
   `icons/paddles.png` and its maker stay unused). **The wound spring**: one FULL clockwise turn of
   the crank → `wound()`: `push_left` = `push_time` 4 s at `paddle_speed` 5.88 m/s forward whichever way she points
   (counted down only under way; none at anchor); `power` eases at `take_up_rate` 3.75; the boat's target speed =
@@ -502,7 +502,18 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   `say`; off when she's gone and he's quiet), the hearts (only during the hurt flash). The clouds move as one node
   (`clouds.gd` `drift`, all 256 inside it) and are wrapped round the map once a second (`wrap_clouds`), not each cloud
   every frame. `sea.gd` sends the texture's angle only while it turns to a new wind (steady wind: nothing; it lands on
-  the target within 0.001 rad), keeps the boat once found, and sends `fog_falloff` from its setter.
+  the target within 0.001 rad), and sends `fog_falloff` from its setter.
+  **Second pass (Nov 2026, Enrico: "refactor, cleanup")**: **`Boat.current`** (boat.gd is `class_name Boat`, a
+  `static var current` set in `_enter_tree` (the game view moves her into its SubViewport, which takes her out of the
+  tree and back without a second `_ready`) and cleared in `_exit_tree`): every script reaches the boat through it, no
+  more `get_first_node_in_group("player_boat")` every frame (the group stays, for `is_in_group`). The **lever**
+  (`crank.gd` `redraw_if_changed`, `last_look`) and the **interaction button** (`redraw_if_changed`: every frame only
+  while something on it moves: the flip, the rings, the glint, a flipbook icon) are drawn again only when what they
+  show changes. The **bomb and jar actions** run `_process` only while they rest after a use. **The hook** looks for the
+  nearest thing in reach (for the button's picture) every `look_every` 0.2 s, only while in hand (`in_reach`; a tap
+  still looks again). **The game over card** connects to `sank` once (deferred), no `_process`. **The maelstrom** sends
+  its fade to the materials only while it fades. Gone: `paddles.is_on()`, `helm.gd` `lit_disc`, the bomb action's
+  unused `was_equipped`.
 - **Shader warm-up** (Enrico: frame drops while sailing round; `Assets/Post_Process/shader_warmup.gd`,
   `class_name ShaderWarmup`, added by `game_view.gd` at the level's start, so every level has it): the first time a
   material is drawn its shader compiles, and on WebGL that stops a frame (measured sailing round the Overworld, real

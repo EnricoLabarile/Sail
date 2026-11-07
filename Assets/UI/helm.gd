@@ -51,7 +51,7 @@ var at_lock := false             # true while the wheel is hard over, at full lo
 
 
 func _boat() -> Node:
-	return get_tree().get_first_node_in_group("player_boat")
+	return Boat.current
 
 
 ## True when the wheel can't steer: only while she's tied up at a pier (the berth holds her). At anchor it steers
@@ -207,19 +207,6 @@ func radial_disc(c: CanvasItem, center: Vector2, radius: float, inner: Color, ou
 		var a1 := TAU * (i + 1) / n
 		var tri := PackedVector2Array([center, center + Vector2(cos(a0), sin(a0)) * radius, center + Vector2(cos(a1), sin(a1)) * radius])
 		c.draw_polygon(tri, PackedColorArray([inner, outer, outer]))
-
-
-## A disc lit from the top left: light at the top left, dark at the bottom right (a diagonal gradient).
-func lit_disc(c: CanvasItem, radius: float, light: Color, middle: Color, dark: Color) -> void:
-	var points := PackedVector2Array()
-	var colors := PackedColorArray()
-	for i in 40:
-		var a := TAU * i / 40.0
-		var p := Vector2(cos(a), sin(a)) * radius
-		points.append(p)
-		var t := clampf(((p.x + p.y) / (radius * 2.0)) + 0.5, 0.0, 1.0)   # 0 top left .. 1 bottom right
-		colors.append(light.lerp(middle, t * 2.0) if t < 0.5 else middle.lerp(dark, t * 2.0 - 1.0))
-	c.draw_polygon(points, colors)
 
 
 ## Points along a curve from a to b, pulled toward the control point c (a quadratic Bezier curve).

@@ -95,7 +95,7 @@ func _process(dt: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	time += dt
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if state == State.CAPTURED:
 		return
 	update_flash()

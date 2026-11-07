@@ -96,11 +96,6 @@ func _ready() -> void:
 	make_puffs()
 
 
-## Are the paddles there? Always now (they used to be an item you could switch off).
-func is_on() -> bool:
-	return true
-
-
 ## Is she running? (Not overheated and the anchor up.)
 func is_running() -> bool:
 	return not is_overheated and not boat.anchored

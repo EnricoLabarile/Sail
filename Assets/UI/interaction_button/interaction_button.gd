@@ -44,6 +44,7 @@ var flip_left := 0.0                 # seconds left of the coin flip (0 = not fl
 var flip_from := ""                  # what was in hand before the flip: shown on the first half of it
 var shown_item := ""                 # what's in hand as far as the button knows (to know what it flips from)
 var paper_icons := {}                # icon -> the same icon in paper (for the inked face while the hook holds)
+var last_look := []                  # what the drawing showed last time (redrawn only when this changes)
 
 
 func _ready() -> void:
@@ -52,10 +53,6 @@ func _ready() -> void:
 		return
 	Inventory.equipped_changed.connect(_on_equipped_changed)
 	shown_item = Inventory.equipped
-
-
-func _boat() -> Node:
-	return get_tree().get_first_node_in_group("player_boat")
 
 
 ## Something else put in hand: the button flips like a coin to show it and that thing's own sound plays (Enrico:
@@ -77,7 +74,7 @@ func _on_equipped_changed() -> void:
 func mode() -> String:
 	if Engine.is_editor_hint():
 		return "empty"
-	var boat := _boat()
+	var boat := Boat.current
 	if boat == null:
 		return "empty"
 	if boat.talking:
@@ -112,7 +109,29 @@ func _process(dt: float) -> void:
 		flip_left = maxf(0.0, flip_left - dt)
 		shimmer_t += dt
 		check_long_press(dt)
-	queue_redraw()
+		redraw_if_changed()
+	else:
+		queue_redraw()                   # in the editor: just the drawing
+
+
+## Draws it again only when what it shows has changed (it used to be drawn every frame): the moment, its size, the
+## finger, the thing in hand and its state (busy, its rest's pie, its picture); every frame only while something on
+## it moves (the coin flip, the equip rings, the glint by an NPC, a flipbook icon).
+func redraw_if_changed() -> void:
+	var now := mode()
+	var action := current_action() if now == "item" else null
+	var moving := flip_left > 0.0 or equip_anim_left > 0.0 or now == "talk_start"
+	var look := [now, size, finger != -1 and not long_press_done, Inventory.equipped]
+	if action != null:
+		look.append_array([action.is_active(), action.cooldown_share()])
+		if action.has_method("current_icon"):
+			look.append(action.current_icon())
+		if action.has_method("current_icon_frames") and action.current_icon_frames() != Vector2i(1, 1):
+			moving = true
+	look.append(moving)                  # so the frame after a movement ends is drawn too (at rest)
+	if moving or look != last_look:
+		last_look = look
+		queue_redraw()
 
 
 # ---- touching it ----
@@ -164,7 +183,7 @@ func _unhandled_key_input(e: InputEvent) -> void:
 func press(click := true) -> void:
 	if click:
 		Sfx.button_press()
-	var boat := _boat()
+	var boat := Boat.current
 	match mode():
 		"talk_next":
 			var box := get_tree().get_first_node_in_group("talk_box")

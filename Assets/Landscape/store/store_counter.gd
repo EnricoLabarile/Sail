@@ -68,7 +68,7 @@ func set_game_controls(on: bool) -> void:
 	var helm := get_tree().get_first_node_in_group("helm") as CanvasItem
 	if helm:
 		helm.visible = on
-	var boat := get_tree().get_first_node_in_group("player_boat")
+	var boat := Boat.current
 	if boat:
 		boat.talking = not on
 

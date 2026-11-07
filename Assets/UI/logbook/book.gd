@@ -102,7 +102,7 @@ func _ready() -> void:
 func refresh() -> void:
 	# The square she's in: her place in the world as a share of the map (home, world 0, 0, is the middle),
 	# times the 9 squares, cut to a whole number.
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat:
 		var col := int(floor((boat.global_position.x / Land.WORLD_SIZE + 0.5) * ROOMS))
 		var row := int(floor((boat.global_position.z / Land.WORLD_SIZE + 0.5) * ROOMS))

@@ -127,7 +127,7 @@ func add_shadow_effect() -> void:
 ## Keeps the cloud map over the boat (so it covers what's on screen). It moves in steps of one pixel of
 ## the map, so the shadows don't shimmer as she sails.
 func follow_boat() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null:
 		return
 	var pixel := shadow_area / float(shadow_resolution)   # metres one pixel of the map covers
@@ -191,7 +191,7 @@ func wrap_clouds() -> void:
 
 ## At the start: any cloud closer than clear_radius to the boat is moved to another random place.
 func clear_start_area() -> void:
-	var boat := get_tree().get_first_node_in_group("player_boat") as Node3D
+	var boat := Boat.current as Node3D
 	if boat == null:
 		return
 	var half := Land.WORLD_SIZE / 2.0
