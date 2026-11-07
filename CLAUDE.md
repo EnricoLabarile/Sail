@@ -304,8 +304,10 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   round the pivot; let go, a **spring** brings it back to the middle, always, clicking each notch it passes (`click_notches`, as when dragged): **a real spring that wiggles** (Enrico): `lever_speed` changes by −`spring_stiffness` 80 × lever − `spring_damping` 7 × lever_speed, so from an end it reaches the middle in ~0.2 s, swings about a quarter past it and settles after two or three wiggles (rest below 0.002; a grab stops the swing); the speed share follows the wiggle (keep the damping above ~5, or the swing could reach the left end). Its place sets the
   most she may go (`paddles.set_lever_share`, `speed_share()`): left end 0%, middle 50%, right end 100%, linear. **Ends**
   (each works once per arrival, `at_left_end` / `at_right_end`, `END` 0.98): right end while she's off (anchored, tied
-  up, or battery empty) → `paddles.turn_on()` (anchor up / cast off, battery full) and the lever springs back
-  (`let_go`); right end while running in the battery's last `recharge_window` 3 s → `refill()` (full again, she keeps
+  up, or battery empty) → `paddles.turn_on()` (anchor up / cast off, battery full); from anchor or a pier the lever
+  springs back (`let_go`), but **when the battery ran out under way the finger keeps it where it is** (Enrico, Nov
+  2026: refilling in time, she keeps going and the player keeps control; `_is_stopped()`, `held_time` reset so the
+  boost waits `boost_wait` again); right end while running in the battery's last `recharge_window` 3 s → `refill()` (full again, she keeps
   100%; only with a grab that began in that window, `grabbed_in_window`, Enrico: held at 100% from before, let go and push again); left end with the anchor up → `turn_off()` (anchor down, battery emptied) and springs back. **The battery**
   (`push_left`, `push_time` 40) **drains only while she boosts** (Enrico, Nov 2026; before, it ran down all the time):
   `drain_rate()` is 0 at the lever's middle and below, and past the middle only once the boost counts, then

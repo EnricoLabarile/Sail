@@ -187,9 +187,17 @@ func check_ends() -> void:
 		at_right_end = true
 		if paddles:
 			if not paddles.is_running():
-				paddles.turn_on()           # off: she starts (anchor up, battery full)…
+				# Off: she starts (anchor up, battery full).
+				var was_stopped := _is_stopped()
+				paddles.turn_on()
 				Sfx.lever_done()
-				let_go()                    # …and the lever springs back to the middle
+				if was_stopped:
+					let_go()                # from anchor or a pier: the lever springs back to the middle
+				else:
+					# The battery had run out under way (Enrico, Nov 2026): the finger keeps the lever where it is,
+					# so a player who refills in time keeps control and keeps going. Just refilled: holding it here
+					# doesn't drain the boost until boost_wait has passed (as after a refill).
+					held_time = 0.0
 			elif paddles.can_refill() and grabbed_in_window:
 				# Running, battery nearly out, and this grab began in its last seconds: full again; she keeps the 100%.
 				paddles.refill()
@@ -208,6 +216,12 @@ func check_ends() -> void:
 			let_go()                        # …and the lever springs back to the middle
 	elif lever > -END:
 		at_left_end = false
+
+
+## Is she stopped at anchor or tied up at a pier (not just out of battery)?
+func _is_stopped() -> bool:
+	var boat := get_tree().get_first_node_in_group("player_boat")
+	return boat == null or boat.anchored
 
 
 ## The finger must come off: the spring takes the lever back to the middle.
