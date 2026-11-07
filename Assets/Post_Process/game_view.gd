@@ -19,8 +19,16 @@ const DESIGN_WIDTH := 360.0   # the game's width in the project settings: the co
 ## 360 = a dot is 3 x 3 real pixels on a phone 1080 wide; 540 = 2 x 2 (a finer grain, about 2.25 times the
 ## work); 1080 = 1 x 1 (the finest, 9 times the work). The controls (wheel, sling, logbook button) keep their
 ## size on the screen whatever this is: only the grain changes. (On a narrower screen it can't go finer than
-## a dot per real pixel.)
-@export var dots_across := 360
+## a dot per real pixel.) It can be changed WHILE THE GAME RUNS (Enrico, Nov 2026: to compare resolutions): from the
+## editor's Remote tree (select GameView, change it in the Inspector) or with the "Dots" button of the performance
+## overlay; the view is resized at once (the setter calls _fit). A dot is always a whole number of real pixels, so
+## on a phone 1080 wide only 1080 / 1, 2, 3, 4… really differ (1080, 540, 360, 270, 216…): the overlay shows the
+## real size ("game view … (xN)").
+@export_range(90, 1080, 1) var dots_across := 360:
+	set(value):
+		dots_across = value
+		if view != null:
+			_fit()
 ## TILT-SHIFT (Enrico, Nov 2026, a test): the top and bottom of the world blurred, so the sea looks like a little
 ## model. Only the world: the controls and the logbook's button stay sharp (Assets/Post_Process/tilt_shift/).
 ## Off for now (Enrico, Nov 2026): it cost about a quarter of the frame on the phone and barely shows after the dither.
