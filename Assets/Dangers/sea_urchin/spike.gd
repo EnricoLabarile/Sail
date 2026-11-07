@@ -45,7 +45,7 @@ func _process(dt: float) -> void:
 	if boat == null:
 		return
 	if distance_to_hull(boat) < hit_radius:
-		boat.take_damage(damage)
+		boat.hit_by_enemy(damage)    # hearts off, and her engine heats up (boat.gd)
 		queue_free()
 
 

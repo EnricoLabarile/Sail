@@ -6,18 +6,20 @@ extends Node3D
 ## They're always fitted (Enrico, Nov 2026: no longer an item to switch on and off), and the throttle lever is always
 ## on the screen (Assets/UI/crank/crank.gd, Enrico, Nov 2026: a lever, no longer a crank turned round).
 ##
-## THE BATTERY (the prototype's wound spring, still): `push_left` seconds of push. While there's some and the anchor is
-## up, they push her forward whichever way her bow points, at the boat's `top_speed` × the lever's share (Enrico: the
-## one number for her speed is boat.gd's top_speed). Pushing the lever
-## all the way right TURNS HER ON (`turn_on()`: anchor up, battery full) when she's off; while she runs, all the way
-## right again in the last `recharge_window` seconds of the battery fills it again (`can_refill()`), so a player who
-## keeps an eye on it never stops. All the way left TURNS HER OFF (the anchor goes down, the battery is emptied).
-## The battery runs down ONLY WHILE SHE BOOSTS (Enrico, Nov 2026): the lever held past the middle (`drain_rate()`);
-## at the middle or below it doesn't drain at all, so cruising is free. And it FILLS UP AGAIN BY ITSELF (Enrico):
-## `recharge_delay` seconds after the last boost it climbs back at `recharge_rate`, up to full, but ONLY WHILE SHE'S
-## UNDER WAY (Enrico: not standing still, at anchor or with the lever pulled back; there only the lever pushed all the
-## way right fills it, turn_on / refill). A booster adds to it
-## (add_push).
+## THE HEAT (Enrico, Nov 2026: an overheat bar, it replaced the battery that ran down): `heat` goes from 0 (cold) to
+## `max_heat`. While she runs (not overheated, the anchor up) they push her forward whichever way her bow points, at
+## the boat's `top_speed` × the lever's share (Enrico: the one number for her speed is boat.gd's top_speed).
+## What heats the engine up:
+##   - BOOSTING, the lever held past the middle (`heat_rate()`); at the middle or below nothing, so cruising is free;
+##   - a BOMB dropped (`add_heat(share)`, bomb_button.gd: a fixed share of the bar);
+##   - an ENEMY hitting her (`take_hit()`, from boat.gd hit_by_enemy: `hit_heat` of the bar).
+## It COOLS DOWN BY ITSELF: `cool_delay` seconds after the last boost it falls at `cool_rate`, but only while she's
+## UNDER WAY (Enrico: not standing still, at anchor or with the lever pulled back). A booster cools it (`cool`).
+## At `max_heat` she OVERHEATS: the signal `overheated` (the boat blinks black, boat.gd) and she stops pushing until
+## the lever goes all the way right (`turn_on`: cold again). While she runs, all the way right in the last
+## `vent_window` seconds before overheating VENTS it (`vent()`: cold again), so a player who keeps an eye on it never
+## stops. All the way left TURNS HER OFF (the anchor goes down).
+## THE STEAM: little puffs rising from her, more of them the hotter she is (see the steam, at the bottom).
 ## The current still carries her (the boat's).
 ##
 ## THE SPEED SETTING (Enrico): the lever's place says how fast she may go: all the way left 0%, in the middle (where its
@@ -28,27 +30,30 @@ extends Node3D
 ## wheel, Sfx.paddle_splash) while they work; when the push ends it dies down as she slows (splash_level).
 ##
 ## The boat (boat.gd) calls: push_speed() and bite (her speed), speed_share(), turn_factor() (turning), update(dt)
-## every frame, stop() when she's back home after sinking. The lever calls: is_running(), can_refill(), turn_on(),
-## refill(), turn_off(), set_lever_share().
+## every frame, stop() when she's back home after sinking. The lever calls: is_running(), can_vent(), turn_on(),
+## vent(), turn_off(), set_lever_share().
 
 
-## Sent when she's started (turn_on) or the battery is refilled (refill): the lever's flywheel revs up (crank.gd).
+## Sent when she's started (turn_on) or vented (vent): the lever's flywheel revs up (crank.gd).
 signal revved
+## Sent the moment she overheats (heat at max_heat): the boat blinks black (boat.gd).
+signal overheated
 
-@export var push_time := 40.0          # how much a full battery holds, in seconds of the drain below
-## Seconds of battery a second of boosting costs with the lever all the way right (Enrico's knob): with push_time 40
-## and 8 here, a full battery lasts 5 s of full boost. Between the middle (nothing) and the right end it grows in a
-## straight line; at the middle and below the battery doesn't drain.
-@export var boost_drain := 40.0
-## Seconds the lever must be HELD before pushing it past the middle counts as a boost and drains faster (Enrico: the
-## same move right refills the battery, so right after a refill or a grab it mustn't eat it at once). Counted from the
-## grab and again from each refill (crank.gd sets `boost_counts`). Let go, the drain is back to normal at once, while
-## the lever (and her speed) springs back to the middle.
+@export var max_heat := 40.0           # how much heat she takes before overheating (in seconds of the heating below)
+## Heat a second of boosting adds with the lever all the way right (Enrico's knob): with max_heat 40 and 40 here, she
+## overheats after 1 s of full boost from cold. Between the middle (nothing) and the right end it grows in a straight
+## line; at the middle and below nothing.
+@export var boost_heat := 40.0
+## Seconds the lever must be HELD before pushing it past the middle counts as a boost and heats her (Enrico: the same
+## move right vents her, so right after a vent or a grab it mustn't heat her at once). Counted from the grab and again
+## from each vent (crank.gd sets `boost_counts`). Let go, no more heating at once, while the lever (and her speed)
+## springs back to the middle.
 @export var boost_wait := 0.25
-@export var recharge_delay := 0.5      # seconds after the last boost before the battery starts filling up again (Enrico)
-@export var recharge_rate := 8.0       # seconds of battery it gets back each second once it fills up (8: empty to full in 5 s)
-@export var recharge_min_speed := 0.5  # m/s she must be going for it to fill up by itself (slower = standing still: no)
-@export var recharge_window := 3.0     # the last seconds of the battery in which the lever, pushed right, fills it again (Enrico)
+@export var hit_heat := 0.25           # share of the bar an enemy's hit adds (0.25 = a quarter; boat.gd hit_by_enemy)
+@export var cool_delay := 0.5          # seconds after the last boost before she starts cooling down (Enrico)
+@export var cool_rate := 8.0           # heat she loses each second once she cools (8: from overheated to cold in 5 s)
+@export var cool_min_speed := 0.5      # m/s she must be going to cool down by itself (slower = standing still: no)
+@export var vent_window := 3.0         # the last bit of heat before overheating in which the lever, pushed right, vents her (Enrico)
 @export var turn_mult := 1.5           # she turns this much quicker while they push
 @export var take_up_rate := 3.75            # how quickly they take up and let go as a push starts or ends
 @export var bite := 5.25               # how quickly her speed catches up with their push
@@ -57,15 +62,29 @@ signal revved
 ## real rate was ~4.5 turns a second, a blur). Only the look and the splashes: her speed doesn't change. 1 = real.
 @export var spin_scale := 0.35
 @export var half_beam := 1.75          # metres from her middle to each wheel (turning, the two go at different speeds)
+# The steam (Enrico): little white puffs rising from her middle, more the hotter she is.
+@export var steam_from := 0.1          # share of the heat bar below which there's no steam at all
+@export var steam_puffs_most := 14.0   # puffs a second when she's overheated (fewer the cooler she is)
+@export var steam_height := 0.8        # metres above her middle where a puff appears
+@export var steam_rise := 1.5          # metres a second a puff rises
+@export var steam_time := 1.2          # seconds a puff lives (it grows and fades meanwhile)
+@export var steam_size_start := 0.2    # a puff's radius when it appears, metres…
+@export var steam_size_end := 0.8      # …and when it's gone
 
-var push_left := 0.0      # seconds of battery left (0 = empty: they don't push)
-var power := 0.0          # 0..1: how hard they push now (eased toward 1 while push_left > 0)
+const MAX_PUFFS := 20                  # puffs in the air at the same time, at most
+
+var heat := 0.0           # how hot she is, 0..max_heat
+var is_overheated := false  # true from reaching max_heat until the lever turns her on or vents her: they don't push
+var power := 0.0          # 0..1: how hard they push now (eased toward 1 while she runs)
 var spin_left := 0.0      # the wheels' angles (radians)
 var spin_right := 0.0
 var splash_turn := 0.0    # how far the wheel has turned since the last splash (radians)
 var splash_level := 0.0   # how loud the splashes are now (0..1): 1 while they push, then down as she slows
 var boost_counts := false  # has the lever been held past boost_wait? (crank.gd, every frame): only then does a boost drain
-var since_boost := 0.0     # seconds since she last boosted (the battery fills up again once this reaches recharge_delay)
+var since_boost := 0.0     # seconds since she last boosted (she cools down once this reaches cool_delay)
+var puffs: Array[MeshInstance3D] = []   # the pool of steam puffs (made once)
+var puff_ages: Array[float] = []         # seconds since each puff appeared (below 0 = not in use)
+var next_puff_in := 0.0                  # seconds to the next puff
 var lever_share := 0.5    # the most she may go, 0..1 of her speed (set by the lever every frame; 0.5 = the lever at rest)
 
 @onready var boat: Node3D = owner                               # the boat (boat.tscn's root)
@@ -73,46 +92,59 @@ var lever_share := 0.5    # the most she may go, 0..1 of her speed (set by the l
 @onready var wheel_right: Node3D = $PaddleWheelRight/Spin
 
 
+func _ready() -> void:
+	make_puffs()
+
+
 ## Are the paddles there? Always now (they used to be an item you could switch off).
 func is_on() -> bool:
 	return true
 
 
-## Is she running? (Battery left and the anchor up.)
+## Is she running? (Not overheated and the anchor up.)
 func is_running() -> bool:
-	return push_left > 0.0 and not boat.anchored
+	return not is_overheated and not boat.anchored
 
 
-## Can the battery be filled again now? When it's empty, or in its last recharge_window seconds.
-func can_refill() -> bool:
-	return push_left <= recharge_window
+## How hot she is, 0 (cold) to 1 (overheated): the lever's plate shows it.
+func heat_share() -> float:
+	return heat / max_heat
 
 
-## The lever all the way right while she's off: the anchor comes up (or she casts off from a pier) and the battery is
-## full. (boat.gd toggle_anchor plays the anchor's sound.)
+## Can she be vented now? When she's overheated, or within vent_window of it.
+func can_vent() -> bool:
+	return heat >= max_heat - vent_window
+
+
+## Cold again: no heat, not overheated, and the lever's flywheel spins in overdrive (crank.gd).
+func cool_right_down() -> void:
+	heat = 0.0
+	is_overheated = false
+	revved.emit()
+
+
+## The lever all the way right while she's off: the anchor comes up (or she casts off from a pier) and she's cold.
+## (boat.gd toggle_anchor plays the anchor's sound.)
 func turn_on() -> void:
 	if boat.talking:
 		return                     # someone is talking: the anchor stays down meanwhile
 	if boat.anchored:
 		boat.toggle_anchor()
-	push_left = push_time
-	revved.emit()              # the lever's flywheel spins in overdrive (crank.gd)
+	cool_right_down()
 
 
-## The lever all the way right while she runs, in the battery's last seconds: full again (not added to what was left).
-func refill() -> void:
-	if can_refill():
-		push_left = push_time
-		revved.emit()          # the lever's flywheel spins in overdrive (crank.gd)
+## The lever all the way right while she runs, close to overheating: cold again.
+func vent() -> void:
+	if can_vent():
+		cool_right_down()
 
 
-## The lever all the way left: the anchor goes down (she stops) and the battery is emptied.
+## The lever all the way left: the anchor goes down (she stops).
 func turn_off() -> void:
 	if boat.talking:
 		return
 	if not boat.anchored:
 		boat.toggle_anchor()
-	push_left = 0.0
 
 
 ## The lever says the most she may go (crank.gd, every frame): 0..1.
@@ -125,19 +157,19 @@ func speed_share() -> float:
 	return lever_share
 
 
-## How fast the battery runs down (seconds of it per second). Only the boost costs (Enrico, Nov 2026): 0 at the
-## lever's middle and below, and past the middle only once the boost counts (held boost_wait seconds, crank.gd sets
-## boost_counts); then from 0 just past the middle up to boost_drain at the right end, in a straight line.
-func drain_rate() -> float:
-	if lever_share <= 0.5 or not boost_counts:
-		return 0.0                               # cruising, or just grabbed / refilled / let go: free
+## How fast boosting heats her (heat per second). Only the boost (Enrico, Nov 2026): 0 at the lever's middle and
+## below, and past the middle only once the boost counts (held boost_wait seconds, crank.gd sets boost_counts); then
+## from 0 just past the middle up to boost_heat at the right end, in a straight line.
+func heat_rate() -> float:
+	if not is_boosting():
+		return 0.0                               # cruising, or just grabbed / vented / let go: free
 	var past_middle := (lever_share - 0.5) / 0.5  # 0 at the middle, 1 at the right end
-	return boost_drain * past_middle
+	return boost_heat * past_middle
 
 
-## A booster (Assets/Items/booster) adds `seconds` of battery, never more than full (push_time).
-func add_push(seconds: float) -> void:
-	push_left = minf(push_time, push_left + seconds)
+## A booster (Assets/Items/booster) takes `amount` of heat away, never below cold.
+func cool(amount: float) -> void:
+	heat = maxf(0.0, heat - amount)
 
 
 ## The speed they give her now (m/s): 0 when not pushing.
@@ -150,55 +182,60 @@ func turn_factor() -> float:
 	return turn_mult if power > 0.01 else 1.0
 
 
-## Takes `share` (0..1) of a FULL battery out of it for something else that runs on it (Enrico, Nov 2026: a bomb
-## costs 0.75, bomb_button.gd). Not enough left: nothing is taken and it gives back false. Spending, like boosting,
-## starts the wait before the battery fills up again (since_boost back to 0).
-func spend(share: float) -> bool:
-	var cost := push_time * share
-	if push_left < cost:
-		return false
-	push_left -= cost
+## Adds `share` (0..1) of the whole bar to her heat (Enrico, Nov 2026: a bomb adds 0.75, bomb_button.gd). Like
+## boosting, it starts the wait before she cools down again (since_boost back to 0). Reaching max_heat, she overheats.
+func add_heat(share: float) -> void:
+	heat = minf(max_heat, heat + max_heat * share)
 	since_boost = 0.0
-	return true
+	check_overheat()
 
 
-## Is there at least `share` (0..1) of a full battery left? (The bomb asks before it can be dropped.)
-func has_charge(share: float) -> bool:
-	return push_left >= push_time * share
+## An enemy hit her (boat.gd hit_by_enemy): hit_heat of the bar.
+func take_hit() -> void:
+	add_heat(hit_heat)
+
+
+## Has she just reached max_heat? Then she overheats: no push until the lever turns her on or vents her, and the
+## signal for the boat's black blink. Once only (is_overheated stays true until then).
+func check_overheat() -> void:
+	if heat >= max_heat and not is_overheated:
+		is_overheated = true
+		overheated.emit()
 
 
 ## Is she boosting now? The lever held past the middle long enough for the boost to count (boost_counts). Holding it
-## there with the battery empty counts too: the battery fills up again only once she lets go of the boost.
+## there overheated counts too: she cools down only once she lets go of the boost.
 func is_boosting() -> bool:
 	return lever_share > 0.5 and boost_counts
 
 
-## Every frame (boat.gd): the battery runs down while she boosts (drain_rate) and fills up again by itself once she
-## hasn't boosted for recharge_delay seconds; the push eases in and out, and the wheels turn.
+## Every frame (boat.gd): boosting heats her (heat_rate) and she cools down by itself once she hasn't boosted for
+## cool_delay seconds; the push eases in and out, the wheels turn, and the steam rises.
 func update(dt: float) -> void:
-	update_battery(dt)
-	var pushing := is_running()
-	var want := 1.0 if pushing else 0.0
+	update_heat(dt)
+	var want := 1.0 if is_running() else 0.0
 	power += (want - power) * minf(1.0, dt * take_up_rate)
 	if power < 0.005:
 		power = 0.0
 	spin_wheels(dt)
+	update_steam(dt)
 
 
-## The battery: boosting, it runs down (and the wait before it fills up starts again from 0); not boosting, the wait
-## counts up, and once it's past recharge_delay the battery climbs back at recharge_rate, never above full (push_time),
-## as long as she's under way: running (anchor up, battery left) and going at least recharge_min_speed. Standing
-## still, nothing (Enrico: else pulling the lever back to stop filled it up for free).
-func update_battery(dt: float) -> void:
+## The heat: boosting, it rises (and the wait before she cools starts again from 0); not boosting, the wait counts
+## up, and once it's past cool_delay it falls at cool_rate, never below cold, as long as she's under way: running and
+## going at least cool_min_speed. Standing still, nothing (Enrico: else pulling the lever back to stop cooled her for
+## free). Overheated, she isn't running, so she stays hot until the lever turns her on.
+func update_heat(dt: float) -> void:
 	if is_boosting():
 		since_boost = 0.0
 		if is_running():
-			push_left = maxf(0.0, push_left - dt * drain_rate())
+			heat = minf(max_heat, heat + dt * heat_rate())
+			check_overheat()
 		return
 	since_boost += dt
-	var under_way: bool = is_running() and boat.speed >= recharge_min_speed
-	if since_boost >= recharge_delay and under_way:
-		push_left = minf(push_time, push_left + dt * recharge_rate)
+	var under_way: bool = is_running() and boat.speed >= cool_min_speed
+	if since_boost >= cool_delay and under_way:
+		heat = maxf(0.0, heat - dt * cool_rate)
 
 
 ## The wheels turn with their push, or freewheel, dragged round by the water going by (carried by a wave, a gust…); whichever is
@@ -227,7 +264,7 @@ func spin_wheels(dt: float) -> void:
 ## it turns. Loud while they push; after a push it falls with her speed (she's coming to a halt) and fades within a
 ## couple of seconds anyway (freewheeling makes no sound: Enrico asked for it only while they work).
 func update_splashes(dt: float, wheel_speed: float) -> void:
-	if push_left > 0.0 and not boat.anchored:
+	if is_running():
 		splash_level = 1.0                  # pushing: full
 	else:
 		splash_level = minf(splash_level, clampf(boat.speed / boat.top_speed, 0.0, 1.0))
@@ -239,9 +276,75 @@ func update_splashes(dt: float, wheel_speed: float) -> void:
 			Sfx.paddle_splash(splash_level)
 
 
-## No push left (she's back home after sinking).
+## She's back home after sinking: cold, the lever at rest, no push.
 func stop() -> void:
-	push_left = 0.0
+	heat = 0.0
+	is_overheated = false
 	lever_share = 0.5
 	power = 0.0
 	splash_level = 0.0
+
+
+# ---- the steam ----
+
+## Makes the pool of puffs once: small white balls (a ball looks the same from every side, so it needs no turning to
+## the camera), each with its own material so each fades on its own. `top_level`: placed in the world, so a puff stays
+## where it rose while she sails on, and doesn't rock with her.
+func make_puffs() -> void:
+	var mesh := SphereMesh.new()
+	mesh.radius = 1.0
+	mesh.height = 2.0
+	mesh.radial_segments = 8
+	mesh.rings = 4
+	for i in MAX_PUFFS:
+		var puff := MeshInstance3D.new()
+		puff.mesh = mesh
+		puff.top_level = true
+		puff.visible = false
+		puff.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.albedo_color = Color.WHITE
+		material.render_priority = 2                 # among the see-through things, after the sea and the wake
+		puff.material_override = material
+		add_child(puff)
+		puffs.append(puff)
+		puff_ages.append(-1.0)
+
+
+## Every frame: a new puff every so often (more often the hotter she is: none below steam_from of the bar,
+## steam_puffs_most a second overheated), and every puff in the air rises, grows and fades.
+func update_steam(dt: float) -> void:
+	var share := heat_share()
+	if share >= steam_from:
+		next_puff_in -= dt
+		if next_puff_in <= 0.0:
+			next_puff_in = 1.0 / maxf(steam_puffs_most * share, 0.5)
+			start_puff()
+	for i in MAX_PUFFS:
+		if puff_ages[i] < 0.0:
+			continue
+		var puff := puffs[i]
+		puff_ages[i] += dt
+		var age := puff_ages[i] / steam_time            # 0 when it appears, 1 when it's gone
+		if age >= 1.0:
+			puff_ages[i] = -1.0                         # done: free for the next one
+			puff.visible = false
+			continue
+		puff.global_position.y += steam_rise * dt
+		var radius := lerpf(steam_size_start, steam_size_end, age)
+		puff.scale = Vector3.ONE * radius
+		(puff.material_override as StandardMaterial3D).albedo_color.a = 0.8 * (1.0 - age)
+
+
+## One puff over her middle (a little to one side or the other, at random), using a free one of the pool.
+func start_puff() -> void:
+	var free_one := puff_ages.find(-1.0)
+	if free_one == -1:
+		return                                          # all in the air: skip this one
+	var puff := puffs[free_one]
+	var spot: Vector3 = boat.global_position + Vector3(randf_range(-0.3, 0.3), steam_height, randf_range(-0.3, 0.3))
+	puff.global_transform = Transform3D(Basis().scaled(Vector3.ONE * steam_size_start), spot)
+	puff.visible = true
+	puff_ages[free_one] = 0.0

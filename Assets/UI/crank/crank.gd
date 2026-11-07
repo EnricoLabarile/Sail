@@ -7,31 +7,31 @@ extends Control
 ## Where it is sets the MOST she may go (paddles.gd set_lever_share; not a brake, she reaches it at her usual rate):
 ##   all the way left = 0%, the middle (at rest) = 50%, all the way right = 100%, in a straight line in between.
 ## The two ends do more:
-##   - ALL THE WAY RIGHT, while she's off (at anchor, tied up, or the battery empty): she TURNS ON: the anchor comes up
-##     (or she casts off) and the paddles' battery is full (paddles.turn_on). Then the lever springs back to the middle.
-##   - ALL THE WAY RIGHT, while she runs, in the battery's last seconds (paddles.recharge_window): the battery is full
-##     again (paddles.refill). The lever stays where the finger holds it (100%). Only with a grab that BEGAN in those
-##     last seconds (Enrico): held at 100% from before, the player must let go and push it right again.
+##   - ALL THE WAY RIGHT, while she's off (at anchor, tied up, or overheated): she TURNS ON: the anchor comes up
+##     (or she casts off) and the engine is cold (paddles.turn_on). Then the lever springs back to the middle.
+##   - ALL THE WAY RIGHT, while she runs, close to overheating (paddles.vent_window): she's VENTED, cold again
+##     (paddles.vent). The lever stays where the finger holds it (100%). Only with a grab that BEGAN that close
+##     (Enrico): held at 100% from before, the player must let go and push it right again.
 ##   - ALL THE WAY LEFT, while the anchor is up: she TURNS OFF: the anchor goes down (paddles.turn_off). Then the
 ##     lever springs back to the middle.
 ## An end works once each time the lever gets there: to use it again, the lever must leave it first.
-## The battery runs down only while she boosts, the lever held past the middle (paddles.gd drain_rate).
+## The heat rises only while she boosts, the lever held past the middle (paddles.gd heat_rate), or by a bomb or a hit.
 ##
-## THE BATTERY (Enrico, Nov 2026): the charge left is an ink filling inside the plate, from its left end: full = the
-## whole plate inked, half = up to the middle. (The battery icon in the knob, its blinking and the moving dashes are gone.)
-##   - Pushed past the middle (she goes faster, so the battery runs down faster): the filling carries paper chevrons
-##     "<" (zig-zags, like Enrico's pattern turned a quarter left) flowing leftwards, quicker the faster it drains.
+## THE HEAT (Enrico, Nov 2026: an overheat bar, it was a battery): an ink filling inside the plate, from its left end:
+## cold = empty, overheated = the whole plate inked, half = up to the middle.
+##   - Pushed past the middle (boosting, so she heats up): the filling carries paper chevrons ">" (zig-zags, like
+##     Enrico's pattern) flowing rightwards, the way the heat grows, quicker the faster it rises.
 ##   - THE FLYWHEEL in the knob (Enrico, like a rowing machine's): it spins as long as the paddles run, at its usual
 ##     pace with the lever in the middle, faster pushed right, slower pushed left, stopped all the way left or when she's
-##     off. When she's started or the battery is refilled it revs up into OVERDRIVE for a moment, then spins down to
+##     off. When she's started or vented it revs up into OVERDRIVE for a moment, then spins down to
 ##     normal, like an engine revving. It has weight: its speed follows the lever smoothly, never jumps.
-##   - Refilled: the filling climbs back over refill_show_time, and meanwhile the knob has its colours swapped and the
-##     chevrons turn ">" and flow rightwards (Enrico: the battery is filling up).
+##   - Vented: the filling goes back down over vent_show_time, and meanwhile the knob has its colours swapped and the
+##     chevrons turn "<" and flow leftwards (Enrico: the heat going out).
 ## THE HINTS (Enrico): a little anchor beside the end that works the anchor now: LEFT while the anchor is up (all the
 ## way left drops it), RIGHT while she's at anchor or tied up (all the way right weighs it and starts her).
 ## Its sounds (Enrico): a light click every notch (NOTCHES across the plate), higher toward the right
-## (Sfx.crank_click); a firm snap at an end that turns her on, off or fills the battery (Sfx.lever_done, with the
-## anchor's own sound); the unlock sound the moment the battery can be filled again (Sfx.crank_unlock).
+## (Sfx.crank_click); a firm snap at an end that turns her on, off or vents her (Sfx.lever_done, with the
+## anchor's own sound); the unlock sound the moment she can be vented (Sfx.crank_unlock).
 ##
 ## Drawn with code, in greys, like the wheel: its CanvasLayer (crank.tscn) sits UNDER the dither, so it comes out in
 ## paper-and-ink dots. The drawing is in its own units (a 72 x 72 box round the Control's middle), scaled to this
@@ -46,19 +46,19 @@ extends Control
 ## (Keep the damping above ~5: with less, the swing past the middle could reach the left end.)
 @export var spring_stiffness := 160
 @export var spring_damping := 9.0
-@export var refill_show_time := 0.5    # seconds the filling takes to climb back when it's refilled (Enrico: seen filling, not at once)
-# The chevrons flowing left in the filling while she goes faster than the middle (the battery drains faster):
+@export var vent_show_time := 0.5      # seconds the filling takes to go back down when she's vented (Enrico: seen, not at once)
+# The chevrons flowing right in the filling while she goes faster than the middle (boosting: the heat rises):
 @export var chevron_count := 7          # how many chevrons across the whole plate
 @export var chevron_teeth := 3          # how many points each chevron column has, from the inner edge to the outer
 @export var chevron_speed := 5        # chevrons going by a second at full speed (slower just past the middle)
-@export var refill_chevron_speed := 5 # while it refills, the chevrons turn ">" and flow rightwards this fast (a second)
-# The LED on the lever's tip: it blinks black and white, with three little rays, while the battery can be refilled:
+@export var vent_chevron_speed := 5    # while she's vented, the chevrons turn "<" and flow leftwards this fast (a second)
+# The LED on the lever's tip: it blinks black and white, with three little rays, while she can be vented:
 @export var led_blinks_per_second := 3.0   # how many times a second it lights up
 
 # The flywheel in the knob (turns a second; keep them under ~4: the phone may draw only 30 frames a second, and a wheel
 # turning much faster than that seems to stand still or go backwards):
 @export var flywheel_speed := 1.0      # turns a second with the lever in the middle (twice that all the way right, 0 all the way left)
-@export var overdrive_speed := 3.0      # turns a second in overdrive (started, or the battery refilled)
+@export var overdrive_speed := 3.0      # turns a second in overdrive (started, or vented)
 @export var overdrive_time := 1.5       # seconds of overdrive before it spins down to normal
 @export var flywheel_weight := 4.0      # how quickly its speed follows (more = lighter, it catches up sooner; less = heavier)
 
@@ -77,17 +77,17 @@ var lever_speed := 0.0       # how fast the lever is swinging on its spring (hal
 var lever := 0.0              # where it is: -1 all the way left, 0 the middle, +1 all the way right
 var drag_index := -1          # the finger on it (-1 = none)
 var last_a := 0.0             # the finger's angle round the pivot a moment ago
-var shown_charge := 1.0      # the charge the filling shows (0..1): it follows the real one, climbing slowly when refilled
-var filling := false         # is the filling climbing now? (then the knob is drawn with its colours swapped)
+var shown_heat := 0.0        # the heat the filling shows (0..1): it follows the real one, going down slowly when vented
+var venting := false         # is the filling going down after a vent? (then the knob is drawn with its colours swapped)
 var notch := NOTCHES / 2      # the notch it's at (for the clicks)
 var at_left_end := false      # is it at an end now? (an end works once each time the lever gets there)
 var at_right_end := false
-## Was the lever grabbed after the battery's last seconds began? (Enrico: to refill it the player must let go and push it
+## Was the lever grabbed once she was close to overheating? (Enrico: to vent her the player must let go and push it
 ## all the way right again; holding it at 100% from before isn't enough, nor is a finger wobbling at the end.)
 var grabbed_in_window := false
-var held_time := 0.0         # seconds the finger has held it since the grab (or since the last refill): for paddles.boost_wait
-var was_free := true          # could the battery be filled a frame ago? (to hear the moment it can)
-var chevron_shift := 0.0      # how far the chevrons have flowed left (in plate shares; it grows while she boosts)
+var held_time := 0.0         # seconds the finger has held it since the grab (or since the last vent): for paddles.boost_wait
+var was_free := true          # could she be vented a frame ago? (to hear the moment she can)
+var chevron_shift := 0.0      # how far the chevrons have flowed right (in plate shares; it grows while she boosts)
 var flywheel_angle := 0.0     # how far the flywheel has turned (radians)
 var flywheel_spin := 0.0      # how fast it turns now (turns a second): it follows its target smoothly
 var overdrive_left := 0.0     # seconds of overdrive still to go
@@ -104,12 +104,12 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	var paddles := _paddles()
-	was_free = paddles == null or paddles.can_refill()   # no unlock sound for the state it starts in
+	was_free = paddles == null or paddles.can_vent()   # no unlock sound for the state it starts in
 	if paddles:
-		paddles.revved.connect(_on_revved)             # started or refilled: overdrive
+		paddles.revved.connect(_on_revved)             # started or vented: overdrive
 
 
-## She was started, or the battery refilled: the flywheel spins in overdrive for overdrive_time seconds.
+## She was started, or vented: the flywheel spins in overdrive for overdrive_time seconds.
 func _on_revved() -> void:
 	overdrive_left = overdrive_time
 
@@ -150,7 +150,7 @@ func _gui_input(e: InputEvent) -> void:
 			held_time = 0.0                 # the boost's wait starts again
 			last_a = _angle_round_pivot(e.position)
 			var paddles := _paddles()
-			grabbed_in_window = paddles != null and paddles.is_running() and paddles.can_refill()
+			grabbed_in_window = paddles != null and paddles.is_running() and paddles.can_vent()
 			accept_event()
 		elif not e.pressed and e.index == drag_index:
 			drag_index = -1                 # let go: _process springs it back to the middle
@@ -187,21 +187,21 @@ func check_ends() -> void:
 		at_right_end = true
 		if paddles:
 			if not paddles.is_running():
-				# Off: she starts (anchor up, battery full).
+				# Off: she starts (anchor up, cold).
 				var was_stopped := _is_stopped()
 				paddles.turn_on()
 				Sfx.lever_done()
 				if was_stopped:
 					let_go()                # from anchor or a pier: the lever springs back to the middle
 				else:
-					# The battery had run out under way (Enrico, Nov 2026): the finger keeps the lever where it is,
-					# so a player who refills in time keeps control and keeps going. Just refilled: holding it here
-					# doesn't drain the boost until boost_wait has passed (as after a refill).
+					# She had overheated under way (Enrico, Nov 2026): the finger keeps the lever where it is, so a
+					# player who turns her on again in time keeps control and keeps going. Just cooled: holding it
+					# here doesn't heat her until boost_wait has passed (as after a vent).
 					held_time = 0.0
-			elif paddles.can_refill() and grabbed_in_window:
-				# Running, battery nearly out, and this grab began in its last seconds: full again; she keeps the 100%.
-				paddles.refill()
-				held_time = 0.0             # just refilled: holding it here doesn't drain faster until boost_wait has passed
+			elif paddles.can_vent() and grabbed_in_window:
+				# Running, nearly overheated, and this grab began that close: vented, cold again; she keeps the 100%.
+				paddles.vent()
+				held_time = 0.0             # just vented: holding it here doesn't heat her until boost_wait has passed
 				Sfx.lever_done()
 				grabbed_in_window = false   # once per grab
 	elif lever < END:
@@ -218,7 +218,7 @@ func check_ends() -> void:
 		at_left_end = false
 
 
-## Is she stopped at anchor or tied up at a pier (not just out of battery)?
+## Is she stopped at anchor or tied up at a pier (not just overheated)?
 func _is_stopped() -> bool:
 	var boat := get_tree().get_first_node_in_group("player_boat")
 	return boat == null or boat.anchored
@@ -232,14 +232,14 @@ func let_go() -> void:
 func _process(dt: float) -> void:
 	if Engine.is_editor_hint() or not visible:
 		return
-	update_shown_charge(dt)
+	update_shown_heat(dt)
 	update_flywheel(dt)
 	var paddles_now := _paddles()
-	if filling:
-		# Refilling (Enrico): the chevrons flow rightwards instead, the battery is filling up.
-		chevron_shift -= dt * refill_chevron_speed / chevron_count
-	elif paddles_now and paddles_now.lever_share > 0.5 and paddles_now.boost_counts:
-		# Boosting: the chevrons flow left, quicker the further past the middle (0 at the middle, full at the right end).
+	if venting:
+		# Vented (Enrico): the chevrons flow leftwards instead, the heat going out.
+		chevron_shift -= dt * vent_chevron_speed / chevron_count
+	elif paddles_now and paddles_now.is_boosting():
+		# Boosting: the chevrons flow right, quicker the further past the middle (0 at the middle, full at the right end).
 		var boost: float = (paddles_now.lever_share - 0.5) / 0.5
 		chevron_shift += dt * chevron_speed * boost / chevron_count
 	# Let go: the spring takes it back to the middle, overshoots and wiggles to a stop (Enrico), clicking each notch it
@@ -258,17 +258,17 @@ func _process(dt: float) -> void:
 	if paddles:
 		# The most she may go: 0% all the way left, 50% in the middle, 100% all the way right.
 		paddles.set_lever_share(0.5 + 0.5 * lever)
-		# The boost drains the battery only while the finger holds it and has held it boost_wait seconds (since the grab
-		# or the last refill); let go, no drain at once, while her speed eases down with the lever.
+		# The boost heats her only while the finger holds it and has held it boost_wait seconds (since the grab or the
+		# last vent); let go, no more heating at once, while her speed eases down with the lever.
 		if drag_index != -1:
 			held_time += dt
 		paddles.boost_counts = drag_index != -1 and held_time >= paddles.boost_wait
-		# The moment the battery can be filled again (its last seconds, or empty): the unlock sound, once.
-		var free: bool = paddles.can_refill()
+		# The moment she can be vented (close to overheating, or overheated): the unlock sound, once.
+		var free: bool = paddles.can_vent()
 		if free and not was_free:
 			Sfx.crank_unlock()
 		was_free = free
-	queue_redraw()                          # the battery track follows the battery every frame
+	queue_redraw()                          # the filling follows the heat every frame
 
 
 # ---- the drawing ----
@@ -284,7 +284,7 @@ func at(angle: float, distance: float) -> Vector2:
 
 
 ## The plate's outline: along the outer edge left to right, then back along the inner edge.
-## With `upto` < 1 only the part from the left end to that share of the plate (the battery's filling).
+## With `upto` < 1 only the part from the left end to that share of the plate (the heat's filling).
 func plate_points(upto := 1.0) -> PackedVector2Array:
 	var points := PackedVector2Array()
 	var steps := 24
@@ -305,20 +305,20 @@ func _draw() -> void:
 
 	var paddles := null if Engine.is_editor_hint() else _paddles()
 	var boat := null if Engine.is_editor_hint() else get_tree().get_first_node_in_group("player_boat")
-	var share := 1.0                                   # the charge shown, 0..1 (full in the editor)
+	var share := 0.5                                   # the heat shown, 0..1 (half in the editor, to see the filling)
 	if paddles:
-		share = shown_charge
+		share = shown_heat
 
-	# 1. The plate: paper, then the charge as an ink filling from its left end.
+	# 1. The plate: paper, then the heat as an ink filling from its left end.
 	var plate := plate_points()
 	draw_colored_polygon(plate, paper)
 	if share > 0.005:
 		draw_colored_polygon(plate_points(share), ink)
-		# Refilling: paper chevrons ">" flowing rightwards inside the filling. Boosting (past the middle): "<" leftwards.
-		if filling:
-			_draw_chevrons(share, paper, 1.0)
-		elif paddles and paddles.lever_share > 0.5 and paddles.is_running():
+		# Vented: paper chevrons "<" flowing leftwards inside the filling. Boosting (past the middle): ">" rightwards.
+		if venting:
 			_draw_chevrons(share, paper, -1.0)
+		elif paddles and paddles.lever_share > 0.5 and paddles.is_running():
+			_draw_chevrons(share, paper, 1.0)
 	#    Its ink edge on top, and the middle marked by a thin line (as in the sketch).
 	var closed := plate.duplicate()
 	closed.append(plate[0])
@@ -338,15 +338,15 @@ func _draw() -> void:
 		draw_line(Vector2(-5.0, y + 3.0), Vector2(5.0, y), stripe_color, 1.4)
 		y += 4.0
 	draw_rect(grip, ink, false, 1.6)
-	#    The LED on the grip's tip (Enrico): it blinks while the battery can be refilled (see _draw_led).
+	#    The LED on the grip's tip (Enrico): it blinks while she can be vented (see _draw_led).
 	_draw_led(paddles, ink, paper)
 
-	# 4. The knob on the pivot (not turned: the battery inside stays level): paper with an ink ring.
+	# 4. The knob on the pivot (not turned): paper with an ink ring.
 	draw_set_transform(size * 0.5 + PIVOT * k, 0.0, Vector2(k, k))
-	#    While it's filling up (Enrico: to make the recharge stand out), the whole knob has its colours swapped: an ink
-	#    disc and the battery in paper; back to normal once it's full.
-	var knob_fill := ink if filling else paper
-	var knob_mark := paper if filling else ink
+	#    While the vented heat goes out (Enrico: to make it stand out), the whole knob has its colours swapped: an ink
+	#    disc and the flywheel in paper; back to normal once it's cold.
+	var knob_fill := ink if venting else paper
+	var knob_mark := paper if venting else ink
 	draw_circle(Vector2.ZERO, KNOB_R, knob_fill)
 	draw_arc(Vector2.ZERO, KNOB_R, 0.0, TAU, 32, knob_mark, 1.6)   # its ring swaps too (so it reads on the dark sea)
 	#    The flywheel inside it, turning (see update_flywheel).
@@ -367,29 +367,29 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## The charge the icon shows: when the battery is filled (lever all the way right, a booster) it climbs to the new
-## charge over refill_show_time seconds, so the player sees it filling; going down it just follows.
-func update_shown_charge(dt: float) -> void:
+## The heat the filling shows: when she's vented (lever all the way right, or a booster) it goes down to the new heat
+## over vent_show_time seconds, so the player sees it go out; going up it just follows.
+func update_shown_heat(dt: float) -> void:
 	var paddles := _paddles()
 	if paddles == null:
 		return
-	var real: float = paddles.push_left / paddles.push_time
-	if real > shown_charge and refill_show_time > 0.0:
-		shown_charge = move_toward(shown_charge, real, dt / refill_show_time)
-		filling = shown_charge < real            # still climbing (false the frame it gets there)
+	var real: float = paddles.heat_share()
+	if real < shown_heat and vent_show_time > 0.0:
+		shown_heat = move_toward(shown_heat, real, dt / vent_show_time)
+		venting = shown_heat > real              # still going down (false the frame it gets there)
 	else:
-		shown_charge = real
-		filling = false
+		shown_heat = real
+		venting = false
 
 
 ## The chevrons: columns of zig-zags (each one a "<", its points facing left) standing across the plate inside the
-## filling (from its left end to `share`), sliding leftwards by chevron_shift: a column leaving the left end comes back
-## at the right one. Drawn in `color` (paper, over the ink filling). `facing` -1 = points to the left "<" (boosting),
-## +1 = points to the right ">" (refilling: then chevron_shift goes down, so they slide right).
+## filling (from its left end to `share`), sliding by chevron_shift: a column leaving one end comes back at the
+## other. Drawn in `color` (paper, over the ink filling). `facing` +1 = points to the right ">" (boosting: chevron_shift
+## grows), -1 = points to the left "<" (vented: chevron_shift goes down).
 func _draw_chevrons(share: float, color: Color, facing: float) -> void:
 	var step := 1.0 / chevron_count                     # the gap between two columns, as a share of the plate's width
 	var depth := step * 0.35 * facing                   # how far each point reaches out (left if negative)
-	var first := fposmod(-chevron_shift, step)          # where the first column stands now (it slides left, then loops)
+	var first := fposmod(chevron_shift, step)           # where the first column stands now (it slides, then loops)
 	var x := first
 	while x <= share:
 		if x + minf(depth, 0.0) >= 0.0 and x + maxf(depth, 0.0) <= share:   # the whole column inside the filling
@@ -404,14 +404,14 @@ func _draw_chevrons(share: float, color: Color, facing: float) -> void:
 
 
 ## The LED on the tip of the grip (Enrico, from his sketch), drawn in the lever's own frame so it tilts with it: a
-## little dome sitting on the grip's top. While the battery can be refilled (paddles running and in its last
-## recharge_window seconds) it blinks led_blinks_per_second times a second: lit = a paper dome with a glint and three
+## little dome sitting on the grip's top. While she can be vented (paddles running and within vent_window of
+## overheating) it blinks led_blinks_per_second times a second: lit = a paper dome with a glint and three
 ## ink rays round it (one straight up, two slanted); off = an ink dome and no rays. The rest of the time it's off.
 func _draw_led(paddles: Node, ink: Color, paper: Color) -> void:
 	var middle := Vector2(0.0, -LEVER_LENGTH)               # the middle of the dome's flat bottom, on the grip's top
 	var radius := 4.0
 	var lit := false
-	if paddles and paddles.is_running() and paddles.can_refill():
+	if paddles and paddles.is_running() and paddles.can_vent():
 		var phase := fmod(Time.get_ticks_msec() / 1000.0 * led_blinks_per_second, 1.0)
 		lit = phase < 0.5                                   # lit half of each blink, off the other half
 	# The dome: half a circle (from left to right over the top), filled, with an ink outline.
@@ -431,9 +431,9 @@ func _draw_led(paddles: Node, ink: Color, paper: Color) -> void:
 		draw_line(middle + way * (radius + 2.5), middle + way * (radius + 7.5), ink, 1.6)
 
 
-## The flywheel's speed and angle, every frame. Its target: 0 when the paddles are off (anchored, tied up, battery
-## empty); otherwise flywheel_speed × the lever's share / 0.5 (the middle = its usual pace, all the way right twice
-## that, all the way left 0); in overdrive (just started or refilled) overdrive_speed. The real speed follows the target
+## The flywheel's speed and angle, every frame. Its target: 0 when the paddles are off (anchored, tied up,
+## overheated); otherwise flywheel_speed × the lever's share / 0.5 (the middle = its usual pace, all the way right twice
+## that, all the way left 0); in overdrive (just started or vented) overdrive_speed. The real speed follows the target
 ## smoothly (flywheel_weight), so it revs up and spins down like something heavy, and the angle moves by the speed.
 func update_flywheel(dt: float) -> void:
 	var paddles := _paddles()

@@ -88,6 +88,9 @@ extends Node3D
 # like off a shore and loses enemy_touch_damage hearts; then enemy_touch_cooldown seconds before it can happen again.
 @export var enemy_touch_damage := 0.5
 @export var enemy_touch_cooldown := 1.0
+# Overheated (paddles.gd, Enrico): the whole boat blinks black this many times, each blink this long (on, then off).
+@export var overheat_blinks := 3
+@export var overheat_blink_time := 0.1
 
 ## Sent whenever her health or her number of hearts changes (the hearts top left listen, to draw again).
 ## `hurt` is true when she has just lost some (the hearts flash).
@@ -173,6 +176,7 @@ var home_position := Vector3.ZERO   # where she starts (home): read at start, sh
 var home_turn := 0.0                # and which way she faced there (rotation.y)
 var water_mask: ShaderMaterial      # the mask on her inside (see add_water_mask)
 var masked_meshes: Array[MeshInstance3D] = []   # the meshes that wear it
+var black_material: StandardMaterial3D           # plain black, worn by all her meshes while she blinks (overheated)
 var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over now (usually none or one)
 
 # The parts the code moves. find_child("Name") looks for a node with that name anywhere inside the boat
@@ -203,6 +207,7 @@ func _ready() -> void:
 	# Whatever comes into the hold, from wherever (a pickup, an imp, a haul of fish, a buy), the boat makes the
 	# same sound: it's her taking it aboard (Enrico). The Inventory tells her (like an Event Dispatcher).
 	Inventory.came_aboard.connect(_on_came_aboard)
+	paddles.overheated.connect(blink_black)   # overheated: she blinks black (like an Event Dispatcher bound in BeginPlay)
 	if emerge_on_start:
 		start_emerging()
 
@@ -577,7 +582,7 @@ func _physics_process(dt: float) -> void:
 	if caught_eye != null:
 		update_caught(dt)
 		return
-	# the keyboard (PC): Space does what the throttle lever's ends do: off → on (anchor up, battery full), running →
+	# the keyboard (PC): Space does what the throttle lever's ends do: off → on (anchor up, cold again), running →
 	# off (anchor down). (Enter is the interaction button's; the arrows turn the wheel, in ui/helm.)
 	if Input.is_action_just_pressed("ui_accept") and Input.is_key_pressed(KEY_SPACE):
 		if paddles.is_running():
@@ -588,7 +593,7 @@ func _physics_process(dt: float) -> void:
 	# Just cast off from a pier: no current for calm_left seconds (update_current), she glides on the push.
 	calm_left = maxf(0.0, calm_left - dt)
 
-	# Her speed eases toward what the paddle wheels give (paddles.gd, run on their battery), picked up at their
+	# Her speed eases toward what the paddle wheels give (paddles.gd; nothing while she's overheated), picked up at their
 	# own bite; with nothing pushing (paddles off, at anchor) it dies away, quickly at anchor.
 	paddles.update(dt)
 	var target: float = paddles.push_speed()
@@ -888,7 +893,41 @@ func bump_into_enemy(enemy_point: Vector3) -> void:
 		away = global_transform.basis.z      # right on top of it: back her out astern
 	knock += away.normalized() * (bounce_kick + absf(speed) * bounce_extra)
 	speed *= bounce_slowdown
-	take_damage(enemy_touch_damage)      # its sound is the damage's (Sfx.boat_hurt), not the hull's knock
+	hit_by_enemy(enemy_touch_damage)     # its sound is the damage's (Sfx.boat_hurt), not the hull's knock
+
+
+## An enemy hurt her (running into it, a fireball, a spike): `hearts` off her health, and the engine heats up too
+## (Enrico, Nov 2026: paddles.gd take_hit, a share of the overheat bar).
+func hit_by_enemy(hearts: float) -> void:
+	if sinking or emerging:
+		return
+	take_damage(hearts)
+	paddles.take_hit()
+
+
+## Overheated (paddles.gd signal `overheated`): the whole boat blinks black overheat_blinks times. Every mesh inside
+## Model wears a plain black material_override for a moment, then its own again (material_override replaces the
+## mesh's own material while it's set; the water mask is a material_overlay, so it stays). A Tween is like a Timeline
+## in Unreal: a list of steps (callbacks and waits) played one after the other.
+func blink_black() -> void:
+	if black_material == null:
+		black_material = StandardMaterial3D.new()
+		black_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		black_material.albedo_color = Color.BLACK
+	var tween := create_tween()
+	for i in overheat_blinks:
+		tween.tween_callback(set_black.bind(true))
+		tween.tween_interval(overheat_blink_time)
+		tween.tween_callback(set_black.bind(false))
+		tween.tween_interval(overheat_blink_time)
+
+
+## Every mesh of her own inside Model black (on) or back to its own material (off). The steam's puffs (paddles.gd)
+## are inside too but placed in the world on their own (top_level) and wear their own material: left alone.
+func set_black(on: bool) -> void:
+	for mesh in model.find_children("*", "MeshInstance3D", true, false):
+		if not mesh.top_level:
+			mesh.material_override = black_material if on else null
 
 
 ## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).

@@ -1,8 +1,8 @@
 @tool
 extends Node3D
 ## A BOOSTER (Enrico): an orb floating over the water, placed by hand. When the boat sails over it:
-##   - the paddles' battery gets `crank_refill` seconds more (never more than full: paddles.gd add_push), so
-##     chaining boosters keeps her going (Enrico, Nov 2026: it no longer makes her faster);
+##   - the paddles cool down by `cooling` (never below cold: paddles.gd cool), so chaining boosters keeps her
+##     going without overheating (Enrico, Nov 2026: it no longer makes her faster);
 ##   - a screen shake and a power-up sound.
 ## Then it's gone: invisible and switched off for `respawn_time` seconds, and then it comes back, ready again.
 ## (In Unreal: a pickup actor with an overlap volume that hides itself and re-enables on a timer.)
@@ -15,7 +15,7 @@ extends Node3D
 	set(value):
 		reach = value
 		_fit_sensor()
-@export var crank_refill := 5.0        # seconds of battery given to the paddles
+@export var cooling := 5.0             # heat taken off the paddles (of their max_heat 40)
 @export var respawn_time := 30.0       # seconds it stays gone after being taken
 @export var shake_strength := 0.4      # the screen shake when she takes it (metres)…
 @export var shake_time := 0.25         # …and how long it lasts (seconds)
@@ -59,14 +59,14 @@ func _process(dt: float) -> void:
 	orb.position.y = orb_height + sin(time) * bob_height
 
 
-## The boat came over it: the paddles' refill, the shake and the sound; then it's gone for a while.
+## The boat came over it: the paddles cool down, the shake and the sound; then it's gone for a while.
 func _on_sensor_entered(area: Area3D) -> void:
 	var boat := area.get_parent() as Node3D
 	if boat == null or not boat.is_in_group("player_boat"):
 		return
 	if gone_left > 0.0 or boat.sinking or boat.anchored:
 		return                                  # gone, or she isn't sailing: nothing happens, it stays
-	boat.paddles.add_push(crank_refill)                     # paddles.gd: more battery
+	boat.paddles.cool(cooling)                              # paddles.gd: less heat
 	boat.camera.shake_hard(shake_strength, shake_time)      # boat_camera.gd
 	Sfx.booster()
 	disappear()

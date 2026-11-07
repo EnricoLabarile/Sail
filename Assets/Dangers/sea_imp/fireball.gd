@@ -54,7 +54,7 @@ func _process(dt: float) -> void:
 	var off: Vector3 = boat.global_position - global_position
 	off.y = 0.0                          # only the distance across the water
 	if off.length() < hit_radius:
-		boat.take_damage(damage)
+		boat.hit_by_enemy(damage)    # hearts off, and her engine heats up (boat.gd)
 		queue_free()
 
 

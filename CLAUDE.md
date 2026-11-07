@@ -304,41 +304,49 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   round the pivot; let go, a **spring** brings it back to the middle, always, clicking each notch it passes (`click_notches`, as when dragged): **a real spring that wiggles** (Enrico): `lever_speed` changes by −`spring_stiffness` 80 × lever − `spring_damping` 7 × lever_speed, so from an end it reaches the middle in ~0.2 s, swings about a quarter past it and settles after two or three wiggles (rest below 0.002; a grab stops the swing); the speed share follows the wiggle (keep the damping above ~5, or the swing could reach the left end). Its place sets the
   most she may go (`paddles.set_lever_share`, `speed_share()`): left end 0%, middle 50%, right end 100%, linear. **Ends**
   (each works once per arrival, `at_left_end` / `at_right_end`, `END` 0.98): right end while she's off (anchored, tied
-  up, or battery empty) → `paddles.turn_on()` (anchor up / cast off, battery full); from anchor or a pier the lever
-  springs back (`let_go`), but **when the battery ran out under way the finger keeps it where it is** (Enrico, Nov
-  2026: refilling in time, she keeps going and the player keeps control; `_is_stopped()`, `held_time` reset so the
-  boost waits `boost_wait` again); right end while running in the battery's last `recharge_window` 3 s → `refill()` (full again, she keeps
-  100%; only with a grab that began in that window, `grabbed_in_window`, Enrico: held at 100% from before, let go and push again); left end with the anchor up → `turn_off()` (anchor down, battery emptied) and springs back. **The battery**
-  (`push_left`, `push_time` 40) **drains only while she boosts** (Enrico, Nov 2026; before, it ran down all the time):
-  `drain_rate()` is 0 at the lever's middle and below, and past the middle only once the boost counts, then
-  `boost_drain` × how far past the middle (8 at the right end: a full battery = 5 s of full boost); **and it fills up again
-  by itself** (Enrico, Nov 2026): `update_battery` — while `is_boosting()` (lever past the middle and `boost_counts`,
-  held with an empty battery too) `since_boost` is 0; otherwise it counts up, and from `recharge_delay` 0.5 s on the
-  battery climbs at `recharge_rate` 8 s a second (empty to full in 5 s) up to `push_time`, **only while she's under
-  way** (Enrico, Nov 2026: running and `boat.speed` ≥ `recharge_min_speed` 0.5 m/s; standing still, at anchor or with
-  the lever pulled back, it doesn't: there only the lever all the way right fills it, turn_on / refill). Empty while
-  boosting she stops (as before); let go, 0.5 s later the battery comes back and she runs again; **a bomb costs 75% of a full
-  battery** (Enrico, Nov 2026): `paddles.spend(share)` (takes `push_time` × share, false if there isn't that much;
-  restarts the wait, `since_boost` 0) and `has_charge(share)`; `bomb_button.gd` export `battery_cost` 0.75 (0 = free),
-  `can_use()` false with less left, `use()` spends it before the bomb leaves the hold; **the boost counts
-  only once the lever has been held `boost_wait`** (Enrico: refilling is the same move right; counted from the grab and
-  again from each refill, crank.gd `held_time` → `paddles.boost_counts`; before that, and at once on letting go, no
-  drain, while the lever and her speed spring back gradually; the chevrons flow only while it counts);
-  **shown as an ink filling inside the plate** (Enrico, Nov 2026, from his sketch; the battery icon in the knob, its
-  blinking, the small battery hint and the moving dashes are gone): `plate_points(upto)` from the left end to the charge
-  (full = the whole plate); refilled, it **climbs** to the new charge over `refill_show_time` 0.5 s (`shown_charge`,
-  `update_shown_charge`; going down it just follows), and **while it climbs the knob is inverted** (ink disc, paper
-  ring; `filling`). **Boosting** (lever past the middle, so it drains faster): paper **chevrons** "<" (columns of
-  zig-zags, Enrico's pattern turned a quarter left) inside the filling flow leftwards (`_draw_chevrons`,
-  `chevron_shift` grows by `chevron_speed` 1.2 chevrons a second × how far past the middle; `chevron_count` 7 across,
-  `chevron_teeth` 3). **While it refills** (`filling`, the climb over `refill_show_time`; Enrico) they turn ">" and
-  flow **rightwards** instead (`chevron_shift` goes down by `refill_chevron_speed` 3 a second; `_draw_chevrons(share,
-  color, facing)`, facing −1 left / +1 right). **The flywheel in the knob** (Enrico, Nov 2026, like a rowing machine's; it replaced the circular arrow): a rim, three spokes, a weight on one, a hub (`_draw_flywheel`), turning clockwise while the paddles run at `flywheel_speed` 0.75 turns/s × `lever_share` / 0.5 (middle = usual pace, right end twice, left end stopped; off = stopped); **overdrive** `overdrive_speed` 4 turns/s for `overdrive_time` 1.5 s when she's started or refilled (paddles.gd signal `revved` from `turn_on` / `refill` → `_on_revved`); its speed follows the target smoothly at `flywheel_weight` 4 (`update_flywheel`, `flywheel_spin`, `flywheel_angle`; keep speeds under ~4 turns/s, or at 30 fps it seems to stand or go backwards). **Held, only the lever is drawn black** (the grip ink, its stripes
-  paper). **The LED on the grip's tip** (Enrico, Nov 2026, from his sketch; `_draw_led`, in the lever's frame so it tilts with it): a little dome on the grip's top; while the battery can be refilled (running and `can_refill()`) it blinks `led_blinks_per_second` 3: lit = paper dome with a glint and three ink rays (up, ±45°), off = ink dome; otherwise off. **Anchor hints** (Enrico; `_draw_anchor`, `ICON_DISTANCE` 38, `ICON_PAST_END` 0.3 rad past each end; line
+  up, or overheated) → `paddles.turn_on()` (anchor up / cast off, cold again); from anchor or a pier the lever
+  springs back (`let_go`), but **when she overheated under way the finger keeps it where it is** (Enrico, Nov
+  2026: turning her on in time, she keeps going and the player keeps control; `_is_stopped()`, `held_time` reset so the
+  boost waits `boost_wait` again); right end while running within `vent_window` 3 of overheating → `vent()` (cold again, she keeps
+  100%; only with a grab that began in that window, `grabbed_in_window`, Enrico: held at 100% from before, let go and push again); left end with the anchor up → `turn_off()` (anchor down) and springs back.
+  **THE OVERHEAT BAR** (Enrico, Nov 2026: the battery flipped on its head, a bar that fills up instead of one that runs
+  down; paddles.gd `heat` 0..`max_heat` 40, `heat_share()`, `is_overheated`): **boosting heats her**: `heat_rate()` is 0
+  at the lever's middle and below, and past the middle only once the boost counts (`is_boosting()`), then `boost_heat` 40
+  × how far past the middle (the old drain, same numbers: from cold, 1 s of full boost overheats her); **a bomb adds 75%
+  of the bar** (`paddles.add_heat(share)`, `bomb_button.gd` export `heat_cost` 0.75; always allowed, it may overheat
+  her); **an enemy's hit adds `hit_heat` 0.25 of the bar** (boat.gd `hit_by_enemy(hearts)` = `take_damage` +
+  `paddles.take_hit()`; called by `bump_into_enemy`, the fireball and the urchin's spike; boiling water, waves,
+  maelstroms and bombs don't heat her). **It cools by itself** (`update_heat`): `since_boost` is 0 while boosting (and
+  after a bomb), otherwise it counts up, and from `cool_delay` 0.5 s on the heat falls at `cool_rate` 8 a second
+  (overheated to cold in 5 s), **only while she's under way** (running and `boat.speed` ≥ `cool_min_speed` 0.5 m/s;
+  standing still or at anchor it doesn't: there only the lever all the way right cools her, turn_on / vent). A booster
+  cools her (`paddles.cool(amount)`, booster.gd `cooling` 5). **At `max_heat` she overheats** (`check_overheat`):
+  `is_overheated`, not running (no push, she stops as with the old empty battery), and signal **`overheated`** →
+  **the boat blinks black** (boat.gd `blink_black`: a Tween sets a plain black unshaded `material_override` on every
+  mesh inside `Model` (not top_level ones, i.e. the steam) `overheat_blinks` 3 times, `overheat_blink_time` 0.1 s on,
+  0.1 s off; the inner hull's water mask is an overlay, so it stays). It stays overheated, cooling only through the
+  lever's right end. **The steam** (paddles.gd, made in code, no files): a pool of `MAX_PUFFS` 20 white unshaded
+  see-through balls (SphereMesh, a ball needs no turning to the camera; render_priority 2, top_level, each its own
+  material), from `steam_from` 0.1 of the bar on one appears every 1 / (`steam_puffs_most` 14 × heat share) s,
+  `steam_height` 0.8 m over her middle (±0.3 m), rising `steam_rise` 1.5 m/s, growing `steam_size_start` 0.2 →
+  `steam_size_end` 0.8 m and fading (alpha 0.8 → 0) over `steam_time` 1.2 s (`make_puffs`, `update_steam`,
+  `start_puff`). **The boost counts
+  only once the lever has been held `boost_wait`** (Enrico: venting is the same move right; counted from the grab and
+  again from each vent, crank.gd `held_time` → `paddles.boost_counts`; before that, and at once on letting go, no
+  heating, while the lever and her speed spring back gradually; the chevrons flow only while it counts);
+  **shown as an ink filling inside the plate** (`plate_points(upto)` from the left end to the heat: cold = empty,
+  overheated = the whole plate); vented, it **goes down** to the new heat over `vent_show_time` 0.5 s (`shown_heat`,
+  `update_shown_heat`; going up it just follows), and **while it goes down the knob is inverted** (ink disc, paper
+  ring; `venting`). **Boosting** (lever past the middle, so she heats up): paper **chevrons** ">" inside the filling
+  flow rightwards, the way the heat grows (`_draw_chevrons`, `chevron_shift` grows by `chevron_speed` chevrons a
+  second × how far past the middle; `chevron_count` 7 across, `chevron_teeth` 3). **While vented** (`venting`) they
+  turn "<" and flow **leftwards** (`chevron_shift` goes down by `vent_chevron_speed` a second; `_draw_chevrons(share,
+  color, facing)`, facing +1 right / −1 left). **The flywheel in the knob** (Enrico, Nov 2026, like a rowing machine's; it replaced the circular arrow): a rim, three spokes, a weight on one, a hub (`_draw_flywheel`), turning clockwise while the paddles run at `flywheel_speed` 0.75 turns/s × `lever_share` / 0.5 (middle = usual pace, right end twice, left end stopped; off = stopped); **overdrive** `overdrive_speed` 4 turns/s for `overdrive_time` 1.5 s when she's started or vented (paddles.gd signal `revved` from `turn_on` / `vent` → `_on_revved`); its speed follows the target smoothly at `flywheel_weight` 4 (`update_flywheel`, `flywheel_spin`, `flywheel_angle`; keep speeds under ~4 turns/s, or at 30 fps it seems to stand or go backwards). **Held, only the lever is drawn black** (the grip ink, its stripes
+  paper). **The LED on the grip's tip** (Enrico, Nov 2026, from his sketch; `_draw_led`, in the lever's frame so it tilts with it): a little dome on the grip's top; while she can be vented (running and `can_vent()`) it blinks `led_blinks_per_second` 3: lit = paper dome with a glint and three ink rays (up, ±45°), off = ink dome; otherwise off. **Anchor hints** (Enrico; `_draw_anchor`, `ICON_DISTANCE` 38, `ICON_PAST_END` 0.3 rad past each end; line
   art, ink with a thin paper halo): on the left while the anchor is up (left end drops it), on the right while at
   anchor or tied up (right end weighs it). `PIVOT` (0, 26). Sounds: `Sfx.crank_click` every notch (`NOTCHES` 16, higher to the
-  right), `Sfx.lever_done` at an end that does something (plus the anchor's), `Sfx.crank_unlock` when the battery can
-  be filled again. Space on the PC does the same as the ends (off → on, running → off). The paddles push at
+  right), `Sfx.lever_done` at an end that does something (plus the anchor's), `Sfx.crank_unlock` when she can
+  be vented. Space on the PC does the same as the ends (off → on, running → off). The paddles push at
   boat.gd's `top_speed` × the share while running (Enrico: `paddle_speed` is gone, `top_speed` is the one speed knob); `turn_mult` while they push. **The wheels' look** (Enrico: too fast): they turn at (push × the lever's share, or
   her own speed freewheeling) / `paddle_radius` × `spin_scale` 0.35, and the splashes (one a quarter turn) follow it. **No sail any more** (Enrico, Nov 2026: removed
   with its script, materials, the mast and the sail's meshes; the paddles are her only push, the current carries her).
@@ -809,7 +817,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   weaker shake never cuts a stronger one short; `shake()` = `shake_hard(shake_strength 0.5, shake_time 0.3)`). No sound (not asked).
 - **The Aeolus Jar** (Enrico; item `aeolus_jar.tres`: stackable, equippable, `equip_on_pickup`, buy 8 / sell 3; icon `Assets/Inventory/icons/aeolus_jar.png`, an amphora with a wind swirl, a stand-in made by `art_src/items/make_aeolus_jar.py`; a test pickup `Gameplay/Pickups/AeolusJarPickup` at (−8, 0, −28) in Overworld): a consumable. Its button `Assets/UI/jar_button/` (`jar_button.tscn`, CanvasLayer 95, group `hidden_at_start`, in `DITHERED`; Control `Button` bottom right, 80 px, **in the place of its A/B slot** (`Hud.place_item_button`); `jar_button.gd`, `@tool`, the bomb button's look and pie): shown only while a jar is equipped and one is aboard; a tap (`uncork_jar`) takes one out of the hold and turns the wind to blow **from right astern**, the way her bow points (`Wind.turn_to(bow + 180, turn_time 1.5 s)`), where it stays until another jar or a wind zone; then `cooldown` 30 s (the ink pie). Instanced in every level next to `BombButton`.
 - **Wind gusts** (Enrico; `Assets/Landscape/gust/`: `gust.tscn` + `gust.gd` (`@tool`), `gust.gdshader`, `gust.png` a 4 × 4 flipbook of 128² frames (three paper-and-ink gusts curling into spirals, whirling round a dashed ring; a stand-in made by `art_src/items/make_gust.py`)): `Picture` a 1 m PlaneMesh 0.08 m up scaled to `radius` × 2, unshaded, nearest, alpha-cut, no depth, render_priority 2, the sea's stencil read, its own `phase`; `Sensor` (Area3D mask layer 4, sized by `radius` 3 m, `_fit_sensor`). Her SpotSensor entering (not at anchor, tied up or sinking; again every time she comes back in) → `boat.boost(speed_multiplier 2, boost_time 1 s, boost_accel 4)` (boat.gd `boost_left`, `boost_multiplier`, `boost_accel`: her speed target × the multiplier whichever way she heads, gathered at that rate; cleared on respawn), `camera.shake_hard(shake_strength 0.2, shake_time 0.15)` and `Sfx.gust_whoosh()` (`gust_whoosh.ogg`, player `GustWhoosh` −12 dB: a very mild band-passed noise sweep, 0.6 s, made by `art_src/audio/make_whoosh.py`). **The picture turns with the wind**: its top points the way the wind blows (`face_the_wind`, `picture_turn_deg`), at start and on `Wind.direction_changed`. **They travel with the wind** (Enrico, Oct 2026: no longer placed on the map): `travel_speed` m/s downwind (`_process`, read from `Wind.from_vector()` every frame, so they turn with the wind; 0 = stays put, for one placed by hand). **The gust spawner** (`gust_spawner.gd`, a plain Node3D in every level: `Gameplay/Gusts/GustSpawner` in Overworld, at the root in the gyms; the old scatter is gone): once the boat has kept `full_speed_share` 0.95 of `top_speed` (not anchored or sinking) for `full_speed_time` 3 s in a row (`full_speed_for`; any slowing starts it again), a gust every `spawn_every_min/max` 0.8–1.6 s while fewer than `max_gusts` 3 are out (`gusts`): placed at a random point across the wind (`spread` 0.8 of the screen's half-width there, measured by `distance_to_screen_edge`: steps of 2 m until `camera.is_position_in_frustum` is false) and then pushed upwind to just past the screen's edge (+4 m), given `travel_speed` 9 m/s (she does 7 at top speed); freed once downwind of her and out of view, or 300 m away (`forget_finished_gusts`).
-- **Boosters** (Nov 2026, Enrico: they only refill the paddles' battery, `crank_refill` 5 s; no speed boost any more,
+- **Boosters** (Nov 2026, Enrico: they only cool the paddles, `cooling` 5 of the heat (was the battery's `crank_refill`); no speed boost any more,
   its `speed_multiplier` / `boost_time` / `boost_accel` are gone. Older notes follow.) (Enrico; `Assets/Items/booster/`: `booster.tscn` + `booster.gd` (`@tool`); placed by hand, a test one
   `Gameplay/Pickups/BoosterTest` at (−6.5, 0, 50) in Overworld, north of the start): an orb (stand-in: a 0.8 m white
   `SphereMesh`, toon_shade, 1.2 m up, bobbing `bob_height` 0.25 / `bob_speed` 2) and `Sensor` (Area3D mask layer 4,
