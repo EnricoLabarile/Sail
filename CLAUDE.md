@@ -743,7 +743,9 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   `buy_price` (what a merchant asks; fish 4, bomb 5, imp 0 = not sold), `sell_price` (what a merchant pays;
   fish 2, bomb 2, imp 15; 0 = not bought), `stackable`, `equippable`. The `Inventory` reads the folder at start
   (`load_catalogue`, `ResourceLoader.list_directory`) into `catalogue`; `data(id)`, `icon_of`, `is_stackable`,
-  `is_equippable` replace the old ICONS / STACKABLE / EQUIPPABLE lists. **`equip_sound`** (AudioStream, Enrico, Nov 2026: each thing its own sound when put in hand): **for now all of them `equip_bomb.ogg`** (Enrico didn't like the others; they were deleted, Nov 2026, and `art_src/audio/make_equip.py` makes only this one); the interaction button's `_on_equipped_changed` calls `Sfx.equip(item)`, which swaps the stream of the one player `Equip` (−4 dB, sfx.tscn; was `EquipBomb`) and plays it (bomb_button.gd no longer plays its own). A new kind of item = a new `.tres`. **The purse**:
+  `is_equippable` replace the old ICONS / STACKABLE / EQUIPPABLE lists. **Coins as an item** (Enrico, Nov 2026: so they can be dropped on the water): `coins.tres` (id
+  "coins", icon `coin.png`) with `ItemData.to_purse` true: a pickup of it goes into the purse (`count` coins, no slot:
+  `why_not` skips the hold, `take_coins` → `Inventory.add_coins`, `Sfx.came_aboard` and the boat's `ItemShow`). **`equip_sound`** (AudioStream, Enrico, Nov 2026: each thing its own sound when put in hand): **for now all of them `equip_bomb.ogg`** (Enrico didn't like the others; they were deleted, Nov 2026, and `art_src/audio/make_equip.py` makes only this one); the interaction button's `_on_equipped_changed` calls `Sfx.equip(item)`, which swaps the stream of the one player `Equip` (−4 dB, sfx.tscn; was `EquipBomb`) and plays it (bomb_button.gd no longer plays its own). A new kind of item = a new `.tres`. **The purse**:
   `Inventory.coins` (`START_COINS` 10 for now, `add_coins`; no slot), shown in the logbook's Cargo heading ("n coins  2/9";
   0 in the editor, where the Inventory doesn't run). `slots_of(list)` works out the slots of any list (a trade's result).
 - **Stores** (Enrico; `Assets/Landscape/store/`: `store.tscn` + `store.gd`, `store_counter.tscn` + `.gd`; for now one in
@@ -907,7 +909,11 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   (Enrico, Nov 2026): `npc.gd` export `drifts_with_current` (on in raft_npc.tscn, off by default): after `on_released`
   (`drifting`) its `_physics_process` moves it by `Wind.current()` × dt, stopping where the next step would be land (as
   the bomb and the dead imp); not before the first tow (it stays where placed), stopped while towed (`on_grabbed`) and
-  for good once delivered (`on_delivered`, `_stop_drifting`). Tests in Overworld:
+  for good once delivered (`on_delivered`, `_stop_drifting`). **The reward** (Enrico, Nov 2026): npc.gd group "Reward after
+  delivery": `reward_item` (ItemData, default `coins.tres`; empty = nothing), `reward_count` 5, `leave_after_reward`
+  (on); `on_delivered` sets `delivered`, and when the talk after it closes (`_on_talk_finished`) `give_reward()` drops
+  ONE pickup of `reward_count` × `reward_item` on water 1–3 m from it (`Pickup.loot_spot`; the magnet reach 6, so she
+  may have to sail to it) and `leave()`: `boat.set_near_npc(self, false)`, `forget_talk_with`, freed. Tests in Overworld:
   `Gameplay/RaftNPCTest` (32, 0, 40.8) and `Gameplay/TowGoalTest` (56.3, 0, 39.2), `goal_id` "castaway".
 - **Keys and bridge locks** (Enrico, Oct 2026; a key towed with the hook opens a gate under a bridge):
   **the key** (`Assets/Items/key/`: `key.tscn` + `key.gd` (`@tool`), `key.png` a 64² stand-in by

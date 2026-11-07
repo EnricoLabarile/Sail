@@ -106,6 +106,8 @@ func _on_sensor_entered(area: Area3D) -> void:
 func why_not() -> String:
 	if item == null:
 		return "no_item"
+	if item.to_purse:
+		return ""                                    # coins: they go into the purse, they need no room in the hold
 	var after: Array[String] = Inventory.items.duplicate()
 	for i in count:
 		after.append(item.id)
@@ -119,12 +121,26 @@ func why_not() -> String:
 ## Into the hold (and the coins out of the purse, if it has a price), a shake, and it's gone. (The sound is the
 ## boat's: anything coming aboard makes it, see boat.gd _on_came_aboard.)
 func take(boat: Node3D) -> void:
-	Inventory.add(item.id, count)
+	if item.to_purse:
+		take_coins(boat)
+	else:
+		Inventory.add(item.id, count)
 	if price > 0:
 		Inventory.add_coins(-price)
 	boat.camera.shake_hard(take_shake_strength, take_shake_time)
 	taken.emit(self)
 	queue_free()
+
+
+## Coins (coins.tres, `to_purse`): `count` of them into the purse, not the hold. The hold isn't touched, so the boat
+## doesn't hear "came aboard": the sound and the icon rising over her are played here instead (as a fishing spot's
+## coins: the boat's ItemShow, item_show.gd).
+func take_coins(boat: Node3D) -> void:
+	Inventory.add_coins(count)
+	Sfx.came_aboard()
+	var shower := boat.get_node_or_null("ItemShow")
+	if shower:
+		shower.show_picture(item.icon)
 
 
 ## EVERY ENEMY'S REWARD (Enrico's rule: when an enemy dies it drops something; sea_imp_zone.gd, sea_urchin.gd).

@@ -15,6 +15,9 @@ extends Resource
 @export var equippable := false       # true: it can be put in hand for the interaction button (a tap on its slot in the logbook)
 ## Put in hand by itself whenever one comes aboard, if nothing is in hand yet.
 @export var equip_on_pickup := false
+## Coins, not a thing for the hold (Enrico, Nov 2026: coins.tres): picked up, they go into the purse (a pickup's `count`
+## = how many coins) and take no slot. Used to drop coins on the water like any other pickup (the castaway's reward).
+@export var to_purse := false
 ## Its own sound when it's put in hand (Enrico: each thing a different one, to tell them apart); empty = none.
 ## Sfx.equip plays it (Assets/SFX/equip_*.ogg, made by art_src/audio/make_equip.py).
 @export var equip_sound: AudioStream

@@ -24,6 +24,9 @@ extends Node3D
 ## on_released, on_delivered: raft_npc.tscn does it). While it's towed it doesn't count as "near" (no speed limit, no
 ## talk, no bubble); once a TowGoal has taken it, it says `lines_after_delivery` instead, and she can talk to it again
 ## right there (drop the anchor).
+## THE REWARD (Enrico, Nov 2026): once she has heard those last lines (the talk after the delivery is closed), it
+## drops `reward_count` of `reward_item` on the water next to it (a pickup, which flies to the boat like any other:
+## coins by default, 5) and, with `leave_after_reward`, it's gone from the game: its job is done.
 
 ## The name shown in the talk box.
 @export var speaker_name := "Stranger"
@@ -49,6 +52,18 @@ extends Node3D
 @export var drifts_with_current := false
 @export var news_picture: Texture2D = preload("res://Assets/NPCs/npc/bubble_news.png")
 
+@export_group("Reward after delivery")
+## What it drops once it has been towed to its goal and she has heard it (drag any item's .tres here: coins.tres,
+## bomb.tres, hook.tres…; empty = nothing).
+@export var reward_item: ItemData = preload("res://Assets/Inventory/items/coins.tres")
+## How many: coins in the purse, or things in the hold.
+@export var reward_count := 5
+## Gone from the game once it has given its reward (off: it stays where the goal took it).
+@export var leave_after_reward := true
+@export_group("")
+
+const Pickup := preload("res://Assets/Items/pickup/pickup.gd")   # for Pickup.loot_spot (a spot of water near it)
+
 var boat_near := false             # is the boat inside talk_radius now?
 var talking := false               # is the talk box showing this NPC's lines now?
 var bubble_alpha := 0.0            # 0 = bubble hidden, 1 = fully shown
@@ -57,6 +72,7 @@ var time := 0.0
 var towed := false                 # is the hook dragging it now? (then the boat doesn't count as near)
 var has_news := false              # something happened (show_news): the "!" bubble shows, from afar too, until she talks to it
 var drifting := false             # let go by the hook (drifts_with_current): the current carries it now
+var delivered := false             # a TowGoal has taken it: after the next talk it gives its reward
 var usual_picture: Texture2D       # the bubble's own picture from npc.tscn (the dots), put back when the news is heard
 
 @onready var bubble: MeshInstance3D = $Bubble
@@ -153,6 +169,31 @@ func _on_talk_finished() -> void:
 	if boat:
 		boat.done_talking_with(self)
 	set_process(true)                     # the bubble fades out
+	if delivered:
+		give_reward()                     # brought to its goal and heard: the reward, and maybe goodbye
+
+
+## Its thanks (Enrico): `reward_count` of `reward_item` dropped as one pickup on the water a few metres from it (the
+## magnet brings it to the boat); then, with leave_after_reward, it leaves the game.
+func give_reward() -> void:
+	delivered = false                     # once only
+	if reward_item != null and reward_count > 0:
+		var pickup: Node3D = preload("res://Assets/Items/pickup/pickup.tscn").instantiate()
+		pickup.item = reward_item
+		pickup.count = reward_count
+		get_parent().add_child(pickup)    # into the level, not into the NPC (it stays when the NPC goes)
+		pickup.global_position = Pickup.loot_spot(global_position, 3.0)
+	if leave_after_reward:
+		leave()
+
+
+## Gone for good: the boat forgets it (no speech bubble on the interaction button, no speed limit), then it's freed.
+func leave() -> void:
+	var boat := Boat.current
+	if boat:
+		boat.set_near_npc(self, false)
+		boat.forget_talk_with(self)
+	queue_free()
 
 
 ## Has the boat already heard what we have to say? (boat.gd keeps the list; it forgets us only when we have news.)
@@ -215,6 +256,7 @@ func on_released() -> void:
 ## tells her there's something to hear (show_news).
 func on_delivered(_goal: Node3D) -> void:
 	_stop_drifting()                      # safe at the goal: it stays there (released came just before this)
+	delivered = true                      # after the next talk: the reward (give_reward)
 	if not lines_after_delivery.is_empty():
 		lines = lines_after_delivery
 	show_news()                           # it has something new to say (show_news makes the boat forget the old talk)
