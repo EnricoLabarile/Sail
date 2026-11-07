@@ -391,6 +391,19 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   the 16; `show_frame` sets `uv1_offset`). It writes depth (alpha scissor), so the ink outline goes round it. Overheated:
   boat.gd `set_black` also calls `BoatSprite.set_black` (albedo black). Not done by the 2D boat: the lean and rocking,
   the paddles turning. (Enrico's box `MeshInstance3D`, a direct child of Boat, not under Model, still shows in 3D.)
+- **The Blender sprite baker** (Enrico, Nov 2026: print a 3D object, a house say, into one fixed PNG sprite for the
+  game; `art_src/blender/sprite_baker.py`, a Blender add-on, 4.2+, tested on Blender 5.2: Preferences > Add-ons > Install
+  from Disk; 3D View sidebar > tab "Sprite" > "Bake sprite"): the SELECTED objects only (everything else, the user's
+  lights too, hidden for the photo, all put back after: `remember_scene` / `restore_scene`); an orthographic camera tilted
+  `camera_tilt` 30° from straight down (as the game's) and turned `camera_turn` (0 = from the south looking north),
+  framing the objects' boxes exactly at `pixels_per_metre` 12 + `margin` 2 px; a sun from `sun_direction` 315 (compass,
+  where the light comes FROM: the game's north-west) at `sun_height` 70°, `sun_strength` 3, `cast_shadows`; a grey world
+  for `ambient` 0.4; transparent film; `engine` EEVEE or Cycles (128 samples, denoised; for a PC where EEVEE gives a flat
+  grey). Then, for the dither (`finish_picture`, numpy): `greyscale`, **`stretch_greys`** (the object's darkest grey →
+  `darkest` 0.15, lightest → `lightest` 1: a render's greys sit close together and would round to one step),
+  `contrast`, `brightness`, a 3 × 3 median (a face right between two steps speckled) and **`grey_steps`** 5 (greys rounded
+  to clean steps that dither into even patterns), `hard_edges` (alpha 0 or 1, as the game's alpha scissor). Saved to
+  `output_path`. Settings kept in the .blend (`scene.sprite_baker`).
 - **Fake light** (no lights in the scene, Enrico removed the `Sun`): the boat's materials are unshaded and shade
   themselves, `Assets/Boat/fake_light.gdshaderinc` (a shared include, like a Material Function): `fake_light(NORMAL,
   INV_VIEW_MATRIX)` = `ambient` (0.45) + (1 − ambient) × max(0, N·sun) in world space. The sun is the **global shader
