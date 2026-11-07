@@ -1,8 +1,24 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cpiehcteyiho3"]
 
 [ext_resource type="PackedScene" uid="uid://v3vso8b52t23" path="res://Assets/NPCs/npc/npc.tscn" id="1_npc"]
-[ext_resource type="Texture2D" path="res://Assets/NPCs/raft_npc/raft_npc.png" id="2_picture"]
-[ext_resource type="Script" path="res://Assets/Items/towable/towable.gd" id="3_towable"]
+[ext_resource type="Texture2D" uid="uid://brjrx6b5udnhy" path="res://Assets/NPCs/npc/NPC_Portrait_01.png" id="2_peww1"]
+[ext_resource type="Texture2D" uid="uid://d2c81hd8k6xjb" path="res://Assets/NPCs/raft_npc/raft_npc.png" id="2_picture"]
+[ext_resource type="Texture2D" uid="uid://bshvyyw2yf1bp" path="res://Assets/NPCs/npc/bubble.png" id="3_424hw"]
+[ext_resource type="Script" uid="uid://chulihs6hyy3x" path="res://Assets/Items/towable/towable.gd" id="3_towable"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jy1yx"]
+resource_local_to_scene = true
+render_priority = 2
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("3_424hw")
+texture_filter = 0
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_ng31b"]
+resource_local_to_scene = true
+height = 4.0
+radius = 8.0
 
 [sub_resource type="StandardMaterial3D" id="Mat_raft"]
 render_priority = 2
@@ -17,29 +33,34 @@ texture_filter = 0
 material = SubResource("Mat_raft")
 size = Vector2(5, 5)
 
-[node name="RaftNPC" instance=ExtResource("1_npc")]
+[node name="RaftNPC" unique_id=996794204 instance=ExtResource("1_npc")]
 speaker_name = "Castaway"
+portrait = ExtResource("2_peww1")
 lines = Array[String](["My oar snapped and the current won't let me row.", "Could you tow me to the old pier? Use your hook."])
 lines_after_delivery = Array[String](["Solid planks under my feet again!", "Thank you, sailor. I won't forget it."])
 talk_radius = 8
 drifts_with_current = true
 
-[node name="MeshInstance3D" parent="." index="2"]
+[node name="Bubble" parent="." index="0" unique_id=458793763]
+material_override = SubResource("StandardMaterial3D_jy1yx")
+
+[node name="Shape" parent="Sensor" parent_id_path=PackedInt32Array(472912198) index="0" unique_id=1696726975]
+shape = SubResource("CylinderShape3D_ng31b")
+
+[node name="MeshInstance3D" parent="." index="2" unique_id=951736670]
 visible = false
 
-[node name="Picture" type="MeshInstance3D" parent="." index="3"]
+[node name="Picture" type="MeshInstance3D" parent="." index="3" unique_id=1889844426]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 cast_shadow = 0
 mesh = SubResource("Mesh_raft")
 
-[node name="Towable" type="Node3D" parent="." index="4"]
+[node name="Towable" type="Node3D" parent="." index="4" unique_id=563552126]
 script = ExtResource("3_towable")
 tow_id = "castaway"
-grab_reach = 8.0
-rope_length = 4.0
 tow_slowdown = 0.8
 size = 2.5
 
+[connection signal="delivered" from="Towable" to="." method="on_delivered"]
 [connection signal="grabbed" from="Towable" to="." method="on_grabbed"]
 [connection signal="released" from="Towable" to="." method="on_released"]
-[connection signal="delivered" from="Towable" to="." method="on_delivered"]
