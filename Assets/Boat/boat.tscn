@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://bkkrdnkxvkeca" path="res://Assets/Boat/paddle_wheel.tscn" id="12_paddle_wheel"]
 [ext_resource type="Script" uid="uid://5kqqr0ff2vwa" path="res://Assets/Boat/item_show.gd" id="14_item_show"]
 [ext_resource type="Script" uid="uid://dmm0vlbgyd76b" path="res://Assets/Boat/anchor_chain.gd" id="15_anchor_chain"]
-[ext_resource type="Script" path="res://Assets/Boat/boat_sprite/boat_sprite.gd" id="16_boat_sprite"]
+[ext_resource type="Script" uid="uid://dh101stsv8184" path="res://Assets/Boat/boat_sprite/boat_sprite.gd" id="16_boat_sprite"]
 [ext_resource type="Texture2D" uid="uid://ryxqy87mbobk" path="res://Assets/Boat/boat_sprite/boat_sheet.png" id="17_boat_sheet"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_wake"]
@@ -39,9 +39,6 @@ size = Vector2(2, 2)
 [sub_resource type="SphereShape3D" id="Shape_spot_sensor"]
 radius = 0.3
 
-[sub_resource type="BoxMesh" id="BoxMesh_8ksrx"]
-size = Vector3(1, 1.543457, 1)
-
 [node name="Boat" type="Node3D" unique_id=1479473515]
 script = ExtResource("1_boat")
 
@@ -57,10 +54,10 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0
 script = ExtResource("12_paddles")
 
 [node name="PaddleWheelLeft" parent="Model/Paddles" unique_id=854191076 instance=ExtResource("12_paddle_wheel")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.75, 0.1, 0.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.405286, 0.5041746, 0.90070987)
 
 [node name="PaddleWheelRight" parent="Model/Paddles" unique_id=1978814975 instance=ExtResource("12_paddle_wheel")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 0.1, 0.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3580234, 0.5041746, 0.90070987)
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1565566446]
 keep_aspect = 0
@@ -69,6 +66,7 @@ fov = 20.0
 size = 40.0
 far = 200.0
 script = ExtResource("9_camera")
+tilt_deg = 45
 
 [node name="Wake" type="CPUParticles3D" parent="." unique_id=1734210981]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 1.7)
@@ -91,12 +89,12 @@ scale_amount_curve = SubResource("Curve_wake_size")
 color_ramp = SubResource("Grad_wake")
 
 [node name="BowWaveRight" type="MeshInstance3D" parent="." unique_id=1905278275]
-transform = Transform3D(1.6623099, 1.3726516, 3.701966e-08, -2.5663603e-08, -8.5173774e-08, 0.9999877, 1.5435469, -1.4782656, -2.3241832e-08, 2.0587428, 0.02, -2.5868475)
+transform = Transform3D(1.6623099, 1.3726516, 3.701966e-08, -2.5663603e-08, -8.5173774e-08, 0.9999877, 1.5435469, -1.4782656, -2.3241832e-08, 2.0745485, 0.02, -2.5070014)
 cast_shadow = 0
 mesh = SubResource("Mesh_bow_wave")
 
 [node name="BowWaveLeft" type="MeshInstance3D" parent="." unique_id=1613075961]
-transform = Transform3D(-1.9179254, -1.2631313, -3.468133e-08, 2.2797276e-07, -8.1490484e-08, -0.99998784, 1.7668293, -1.371152, 9.138051e-08, -2.2385092, 0.02, -2.4070923)
+transform = Transform3D(-1.9179254, -1.2631313, -3.468133e-08, 2.2797276e-07, -8.1490484e-08, -0.99998784, 1.7668293, -1.371152, 9.138051e-08, -2.1251407, 0.02, -2.2393496)
 cast_shadow = 0
 mesh = SubResource("Mesh_bow_wave")
 
@@ -112,17 +110,13 @@ shape = SubResource("Shape_spot_sensor")
 layer = 94
 script = ExtResource("14_item_show")
 
-[node name="AnchorChain" type="Node3D" parent="."]
+[node name="AnchorChain" type="Node3D" parent="." unique_id=339775213]
 script = ExtResource("15_anchor_chain")
 
-[node name="RopeAttach" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 2.2)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=67420740]
-transform = Transform3D(0.82448035, 0, 0, 0, 1.0002527, 0, 0, 0, 0.9644745, 0.5699463, 1.0084839, 0.89263916)
-mesh = SubResource("BoxMesh_8ksrx")
+[node name="RopeAttach" type="Marker3D" parent="." unique_id=1880375558]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1318371, 2.3823073)
 
 [node name="BoatSprite" type="Node3D" parent="." unique_id=1838210477]
 script = ExtResource("16_boat_sprite")
-sheet = ExtResource("17_boat_sheet")
 use_sprite = false
+sheet = ExtResource("17_boat_sheet")
