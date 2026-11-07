@@ -1084,6 +1084,17 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   in the web export; `Overworld` first, the rest A–Z, `_` shown as spaces), the picked one inked; **a tap only picks it** (Enrico: the menu stays quick; `pick_level`, `picked_level`); "Set sail" (`_on_set_sail`) on the loaded level just starts, on another one `load_level`: "Loading…" on the button (two frames awaited so it's drawn), then
   `change_scene_to_file` behind the black, and the new level **starts by itself** with no second card (`static var start_right_away`, read in its `_ready`) (autoloads carry over: hold, fog, wind). A new level saved there gets its
   button by itself.
+- **The performance overlay** (Enrico, Nov 2026: to see on the phone what makes it slow; `Assets/UI/debug_overlay/debug_overlay.gd`,
+  node `DebugOverlay` (CanvasLayer 140, process_mode Always, not in the game view) in `ui_layout.tscn`, so in every level):
+  switched by the **"Performance overlay" tick box** on the start screen (`start_screen.gd` `add_overlay_box`, above "Set
+  sail", off at first) through `static var enabled` (kept across levels, this session only: a reload starts it off). A
+  black see-through panel top left (over the hearts), text refreshed every `refresh_every` 0.25 s: FPS, average and worst
+  frame of the last second, hitches over `HITCH_MS` 50 ms in the last `HITCH_WINDOW` 10 s; CPU (Godot's monitors are the
+  WORST of the last second): process (`TIME_PROCESS`), physics, render prep (`viewport_get_measured_render_time_cpu` of
+  the window and of the game view's SubViewport, found once, `find_game_view`, + `get_frame_setup_time_cpu`) and a verdict
+  (worst frame > 1.5 × the CPU's → GPU-bound); GPU time (`viewport_get_measured_render_time_gpu`, both viewports; "n/a"
+  where not measured); draw calls, objects, triangles; VRAM and textures; RAM and node count; the graphics card's name
+  (`get_video_adapter_name`); window and real pixels; the game view's size and `dot_scale`.
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
   ```
   res://

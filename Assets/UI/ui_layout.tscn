@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://Assets/UI/hook_button/hook_button.tscn" id="10_hook_button"]
 [ext_resource type="PackedScene" uid="uid://b007tnjdl5asi" path="res://Assets/UI/crank/crank.tscn" id="11_crank"]
 [ext_resource type="PackedScene" path="res://Assets/UI/health/health.tscn" id="12_health"]
+[ext_resource type="Script" path="res://Assets/UI/debug_overlay/debug_overlay.gd" id="13_debug_overlay"]
 
 [node name="UILayout" type="Node" unique_id=2057268536]
 
@@ -60,6 +61,9 @@ anchors_preset = 0
 [node name="GameOver" parent="." unique_id=1015147809 instance=ExtResource("2_game_over")]
 
 [node name="StartScreen" parent="." unique_id=193752396 instance=ExtResource("1_start")]
+
+[node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=1730492215]
+script = ExtResource("13_debug_overlay")
 
 [node name="Margin" parent="StartScreen/Card" index="0"]
 layout_mode = 2

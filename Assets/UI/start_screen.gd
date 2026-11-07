@@ -19,11 +19,15 @@ extends CanvasLayer
 ## second card (start_right_away). Picking the level that's already loaded just sets sail.
 ## (The autoloads stay as they were: the hold, the fog's seen sea and the wind carry over.)
 ##
+## THE PERFORMANCE BOX (Enrico, Nov 2026): a tick box under the levels, off at first; ticked, the performance overlay
+## (Assets/UI/debug_overlay/debug_overlay.gd, top left) shows in every level played after it, for this session.
+##
 ## THE BLACK (the "curtain"): a black sheet over the whole game, in its own CanvasLayer (CURTAIN_LAYER) just under
 ## the card. It fades away over curtain_fade when "Set sail" is pressed. (In Unreal: a fade from black on the
 ## camera manager when the player presses Play.)
 
 const BuildInfo := preload("res://Assets/UI/build_info.gd")   # the build's number and time
+const DebugOverlay := preload("res://Assets/UI/debug_overlay/debug_overlay.gd")   # its `enabled` (the box below)
 const LEVELS_FOLDER := "res://Assets/Scenes"                  # where the levels are
 const FIRST_LEVEL := "Overworld"                              # this one comes first in the list, the others A to Z
 
@@ -51,6 +55,7 @@ func _ready() -> void:
 	make_curtain()                             # black from the very first frame
 	build_label.text = "Build %s\n%s" % [BuildInfo.NUMBER, BuildInfo.STARTED]
 	add_level_buttons()
+	add_overlay_box()
 	style_button(start_button, true)           # "Set sail" inked, so it stands out from the level list
 	start_button.pressed.connect(_on_set_sail) # when it's pressed, call _on_set_sail
 	get_tree().paused = true                   # everything waits for "Set sail"
@@ -156,6 +161,30 @@ func load_level(path: String) -> void:
 	await get_tree().process_frame
 	start_right_away = true
 	get_tree().change_scene_to_file(path)
+
+
+# ---------- The performance overlay's box ----------
+
+## A tick box between the levels and "Set sail" (made in code, ink on the paper card). It shows the overlay's state
+## (DebugOverlay.enabled, kept from one level to the next) and switches it.
+func add_overlay_box() -> void:
+	var box := CheckBox.new()
+	box.text = "Performance overlay"
+	box.focus_mode = Control.FOCUS_NONE
+	box.button_pressed = DebugOverlay.enabled
+	box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
+		box.add_theme_color_override(state, INK)
+	box.add_theme_font_size_override("font_size", 14)
+	box.toggled.connect(_on_overlay_toggled)
+	var lines := start_button.get_parent()
+	lines.add_child(box)
+	lines.move_child(box, start_button.get_index())    # just above "Set sail"
+
+
+## The box ticked or unticked: the overlay follows (debug_overlay.gd reads it every frame).
+func _on_overlay_toggled(on: bool) -> void:
+	DebugOverlay.enabled = on
 
 
 # ---------- The black curtain ----------
