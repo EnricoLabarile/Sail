@@ -368,6 +368,28 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   `splash_level` 1 while `push_left` > 0, then it follows her speed / `paddle_speed` down as she halts (and fades by
   0.5/s, so freewheeling under sail is silent). `crank_unlock.ogg` (`CrankUnlock` −6 dB: a latch's double click and a
   spring's 2.1 kHz ring, 0.25 s) once, the moment the crank can be wound again (`was_free` in crank.gd `_process`).
+- **The 2D boat** (Enrico, Nov 2026: the 3D boat baked into a sheet of pictures and drawn as a flat picture in the game;
+  `Assets/Boat/boat_sprite/boat_sprite.gd` (`@tool`) on the node `BoatSprite` in boat.tscn, and the sheet
+  `boat_sheet.png` (384², 16 frames of 96², imported lossless) in its `sheet`). **The bake** (editor: open boat.tscn,
+  select BoatSprite, Inspector button **"Bake boat sheet"**; `bake` → `make_sheet` → `save_sheet`): a SubViewport with
+  its own World3D and copies of every mesh under Model with Model **at rest** (`model_at_rest`: its height in boat.tscn,
+  or `boat.model_height` when run in the game), except the parts named in `left_out` (`["Paddles"]`, Enrico: no
+  paddles in the sheet); their toon_shade materials copied with **`cut_below_water`** on (a new uniform of
+  `toon_shade.gdshader`, off in the game: nothing under `water_level` 0 is drawn), not on the inside ("inner");
+  an orthographic camera `frame_size` / `pixels_per_metre` (96 / 12) metres across, tilted **`bake_tilt_deg`** 30 from
+  straight down (Enrico: adjustable, not a perfect top-down), looking north; the copies turned `directions` 16 times
+  (frame i = rotation.y of i / directions of a turn), pasted left to right, row by row (`sheet_columns`/`rows`), saved
+  to `sheet_path`, reimported, put in `sheet` (save boat.tscn). **Bake again after changing the boat or the tilt.**
+  **In the game** (`use_sprite` on, `sheet` set; `setup`, deferred): every mesh under Model hidden (not the steam), a
+  flat PlaneMesh (top_level, StandardMaterial3D unshaded, alpha scissor 0.5, nearest; `uv1_scale` = one cell) sized
+  frame / pixels_per_metre, stretched north-south by 1 / cos(the game camera's `tilt_deg`) so that lying flat it's seen
+  as photographed; every frame at her interpolated place, **`height_above_water` 1 m over the level's Sea node** (the
+  Overworld's Sea is at y 0.087; at a few cm the sea and the picture fought over the pixels: depth precision) and moved
+  south by that × tan(tilt) (`south_shift`) so it shows where it would on the water; + Model's drop from rest (bobbing,
+  sinking, coming up: under the sea it's hidden); the frame for her heading (`frame_for`: atan2 of basis.z, nearest of
+  the 16; `show_frame` sets `uv1_offset`). It writes depth (alpha scissor), so the ink outline goes round it. Overheated:
+  boat.gd `set_black` also calls `BoatSprite.set_black` (albedo black). Not done by the 2D boat: the lean and rocking,
+  the paddles turning. (Enrico's box `MeshInstance3D`, a direct child of Boat, not under Model, still shows in 3D.)
 - **Fake light** (no lights in the scene, Enrico removed the `Sun`): the boat's materials are unshaded and shade
   themselves, `Assets/Boat/fake_light.gdshaderinc` (a shared include, like a Material Function): `fake_light(NORMAL,
   INV_VIEW_MATRIX)` = `ambient` (0.45) + (1 − ambient) × max(0, N·sun) in world space. The sun is the **global shader

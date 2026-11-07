@@ -954,10 +954,14 @@ func blink_black() -> void:
 
 ## Every mesh of her own inside Model black (on) or back to its own material (off). The steam's puffs (paddles.gd)
 ## are inside too but placed in the world on their own (top_level) and wear their own material: left alone.
+## The 2D boat (BoatSprite, boat_sprite.gd), when she's drawn with it, blinks too: its picture goes black.
 func set_black(on: bool) -> void:
 	for mesh in model.find_children("*", "MeshInstance3D", true, false):
 		if not mesh.top_level:
 			mesh.material_override = black_material if on else null
+	var sprite := get_node_or_null("BoatSprite")
+	if sprite:
+		sprite.set_black(on)
 
 
 ## A bump against the shore: `out` is the way to the open sea, `into` how fast she hit (m/s).
