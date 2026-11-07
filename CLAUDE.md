@@ -1095,6 +1095,13 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   (average frame > 1.2 × the CPU's worst → GPU-bound, CPU ≥ 0.8 × average → CPU-bound, else mixed); GPU time (`viewport_get_measured_render_time_gpu`, both viewports; "n/a"
   where not measured); draw calls, objects, triangles; VRAM and textures; RAM and node count; the graphics card's name
   (`get_video_adapter_name`); window and real pixels; the game view's size and `dot_scale`.
+  **The switches** (Enrico, Nov 2026: to measure on the phone what each part costs): a row of buttons under the numbers
+  (`SWITCHES`, `toggle`, `switch_off`; a tap switches that part off, the button darkens with -name-, again back on; each
+  level starts with all on): Sea (a plain grey unshaded material in place of the sea's own, kept in `sea_material`), Dither
+  (node hidden), Fog / Shadows / Outline (the screen-effect quads, found by their shader's file, `show_screen_effect`),
+  Clouds (node hidden and its process disabled: no drift, no cloud-map updates), Islands (a plain Node: its children
+  hidden, `set_node_shown`), Effects (Gulls, WindLines, Wake), UI (Helm, Crank, IconLayer, Health hidden), Half res
+  (GameView `dots_across` 360 → 180 and `_fit()`). Parts are found by node name in the level, as game_view.gd does.
 - **Folders by feature, not by file type**: each part of the game keeps its scene, script, model and textures together.
   ```
   res://

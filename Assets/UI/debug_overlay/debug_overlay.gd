@@ -19,6 +19,21 @@ extends CanvasLayer
 ##     triangles. "VRAM" is the video memory used.
 ##   - Then the device: the graphics card's name, the window and the game view (how many pixels are really drawn).
 ##
+## THE SWITCHES (Enrico, Nov 2026: to find out on the phone what costs what): under the numbers, a button for each
+## part of the picture; a tap switches that part off (the button turns dark), another tap back on. Sail, switch one
+## off, watch the FPS: what it gains is what that part costs on this phone. They're only for testing: each level
+## starts with everything on. (SWITCHES lists them; `switch_off` does the work for each.)
+##   Sea       the sea's shader (its texture, shore waves, deep water, grid) → a plain grey sea
+##   Dither    the 1-bit dither over the world (the picture then shows in greys)
+##   Fog       the fog of war's screen effect
+##   Shadows   the clouds' shadows' screen effect
+##   Clouds    the clouds, their shadows and the cloud map (and their movement)
+##   Outline   the ink outline round the boat (screen effect)
+##   Islands   all the land pieces (365 meshes in the Overworld)
+##   Effects   gulls, wind lines, the boat's wake (the bow wave stays: boat.gd shows it every frame; it's 2 quads)
+##   UI        the wheel, the lever, the logbook and the hearts (not drawn)
+##   Half res  the world drawn with half as many dots across (the game view's dots_across 360 → 180)
+##
 ## It lives in ui_layout.tscn (node DebugOverlay), so it's in every level; it stays out of the game view (it's not
 ## dithered) and keeps working while the game is paused (process_mode Always).
 
@@ -28,6 +43,7 @@ static var enabled := false
 
 const HITCH_MS := 50.0             # a frame slower than this counts as a hitch (a stutter the player sees)
 const HITCH_WINDOW := 10.0         # seconds the hitches are counted over
+const SWITCHES := ["Sea", "Dither", "Fog", "Shadows", "Clouds", "Outline", "Islands", "Effects", "UI", "Half res"]
 
 @export var refresh_every := 0.25  # seconds between two refreshes of the text (the measuring itself is every frame)
 @export var font_size := 10
@@ -39,6 +55,9 @@ var frame_ages: Array[float] = []      # how long ago each of those was (s)
 var hitch_ages: Array[float] = []      # how long ago each hitch of the last HITCH_WINDOW seconds was (s)
 var shown := false                     # was it on a frame ago? (to show / hide it when the box is ticked)
 var game_view: Node = null             # the level's GameView (game_view.gd), found once: its SubViewport draws the world
+var switched_off := {}                 # name of a switch → true while that part is off
+var buttons := {}                      # name of a switch → its button
+var sea_material: Material             # the sea's own material, kept while the "Sea" switch puts a plain one on it
 
 
 func _ready() -> void:
@@ -61,11 +80,118 @@ func make_panel() -> void:
 	style.set_content_margin_all(4)
 	box.add_theme_stylebox_override("panel", style)
 	add_child(box)
+	var lines := VBoxContainer.new()
+	lines.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(lines)
 	label = Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", Color.WHITE)
-	box.add_child(label)
+	lines.add_child(label)
+	# The switches: small buttons in rows of five, under the numbers.
+	var grid := GridContainer.new()
+	grid.columns = 5
+	lines.add_child(grid)
+	for switch_name in SWITCHES:
+		var button := Button.new()
+		button.text = switch_name
+		button.focus_mode = Control.FOCUS_NONE
+		button.add_theme_font_size_override("font_size", font_size)
+		button.pressed.connect(toggle.bind(switch_name))   # bind: the button hands its own name to toggle
+		grid.add_child(button)
+		buttons[switch_name] = button
+		paint_button(switch_name)
+
+
+## A switch tapped: that part off if it was on, on if it was off.
+func toggle(switch_name: String) -> void:
+	var off: bool = not switched_off.get(switch_name, false)
+	switched_off[switch_name] = off
+	switch_off(switch_name, off)
+	paint_button(switch_name)
+
+
+## A button light while its part is on, dark (and its name crossed by "-") while it's off.
+func paint_button(switch_name: String) -> void:
+	var off: bool = switched_off.get(switch_name, false)
+	var button: Button = buttons[switch_name]
+	button.text = ("-" + switch_name + "-") if off else switch_name
+	button.modulate = Color(0.45, 0.45, 0.45) if off else Color.WHITE
+
+
+## Switches one part of the picture off (off = true) or back on. Each part is found by its node's name in the level
+## (as game_view.gd does), or, for the screen effects (made in code, with no names), by their shader's file.
+func switch_off(switch_name: String, off: bool) -> void:
+	var level := get_tree().current_scene
+	if level == null:
+		return
+	match switch_name:
+		"Sea":
+			var sea := level.find_child("Sea", true, false) as MeshInstance3D
+			if sea:
+				if off:
+					sea_material = sea.material_override
+					var plain := StandardMaterial3D.new()
+					plain.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+					plain.albedo_color = Color(0.55, 0.55, 0.55)
+					sea.material_override = plain
+				elif sea_material:
+					sea.material_override = sea_material
+		"Dither":
+			set_node_shown(level, "Dither", not off)
+		"Fog":
+			show_screen_effect(level, "fog.gdshader", not off)
+		"Shadows":
+			show_screen_effect(level, "cloud_shadow.gdshader", not off)
+		"Clouds":
+			var clouds := level.find_child("Clouds", true, false)
+			if clouds:
+				clouds.visible = not off
+				clouds.process_mode = Node.PROCESS_MODE_DISABLED if off else Node.PROCESS_MODE_INHERIT
+		"Outline":
+			show_screen_effect(level, "boat_outline.gdshader", not off)
+		"Islands":
+			set_node_shown(level, "Islands", not off)
+		"Effects":
+			for node_name in ["Gulls", "WindLines", "Wake"]:
+				set_node_shown(level, node_name, not off)
+			var paddles := level.find_child("Paddles", true, false)
+			if paddles and paddles.get("puffs") != null:
+				for puff in paddles.puffs:
+					puff.visible = puff.visible and not off   # the steam: hidden now (shown again by the next puffs)
+		"UI":
+			for node_name in ["Helm", "Crank", "IconLayer", "Health"]:
+				set_node_shown(level, node_name, not off)
+		"Half res":
+			find_game_view()
+			if game_view:
+				game_view.dots_across = 180 if off else 360
+				game_view._fit()
+
+
+## Shows or hides the node of that name, wherever it is in the level (if it's there). A plain Node (a "folder" such
+## as Islands in the Overworld) has no visibility of its own: then its children are shown or hidden.
+func set_node_shown(level: Node, node_name: String, shown_now: bool) -> void:
+	var node := level.find_child(node_name, true, false)
+	if node == null:
+		return
+	if "visible" in node:
+		node.visible = shown_now
+		return
+	for child in node.get_children():
+		if "visible" in child:
+			child.visible = shown_now
+
+
+## Shows or hides every mesh in the level drawn with that shader (the full-screen effects: fog, shadows, outline).
+func show_screen_effect(level: Node, shader_file: String, shown_now: bool) -> void:
+	for mesh in level.find_children("*", "MeshInstance3D", true, false):
+		var quad := (mesh as MeshInstance3D).mesh as QuadMesh
+		if quad == null or not (quad.material is ShaderMaterial):
+			continue
+		var shader: Shader = (quad.material as ShaderMaterial).shader
+		if shader and shader.resource_path.ends_with(shader_file):
+			mesh.visible = shown_now
 
 
 func _process(dt: float) -> void:
