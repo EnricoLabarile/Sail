@@ -59,6 +59,28 @@
 5. Keep the number of new tools the player must learn to the minimum.
 6. Fun, engaging traversal is the core of the game: flowing movement, all about keeping momentum (like The Pathless).
 
+## The game design doc (Enrico, Nov 2026: the game's main elements; keep every change in line with it)
+- **Boat**: the player; moves; uses tools (the hook, the bomb); collects collectables; an **overheat** system governs
+  how much she can speed up and do intense things (towing heavy objects); takes damage, respawned at 0 health; carried
+  by the sea current.
+- **UI**: not in the world; gathers what's needed to play: the **steering wheel** (direction), the **crank** (speed,
+  and keeping the heat down), the **logbook** (a window listing the collectables and a simplified map), the **health**.
+- **Collectibles**: in the scene, added to the inventory when collected: bombs, hook, coins, enemy trophies.
+- **NPC**: talked to through a dialogue; the dialogue can change with conditions (the right item in the player's hold,
+  the NPC in the right place…).
+- **Towable**: dragged with the hook; **heavy** (needs the boost to be dragged) or **light**; heavy isn't carried by
+  the current, light is.
+- **Tool**: lives on the UI and is actively used.
+- **Destructible**: in the world, damaged and destroyed (usually by bombs), by the player and by enemies too; a chance
+  (0–100%) to drop a collectible.
+- **Enemies**: move, damage the player and can be damaged; generally drop a collectible when defeated; act through
+  clearly telegraphed actions and patterns, so the player can react.
+- **Lock**: in the world, blocks the way; open or closed; opens when the right **key** (matching id) is near; (?) maybe
+  closes again if the key is taken away.
+- **Setup and goal**: a small world on your screen whose quiet life was disturbed by monsters. Explore it, defeat the
+  sea monsters and bring the stranded people back home. A **hub city**, almost abandoned at first, that the player
+  helps rebuild to its former splendour.
+
 ## Enrico's review of the elements (Oct 2026: direction for future work, nothing changed yet)
 **Keeps / likes**: the wheel (turning it is fun); items as independent modules (even if they don't end up in the
 inventory); bomb fights with sea imps and the current carrying bombs; **the paddles over the sail** (clearer,
