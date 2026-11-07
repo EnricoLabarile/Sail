@@ -329,8 +329,8 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   up, or overheated) → `paddles.turn_on()` (anchor up / cast off, cold again); from anchor or a pier the lever
   springs back (`let_go`), but **when she overheated under way the finger keeps it where it is** (Enrico, Nov
   2026: turning her on in time, she keeps going and the player keeps control; `_is_stopped()`, `held_time` reset so the
-  boost waits `boost_wait` again); right end while running within `vent_window` 3 of overheating → `vent()` (cold again, she keeps
-  100%; only with a grab that began in that window, `grabbed_in_window`, Enrico: held at 100% from before, let go and push again); left end with the anchor up → `turn_off()` (anchor down) and springs back.
+  boost waits `boost_wait` again); right end while running in the **vent window** → `vent()` (cold again, she keeps
+  100%; only with a grab that began in that window, `grabbed_in_window`, Enrico: held at 100% from before, let go and push again). **The vent window is a time** (Enrico, Nov 2026: it was 3 heat units, ~0.075 s at full boost, so it never really existed): reaching `max_heat` she's `at_brink`, still running, for `vent_window` **1.5 s** (`brink_left`, `update_brink`; `can_vent()` = `at_brink`); the heat dropping below max (she let go and cooled) closes it harmlessly; run out → `overheat()`; left end with the anchor up → `turn_off()` (anchor down) and springs back.
   **THE OVERHEAT BAR** (Enrico, Nov 2026: the battery flipped on its head, a bar that fills up instead of one that runs
   down; paddles.gd `heat` 0..`max_heat` 40, `heat_share()`, `is_overheated`): **boosting heats her**: `heat_rate()` is 0
   at the lever's middle and below, and past the middle only once the boost counts (`is_boosting()`), then `boost_heat` 40
@@ -344,7 +344,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   switched off** (Enrico, Nov 2026: at anchor or tied up, `boat.anchored`, overheated too: the lever's filling goes
   down with it); standing still with the anchor up (lever pulled back) it doesn't. The lever's right end still cools her
   at once (turn_on / vent). A booster
-  cools her (`paddles.cool(amount)`, booster.gd `cooling` 5). **At `max_heat` she overheats** (`check_overheat`):
+  cools her (`paddles.cool(amount)`, booster.gd `cooling` 5). **At `max_heat`, after the vent window, she overheats** (`check_overheat` opens the window, `overheat()`):
   `is_overheated`, not running (no push, she stops as with the old empty battery), and signal **`overheated`** →
   **the boat blinks black** (boat.gd `blink_black`: a Tween sets a plain black unshaded `material_override` on every
   mesh inside `Model` (not top_level ones, i.e. the steam) `overheat_blinks` 3 times, `overheat_blink_time` 0.1 s on,

@@ -15,10 +15,11 @@ extends Node3D
 ##   - an ENEMY hitting her (`take_hit()`, from boat.gd hit_by_enemy: `hit_heat` of the bar).
 ## It COOLS DOWN BY ITSELF: `cool_delay` seconds after the last boost it falls at `cool_rate`, but only while she's
 ## UNDER WAY (Enrico: not standing still, at anchor or with the lever pulled back). A booster cools it (`cool`).
-## At `max_heat` she OVERHEATS: the signal `overheated` (the boat blinks black, boat.gd) and she stops pushing until
-## the lever goes all the way right (`turn_on`: cold again). While she runs, all the way right in the last
-## `vent_window` seconds before overheating VENTS it (`vent()`: cold again), so a player who keeps an eye on it never
-## stops. All the way left TURNS HER OFF (the anchor goes down).
+## When the heat reaches `max_heat` she's AT THE BRINK (Enrico, Nov 2026: the vent window is a time again): she keeps
+## going for `vent_window` seconds, and the lever pushed all the way right in that time (a grab that began in it) VENTS
+## her (`vent()`: cold again), so a player who reacts in time never stops. If the window runs out, she OVERHEATS: the
+## signal `overheated` (the boat blinks black, boat.gd) and she stops pushing until the lever goes all the way right
+## (`turn_on`: cold again). All the way left TURNS HER OFF (the anchor goes down).
 ## THE STEAM: little puffs rising from her, more of them the hotter she is (see the steam, at the bottom).
 ## The current still carries her (the boat's).
 ##
@@ -53,7 +54,7 @@ signal overheated
 @export var cool_delay := 0.5          # seconds after the last boost before she starts cooling down (Enrico)
 @export var cool_rate := 8.0           # heat she loses each second once she cools (8: from overheated to cold in 5 s)
 @export var cool_min_speed := 0.5      # m/s she must be going to cool down by itself (slower = standing still: no)
-@export var vent_window := 3.0         # the last bit of heat before overheating in which the lever, pushed right, vents her (Enrico)
+@export var vent_window := 1.5         # seconds she keeps going at full heat before she overheats: the lever pushed right meanwhile vents her (Enrico)
 @export var turn_mult := 1.5           # she turns this much quicker while they push
 @export var take_up_rate := 3.75            # how quickly they take up and let go as a push starts or ends
 @export var bite := 5.25               # how quickly her speed catches up with their push
@@ -74,7 +75,9 @@ signal overheated
 const MAX_PUFFS := 20                  # puffs in the air at the same time, at most
 
 var heat := 0.0           # how hot she is, 0..max_heat
-var is_overheated := false  # true from reaching max_heat until the lever turns her on or vents her: they don't push
+var is_overheated := false  # true once the vent window ran out until the lever turns her on: they don't push
+var at_brink := false       # at full heat, still going: the vent window is open (see brink_left)
+var brink_left := 0.0       # seconds left in the vent window
 var power := 0.0          # 0..1: how hard they push now (eased toward 1 while she runs)
 var spin_left := 0.0      # the wheels' angles (radians)
 var spin_right := 0.0
@@ -106,15 +109,16 @@ func heat_share() -> float:
 	return heat / max_heat
 
 
-## Can she be vented now? When she's overheated, or within vent_window of it.
+## Can she be vented now? While the vent window is open (at full heat, before she overheats).
 func can_vent() -> bool:
-	return heat >= max_heat - vent_window
+	return at_brink
 
 
 ## Cold again: no heat, not overheated, and the lever's flywheel spins in overdrive (crank.gd).
 func cool_right_down() -> void:
 	heat = 0.0
 	is_overheated = false
+	at_brink = false
 	revved.emit()
 
 
@@ -190,12 +194,36 @@ func take_hit() -> void:
 	add_heat(hit_heat)
 
 
-## Has she just reached max_heat? Then she overheats: no push until the lever turns her on or vents her, and the
-## signal for the boat's black blink. Once only (is_overheated stays true until then).
+## Has she just reached max_heat? Then the vent window opens: she keeps going for vent_window seconds (update_brink
+## counts them down). With no window (vent_window 0) she overheats at once.
 func check_overheat() -> void:
-	if heat >= max_heat and not is_overheated:
-		is_overheated = true
-		overheated.emit()
+	if heat < max_heat or is_overheated or at_brink:
+		return
+	if vent_window <= 0.0:
+		overheat()
+		return
+	at_brink = true
+	brink_left = vent_window
+
+
+## The vent window, every frame: if the heat went down meanwhile (she let go of the boost and cooled a little), it
+## closes, no harm done; otherwise it counts down, and at 0 she overheats.
+func update_brink(dt: float) -> void:
+	if not at_brink:
+		return
+	if heat < max_heat:
+		at_brink = false
+		return
+	brink_left -= dt
+	if brink_left <= 0.0:
+		overheat()
+
+
+## She overheats: no push until the lever turns her on, and the signal for the boat's black blink.
+func overheat() -> void:
+	at_brink = false
+	is_overheated = true
+	overheated.emit()
 
 
 ## Is she boosting now? The lever held past the middle long enough for the boost to count (boost_counts). Holding it
@@ -208,6 +236,7 @@ func is_boosting() -> bool:
 ## cool_delay seconds; the push eases in and out, the wheels turn, and the steam rises.
 func update(dt: float) -> void:
 	update_heat(dt)
+	update_brink(dt)
 	var want := 1.0 if is_running() else 0.0
 	power += (want - power) * minf(1.0, dt * take_up_rate)
 	if power < 0.005:
@@ -277,6 +306,7 @@ func update_splashes(dt: float, wheel_speed: float) -> void:
 func stop() -> void:
 	heat = 0.0
 	is_overheated = false
+	at_brink = false
 	lever_share = 0.5
 	power = 0.0
 	splash_level = 0.0
