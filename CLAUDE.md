@@ -357,12 +357,18 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   **the boat blinks black** (boat.gd `blink_black`: a Tween sets a plain black unshaded `material_override` on every
   mesh inside `Model` (not top_level ones, i.e. the steam) `overheat_blinks` 3 times, `overheat_blink_time` 0.1 s on,
   0.1 s off; the inner hull's water mask is an overlay, so it stays). It stays overheated, cooling only through the
-  lever's right end. **The steam** (paddles.gd, made in code, no files): a pool of `MAX_PUFFS` 20 white unshaded
-  see-through balls (SphereMesh, a ball needs no turning to the camera; render_priority 2, top_level, each its own
-  material), from `steam_from` 0.1 of the bar on one appears every 1 / (`steam_puffs_most` 14 × heat share) s,
-  `steam_height` 0.8 m over her middle (±0.3 m), rising `steam_rise` 1.5 m/s, growing `steam_size_start` 0.2 →
-  `steam_size_end` 0.8 m and fading (alpha 0.8 → 0) over `steam_time` 1.2 s (`make_puffs`, `update_steam`,
-  `start_puff`). **The boost counts
+  lever's right end. **The smoke** (paddles.gd, made in code; Enrico, Nov 2026: out of the chimney, more visible, a thick plume overheated):
+  a pool of `MAX_PUFFS` 70 white unshaded see-through balls (SphereMesh, a ball needs no turning to the camera;
+  render_priority 2, top_level, each its own material) coming out of the **`SmokeAttach`** Marker3D in boat.tscn (under
+  `Model`, so it rocks with her, at (−1.75, 2.02, −0.23): the top of the hull mesh's big chimney, found from the mesh's
+  highest vertices; move it in the viewport; no marker = 0.8 m over her middle), ±0.1 m. `puffs_per_second()`: running,
+  `steam_puffs_least` 4 (cold) → `steam_puffs_most` 14 (full heat); stopped, `steam_puffs_most` × heat share above
+  `steam_from` 0.1 (cooling); **overheated** `overheat_puffs` 30, each × `overheat_size` 1.5, living `overheat_time` 2 s,
+  rising `overheat_rise` 2.5 m/s, wandering `overheat_spread` 1 m/s (group "Overheated smoke"). Each puff rises
+  `steam_rise` 1.5 m/s, is carried downwind `steam_drift` 1.2 m/s (`-Wind.from_vector()`) plus a random wander up to
+  `steam_spread` 0.4 m/s (so they trail), grows `steam_size_start` 0.25 → `steam_size_end` 1 m over `steam_time` 1.4 s,
+  solid (`steam_alpha` 1) for its first half, then fades (smoothstep) (`make_puffs`, `update_steam`, `start_puff`; per
+  puff `puff_lives` / `puff_sizes` / `puff_rises` / `puff_drifts`). **The boost counts
   only once the lever has been held `boost_wait`** (Enrico: venting is the same move right; counted from the grab and
   again from each vent, crank.gd `held_time` → `paddles.boost_counts`; before that, and at once on letting go, no
   heating, while the lever and her speed spring back gradually; the chevrons flow only while it counts);

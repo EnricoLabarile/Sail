@@ -63,16 +63,28 @@ signal overheated
 ## real rate was ~4.5 turns a second, a blur). Only the look and the splashes: her speed doesn't change. 1 = real.
 @export var spin_scale := 0.35
 @export var half_beam := 1.75          # metres from her middle to each wheel (turning, the two go at different speeds)
-# The steam (Enrico): little white puffs rising from her middle, more the hotter she is.
-@export var steam_from := 0.1          # share of the heat bar below which there's no steam at all
-@export var steam_puffs_most := 14.0   # puffs a second when she's overheated (fewer the cooler she is)
-@export var steam_height := 0.8        # metres above her middle where a puff appears
+# The smoke (Enrico): white puffs rising from her chimney (the Marker3D `SmokeAttach` in boat.tscn, under Model, so
+# it rocks with her; move it in the viewport to move the smoke). Nov 2026: always some while she runs, more the hotter
+# she is, and a thick plume when she's overheated.
+@export var steam_puffs_least := 4.0   # puffs a second while she runs cold (Enrico: the smoke always shows under way)
+@export var steam_puffs_most := 14.0   # puffs a second while she runs at full heat (in between: in a straight line)
+@export var steam_from := 0.1          # stopped (at anchor, tied up): share of the heat bar below which there's no smoke
 @export var steam_rise := 1.5          # metres a second a puff rises
-@export var steam_time := 1.2          # seconds a puff lives (it grows and fades meanwhile)
-@export var steam_size_start := 0.2    # a puff's radius when it appears, metres…
-@export var steam_size_end := 0.8      # …and when it's gone
+@export var steam_time := 1.4          # seconds a puff lives (it grows and fades meanwhile)
+@export var steam_size_start := 0.25   # a puff's radius when it appears, metres…
+@export var steam_size_end := 1.0      # …and when it's gone
+@export var steam_alpha := 1.0         # how solid a puff is when it appears (it stays so for its first half, then fades)
+@export var steam_drift := 1.2         # metres a second the wind carries a puff (downwind, Wind.from_vector), so it trails
+@export var steam_spread := 0.4        # metres a second each puff wanders sideways at random, so they don't sit in one blob
+@export_group("Overheated smoke")
+@export var overheat_puffs := 30.0     # puffs a second while she's overheated (the thick plume)
+@export var overheat_size := 1.5       # the puffs × this big while she's overheated
+@export var overheat_time := 2.0       # seconds an overheated puff lives
+@export var overheat_rise := 2.5       # metres a second it rises
+@export var overheat_spread := 1.0     # metres a second it wanders sideways (a wider plume)
+@export_group("")
 
-const MAX_PUFFS := 20                  # puffs in the air at the same time, at most
+const MAX_PUFFS := 70                  # puffs in the air at the same time, at most
 
 var heat := 0.0           # how hot she is, 0..max_heat
 var is_overheated := false  # true once the vent window ran out until the lever turns her on: they don't push
@@ -87,12 +99,17 @@ var boost_counts := false  # has the lever been held past boost_wait? (crank.gd,
 var since_boost := 0.0     # seconds since she last boosted (she cools down once this reaches cool_delay)
 var puffs: Array[MeshInstance3D] = []   # the pool of steam puffs (made once)
 var puff_ages: Array[float] = []         # seconds since each puff appeared (below 0 = not in use)
+var puff_lives: Array[float] = []        # how long each puff lives (longer for an overheated one)
+var puff_sizes: Array[float] = []        # each puff's size × (bigger for an overheated one)
+var puff_rises: Array[float] = []        # how fast each puff rises
+var puff_drifts: Array[Vector3] = []     # each puff's sideways way on the water: the wind's carry + its own wander
 var next_puff_in := 0.0                  # seconds to the next puff
 var lever_share := 0.5    # the most she may go, 0..1 of her speed (set by the lever every frame; 0.5 = the lever at rest)
 
 @onready var boat: Node3D = owner                               # the boat (boat.tscn's root)
 @onready var wheel_left: Node3D = $PaddleWheelLeft/Spin          # the part of each wheel that turns
 @onready var wheel_right: Node3D = $PaddleWheelRight/Spin
+@onready var smoke_attach: Node3D = boat.find_child("SmokeAttach")   # the chimney's top, where the smoke comes out
 
 
 func _ready() -> void:
@@ -338,40 +355,69 @@ func make_puffs() -> void:
 		add_child(puff)
 		puffs.append(puff)
 		puff_ages.append(-1.0)
+		puff_lives.append(steam_time)
+		puff_sizes.append(1.0)
+		puff_rises.append(steam_rise)
+		puff_drifts.append(Vector3.ZERO)
 
 
-## Every frame: a new puff every so often (more often the hotter she is: none below steam_from of the bar,
-## steam_puffs_most a second overheated), and every puff in the air rises, grows and fades.
-func update_steam(dt: float) -> void:
+## Puffs a second now (0 = no smoke): overheated, the thick plume; running, from steam_puffs_least (cold) to
+## steam_puffs_most (full heat); stopped, only while she's still warm (above steam_from), cooling down.
+func puffs_per_second() -> float:
 	var share := heat_share()
+	if is_overheated:
+		return overheat_puffs
+	if is_running():
+		return lerpf(steam_puffs_least, steam_puffs_most, share)
 	if share >= steam_from:
+		return steam_puffs_most * share
+	return 0.0
+
+
+## Every frame: a new puff every so often (puffs_per_second), and every puff in the air rises, grows and fades.
+func update_steam(dt: float) -> void:
+	var rate := puffs_per_second()
+	if rate > 0.0:
 		next_puff_in -= dt
 		if next_puff_in <= 0.0:
-			next_puff_in = 1.0 / maxf(steam_puffs_most * share, 0.5)
+			next_puff_in = 1.0 / rate
 			start_puff()
 	for i in MAX_PUFFS:
 		if puff_ages[i] < 0.0:
 			continue
 		var puff := puffs[i]
 		puff_ages[i] += dt
-		var age := puff_ages[i] / steam_time            # 0 when it appears, 1 when it's gone
+		var age := puff_ages[i] / puff_lives[i]         # 0 when it appears, 1 when it's gone
 		if age >= 1.0:
 			puff_ages[i] = -1.0                         # done: free for the next one
 			puff.visible = false
 			continue
-		puff.global_position.y += steam_rise * dt
-		var radius := lerpf(steam_size_start, steam_size_end, age)
+		puff.global_position += (puff_drifts[i] + Vector3(0.0, puff_rises[i], 0.0)) * dt
+		var radius := lerpf(steam_size_start, steam_size_end, age) * puff_sizes[i]
 		puff.scale = Vector3.ONE * radius
-		(puff.material_override as StandardMaterial3D).albedo_color.a = 0.8 * (1.0 - age)
+		# Solid for its first half, then it fades away (smoothstep: a soft start and end to the fading).
+		var fade := 1.0 - smoothstep(0.5, 1.0, age)
+		(puff.material_override as StandardMaterial3D).albedo_color.a = steam_alpha * fade
 
 
-## One puff over her middle (a little to one side or the other, at random), using a free one of the pool.
+## One puff out of the chimney (SmokeAttach; a hair to one side or the other, at random), using a free one of the
+## pool. Overheated, it's bigger, lives longer and rises faster (the thick plume).
 func start_puff() -> void:
 	var free_one := puff_ages.find(-1.0)
 	if free_one == -1:
 		return                                          # all in the air: skip this one
 	var puff := puffs[free_one]
-	var spot: Vector3 = boat.global_position + Vector3(randf_range(-0.3, 0.3), steam_height, randf_range(-0.3, 0.3))
-	puff.global_transform = Transform3D(Basis().scaled(Vector3.ONE * steam_size_start), spot)
+	var chimney: Vector3 = boat.global_position + Vector3(0.0, 0.8, 0.0)   # no marker: over her middle, as before
+	if smoke_attach:
+		chimney = smoke_attach.global_position
+	var spot := chimney + Vector3(randf_range(-0.1, 0.1), 0.0, randf_range(-0.1, 0.1))
+	puff_lives[free_one] = overheat_time if is_overheated else steam_time
+	puff_sizes[free_one] = overheat_size if is_overheated else 1.0
+	puff_rises[free_one] = overheat_rise if is_overheated else steam_rise
+	# Its sideways way: carried downwind (the wind blows toward -from_vector), plus a little wander of its own.
+	var wander := overheat_spread if is_overheated else steam_spread
+	var angle := randf() * TAU
+	puff_drifts[free_one] = -Wind.from_vector() * steam_drift + Vector3(cos(angle), 0.0, sin(angle)) * randf() * wander
+	puff.global_transform = Transform3D(Basis().scaled(Vector3.ONE * steam_size_start * puff_sizes[free_one]), spot)
 	puff.visible = true
 	puff_ages[free_one] = 0.0
