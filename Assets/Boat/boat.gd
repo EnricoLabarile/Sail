@@ -108,6 +108,22 @@ signal health_changed(hurt: bool)
 @export var sink_lean_deg := 25.0   # how far she rolls over as she goes
 @export var emerge_on_start := true # she comes up out of the water when the level starts (and always after a respawn)
 
+# Her drop shadow on the water (Enrico, Nov 2026: a little occlusion under her): a soft dark oval lying on the sea,
+# made in code (make_drop_shadow), following her. The dither turns its soft edge into dots.
+@export_group("Drop shadow")
+@export var drop_shadow_on := true:
+	set(value):
+		drop_shadow_on = value
+		if drop_shadow:
+			drop_shadow.visible = value
+@export var drop_shadow_size := Vector2(4.2, 7.0)      # metres across and along her (the oval's width and length)
+@export var drop_shadow_centre := Vector2(0.0, 0.3)    # metres from her middle, in her own frame (x right, y astern)
+@export var drop_shadow_offset := Vector2(0.9, 1.1)    # metres it falls away from her on the map (east, south): away from the sun (north-west)
+@export_range(0.0, 1.0) var drop_shadow_opacity := 0.55 # how dark its middle is (0 = none, 1 = ink)
+@export_range(0.01, 1.0) var drop_shadow_softness := 0.6  # share of the oval that fades out toward its edge
+@export var drop_shadow_lift := 0.03                   # metres above the sea's surface (so the two don't fight over the pixels)
+@export_group("")
+
 ## Sent once she's gone under (the game over card listens).
 signal sank
 
@@ -173,6 +189,9 @@ var calm_left := 0.0         # seconds left of the calm after casting off (no cu
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
 var heading_held := false          # turned with the wheel at anchor: she keeps that heading (the line doesn't swing her)
 var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
+var drop_shadow: MeshInstance3D = null   # the soft oval under her (make_drop_shadow)
+var sea_level := 0.0                     # the level's Sea node's height (found once; the shadow lies on it)
+var sea_found := false
 var health := 3.0           # hearts left (0.5 = half a heart); set to max_hearts at start
 var sinking := false        # true from 0 hearts until she's back home (no steering, no anchor)
 var sunk_for := 0.0         # seconds since she started sinking
@@ -211,6 +230,7 @@ func _ready() -> void:
 	home_position = global_position   # home: where she was placed in Overworld
 	home_turn = rotation.y
 	add_water_mask()
+	make_drop_shadow()
 	# Whatever comes into the hold, from wherever (a pickup, an imp, a haul of fish, a buy), the boat makes the
 	# same sound: it's her taking it aboard (Enrico). The Inventory tells her (like an Event Dispatcher).
 	Inventory.came_aboard.connect(_on_came_aboard)
@@ -245,6 +265,69 @@ func _on_came_aboard(_item: String, _count: int) -> void:
 ## The inside is any mesh with "inner" in its name, or in its parent's name (e.g. sm_boat_hull_inner,
 ## made in Blender as an object of its own): the floor of the boat lies below the water line, and
 ## without the mask the sea would cover it.
+## The drop shadow: a flat plane (her child, so it follows her and turns with her, smoothed like her), drawn by a little
+## shader written here (like a Material made in a Blueprint's construction script): ink, see-through, solid in the
+## middle and fading to nothing at the oval's edge (smoothstep). It doesn't write depth, so it never hides anything;
+## its depth test keeps her hull above the water in front of it. It reads the sea's stencil like a fishing spot, so it
+## never darkens her own floor (the inside of the hull, where the boat_mask writes 1).
+const DROP_SHADOW_CODE := """
+shader_type spatial;
+render_mode unshaded, cull_disabled, depth_draw_never, shadows_disabled;
+stencil_mode read, compare_not_equal, 1;
+uniform vec4 shadow_color : source_color = vec4(0.106, 0.102, 0.090, 1.0);
+uniform float opacity = 0.55;
+uniform float softness = 0.6;
+void fragment() {
+	vec2 p = UV * 2.0 - 1.0;                       // -1..1 across the plane: the oval is the circle of radius 1
+	float r = length(p);
+	ALBEDO = shadow_color.rgb;
+	ALPHA = opacity * (1.0 - smoothstep(1.0 - softness, 1.0, r));
+}
+"""
+
+func make_drop_shadow() -> void:
+	var mesh := PlaneMesh.new()
+	mesh.size = drop_shadow_size
+	var shader := Shader.new()
+	shader.code = DROP_SHADOW_CODE
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	material.render_priority = 1                     # after the sea (the see-through pass), before the steam
+	material.set_shader_parameter("opacity", drop_shadow_opacity)
+	material.set_shader_parameter("softness", drop_shadow_softness)
+	mesh.material = material
+	drop_shadow = MeshInstance3D.new()
+	drop_shadow.name = "DropShadow"
+	drop_shadow.mesh = mesh
+	drop_shadow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	drop_shadow.visible = drop_shadow_on
+	add_child(drop_shadow)
+
+
+## Every physics frame: the shadow on the water under her (at the sea's height), shifted away from the sun on the map
+## (drop_shadow_offset, the same way whatever her heading), and hidden while she sinks or comes up.
+func update_drop_shadow() -> void:
+	if drop_shadow == null:
+		return
+	if not sea_found:
+		find_sea_level()
+	drop_shadow.visible = drop_shadow_on and not sinking and not emerging
+	# Where it lies in the world: her middle + its centre in her frame + the sun's shift on the map.
+	var centre := global_transform.basis * Vector3(drop_shadow_centre.x, 0.0, drop_shadow_centre.y)
+	var spot := global_position + centre + Vector3(drop_shadow_offset.x, 0.0, drop_shadow_offset.y)
+	spot.y = sea_level + drop_shadow_lift
+	drop_shadow.position = to_local(spot)            # her child: placed in her own space (it turns with her)
+
+
+## The sea's height: the level's Sea node (Overworld's sits at 0.087 m). None found: 0.
+func find_sea_level() -> void:
+	sea_found = true
+	var scene := get_tree().current_scene
+	var sea: Node3D = scene.find_child("Sea", true, false) if scene else null
+	if sea:
+		sea_level = sea.global_position.y
+
+
 func add_water_mask() -> void:
 	water_mask = ShaderMaterial.new()
 	water_mask.shader = load("res://Assets/Boat/boat_mask.gdshader")
@@ -617,6 +700,7 @@ func bow_point() -> Vector3:
 	return global_position + fwd * bow_reach
 
 func _physics_process(dt: float) -> void:
+	update_drop_shadow()
 	# Sinking: only that, no sailing, no anchor, no bumps.
 	if sinking:
 		update_sinking(dt)

@@ -455,6 +455,15 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   floor of the boat (below y 0) shows. The outside of the hull has no mask: the sea covers what's
   below the water. Until the inner mesh exists, nothing is masked (the sea shows over her floor). How deep she sits
   is `Model`'s y in `boat.tscn` (Enrico places it; −0.4 now): `boat.gd` reads it at start (`model_height`) and bobs round it.
+- **Her drop shadow** (Enrico, Nov 2026: a little occlusion on the water under her; boat.gd, made in code, no files):
+  `DropShadow`, a PlaneMesh child of Boat (so it turns with her and is smoothed like her) sized `drop_shadow_size`
+  (4.2 × 7 m), at `drop_shadow_centre` (0, 0.3) in her frame + `drop_shadow_offset` (0.9, 1.1) m east / south on the map
+  (away from the sun, north-west), at the level's Sea node's height (`find_sea_level`, once) + `drop_shadow_lift` 0.03
+  (`update_drop_shadow`, every physics frame); a shader written in boat.gd (`DROP_SHADOW_CODE`: unshaded, no depth
+  write, the sea's stencil read so it never darkens her floor, render_priority 1): ink at `drop_shadow_opacity` 0.55
+  in the middle, fading over the outer `drop_shadow_softness` 0.6 of the oval (smoothstep); the dither turns it into
+  denser dots. Hidden while sinking or coming up; `drop_shadow_on` (Inspector group "Drop shadow"). Most of it is under
+  the hull: what shows is the rim to the south-east.
 - **Wake and bow wave**: the wake (as the prototype's wake dots) is a `CPUParticles3D` child of `Boat` in `boat.tscn`
   (`Wake`, its look set in the Inspector), `local_coords` off so what it leaves stays on the water, flat 8-sided discs
   (a CylinderMesh with no height), unshaded, vertex colour + alpha, render_priority 1: at the stern (z +1.7), two
