@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://b2ghm848ugj4w" path="res://Assets/Landscape/islands/sm_island_center_32x32.fbx" id="42_i5cs1"]
 [ext_resource type="PackedScene" uid="uid://cooxvf8worfh6" path="res://Assets/Landscape/islands/sm_island_edge_16x16.fbx" id="43_cnf3h"]
 [ext_resource type="PackedScene" uid="uid://bdnb46f8ebbap" path="res://Assets/Landscape/islands/sm_island_corner_in_32x32.fbx" id="43_klm3u"]
+[ext_resource type="PackedScene" uid="uid://ba3sko0sslwnm" path="res://Assets/Landscape/islands/sm_island_arch_01_a.fbx" id="43_lnn7p"]
 [ext_resource type="PackedScene" uid="uid://cudhdia0ow2sr" path="res://Assets/Landscape/islands/sm_island_corner_out_16x16.fbx" id="44_84ff5"]
 [ext_resource type="PackedScene" uid="uid://ctmbupyadtu7w" path="res://Assets/Landscape/architecture/sm_tower_01_a.fbx" id="45_i5cs1"]
 [ext_resource type="PackedScene" uid="uid://cxyvsiocbqavr" path="res://Assets/Landscape/islands/sm_island_edge_32x16.fbx" id="45_pcmpt"]
@@ -1393,7 +1394,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -57, 11, 4)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104, 0, 0)
 
 [node name="Barrel" parent="." unique_id=1639547901 instance=ExtResource("49_to4lu")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -82.480576, 0, 45.645245)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.1216, 3.8146973e-06, 45.230087)
 contents = ExtResource("27_cra7r")
 
 [node name="Barrel3" parent="." unique_id=1879833353 instance=ExtResource("49_to4lu")]
@@ -1446,3 +1447,12 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -43,
 
 [node name="sm_tree_01_a3" parent="." unique_id=640581086 instance=ExtResource("42_6qrm0")]
 transform = Transform3D(-0.70000005, 0, -5.2453668e-08, 0, 1, 0, 6.119595e-08, 0, -0.6, -39, 17, 99)
+
+[node name="sm_island_arch_01_a" parent="." unique_id=1405390128 instance=ExtResource("43_lnn7p")]
+transform = Transform3D(1.1571068, 0, 1.0571069, 0, 1, 0, -1.1571068, 0, 1.0571069, -259, 0, 76)
+
+[node name="sm_island_arch_01_a2" parent="." unique_id=1490594687 instance=ExtResource("43_lnn7p")]
+transform = Transform3D(1.1571068, 0, 1.0571069, 0, 1, 0, -1.1571068, 0, 1.0571069, -259, 0, 76)
+
+[node name="sm_island_arch_01_a3" parent="." unique_id=2072648924 instance=ExtResource("43_lnn7p")]
+transform = Transform3D(-0.04750353, 0, 1.4943448, 0, 1, 0, -1.6357064, 0, -0.04339814, -86.78424, 7.6293945e-06, 32.261036)

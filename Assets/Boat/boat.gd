@@ -88,7 +88,7 @@ static var current: Boat = null
 @export var boil_threshold := 0.5   # how far into the zone's soft edge counts as "in it" (0..1: 0.5 = halfway in)
 
 # Bumping into the shore (the HTML prototype's impact()): she bounces back off it.
-@export var bounce_kick := 7     # m/s of push away from the shore on any bump…
+@export var bounce_kick := 30     # m/s of push away from the shore on any bump…
 @export var bounce_extra := 0.9     # …plus this much of the speed she hit it with
 @export var bounce_fade := 3.5      # how quickly the push dies away (higher = shorter)
 @export var bounce_slowdown := 0.25 # her speed is multiplied by this (0.25 = a quarter left)
