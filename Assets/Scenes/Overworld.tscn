@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://b5lqfu2xq0o10" path="res://Assets/Dangers/maelstrom/maelstrom.tscn" id="28_ubo31"]
 [ext_resource type="PackedScene" uid="uid://ej7rs2ta81hm" path="res://Assets/Quests/map_marker/map_marker.tscn" id="29_map_marker"]
 [ext_resource type="Script" uid="uid://dkpkc26vqp16v" path="res://Assets/Landscape/shore/shore_baker.gd" id="34_shore_baker"]
+[ext_resource type="PackedScene" uid="uid://2amv4i4immui" path="res://Assets/Landscape/foliage/sm_tree_01_a.fbx" id="42_6qrm0"]
 [ext_resource type="PackedScene" uid="uid://b2ghm848ugj4w" path="res://Assets/Landscape/islands/sm_island_center_32x32.fbx" id="42_i5cs1"]
 [ext_resource type="PackedScene" uid="uid://cooxvf8worfh6" path="res://Assets/Landscape/islands/sm_island_edge_16x16.fbx" id="43_cnf3h"]
 [ext_resource type="PackedScene" uid="uid://bdnb46f8ebbap" path="res://Assets/Landscape/islands/sm_island_corner_in_32x32.fbx" id="43_klm3u"]
@@ -1436,3 +1437,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74, 0, 31)
 [node name="Sign" parent="." unique_id=1562975471 instance=ExtResource("49_iyyhk")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37, 1, 1)
 talk_radius = 16
+
+[node name="sm_tree_01_a" parent="." unique_id=847307902 instance=ExtResource("42_6qrm0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33, 17, 96)
+
+[node name="sm_tree_01_a2" parent="." unique_id=616822833 instance=ExtResource("42_6qrm0")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -43, 17, 94)
+
+[node name="sm_tree_01_a3" parent="." unique_id=640581086 instance=ExtResource("42_6qrm0")]
+transform = Transform3D(-0.70000005, 0, -5.2453668e-08, 0, 1, 0, 6.119595e-08, 0, -0.6, -39, 17, 99)

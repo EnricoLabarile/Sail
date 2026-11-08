@@ -11,7 +11,7 @@ extends Node3D
 static var current: Boat = null
 
 @export var top_speed := 15.0      # m/s with the paddles at full (the throttle lever all the way right); gusts boost it
-@export var accel := 3.0            # how quickly she gathers way (higher = quicker)
+@export var accel := 1.0            # how quickly she gathers way (higher = quicker)
 @export var anchor_bite := 1.0      # how quickly the anchor stops her
 @export var turn_rate := 2.0       # rad/s at full rudder, whatever her speed (Enrico: between the old 1.5 and 3)
 @export var bow_reach := 2.2        # metres from her middle to the bow: the shore stops her there
