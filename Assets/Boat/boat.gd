@@ -20,13 +20,13 @@ static var current: Boat = null
 # and the faster she goes.
 ## THE RUDDER (Enrico, Nov 2026): the blade at the stern (sm_boat_rudder_01_a.fbx inside the RudderPivot marker in
 ## boat.tscn) swings with the wheel: full rudder = this many degrees either way (0 = it never moves).
-@export var rudder_max_deg := 35.0
+@export var rudder_max_deg := 60.0
 ## Its wiggle, like a fish's fin (Enrico, Nov 2026): it swings gently from side to side on top of the wheel's angle,
 ## wider the faster she goes. rudder_wiggle_deg = how far either way at top speed; rudder_wiggle_per_second = how
 ## many swings a second; rudder_wiggle_at_rest = the share of the wiggle left when she stands still (0 = still).
-@export var rudder_wiggle_deg := 8.0
-@export var rudder_wiggle_per_second := 1.5
-@export var rudder_wiggle_at_rest := 0.3
+@export var rudder_wiggle_deg := 30.0
+@export var rudder_wiggle_per_second := 0
+@export var rudder_wiggle_at_rest := 0.0
 @export var turn_lean_deg := 15   # how far she leans turning at turn_rate at top_speed, in degrees (the prototype's)
 
 # Speed lifts the bow (Enrico, like a motorboat): the faster she goes, the higher the bow, and it STAYS up as long

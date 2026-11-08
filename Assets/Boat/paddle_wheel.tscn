@@ -1,12 +1,15 @@
 [gd_scene format=3 uid="uid://bkkrdnkxvkeca"]
 
 [ext_resource type="Shader" uid="uid://cun5pmnoonaa0" path="res://Assets/Boat/toon_shade.gdshader" id="1_shade"]
+[ext_resource type="PackedScene" uid="uid://bho3kd5mxtj50" path="res://Assets/Boat/sm_boat_paddle_01_a.fbx" id="2_1py6h"]
 
 [sub_resource type="ShaderMaterial" id="Mat_dark"]
 render_priority = 0
 shader = ExtResource("1_shade")
 shader_parameter/ambient = 0.45
 shader_parameter/base_color = Color(0.2, 0.2, 0.19, 1)
+shader_parameter/cut_below_water = false
+shader_parameter/water_level = 0.0
 
 [sub_resource type="CylinderMesh" id="Mesh_axle"]
 material = SubResource("Mat_dark")
@@ -15,30 +18,6 @@ bottom_radius = 0.04
 height = 0.8
 radial_segments = 6
 
-[sub_resource type="ShaderMaterial" id="Mat_wood"]
-render_priority = 0
-shader = ExtResource("1_shade")
-shader_parameter/ambient = 0.45
-shader_parameter/base_color = Color(0.85, 0.85, 0.83, 1)
-
-[sub_resource type="BoxMesh" id="Mesh_blade"]
-material = SubResource("Mat_wood")
-size = Vector3(0.46, 1.4, 0.05)
-
-[sub_resource type="TorusMesh" id="Mesh_rim"]
-material = SubResource("Mat_dark")
-inner_radius = 0.64
-outer_radius = 0.7
-rings = 24
-ring_segments = 6
-
-[sub_resource type="CylinderMesh" id="Mesh_hub"]
-material = SubResource("Mat_dark")
-top_radius = 0.12
-bottom_radius = 0.12
-height = 0.56
-radial_segments = 10
-
 [node name="PaddleWheel" type="Node3D" unique_id=861709245]
 
 [node name="Axle" type="MeshInstance3D" parent="." unique_id=1541966999]
@@ -46,31 +25,6 @@ transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("Mesh_axle")
 
 [node name="Spin" type="Node3D" parent="." unique_id=1393623317]
-transform = Transform3D(1, 0, 0, 0, 1.8692067, 0, 0, 0, 1.8692067, 0, 0, 0)
 
-[node name="Blade0" type="MeshInstance3D" parent="Spin" unique_id=2054158428]
-mesh = SubResource("Mesh_blade")
-
-[node name="Blade45" type="MeshInstance3D" parent="Spin" unique_id=1337891913]
-transform = Transform3D(1, 0, 0, 0, 0.7071068, 0.7071068, 0, -0.7071068, 0.7071068, 0, 0, 0)
-mesh = SubResource("Mesh_blade")
-
-[node name="Blade90" type="MeshInstance3D" parent="Spin" unique_id=1164225928]
-transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0)
-mesh = SubResource("Mesh_blade")
-
-[node name="Blade135" type="MeshInstance3D" parent="Spin" unique_id=680874804]
-transform = Transform3D(1, 0, 0, 0, -0.7071068, 0.7071068, 0, -0.7071068, -0.7071068, 0, 0, 0)
-mesh = SubResource("Mesh_blade")
-
-[node name="RimIn" type="MeshInstance3D" parent="Spin" unique_id=793218743]
-transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.23, 0, 0)
-mesh = SubResource("Mesh_rim")
-
-[node name="RimOut" type="MeshInstance3D" parent="Spin" unique_id=854680971]
-transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.23, 0, 0)
-mesh = SubResource("Mesh_rim")
-
-[node name="Hub" type="MeshInstance3D" parent="Spin" unique_id=1016938530]
-transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
-mesh = SubResource("Mesh_hub")
+[node name="sm_boat_paddle_01_a" parent="Spin" unique_id=303953795 instance=ExtResource("2_1py6h")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.29049945, 0, 0)

@@ -20,7 +20,7 @@ const MAX_LINKS := 60                 # the most links ever drawn (the chain can
 const MAX_RIPPLES := 4                # rings on the water at the same time, at most
 
 @export var bow_height := 0.4         # metres above the water where the chain leaves her bow
-@export var sag := 0.15               # metres the chain hangs down in its middle (0 = straight)
+@export var sag := 0.5               # metres the chain hangs down in its middle (0 = straight)
 @export var link_step := 0.26         # metres from one link to the next
 @export var link_size := 0.13         # a link's half length (its ring's outer radius), metres
 @export var link_thickness := 0.045   # how thick the metal of a link is, metres
