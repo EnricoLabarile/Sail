@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://dmm0vlbgyd76b" path="res://Assets/Boat/anchor_chain.gd" id="15_anchor_chain"]
 [ext_resource type="Script" uid="uid://dh101stsv8184" path="res://Assets/Boat/boat_sprite/boat_sprite.gd" id="16_boat_sprite"]
 [ext_resource type="Texture2D" uid="uid://ryxqy87mbobk" path="res://Assets/Boat/boat_sprite/boat_sheet.png" id="17_boat_sheet"]
+[ext_resource type="PackedScene" uid="uid://d0jjf05v4qmj0" path="res://Assets/Boat/sm_boat_rudder_01_a.fbx" id="18_rudder"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_wake"]
 render_priority = 1
@@ -52,6 +53,12 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0
 
 [node name="SmokeAttach" type="Marker3D" parent="Model" unique_id=92679349]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.034760237, 4.2363954, -0.23)
+
+[node name="RudderPivot" type="Marker3D" parent="Model" unique_id=611204873]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 3.16)
+
+[node name="sm_boat_rudder_01_a" parent="Model/RudderPivot" unique_id=1502938471 instance=ExtResource("18_rudder")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
 
 [node name="Paddles" type="Node3D" parent="Model" unique_id=1070156978]
 script = ExtResource("12_paddles")

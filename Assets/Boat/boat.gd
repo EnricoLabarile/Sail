@@ -18,6 +18,9 @@ static var current: Boat = null
 
 # Turning: she leans out of the turn (the prototype's "lean out of a turn"), more the quicker she turns
 # and the faster she goes.
+## THE RUDDER (Enrico, Nov 2026): the blade at the stern (sm_boat_rudder_01_a.fbx inside the RudderPivot marker in
+## boat.tscn) swings with the wheel: full rudder = this many degrees either way (0 = it never moves).
+@export var rudder_max_deg := 35.0
 @export var turn_lean_deg := 15   # how far she leans turning at turn_rate at top_speed, in degrees (the prototype's)
 
 # Speed lifts the bow (Enrico, like a motorboat): the faster she goes, the higher the bow, and it STAYS up as long
@@ -209,6 +212,7 @@ var fishing_spots_under: Array[Node3D] = []     # the fishing spots she's over n
 # NAMES must stay the same. ($Model, with the $, is a fixed address: it must be a direct child of Boat.)
 @onready var model: Node3D = $Model            # leans and bobs: everything inside it follows
 @onready var paddles: Node3D = find_child("Paddles")   # the paddle wheels (paddles.gd): her push and their look
+@onready var rudder_pivot: Node3D = find_child("RudderPivot")   # the rudder's hinge (a socket, like RopeAttach)
 @onready var rope_attach: Node3D = find_child("RopeAttach")   # where the hook's rope is tied (like a socket in Unreal)
 @onready var camera: Camera3D = $Camera3D   # her camera, with its own script (boat_camera.gd)
 @onready var wake: CPUParticles3D = find_child("Wake")          # the dots left behind the stern
@@ -780,7 +784,18 @@ func _physics_process(dt: float) -> void:
 	# the scene (set it there to sink her more or less); then the wake and the bow wave.
 	rock_and_roll(dt)
 	model.position.y = model_height + sin(Time.get_ticks_msec() * 0.0013) * 0.04
+	turn_rudder()
 	update_water_fx(dt)
+
+## The rudder blade follows the wheel: it turns on its hinge (RudderPivot, round the up axis) by the share of
+## rudder the wheel gives (-1..1) × rudder_max_deg. Wheel to the right (starboard) = the blade's back edge swings to
+## the right, as on a real boat (the water pushing on it turns the stern left, so the bow goes right).
+## To move the hinge: move RudderPivot in boat.tscn (the blade turns round the marker's own place).
+func turn_rudder() -> void:
+	if rudder_pivot == null:
+		return
+	rudder_pivot.rotation.y = rudder * deg_to_rad(rudder_max_deg)
+
 
 ## How she leans (roll) and how her bow rises and dips (pitch). First where she should be:
 ##   roll  = the lean out of a turn + the waves' roll
