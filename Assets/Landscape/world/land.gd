@@ -18,6 +18,9 @@ extends Node
 const WORLD_SIZE := 1008.0
 const RAY_TOP := 100.0         # metres: the ray starts this high above the sea…
 const RAY_BOTTOM := -20.0      # …and goes down to this depth
+## ARCHES (Enrico, Nov 2026: a rock arch the boat sails under): rock whose underside is higher than this above the
+## sea doesn't count as land, so she passes beneath it. Keep it above the boat's tallest part (her chimney, ~4.2 m).
+const ARCH_CLEARANCE := 4.5
 
 ## The shore baker's script, only to read MAX_DISTANCE (so the two never disagree).
 const ShoreBaker := preload("res://Assets/Landscape/shore/shore_baker.gd")
@@ -89,9 +92,26 @@ func is_land(pos: Vector3) -> bool:
 	var to := Vector3(pos.x, RAY_BOTTOM, pos.z)
 	var query := PhysicsRayQueryParameters3D.create(from, to)
 	var hit := space.intersect_ray(query)
-	# 3. It hit something (a coast's collision): land. Nothing: sea. (hit is an empty Dictionary when
-	#    nothing was hit.)
-	return not hit.is_empty()
+	# 3. Nothing hit: sea. (hit is an empty Dictionary when nothing was hit.)
+	if hit.is_empty():
+		return false
+	# 4. It hit something low (a shore, a rock under ARCH_CLEARANCE): land.
+	var top: float = hit.position.y
+	if top <= ARCH_CLEARANCE:
+		return true
+	# 5. It hit something high: a hill, or the top of an arch? A second ray goes UP from the sea's level to just
+	#    past that top. Under a hill (the point is inside the rock) the first face it meets is the hill's own top:
+	#    land. Under an arch it meets the arch's underside first, lower than the top: if that's higher than
+	#    ARCH_CLEARANCE there's room for the boat, so it's sea. (Back faces count, so a ray starting inside the
+	#    rock still meets its top from the inside.)
+	var up := PhysicsRayQueryParameters3D.create(Vector3(pos.x, 0.1, pos.z), Vector3(pos.x, top + 0.05, pos.z))
+	up.hit_back_faces = true
+	var under := space.intersect_ray(up)
+	if under.is_empty():
+		return true
+	var underside: float = under.position.y
+	var is_overhang := underside < top - 0.05
+	return not (is_overhang and underside > ARCH_CLEARANCE)
 
 
 ## Which way the open sea is from a point near the coast: a flat arrow of length 1 pointing away from

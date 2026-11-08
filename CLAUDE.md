@@ -148,7 +148,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   shows only when no reason hides it. (The "anchor" reason is gone, Nov 2026: at anchor the whole UI stays.) Nothing else should set
   those nodes' `visible`.
   `Land` (`Assets/Landscape/world/land.gd`): `Land.is_land(pos)` shoots a physics ray straight down (y 100 → -20,
-  `intersect_ray`): anything solid hit = land; outside the map counts as land, so the map's edge is a wall. **`Land.WORLD_SIZE`** (1008 m a side; Enrico doubled it from 504,
+  `intersect_ray`): anything solid hit = land; outside the map counts as land, so the map's edge is a wall. **Arches** (Enrico, Nov 2026, `sm_island_arch_01_a.fbx`): a hit higher than `ARCH_CLEARANCE` 4.5 m (above the boat's chimney) is checked with a second ray going UP from y 0.1 to just past it (`hit_back_faces` on): if it meets an underside lower than that top but higher than `ARCH_CLEARANCE`, there's room beneath: sea; under a hill (inside the rock) it meets the hill's own top: land. (Stacked pieces whose lower one is taller than 4.5 m would read as an arch.) **`Land.WORLD_SIZE`** (1008 m a side; Enrico doubled it from 504,
   the prototype's 5040 px) is the one number for the world's size: `fog.gd`, `clouds.gd`, `book.gd` and `sea.gd` (the
   fog shader's `world_size`) read it; only the sea plane's size in `sea.tscn` must be set to match by hand. The
   logbook's 9×9 squares now cover 112 m each.
