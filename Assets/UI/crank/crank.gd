@@ -12,10 +12,8 @@ extends Control
 ##   - ALL THE WAY RIGHT, while she runs, close to overheating (paddles.vent_window): she's VENTED, cold again
 ##     (paddles.vent). The lever stays where the finger holds it (100%). Only with a grab that BEGAN that close
 ##     (Enrico): held at 100% from before, the player must let go and push it right again.
-##   - ALL THE WAY LEFT, while she runs: the paddles STOP (paddles.stop_engine, Enrico, Nov 2026): no push, she slows
-##     down to a halt, the anchor stays up. All the way right starts them again.
-##   - ALL THE WAY LEFT AGAIN, once she's FULLY STOPPED (paddles.is_still): the anchor goes down (paddles.drop_anchor).
-##     Still moving, it does nothing yet. Either way the lever then springs back to the middle.
+##   - ALL THE WAY LEFT, while the anchor is up: she TURNS OFF: the anchor goes down (paddles.turn_off). Then the
+##     lever springs back to the middle.
 ## An end works once each time the lever gets there: to use it again, the lever must leave it first.
 ## The heat rises only while she boosts, the lever held past the middle (paddles.gd heat_rate), or by a bomb or a hit.
 ##
@@ -29,9 +27,8 @@ extends Control
 ##     normal, like an engine revving. It has weight: its speed follows the lever smoothly, never jumps.
 ##   - Vented: the filling goes back down over vent_show_time, and meanwhile the knob has its colours swapped and the
 ##     chevrons turn "<" and flow leftwards (Enrico: the heat going out).
-## THE HINTS (Enrico): a little anchor beside the end that works the anchor now: LEFT once the paddles are stopped and
-## she's fully stopped (all the way left drops it), RIGHT while she's at anchor or tied up (all the way right weighs it
-## and starts her).
+## THE HINTS (Enrico): a little anchor beside the end that works the anchor now: LEFT while the anchor is up (all the
+## way left drops it), RIGHT while she's at anchor or tied up (all the way right weighs it and starts her).
 ## Its sounds (Enrico): a light click every notch (NOTCHES across the plate), higher toward the right
 ## (Sfx.crank_click); a firm snap at an end that turns her on, off or vents her (Sfx.lever_done, with the
 ## anchor's own sound); the unlock sound the moment she can be vented (Sfx.crank_unlock).
@@ -215,26 +212,11 @@ func check_ends() -> void:
 		at_left_end = true
 		var boat := Boat.current
 		if paddles and boat and not boat.anchored:
-			if paddles.is_running():
-				paddles.stop_engine()       # first pull: the paddles stop, she slows down to a halt…
-				Sfx.lever_done()
-				let_go()                    # …and the lever springs back to the middle
-			elif paddles.is_still():
-				paddles.drop_anchor()       # pulled again once she's fully stopped: anchor down
-				Sfx.lever_done()
-				let_go()
-			# (still moving with the paddles off: nothing yet, wait for her to stop)
+			paddles.turn_off()              # she stops: anchor down…
+			Sfx.lever_done()
+			let_go()                        # …and the lever springs back to the middle
 	elif lever > -END:
 		at_left_end = false
-
-
-## Would the lever all the way left drop the anchor now? (Anchor up, paddles not pushing, and she's fully stopped.)
-func _left_drops_anchor() -> bool:
-	var boat := Boat.current
-	var paddles := _paddles()
-	if boat == null or paddles == null or boat.anchored:
-		return false
-	return not paddles.is_running() and paddles.is_still()
 
 
 ## Is she stopped at anchor or tied up at a pier (not just overheated)?
@@ -294,7 +276,7 @@ func _process(dt: float) -> void:
 func redraw_if_changed() -> void:
 	var boat := Boat.current
 	var look := [lever, drag_index != -1, shown_heat, venting, flywheel_angle, chevron_shift, _led_lit(),
-			boat != null and boat.anchored, _left_drops_anchor()]
+			boat != null and boat.anchored]
 	if look != last_look:
 		last_look = look
 		queue_redraw()
@@ -389,10 +371,10 @@ func _draw() -> void:
 	for pass_number in 2:
 		var color := paper if pass_number == 0 else ink
 		var extra := 2.0 if pass_number == 0 else 0.0
-		if boat != null and boat.anchored:
+		if boat == null or not boat.anchored:
+			_draw_anchor(left_spot, color, extra)                    # anchor up: all the way left drops it
+		else:
 			_draw_anchor(right_spot, color, extra)                   # at anchor / tied up: all the way right weighs it
-		elif _left_drops_anchor():
-			_draw_anchor(left_spot, color, extra)                    # stopped, anchor up: all the way left drops it
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 

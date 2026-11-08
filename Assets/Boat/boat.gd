@@ -724,15 +724,13 @@ func _physics_process(dt: float) -> void:
 	if caught_eye != null:
 		update_caught(dt)
 		return
-	# the keyboard (PC): Space does what the throttle lever's ends do: running → paddles stopped; then, once she's
-	# fully stopped → anchor down; at anchor (or overheated) → on (anchor up, cold again). (Enter is the interaction button's; the arrows turn the wheel, in ui/helm.)
+	# the keyboard (PC): Space does what the throttle lever's ends do: off → on (anchor up, cold again), running →
+	# off (anchor down). (Enter is the interaction button's; the arrows turn the wheel, in ui/helm.)
 	if Input.is_action_just_pressed("ui_accept") and Input.is_key_pressed(KEY_SPACE):
 		if paddles.is_running():
-			paddles.stop_engine()          # first press: the paddles stop (as the lever all the way left)
-		elif anchored or paddles.is_overheated:
-			paddles.turn_on()              # off: start again (as the lever all the way right)
-		elif paddles.is_still():
-			paddles.drop_anchor()          # stopped with the paddles off: anchor down
+			paddles.turn_off()
+		else:
+			paddles.turn_on()
 
 	# Just cast off from a pier: no current for calm_left seconds (update_current), she glides on the push.
 	calm_left = maxf(0.0, calm_left - dt)
