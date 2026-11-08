@@ -94,6 +94,9 @@ static var current: Boat = null
 @export var bounce_slowdown := 0.25 # her speed is multiplied by this (0.25 = a quarter left)
 @export var bounce_min_speed := 0.4 # m/s: slower than this into the shore, it's a nudge, not a bump
 @export var bounce_cooldown := 0.6  # s after a bump before the next one counts (one bump, not one per frame)
+## Two bumps this close together (seconds) and she STOPS (Enrico, Nov 2026): no way, no push, the anchor goes down
+## (as the throttle lever all the way left). The lever all the way right starts her again.
+@export var double_bump_time := 1.5
 
 # Her health (the prototype's hull), counted in hearts like Zelda's; the hearts top left (Assets/UI/health)
 # show it. A bump against anything solid (a shore, an island) takes hit_damage off.
@@ -183,6 +186,7 @@ var fling_left := 0.0                # …and the seconds it still lasts
 var boil_time := 0.0        # seconds she has been in boiling water since the last scald (see update_boiling)
 var drift_amount := 0.0     # 0..1: how much the current has her (eases in and out, see current_ease)
 var bump_wait := 0.0        # seconds left before another bump can count
+var since_last_bump := 999.0  # seconds since the last bump that counted (for double_bump_time)
 var enemy_wait := 0.0       # seconds left before running into an enemy can hurt her again (enemy_touch_cooldown)
 var turn_speed := 0.0       # how quickly she is turning now, in rad/s (+ = to the left), measured each frame
 var roll := 0.0             # her lean now (radians, + = to port), and how quickly it's changing (the spring)
@@ -951,6 +955,7 @@ func update_bow_wave(dt: float, k: float, on: bool) -> void:
 ## she bumps (see bump) and bounces back off the shore.
 func move_and_bounce(dt: float) -> void:
 	bump_wait = maxf(0.0, bump_wait - dt)
+	since_last_bump += dt
 	enemy_wait = maxf(0.0, enemy_wait - dt)
 	knock *= exp(-bounce_fade * dt)                      # the push of the last bump dies away
 
@@ -1125,3 +1130,16 @@ func bump(out: Vector3, into: float) -> void:
 		turn_side = 1.0 if randf() < 0.5 else -1.0          # head-on: either way
 	var swing := minf(0.3, 0.08 + into / top_speed * 0.25)  # radians, at most about 17 degrees
 	rotate_y(turn_side * swing)
+
+	# 3. The second bump in a short while (Enrico): she stops dead, anchor down, instead of bouncing on.
+	if since_last_bump <= double_bump_time:
+		stop_after_bumps()
+	since_last_bump = 0.0
+
+
+## Two bumps in double_bump_time: no speed, no push away, and the paddles off with the anchor down (paddles.gd
+## turn_off, the same as the throttle lever all the way left). To go again: the lever all the way right.
+func stop_after_bumps() -> void:
+	speed = 0.0
+	knock = Vector3.ZERO
+	paddles.turn_off()
