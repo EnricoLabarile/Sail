@@ -104,7 +104,7 @@ func _build() -> void:
 	screen.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST   # blown up without smoothing: sharp dots
 	screen.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	screen.stretch_mode = TextureRect.STRETCH_SCALE
-	screen.set_anchors_preset(Control.PRESET_FULL_RECT)
+	screen.set_anchors_preset(Control.PRESET_TOP_LEFT)   # placed and sized by _fit (not stretched to the screen)
 	screen.gui_input.connect(_pass_input)
 	layer.add_child(screen)
 
@@ -120,18 +120,31 @@ func _build() -> void:
 		warmup.run(boat.camera)
 
 
-## The view's size: the screen's real pixels divided by the dot scale. The dot scale: real pixels across the
-## screen / dots_across, rounded (whole real pixels a dot, so every dot is the same size).
+## The view's size: the screen's real pixels divided by the dot scale, ROUNDED UP. The dot scale: real pixels
+## across the screen / dots_across, rounded (whole real pixels a dot, so every dot is the same size).
+## The picture of the view is then shown at EXACTLY dot_scale real pixels a dot, from the top left corner: the last
+## row or column of dots may hang a little off the screen's edge, where it's simply cut off. (Enrico, Nov 2026: it
+## used to be stretched over the whole screen; when the screen's height wasn't a whole number of dots, e.g. 1873
+## real pixels at 2 a dot, one row of pixels was doubled in the middle of the screen, and the dither showed it as a
+## thin line across, dark on one side and light on the other.)
 ## The controls inside the view are laid out as if it were DESIGN_WIDTH (360) wide (size_2d_override, like
 ## a DPI scale in Unreal's UMG), and stretched to the view's real pixels: so they keep their size on the screen.
 func _fit() -> void:
 	var window := get_tree().root
 	var real_size := window.get_visible_rect().size * window.get_final_transform().get_scale()   # real pixels
 	dot_scale = maxi(1, roundi(real_size.x / dots_across))
-	view.size = Vector2i(maxi(1, int(real_size.x / dot_scale)), maxi(1, int(real_size.y / dot_scale)))
-	# The controls' own size: the real pixels divided by the scale they'd have at 360 dots across.
+	var dots := Vector2i(maxi(1, ceili(real_size.x / dot_scale)), maxi(1, ceili(real_size.y / dot_scale)))
+	view.size = dots
+	# The real pixels the picture covers: a whole number of them a dot (a hair more than the screen, at most).
+	var covered := Vector2(dots * dot_scale)
+	# The picture's rectangle, in the screen's own units (Godot's: the project's 360-wide layout, stretched to the
+	# window): real pixels × (units per real pixel).
+	var units_per_pixel := window.get_visible_rect().size / real_size
+	screen.position = Vector2.ZERO
+	screen.size = covered * units_per_pixel
+	# The controls' own size: the covered real pixels divided by the scale they'd have at 360 dots across.
 	var ui_scale := maxi(1, roundi(real_size.x / DESIGN_WIDTH))
-	view.size_2d_override = Vector2i(maxi(1, int(real_size.x / ui_scale)), maxi(1, int(real_size.y / ui_scale)))
+	view.size_2d_override = Vector2i(maxi(1, int(covered.x / ui_scale)), maxi(1, int(covered.y / ui_scale)))
 	view.size_2d_override_stretch = true
 
 

@@ -525,8 +525,11 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
 - **The game view** (`Assets/Post_Process/game_view.gd`, node `GameView` in Overworld; Enrico asked for performance):
   at start (deferred, after every node is ready) it moves `Sea`, `Coast`, `Clouds`, `WindLines`, `Gulls`, `Boat`, `Dither`, `Helm`, `BombButton` and the
   logbook's `IconLayer` (found by name anywhere in the level, `owner.find_child`: Enrico groups the Overworld into
-  "folder" nodes, Core / Dangers / Decorative / Gameplay / UI and PostProcess) into a `SubViewport` drawn at the game's resolution, and shows its picture on a full-screen
-  `TextureRect` (CanvasLayer 1, nearest filter: sharp dots). Size: real pixels of the game area
+  "folder" nodes, Core / Dangers / Decorative / Gameplay / UI and PostProcess) into a `SubViewport` drawn at the game's resolution, and shows its picture on a
+  `TextureRect` (CanvasLayer 1, nearest filter: sharp dots) placed at the top left and sized to **exactly `dot_scale` real
+  pixels a dot** (`_fit`: view = ceil(real / dot_scale), the picture = view × dot_scale real pixels, a hair past the
+  screen's edge at most, cut off; Enrico, Nov 2026: stretched over the screen, a height that wasn't a whole number of
+  dots, e.g. 1873 px at 2 a dot, doubled one row of pixels mid-screen, a thin line across the dither). Size: real pixels of the game area
   (`get_visible_rect().size × get_final_transform().get_scale()`) / `dot_scale`, `dot_scale` = round(real width /
   `dots_across`), ≥ 1 (**`dots_across`**, an export on `GameView`, **540 by default** (Enrico, Nov 2026; was 360), 360 = the grain as it was; 540 = 2 × 2 real pixels a
   dot on a 1080 phone, ~2.25× the work; 1080 = 1 × 1, 9×; `@export_range` 90–1080, **live**: its setter calls `_fit`, so
