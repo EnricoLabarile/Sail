@@ -21,6 +21,9 @@ const RAY_BOTTOM := -20.0      # …and goes down to this depth
 ## ARCHES (Enrico, Nov 2026: a rock arch the boat sails under): rock whose underside is higher than this above the
 ## sea doesn't count as land, so she passes beneath it. Keep it above the boat's tallest part (her chimney, ~4.2 m).
 const ARCH_CLEARANCE := 4.5
+## The rays see every physics layer but the boat's own (layer 5, value 16: the boat is a CharacterBody3D now), so she's
+## never taken for land.
+const NOT_THE_BOAT := 0xFFFFFFFF & ~16
 
 ## The shore baker's script, only to read MAX_DISTANCE (so the two never disagree).
 const ShoreBaker := preload("res://Assets/Landscape/shore/shore_baker.gd")
@@ -90,7 +93,7 @@ func is_land(pos: Vector3) -> bool:
 	var space := get_viewport().get_world_3d().direct_space_state
 	var from := Vector3(pos.x, RAY_TOP, pos.z)
 	var to := Vector3(pos.x, RAY_BOTTOM, pos.z)
-	var query := PhysicsRayQueryParameters3D.create(from, to)
+	var query := PhysicsRayQueryParameters3D.create(from, to, NOT_THE_BOAT)
 	var hit := space.intersect_ray(query)
 	# 3. Nothing hit: sea. (hit is an empty Dictionary when nothing was hit.)
 	if hit.is_empty():
@@ -104,7 +107,7 @@ func is_land(pos: Vector3) -> bool:
 	#    land. Under an arch it meets the arch's underside first, lower than the top: if that's higher than
 	#    ARCH_CLEARANCE there's room for the boat, so it's sea. (Back faces count, so a ray starting inside the
 	#    rock still meets its top from the inside.)
-	var up := PhysicsRayQueryParameters3D.create(Vector3(pos.x, 0.1, pos.z), Vector3(pos.x, top + 0.05, pos.z))
+	var up := PhysicsRayQueryParameters3D.create(Vector3(pos.x, 0.1, pos.z), Vector3(pos.x, top + 0.05, pos.z), NOT_THE_BOAT)
 	up.hit_back_faces = true
 	var under := space.intersect_ray(up)
 	if under.is_empty():

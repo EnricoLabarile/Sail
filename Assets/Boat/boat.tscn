@@ -40,8 +40,19 @@ size = Vector2(2, 2)
 [sub_resource type="SphereShape3D" id="Shape_spot_sensor"]
 radius = 0.3
 
-[node name="Boat" type="Node3D" unique_id=1479473515]
+[sub_resource type="CapsuleShape3D" id="Shape_hull"]
+radius = 1.0
+height = 5.6
+
+[node name="Boat" type="CharacterBody3D" unique_id=1479473515]
+collision_layer = 16
+motion_mode = 1
+wall_min_slide_angle = 0.0
 script = ExtResource("1_boat")
+
+[node name="HullShape" type="CollisionShape3D" parent="." unique_id=740215963]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.2, 0.3)
+shape = SubResource("Shape_hull")
 
 [node name="Model" type="Node3D" parent="." unique_id=1073816525]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23072204, 0)

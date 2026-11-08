@@ -1,9 +1,14 @@
 class_name Boat
-extends Node3D
+extends CharacterBody3D
 ## The player's boat (like a Pawn in Unreal): the paddle wheels drive her (paddles.gd, worked by the throttle lever),
 ## the current carries her, she turns with the rudder and stops at anchor. Every other script reaches her as
 ## `Boat.current` (below; like GetPlayerPawn in Unreal); the wheel (ui/helm) sets her rudder; Space works the paddles and the anchor. Her camera (boat_camera.gd, on the Camera3D node) follows her.
 ## 1 unit = 10 px of the HTML prototype.
+## A real physics body (Enrico, Nov 2026; like a Character with its capsule in Unreal): the CharacterBody3D slides
+## against every collision in the level (the islands' trimeshes, the bridge lock, a lever's post…) with its own shape,
+## `HullShape` in boat.tscn (a capsule lying along her, 0.2–2.2 m above the water: resize or move it in the viewport).
+## So she passes under an arch whose underside is higher than the capsule. It's on physics layer 5 ("boat", value 16),
+## which the Land autoload's rays leave out, so they never mistake her for land.
 
 ## The boat of the level being played (set when she enters the tree, cleared when she leaves it; null before she's ready or in
 ## the editor). A static var belongs to the script, not to one boat, so anyone can read it: `Boat.current`. It replaced
@@ -966,34 +971,55 @@ func move_and_bounce(dt: float) -> void:
 	if fling_left > 0.0:
 		fling_left = maxf(0.0, fling_left - dt)
 		fling = fling_velocity * minf(1.0, fling_left / 0.4)
-	var velocity := own_way + knock + drift + whirl_pull + fling   # her way + a bump's push + the current + the whirlpools' pull + being spat out
+	# Her way + a bump's push + the current + the whirlpools' pull + being spat out. `velocity` is the
+	# CharacterBody3D's own (m/s): move_and_slide() moves her by it this physics frame.
+	velocity = own_way + knock + drift + whirl_pull + fling
+	velocity.y = 0.0
 	whirl_pull = Vector3.ZERO        # used (it's in velocity now): each maelstrom adds its pull again next frame
-	var next := global_position + velocity * dt          # where she would be
-	var next_bow := next + fwd * bow_reach               # where her bow would be
+	var height := global_position.y
 
-	# Which point would touch land? (none: just go)
-	var touching := Vector3.INF
-	if Land.is_land(next_bow):
-		touching = next_bow
-	elif Land.is_land(next):
-		touching = next
-	if touching == Vector3.INF:
-		global_position = next
-		return
+	# 1. The physics engine moves her and stops her against anything solid: she slides along it instead of going in
+	#    (like CharacterMovement in Unreal). Her height never changes (it's the sea).
+	move_and_slide()
+	global_position.y = height
 
-	# She'd touch land. Which way is the open sea from there?
-	var out := Land.way_to_sea(touching)
-	if out == Vector3.ZERO:
-		speed = 0.0                                      # land all round that point: never go there
+	# 2. The map's edge is a wall too (there's no collision there): she's kept inside, the push pointing back in.
+	var wall_out := keep_inside_map()
+
+	# 3. Did she run into something? Every collision of this move has a normal (the way out of it). It's a bump only
+	#    if her OWN way takes her into it (as in the prototype); the current pressing her against a shore just lets her
+	#    slide along it.
+	for i in get_slide_collision_count():
+		var out := get_slide_collision(i).get_normal()
+		out.y = 0.0
+		if out.length() > 0.01:
+			wall_out = out.normalized()
+			break
+	if wall_out == Vector3.ZERO:
 		return
-	if velocity.dot(out) >= 0.0:
-		global_position = next                           # all in all moving away from it (e.g. the push): let her go
-		return
-	# Moving into the shore: she stays put this frame. It's a bump only if her OWN way takes her into it
-	# (as in the prototype); if it's just the current pressing her against the shore, she simply stays there.
-	var into := -own_way.dot(out)                        # how fast her own way goes INTO the shore (m/s)
+	var into := -own_way.dot(wall_out)                   # how fast her own way goes INTO it (m/s)
 	if into > 0.0:
-		bump(out, into)
+		bump(wall_out, into)
+
+
+## Outside the map (Land.WORLD_SIZE) counts as land: if she has gone past the edge, she's put back on it.
+## Returns the way back in (a flat arrow), or zero when she's inside.
+func keep_inside_map() -> Vector3:
+	var half := Land.WORLD_SIZE / 2.0 - 1.0
+	var out := Vector3.ZERO
+	if global_position.x > half:
+		global_position.x = half
+		out.x = -1.0
+	elif global_position.x < -half:
+		global_position.x = -half
+		out.x = 1.0
+	if global_position.z > half:
+		global_position.z = half
+		out.z = -1.0
+	elif global_position.z < -half:
+		global_position.z = -half
+		out.z = 1.0
+	return out.normalized()
 
 
 ## The current: the Wind autoload's (Wind.current(): the way the wind blows, at its CURRENT_SPEED). On her it eases in at the
