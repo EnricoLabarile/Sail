@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" uid="uid://85hj3herq30r" path="res://Assets/Dangers/sea_imp/sea_imp_zone.tscn" id="28_sea_imp_zone"]
 [ext_resource type="PackedScene" uid="uid://b5lqfu2xq0o10" path="res://Assets/Dangers/maelstrom/maelstrom.tscn" id="28_ubo31"]
 [ext_resource type="PackedScene" uid="uid://ej7rs2ta81hm" path="res://Assets/Quests/map_marker/map_marker.tscn" id="29_map_marker"]
+[ext_resource type="PackedScene" uid="uid://bie13gfcbyf17" path="res://Assets/Landscape/islands/sm_island_spire_01_a.fbx" id="33_2gwdg"]
 [ext_resource type="Script" uid="uid://dkpkc26vqp16v" path="res://Assets/Landscape/shore/shore_baker.gd" id="34_shore_baker"]
 [ext_resource type="PackedScene" uid="uid://2amv4i4immui" path="res://Assets/Landscape/foliage/sm_tree_01_a.fbx" id="42_6qrm0"]
 [ext_resource type="PackedScene" uid="uid://b2ghm848ugj4w" path="res://Assets/Landscape/islands/sm_island_center_32x32.fbx" id="42_i5cs1"]
@@ -200,6 +201,7 @@ script = ExtResource("21_game_view")
 [node name="Islands" type="Node" parent="." unique_id=263895800]
 script = ExtResource("95_island_grid")
 grid_offset = Vector3(0, 0, 0.888885)
+snap_rotation = false
 
 [node name="sm_island_edge_16x16" parent="Islands" unique_id=1364780987 instance=ExtResource("43_cnf3h")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -304, 0, -63.111115)
@@ -1176,6 +1178,9 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 96, 
 [node name="sm_island_edge_32x50" parent="Islands" unique_id=599126189 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 128, 0, -511.1111)
 
+[node name="sm_island_spire_01_a" parent="Islands" unique_id=1239877206 instance=ExtResource("33_2gwdg")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, -0.04298973, 64.888885)
+
 [node name="sm_island_edge_32x51" parent="Islands" unique_id=1718084304 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 160, 0, -511.1111)
 
@@ -1295,6 +1300,12 @@ transform = Transform3D(1.3113416e-07, 0, 1, 0, 1, 0, -1, 0, 1.3113416e-07, 288,
 
 [node name="sm_island_edge_32x91" parent="Islands" unique_id=1668652351 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(1.3113416e-07, 0, 1, 0, 1, 0, -1, 0, 1.3113416e-07, 256, 0, 512.8889)
+
+[node name="sm_island_arch_01_a" parent="Islands" unique_id=1405390128 instance=ExtResource("43_lnn7p")]
+transform = Transform3D(1.1571068, 0, 1.0571069, 0, 1, 0, -1.1571068, 0, 1.0571069, -256, 0, 72.888885)
+
+[node name="sm_island_arch_01_a3" parent="Islands" unique_id=2072648924 instance=ExtResource("43_lnn7p")]
+transform = Transform3D(-0.04750353, 0, 1.4943448, 0, 1, 0, -1.6357064, 0, -0.04339814, -88, 7.6293945e-06, 32.888885)
 
 [node name="sm_island_edge_32x92" parent="Islands" unique_id=1423967523 instance=ExtResource("45_pcmpt")]
 transform = Transform3D(1.3113416e-07, 0, 1, 0, 1, 0, -1, 0, 1.3113416e-07, 224, 0, 512.8889)
@@ -1447,12 +1458,3 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -43,
 
 [node name="sm_tree_01_a3" parent="." unique_id=640581086 instance=ExtResource("42_6qrm0")]
 transform = Transform3D(-0.70000005, 0, -5.2453668e-08, 0, 1, 0, 6.119595e-08, 0, -0.6, -39, 17, 99)
-
-[node name="sm_island_arch_01_a" parent="." unique_id=1405390128 instance=ExtResource("43_lnn7p")]
-transform = Transform3D(1.1571068, 0, 1.0571069, 0, 1, 0, -1.1571068, 0, 1.0571069, -259, 0, 76)
-
-[node name="sm_island_arch_01_a2" parent="." unique_id=1490594687 instance=ExtResource("43_lnn7p")]
-transform = Transform3D(1.1571068, 0, 1.0571069, 0, 1, 0, -1.1571068, 0, 1.0571069, -259, 0, 76)
-
-[node name="sm_island_arch_01_a3" parent="." unique_id=2072648924 instance=ExtResource("43_lnn7p")]
-transform = Transform3D(-0.04750353, 0, 1.4943448, 0, 1, 0, -1.6357064, 0, -0.04339814, -86.78424, 7.6293945e-06, 32.261036)
