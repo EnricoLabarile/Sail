@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://blpvh6q75vv2s"
 path.s3tc="res://.godot/imported/sea_mine.png-21a2b441df2f416f70b87eb4b4c93b93.s3tc.ctex"
+path.etc2="res://.godot/imported/sea_mine.png-21a2b441df2f416f70b87eb4b4c93b93.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Assets/Items/sea_mine/sea_mine.png"
-dest_files=["res://.godot/imported/sea_mine.png-21a2b441df2f416f70b87eb4b4c93b93.s3tc.ctex"]
+dest_files=["res://.godot/imported/sea_mine.png-21a2b441df2f416f70b87eb4b4c93b93.s3tc.ctex", "res://.godot/imported/sea_mine.png-21a2b441df2f416f70b87eb4b4c93b93.etc2.ctex"]
 
 [params]
 

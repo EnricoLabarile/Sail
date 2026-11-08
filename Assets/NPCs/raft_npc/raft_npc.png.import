@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://d2c81hd8k6xjb"
 path.s3tc="res://.godot/imported/raft_npc.png-3153d0e79bb7a1700bc520de071e61af.s3tc.ctex"
+path.etc2="res://.godot/imported/raft_npc.png-3153d0e79bb7a1700bc520de071e61af.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Assets/NPCs/raft_npc/raft_npc.png"
-dest_files=["res://.godot/imported/raft_npc.png-3153d0e79bb7a1700bc520de071e61af.s3tc.ctex"]
+dest_files=["res://.godot/imported/raft_npc.png-3153d0e79bb7a1700bc520de071e61af.s3tc.ctex", "res://.godot/imported/raft_npc.png-3153d0e79bb7a1700bc520de071e61af.etc2.ctex"]
 
 [params]
 

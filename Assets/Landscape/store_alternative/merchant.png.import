@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dwnrpahwcxioh"
 path.s3tc="res://.godot/imported/merchant.png-13b07a068caf60435251bd494b5f9778.s3tc.ctex"
+path.etc2="res://.godot/imported/merchant.png-13b07a068caf60435251bd494b5f9778.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Assets/Landscape/store_alternative/merchant.png"
-dest_files=["res://.godot/imported/merchant.png-13b07a068caf60435251bd494b5f9778.s3tc.ctex"]
+dest_files=["res://.godot/imported/merchant.png-13b07a068caf60435251bd494b5f9778.s3tc.ctex", "res://.godot/imported/merchant.png-13b07a068caf60435251bd494b5f9778.etc2.ctex"]
 
 [params]
 

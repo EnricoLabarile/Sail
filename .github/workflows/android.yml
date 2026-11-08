@@ -1,0 +1,87 @@
+# Builds the game as an Android app (an APK) at every push to main, and puts it on the GitHub release
+# "android-latest": https://github.com/EnricoLabarile/Sail/releases/tag/android-latest
+# On the phone: open that page, tap vento_e_vele.apk, install it (the first time Android asks to allow
+# apps from this source). A newer build installs over the old one.
+# It's signed with a DEBUG key (fine for trying it, not for the Play Store). The key is made once and kept
+# in the Actions cache, so every build has the same signature; if the cache is ever lost (unused for 7 days)
+# a new key is made, and Android refuses to update the app: uninstall it once and install the new one.
+name: Android build
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write          # to update the release with the new APK
+concurrency: { group: android, cancel-in-progress: true }
+env:
+  GODOT_VERSION: 4.7.2      # keep it the same as the editor (Help -> About) and web.yml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - name: Cache Godot and export templates
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            godot-bin
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}
+      - name: Download Godot and export templates
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          V=$GODOT_VERSION
+          wget -q https://github.com/godotengine/godot/releases/download/$V-stable/Godot_v$V-stable_linux.x86_64.zip
+          wget -q https://github.com/godotengine/godot/releases/download/$V-stable/Godot_v$V-stable_export_templates.tpz
+          unzip -q Godot_v$V-stable_linux.x86_64.zip && mv Godot_v$V-stable_linux.x86_64 godot-bin
+          mkdir -p ~/.local/share/godot/export_templates/$V.stable
+          unzip -q Godot_v$V-stable_export_templates.tpz
+          mv templates/* ~/.local/share/godot/export_templates/$V.stable/
+          rm -rf templates *.zip *.tpz
+      - name: Keep the debug signing key between builds
+        uses: actions/cache@v4
+        with:
+          path: debug-key
+          key: android-debug-key-v1
+      - name: Make the debug signing key (only the first time)
+        run: |
+          if [ ! -f debug-key/debug.keystore ]; then
+            mkdir -p debug-key
+            keytool -genkeypair -v -keystore debug-key/debug.keystore -storepass android -keypass android \
+              -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+      - name: Tell Godot where Java and the Android SDK are
+        run: |
+          mkdir -p ~/.config/godot
+          V=${GODOT_VERSION%.*}   # 4.7.2 -> 4.7
+          printf '[gd_resource type="EditorSettings" format=3]\n\n[resource]\nexport/android/android_sdk_path = "%s"\nexport/android/java_sdk_path = "%s"\n' \
+            "$ANDROID_SDK_ROOT" "$JAVA_HOME" > ~/.config/godot/editor_settings-$V.tres
+          cat ~/.config/godot/editor_settings-$V.tres
+      - name: Stamp the build (its number and start time, Italian time) for the start screen
+        run: |
+          printf '## Written by the build (.github/workflows/android.yml): this build'"'"'s number and start time.\n\nconst NUMBER := "%s"\nconst STARTED := "%s"\n' \
+            "${{ github.run_number }}" "$(TZ=Europe/Rome date '+%Y-%m-%d %H:%M')" > Assets/UI/build_info.gd
+          # every build a higher version code, so Android installs it over the last one
+          sed -i 's/^version\/code=.*/version\/code=${{ github.run_number }}/' export_presets.cfg
+      - name: Export
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ github.workspace }}/debug-key/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          mkdir -p build/android
+          ./godot-bin --headless --path . --import || true
+          ./godot-bin --headless --path . --export-debug "Android" build/android/vento_e_vele.apk
+          ls -l build/android
+      - name: Put the APK on the release "android-latest"
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          gh release view android-latest >/dev/null 2>&1 || \
+            gh release create android-latest --prerelease --title "Android (latest build)" \
+              --notes "The newest Android build of the game. Tap vento_e_vele.apk on the phone to install it."
+          gh release upload android-latest build/android/vento_e_vele.apk --clobber
+          gh release edit android-latest --notes "The newest Android build of the game (build ${{ github.run_number }}). Tap vento_e_vele.apk on the phone to install it."

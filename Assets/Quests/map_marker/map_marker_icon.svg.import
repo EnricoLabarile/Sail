@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://gmhe1chwdr5l"
 path.s3tc="res://.godot/imported/map_marker_icon.svg-e6dd01da7758b33181b77b956e9f9b9e.s3tc.ctex"
+path.etc2="res://.godot/imported/map_marker_icon.svg-e6dd01da7758b33181b77b956e9f9b9e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Assets/Quests/map_marker/map_marker_icon.svg"
-dest_files=["res://.godot/imported/map_marker_icon.svg-e6dd01da7758b33181b77b956e9f9b9e.s3tc.ctex"]
+dest_files=["res://.godot/imported/map_marker_icon.svg-e6dd01da7758b33181b77b956e9f9b9e.s3tc.ctex", "res://.godot/imported/map_marker_icon.svg-e6dd01da7758b33181b77b956e9f9b9e.etc2.ctex"]
 
 [params]
 

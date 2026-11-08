@@ -47,6 +47,14 @@
 - **Every push to `main` builds the web export and publishes it** on https://enricolabarile.github.io/Sail/
   (`.github/workflows/web.yml`, preset "Web" in `export_presets.cfg`, no threads so it runs on Pages; Godot and the
   templates' version in `GODOT_VERSION` must match the editor). That's how Enrico plays it on his Android phone.
+- **Every push to `main` also builds an Android APK** (Enrico, Nov 2026; `.github/workflows/android.yml`, preset
+  "Android" in `export_presets.cfg`: arm64 only, no Gradle build, `com.enricolabarile.ventoevele`, "Vento e Vele",
+  immersive, `version/code` = the run number so each build installs over the last): `--export-debug`, signed with a
+  debug key made once by `keytool` and kept in the Actions cache (`android-debug-key-v1`; lost after 7 days unused →
+  a new key, uninstall once), Java 17 from `setup-java`, the runner's Android SDK, both written into Godot's
+  `editor_settings-4.7.tres`; the APK goes onto the pre-release **`android-latest`**
+  (https://github.com/EnricoLabarile/Sail/releases/tag/android-latest, `gh release upload --clobber`). Android needs
+  ETC2/ASTC textures: `rendering/textures/vram_compression/import_etc2_astc=true` in project.godot.
 - Phone layout: viewport 360×800, stretch `canvas_items` / `expand`, portrait, Nearest texture filter, touch
   emulated from the mouse. Leave a gap at the bottom of the screen for the navigation bar.
 - Check a change without the editor: `godot --headless --path . --import` then `--quit-after 30` for script errors.

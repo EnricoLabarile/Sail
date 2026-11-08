@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://th58f0b0vih1"
 path.s3tc="res://.godot/imported/wind_zone_icon.svg-3b12985e85e985384056bcd745827ea1.s3tc.ctex"
+path.etc2="res://.godot/imported/wind_zone_icon.svg-3b12985e85e985384056bcd745827ea1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Assets/Landscape/wind_zone/wind_zone_icon.svg"
-dest_files=["res://.godot/imported/wind_zone_icon.svg-3b12985e85e985384056bcd745827ea1.s3tc.ctex"]
+dest_files=["res://.godot/imported/wind_zone_icon.svg-3b12985e85e985384056bcd745827ea1.s3tc.ctex", "res://.godot/imported/wind_zone_icon.svg-3b12985e85e985384056bcd745827ea1.etc2.ctex"]
 
 [params]
 

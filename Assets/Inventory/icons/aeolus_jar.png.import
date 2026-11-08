@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://vd0xjy626akh"
 path.s3tc="res://.godot/imported/aeolus_jar.png-0339c5b656149e8686b3c56ae073ce8d.s3tc.ctex"
+path.etc2="res://.godot/imported/aeolus_jar.png-0339c5b656149e8686b3c56ae073ce8d.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Assets/Inventory/icons/aeolus_jar.png"
-dest_files=["res://.godot/imported/aeolus_jar.png-0339c5b656149e8686b3c56ae073ce8d.s3tc.ctex"]
+dest_files=["res://.godot/imported/aeolus_jar.png-0339c5b656149e8686b3c56ae073ce8d.s3tc.ctex", "res://.godot/imported/aeolus_jar.png-0339c5b656149e8686b3c56ae073ce8d.etc2.ctex"]
 
 [params]
 
