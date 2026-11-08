@@ -13,6 +13,10 @@
 [ext_resource type="Texture2D" uid="uid://ryxqy87mbobk" path="res://Assets/Boat/boat_sprite/boat_sheet.png" id="17_boat_sheet"]
 [ext_resource type="PackedScene" uid="uid://d0jjf05v4qmj0" path="res://Assets/Boat/sm_boat_rudder_01_a.fbx" id="18_rudder"]
 
+[sub_resource type="CapsuleShape3D" id="Shape_hull"]
+radius = 1.0
+height = 5.6
+
 [sub_resource type="StandardMaterial3D" id="Mat_wake"]
 render_priority = 1
 transparency = 1
@@ -39,10 +43,6 @@ size = Vector2(2, 2)
 
 [sub_resource type="SphereShape3D" id="Shape_spot_sensor"]
 radius = 0.3
-
-[sub_resource type="CapsuleShape3D" id="Shape_hull"]
-radius = 1.0
-height = 5.6
 
 [node name="Boat" type="CharacterBody3D" unique_id=1479473515]
 collision_layer = 16
