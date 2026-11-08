@@ -32,7 +32,7 @@ extends Node3D
 ##
 ## The boat (boat.gd) calls: push_speed() and bite (her speed), speed_share(), turn_factor() (turning), update(dt)
 ## every frame, stop() when she's back home after sinking. The lever calls: is_running(), can_vent(), turn_on(),
-## vent(), turn_off(), set_lever_share().
+## vent(), stop_engine(), is_still(), drop_anchor(), set_lever_share().
 
 
 ## Sent when she's started (turn_on) or vented (vent): the lever's flywheel revs up (crank.gd).
@@ -84,10 +84,15 @@ signal overheated
 @export var overheat_spread := 1.0     # metres a second it wanders sideways (a wider plume)
 @export_group("")
 
+## How slow she must be to count as FULLY STOPPED (m/s, her own way, not the current's): the lever all the way left
+## drops the anchor only then (Enrico, Nov 2026; the first pull left only stops the paddles, see stop_engine).
+@export var stopped_speed := 0.2
+
 const MAX_PUFFS := 70                  # puffs in the air at the same time, at most
 
 var heat := 0.0           # how hot she is, 0..max_heat
 var is_overheated := false  # true once the vent window ran out until the lever turns her on: they don't push
+var engine_off := false     # the lever pulled all the way left (stop_engine): they don't push, she slows to a halt
 var at_brink := false       # at full heat, still going: the vent window is open (see brink_left)
 var brink_left := 0.0       # seconds left in the vent window
 var power := 0.0          # 0..1: how hard they push now (eased toward 1 while she runs)
@@ -118,7 +123,12 @@ func _ready() -> void:
 
 ## Is she running? (Not overheated and the anchor up.)
 func is_running() -> bool:
-	return not is_overheated and not boat.anchored
+	return not is_overheated and not boat.anchored and not engine_off
+
+
+## Is she fully stopped? (Her own speed under stopped_speed; the current may still carry her.)
+func is_still() -> bool:
+	return absf(boat.speed) <= stopped_speed
 
 
 ## How hot she is, 0 (cold) to 1 (overheated): the lever's plate shows it.
@@ -146,6 +156,7 @@ func turn_on() -> void:
 		return                     # someone is talking: the anchor stays down meanwhile
 	if boat.anchored:
 		boat.toggle_anchor()
+	engine_off = false
 	cool_right_down()
 
 
@@ -155,12 +166,19 @@ func vent() -> void:
 		cool_right_down()
 
 
-## The lever all the way left: the anchor goes down (she stops).
-func turn_off() -> void:
+## The lever all the way left while she runs (Enrico, Nov 2026): the paddles stop pushing and she slows down to a
+## halt (the anchor stays up, the current still carries her). The lever all the way right starts them again (turn_on).
+func stop_engine() -> void:
+	engine_off = true
+
+
+## The lever all the way left again, once she's fully stopped (is_still): the anchor goes down.
+func drop_anchor() -> void:
 	if boat.talking:
 		return
 	if not boat.anchored:
 		boat.toggle_anchor()
+	engine_off = false        # at anchor she's off anyway; weighing it (however) she runs again
 
 
 ## The lever says the most she may go (crank.gd, every frame): 0..1.
@@ -276,7 +294,7 @@ func update_heat(dt: float) -> void:
 		return
 	since_boost += dt
 	var under_way: bool = is_running() and boat.speed >= cool_min_speed
-	var switched_off: bool = boat.anchored             # at anchor or tied up at a pier
+	var switched_off: bool = boat.anchored or engine_off   # at anchor, tied up at a pier, or stopped with the lever
 	if since_boost >= cool_delay and (under_way or switched_off):
 		heat = maxf(0.0, heat - dt * cool_rate)
 
@@ -324,6 +342,7 @@ func stop() -> void:
 	heat = 0.0
 	is_overheated = false
 	at_brink = false
+	engine_off = false
 	lever_share = 0.5
 	power = 0.0
 	splash_level = 0.0
