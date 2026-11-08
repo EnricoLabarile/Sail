@@ -21,6 +21,12 @@ static var current: Boat = null
 ## THE RUDDER (Enrico, Nov 2026): the blade at the stern (sm_boat_rudder_01_a.fbx inside the RudderPivot marker in
 ## boat.tscn) swings with the wheel: full rudder = this many degrees either way (0 = it never moves).
 @export var rudder_max_deg := 35.0
+## Its wiggle, like a fish's fin (Enrico, Nov 2026): it swings gently from side to side on top of the wheel's angle,
+## wider the faster she goes. rudder_wiggle_deg = how far either way at top speed; rudder_wiggle_per_second = how
+## many swings a second; rudder_wiggle_at_rest = the share of the wiggle left when she stands still (0 = still).
+@export var rudder_wiggle_deg := 8.0
+@export var rudder_wiggle_per_second := 1.5
+@export var rudder_wiggle_at_rest := 0.3
 @export var turn_lean_deg := 15   # how far she leans turning at turn_rate at top_speed, in degrees (the prototype's)
 
 # Speed lifts the bow (Enrico, like a motorboat): the faster she goes, the higher the bow, and it STAYS up as long
@@ -794,7 +800,15 @@ func _physics_process(dt: float) -> void:
 func turn_rudder() -> void:
 	if rudder_pivot == null:
 		return
-	rudder_pivot.rotation.y = rudder * deg_to_rad(rudder_max_deg)
+	# 1. The wheel's angle.
+	var angle := rudder * deg_to_rad(rudder_max_deg)
+	# 2. The fin's wiggle: a sine wave (smoothly from one side to the other and back), its swing growing with her
+	#    speed: rudder_wiggle_at_rest of it standing still, all of it at top speed.
+	var seconds := Time.get_ticks_msec() / 1000.0
+	var speed_share := clampf(absf(speed) / top_speed, 0.0, 1.0)
+	var swing := lerpf(rudder_wiggle_at_rest, 1.0, speed_share) * deg_to_rad(rudder_wiggle_deg)
+	angle += sin(seconds * TAU * rudder_wiggle_per_second) * swing
+	rudder_pivot.rotation.y = angle
 
 
 ## How she leans (roll) and how her bow rises and dips (pitch). First where she should be:

@@ -313,6 +313,8 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   hinge, a socket like `RopeAttach`; at (0, −0.1, 3.16), the transom; the mesh turned 90° like the hull, its blade
   pointing aft from the hinge). `boat.gd` `turn_rudder()` (every physics frame, after the bobbing): `RudderPivot.rotation.y`
   = `rudder` (−1..1, from the wheel) × `rudder_max_deg` 35; wheel to the right → the blade's back edge to the right.
+  **It wiggles like a fish's fin** (Enrico, Nov 2026): + sin(time × `rudder_wiggle_per_second` 1.5 × 2π) ×
+  `rudder_wiggle_deg` 8° × (from `rudder_wiggle_at_rest` 0.3 standing still to 1 at `top_speed`).
   Move the marker to move the hinge; scale the mesh node to resize the blade.
 - **The paddles** (Enrico, Oct 2026: the paddle wheels and the crank back, as an item like the sail; their code on
   themselves): **`Assets/Boat/paddles.gd`** on `Model/Paddles` in boat.tscn, holding `PaddleWheelLeft` / `Right`
