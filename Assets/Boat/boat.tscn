@@ -50,7 +50,7 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0
 
 [node name="sm_boat_hull_inner" parent="Model/sm_boat_hull" unique_id=973111920 instance=ExtResource("5_ks1r1")]
 
-[node name="SmokeAttach" type="Marker3D" parent="Model"]
+[node name="SmokeAttach" type="Marker3D" parent="Model" unique_id=92679349]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.75, 2.02, -0.23)
 
 [node name="Paddles" type="Node3D" parent="Model" unique_id=1070156978]
@@ -69,7 +69,6 @@ fov = 20.0
 size = 40.0
 far = 200.0
 script = ExtResource("9_camera")
-tilt_deg = 45
 
 [node name="Wake" type="CPUParticles3D" parent="." unique_id=1734210981]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 1.7)

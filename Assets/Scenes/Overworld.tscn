@@ -5,15 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://bba4hwropmrh4" path="res://Assets/Post_Process/dither/dither.tscn" id="4_dither"]
 [ext_resource type="Texture2D" uid="uid://c3dbbk3u8rxjp" path="res://Assets/Landscape/shore/ShoreMask_Overworld.png" id="4_trlql"]
 [ext_resource type="Texture2D" uid="uid://c83coim1pxjpi" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_1.png" id="13_7dbbo"]
-[ext_resource type="Texture2D" uid="uid://b6qbcnpowxg62" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_2.png" id="14_yvevl"]
-[ext_resource type="Texture2D" uid="uid://djxmu6wgjgyf4" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_3.png" id="15_cra7r"]
-[ext_resource type="Texture2D" uid="uid://hnn81g38o6uf" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_5.png" id="16_6qrm0"]
-[ext_resource type="Texture2D" uid="uid://c617rra5aj0xu" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_4.png" id="16_7dbbo"]
-[ext_resource type="Texture2D" uid="uid://cton1id1qykod" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_7.png" id="18_lnn7p"]
-[ext_resource type="Texture2D" uid="uid://lbxke3w5qaqw" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_6.png" id="18_yvevl"]
-[ext_resource type="Texture2D" uid="uid://1uidvi0ohqho" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_8.png" id="19_2gwdg"]
 [ext_resource type="PackedScene" uid="uid://b62tenk14615k" path="res://Assets/Landscape/clouds/clouds.tscn" id="20_clouds"]
-[ext_resource type="Texture2D" uid="uid://bhne6rrir7xw7" path="res://Assets/Quests/map_marker/prints/Overworld_MapMarker_9.png" id="20_i5cs1"]
 [ext_resource type="Script" uid="uid://dte3lbhusmsjc" path="res://Assets/Post_Process/game_view.gd" id="21_game_view"]
 [ext_resource type="PackedScene" uid="uid://duxq1bjfe0iib" path="res://Assets/Landscape/wind_lines/wind_lines.tscn" id="22_wind_lines"]
 [ext_resource type="PackedScene" path="res://Assets/Landscape/gulls/gulls.tscn" id="23_gulls"]
@@ -157,62 +149,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -322.24173, -6.1035156e-05, -
 active = true
 picture = ExtResource("13_7dbbo")
 print_path = "uid://c83coim1pxjpi"
-area_size = 120
-
-[node name="MapMarker_2" parent="Gameplay/MapMarkers" unique_id=1657906072 instance=ExtResource("29_map_marker")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 96.85657, 0, -102.05079)
-active = true
-picture = ExtResource("14_yvevl")
-print_path = "uid://b6qbcnpowxg62"
-area_size = 120
-
-[node name="MapMarker_3" parent="Gameplay/MapMarkers" unique_id=1014403933 instance=ExtResource("29_map_marker")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -344.80643, 0, 224.90878)
-active = true
-picture = ExtResource("15_cra7r")
-print_path = "uid://djxmu6wgjgyf4"
-area_size = 120
-
-[node name="MapMarker_4" parent="Gameplay/MapMarkers" unique_id=420391385 instance=ExtResource("29_map_marker")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3863144, 0, -444.4792)
-active = true
-picture = ExtResource("16_7dbbo")
-print_path = "uid://c617rra5aj0xu"
-area_size = 120
-
-[node name="MapMarker_5" parent="Gameplay/MapMarkers" unique_id=2052585054 instance=ExtResource("29_map_marker")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 321.08615, -6.1035156e-05, -226.39828)
-active = true
-picture = ExtResource("16_6qrm0")
-print_path = "uid://hnn81g38o6uf"
-area_size = 120
-
-[node name="MapMarker_6" parent="Gameplay/MapMarkers" unique_id=310641992 instance=ExtResource("29_map_marker")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 337.9991, 0, 107.66171)
-active = true
-picture = ExtResource("18_yvevl")
-print_path = "uid://lbxke3w5qaqw"
-area_size = 120
-
-[node name="MapMarker_7" parent="Gameplay/MapMarkers" unique_id=117887675 instance=ExtResource("29_map_marker")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -143.16531, 0, 340.66904)
-active = true
-picture = ExtResource("18_lnn7p")
-print_path = "uid://cton1id1qykod"
-area_size = 120
-
-[node name="MapMarker_8" parent="Gameplay/MapMarkers" unique_id=1174949156 instance=ExtResource("29_map_marker")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -343.57813, 0, -112.89627)
-active = true
-picture = ExtResource("19_2gwdg")
-print_path = "uid://1uidvi0ohqho"
-area_size = 120
-
-[node name="MapMarker_9" parent="Gameplay/MapMarkers" unique_id=354153416 instance=ExtResource("29_map_marker")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 231.50058, 0, 349.09677)
-active = true
-picture = ExtResource("20_i5cs1")
-print_path = "uid://bhne6rrir7xw7"
 area_size = 120
 
 [node name="Piers" type="Node3D" parent="Gameplay" unique_id=788276141]
@@ -1444,13 +1380,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -304, 0, -103.111115)
 [node name="Architecture" type="Node" parent="." unique_id=462491944]
 
 [node name="sm_tower_01_a" parent="Architecture" unique_id=2124235175 instance=ExtResource("45_i5cs1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64, 0, 56)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -62, 15, 66)
 
 [node name="sm_tower_01_a2" parent="Architecture" unique_id=615670957 instance=ExtResource("45_i5cs1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 0, 8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 14, -3)
 
 [node name="sm_tower_01_a4" parent="Architecture" unique_id=1474739560 instance=ExtResource("45_i5cs1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88, -8, 16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -57, 11, 4)
 
 [node name="sm_tower_01_a3" parent="Architecture" unique_id=489100187 instance=ExtResource("45_i5cs1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104, 0, 0)
