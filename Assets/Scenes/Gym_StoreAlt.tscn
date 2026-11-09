@@ -46,7 +46,6 @@ roll_stiffness = null
 roll_damping = null
 pitch_stiffness = null
 pitch_damping = null
-anchor_rode = null
 wave_roll_deg = null
 wave_pitch_deg = null
 wave_period = null

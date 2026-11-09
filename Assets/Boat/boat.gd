@@ -61,12 +61,6 @@ static var current: Boat = null
 @export var pitch_stiffness := 22.0     # the same for the pitch (bow up and down)
 @export var pitch_damping := 4.5
 
-# The anchor (the prototype's ANCHOR_RODE): it stays where it fell, off the bow. The current carries her
-# until the line is taut; then the line holds her bow and she swings round the anchor, stern downstream.
-@export var anchor_rode := 3.0          # metres of anchor line from the bow to the anchor
-@export var anchor_swing_speed := 1.2   # rad/s the taut line swings her round to face the anchor (Enrico, Nov 2026: she
-										# drifted on past it and hung there with the anchor under her keel, the chain hidden)
-
 # The waves: she rocks gently on them, side to side (roll) and bow to stern (pitch).
 @export var wave_roll_deg := 3.0    # how far she rolls each way on the waves, in degrees
 @export var wave_pitch_deg := 2.0   # how far the bow rises and dips on the waves, in degrees
@@ -205,7 +199,6 @@ var boost_accel := 1.0      # how quickly she picks up speed while the boost las
 var berth: Node3D = null     # the pier's berth she's tied up at (null = not tied up)
 var calm_left := 0.0         # seconds left of the calm after casting off (no current)
 var anchor_point := Vector3.ZERO   # where the anchor lies on the bottom (set when it's dropped)
-var heading_held := false          # turned with the wheel at anchor: she keeps that heading (the line doesn't swing her)
 var model_height := 0.0      # Model's height as placed in the editor (read at start): she bobs round it
 var drop_shadow: MeshInstance3D = null   # the soft oval under her (make_drop_shadow)
 var sea_level := 0.0                     # the level's Sea node's height (found once; the shadow lies on it)
@@ -380,9 +373,11 @@ func toggle_anchor() -> void:
 		cast_off()                   # tied up at a pier: the anchor button casts off
 		return
 	anchored = not anchored
-	heading_held = false             # a new anchoring (or none): the line swings her again until she's turned
 	if anchored:
 		anchor_point = bow_point()   # let go off the bow: it stays there
+		# She stops dead where she is (Enrico, Nov 2026: anchoring is quick, no big deal): no way left, no push,
+		# no current. She stays exactly there, facing the same way, until the anchor is weighed (_physics_process).
+		stop_dead()
 		# Did it go down by a fishing spot? Each spot checks if the anchor is within its reach and, if it is,
 		# starts fishing (Assets/Landscape/fishing_spots/fishing_spot.gd).
 		for spot in get_tree().get_nodes_in_group("fishing_spots"):
@@ -542,7 +537,6 @@ func respawn() -> void:
 	caught_eye = null
 	fling_left = 0.0
 	rudder = 0.0
-	heading_held = false
 	anchored = true
 	anchor_point = bow_point()
 	paddles.stop()
@@ -782,14 +776,13 @@ func _physics_process(dt: float) -> void:
 		var turn: float = -rudder * turn_rate * paddles.turn_factor() * dt   # quicker while the paddles push
 		rotate_y(turn)
 		# At anchor too (Enrico, Nov 2026: turning her on the spot is handy, e.g. to aim a bomb): she pivots on her
-		# middle and keeps the heading she was given (heading_held, see hold_at_anchor). The anchor itself never
-		# moves (Enrico, Nov 2026: it lies on the bottom where it fell, so the chain's end and its rings stay put).
-		if anchored and turn != 0.0:
-			heading_held = true
+		# middle. The anchor itself never moves (it lies on the bottom where it fell).
 		update_current(dt)
 		update_boiling(dt)
-		move_and_bounce(dt)
-		hold_at_anchor()
+		if anchored:
+			stop_dead()              # at anchor nothing moves her: she stays exactly where she stopped
+		else:
+			move_and_bounce(dt)
 	# How quickly she really turned this frame (the rudder, a bump, the anchor line swinging her):
 	# wrapf keeps the difference between -PI and PI when the angle goes round past 180 degrees.
 	turn_speed = wrapf(rotation.y - yaw_before, -PI, PI) / dt
@@ -862,59 +855,16 @@ func rock_and_roll(dt: float) -> void:
 	model.rotation.x = pitch   # x: across her, so the bow goes up (+) and down (-)
 
 
-## At anchor the line is a pivot. The anchor stays where it fell. While the line is slack she drifts
-## freely (the current carries her); once her bow is anchor_rode metres from the anchor, the taut line
-## holds the bow there, and the hull trails behind it the way it's pushed: she swings round the anchor,
-## bow to the anchor, stern downstream. (The prototype's anchorPt.)
-func hold_at_anchor() -> void:
-	if not anchored:
-		return
-	# Turned with the wheel at anchor (heading_held): she keeps her heading, and the line only keeps her middle
-	# within reach of the anchor (rode + her bow), so the current can't carry her off nor swing her round.
-	if heading_held:
-		var off := global_position - anchor_point
-		off.y = 0.0
-		var reach := anchor_rode + bow_reach
-		if off.length() > reach:
-			global_position = anchor_point + off.normalized() * reach
-			speed = minf(speed, 0.0)
-			knock *= 0.5
-		return
-	var bow := bow_point()
-	var from_anchor := bow - anchor_point
-	from_anchor.y = 0.0
-	var distance := from_anchor.length()
-	# Slack line: nothing to do, she drifts.
-	if distance <= anchor_rode:
-		return
-	# 1. Taut line: the bow can go no further than anchor_rode from the anchor.
-	bow = anchor_point + from_anchor / distance * anchor_rode
-	# 2. The hull trails from the bow, the way it was being pushed: her middle goes back to bow_reach
-	#    metres from the bow, along the line from the bow to where her middle is now.
-	var bow_to_middle := global_position - bow
-	bow_to_middle.y = 0.0
-	var back := bow_to_middle.normalized()
-	# 2b. The line swings her round (Enrico, Nov 2026): at rest the hull lies on the far side of the bow from the
-	#     anchor (back = the way from the anchor to the bow). Run on past the anchor she'd hang the other way, the
-	#     anchor under her keel; so `back` is turned toward that rest direction by at most anchor_swing_speed a
-	#     second. Right on top of each other (exactly the wrong way) she swings to her right.
-	back = swing_toward(back, from_anchor / distance, anchor_swing_speed * get_physics_process_delta_time())
-	global_position = bow + back * bow_reach
-	# 3. She faces the anchor: her forward (-Z) points from her middle to her bow, the opposite of `back`.
-	#    A turn of rotation.y = a points her +Z along (sin a, 0, cos a), so a = atan2(back.x, back.z).
-	rotation.y = atan2(back.x, back.z)
-	# 4. The line takes her way off.
-	speed = minf(speed, 0.0)
-	knock *= 0.5
-
-
-## Turns the flat direction `from` toward `to` (both length 1, on the water) by at most `max_turn` radians.
-func swing_toward(from: Vector3, to: Vector3, max_turn: float) -> Vector3:
-	var angle := atan2(from.cross(to).y, from.dot(to))   # the turn from one to the other, + = anticlockwise from above
-	if absf(angle) > PI - 0.01:
-		angle = -PI                                      # exactly opposite: either way would do, go to her right
-	var turn := clampf(angle, -max_turn, max_turn)
-	return from.rotated(Vector3.UP, turn)
+## At anchor (Enrico, Nov 2026: anchoring must feel quick, no big deal): she just stops where she is. No way, no
+## knock, no current, no maelstrom's pull or fling: nothing pushes her, nothing turns her but the wheel.
+func stop_dead() -> void:
+	speed = 0.0
+	knock = Vector3.ZERO
+	drift = Vector3.ZERO
+	drift_amount = 0.0           # weighed again, the current takes hold gently (it eases in from 0)
+	whirl_pull = Vector3.ZERO
+	fling_left = 0.0
+	velocity = Vector3.ZERO
 
 
 ## The wake (the CPUParticles3D node in boat.tscn, like a small CPU Niagara emitter: its look is set in the
@@ -1023,7 +973,7 @@ func keep_inside_map() -> Vector3:
 
 
 ## The current: the Wind autoload's (Wind.current(): the way the wind blows, at its CURRENT_SPEED). On her it eases in at the
-## start (drift_amount 0..1). It carries her at anchor too: the anchor line holds her (see hold_at_anchor).
+## start (drift_amount 0..1). At anchor it doesn't carry her (stop_dead).
 func update_current(dt: float) -> void:
 	# Just cast off from a pier: no current yet; afterwards it takes hold again gently (drift_amount from 0).
 	if calm_left > 0.0:

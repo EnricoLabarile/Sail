@@ -186,8 +186,8 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   0.6 s cooldown; a push `knock` along `Land.way_to_sea()` of 2 + 0.9 × the hit speed, fading at 3.5/s; speed × 0.25;
   the bow swung off up to 0.3 rad toward the open side; the hull loses `hit_damage` (**0 now**, Enrico: no damage from the landscape; with 0 `bump` doesn't call `take_damage` at all, only `camera.shake()`, so the hearts don't flash and the hook doesn't let go; was half a heart, see Health) and the hull knocks (`Sfx.hull_bump`, see Sound). **Two bumps within `double_bump_time` 1.5 s** (Enrico, Nov 2026; `since_last_bump`, counted bumps only, so shores and barrels): `stop_after_bumps()`: speed 0, `knock` 0, `paddles.turn_off()` (anchor down, as the lever all the way left); the lever's right end starts her again. No wobble (Enrico removed it), no buzz yet. (The shallows no longer slow her: they were the sail's; `shallows_width` on the boat is only where the sea's deep
   water starts darkening, sea.gd.) **The current** (prototype's `CURRENT_DRIFT`): `drift` =
-  `Wind.current()` (downwind × `Wind.CURRENT_SPEED` 1.5 m/s) × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; also at
-  anchor (the line holds her, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
+  `Wind.current()` (downwind × `Wind.CURRENT_SPEED` 1.5 m/s) × `drift_amount` (eases in at the start at `current_ease` 0.8/s), added to her motion; not at
+  anchor (she stops dead, see The anchor); pressing her against a shore she just stays (a bump only from her own way). She
   starts at (0, 0, -34), in the sea just north of home.
 - **Sea zones: boiling water and strong currents** (Enrico, Oct 2026; `Assets/Landscape/sea_zones/`): **`sea_zone.tscn`**
   + `sea_zone.gd` (`@tool`, `class_name SeaZone`): **the zone IS a `Path3D`** (Enrico: each placed zone its own shape, as a
@@ -627,20 +627,15 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   tiny-dotted copy of each CPUParticles3D, for `FRAMES` 3 frames; then it all goes (59 materials, 2 emitters in the
   Overworld). Something new made later in code with a new kind of material: add its scene to `LATER`.
 - **Top speed** (`boat.gd` `top_speed`): **3.5 m/s** (Enrico: halved from 7, so the gusts' boosts matter). **Turning** (as the prototype): `turn_rate` 2.25 rad/s (Enrico: between the old 1.5 and the doubled 3) at full rudder whatever her speed (no slower with less way);
-  **at anchor too** (Enrico, Nov 2026: turning her on the spot, e.g. to aim a bomb): she pivots on her middle and
-  `heading_held` is set (the anchor no longer goes round with her, Enrico, Nov 2026: **the anchor never moves** once
-  down, so the chain's end and its rings stay put): from then
-  `hold_at_anchor` only keeps her middle within `anchor_rode` + `bow_reach` of the anchor and doesn't swing her
-  heading (without it the current turned her back bow-to-anchor in ~3 s); cleared by `toggle_anchor` and `respawn`.
+  **at anchor too** (Enrico, Nov 2026: turning her on the spot, e.g. to aim a bomb): she pivots on her middle (the anchor never moves).
   Not while tied up at a pier (the wheel doesn't steer there: `helm.gd` `_is_tied_up`). × the paddles' `turn_mult`
   while they push (see The paddles). The interaction button's tools (bomb, jar, hook) already work at anchor.
-- **The anchor** (as the prototype's `anchorPt`, `ANCHOR_RODE`): dropped, it lies off her bow (`anchor_point`,
-  `bow_point()` = middle + `bow_reach` forward) and stays there; the current now carries her at anchor too; once the
-  bow is `anchor_rode` 3 m from it, `hold_at_anchor` holds the bow there and the hull trails from it, so she swings
-  round it, bow to the anchor (it no longer drags: Enrico, Nov 2026, the anchor never moves once down); **the taut line swings her round**
-  (Enrico, Nov 2026: run on past the anchor she hung with it under her keel, the chain hidden): `back` turned toward
-  the anchor-to-bow direction by at most `anchor_swing_speed` 1.2 rad/s (`swing_toward`; exactly opposite → to her
-  right). **The anchor seen** (Enrico, Nov 2026; `Assets/Boat/anchor_chain.gd` on `Boat/AnchorChain`,
+- **The anchor** (Enrico, Nov 2026: anchoring is quick, no big deal): dropped, it lies off her bow (`anchor_point`,
+  `bow_point()` = middle + `bow_reach` forward) and never moves; **she stops dead where she is** (`stop_dead()`, in
+  `toggle_anchor` and every physics frame at anchor instead of `move_and_bounce`: speed, knock, current (`drift`,
+  `drift_amount` 0, so weighed it eases in again), maelstrom pull and fling all 0): no drifting, no swinging round the
+  anchor, no line. The wheel still turns her on the spot. (The old line, `anchor_rode`, `anchor_swing_speed`,
+  `hold_at_anchor`, `heading_held`, `swing_toward`, is gone.) **The anchor seen** (Enrico, Nov 2026; `Assets/Boat/anchor_chain.gd` on `Boat/AnchorChain`,
   top_level, all made in code): while at anchor (`is_at_anchor`: anchored, no `berth`, not sinking) a **chain** of
   small TorusMesh links (ink, unshaded, `link_size` 0.13, `link_thickness` 0.045, stretched 1.6 along, every other one
   on edge, every `link_step` 0.26 m, at most `MAX_LINKS` 60) from her drawn (interpolated) bow at `bow_height` 0.4 m

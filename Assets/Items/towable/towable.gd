@@ -158,7 +158,7 @@ func follow_boat() -> void:
 
 
 ## A HEAVY thing she pulls without boosting: it doesn't budge, so the rope holds HER, as the anchor's line does
-## (boat.gd hold_at_anchor). Her stern is put back at the rope's length from it, on the line from it to her stern, her
+## (as the anchor line used to). Her stern is put back at the rope's length from it, on the line from it to her stern, her
 ## heading kept (so she can still turn round it, or come back toward it), and the way she had pulling off is lost.
 ## `off` = from her stern to the thing; `reach` = the rope plus the thing's size.
 func hold_boat(off: Vector3, reach: float) -> void:
