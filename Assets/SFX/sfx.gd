@@ -52,7 +52,6 @@ extends Node
 @onready var lever_hook_sound: AudioStreamPlayer = $LeverHook
 @onready var lever_drag_sound: AudioStreamPlayer = $LeverDrag
 @onready var lever_done_sound: AudioStreamPlayer = $LeverDone
-@onready var engine_sound: AudioStreamPlayer = $Engine
 
 ## The talk blips' pitch: each one picked at random between these (1 = as made), so a page babbles like a voice.
 @export var talk_pitch_min := 0.96    # Enrico: only a little change of pitch (was 0.7–0.95, before 0.9–1.25)
@@ -62,25 +61,12 @@ extends Node
 ## the same instant and would cover it (Enrico couldn't hear it): a moment later, it's heard after the bang.
 @export var enemy_death_delay := 0.25
 
-## THE ENGINE (Enrico, Nov 2026: a steam engine's chuff-chuff that revs with her; engine_loop.ogg, a 2 s loop of 8
-## puffs made by art_src/audio/make_engine.py). Sfx.engine(rev, dt) every frame from paddles.gd: rev 0 = idling,
-## 1 = flat out. The loop's pitch_scale goes from engine_pitch_low to engine_pitch_high with it (higher pitch = the
-## puffs come quicker AND higher, like an engine revving) and its loudness from engine_quiet to full (its level is
-## the Engine player's Volume dB in sfx.tscn). rev below 0 = the engine is off: it fades out.
-@export var engine_pitch_low := 0.7
-@export var engine_pitch_high := 1.6
-@export var engine_quiet := 0.35       # loudness share at rev 0 (idling)
-@export var engine_follow := 3.0       # how quickly pitch and loudness follow the rev (higher = snappier)
-
 var drag_db := 0.0      # the lever drag's loudness as set in sfx.tscn (read at start): turned down from there
 var splash_db := 0.0    # the paddle splash's loudness as set in sfx.tscn (read at start): turned down with the paddles' power
 var rub_db := 0.0       # the rub's loudness as set in sfx.tscn (read at start): the code turns it down from there
 var thunk_db := 0.0     # the same for the thud
 var bump_db := 0.0      # the same for the hull's bump
 var rub_share := 0.0    # how loud the rub is now, 0..1 (it follows the wheel's speed smoothly)
-var engine_db := 0.0    # the engine's loudness as set in sfx.tscn (read at start)
-var engine_share := 0.0 # how loud the engine is now, 0..1 (eased)
-var engine_rev := 0.0   # the rev the engine sounds at now (eased)
 
 
 func _ready() -> void:
@@ -93,11 +79,6 @@ func _ready() -> void:
 	lever_drag_sound.stream.loop = true
 	lever_drag_sound.volume_db = -80.0
 	lever_drag_sound.play()
-	# The engine goes round and round, silent until the paddles run (Sfx.engine).
-	engine_db = engine_sound.volume_db
-	engine_sound.stream.loop = true
-	engine_sound.volume_db = -80.0
-	engine_sound.play()
 	# The rub goes round and round, silent until the wheel turns.
 	wheel_rub.stream.loop = true
 	wheel_rub.volume_db = -80.0
@@ -229,20 +210,6 @@ func lever_hook() -> void:
 
 ## A lever's handle being dragged out (lever.gd, every frame while she's hooked): `level` 0..1 is how fast it comes out
 ## (0 = still: silent). Louder and a little higher the faster.
-## The engine, every frame (paddles.gd): rev 0..1 while the paddles run (0 idling, 1 flat out), below 0 when they're off.
-## Pitch and loudness slide toward their targets (engine_follow), so the revving rises and falls smoothly and
-## switching off fades it out instead of cutting it.
-func engine(rev: float, dt: float) -> void:
-	var running := rev >= 0.0
-	var target_share := lerpf(engine_quiet, 1.0, clampf(rev, 0.0, 1.0)) if running else 0.0
-	var follow := minf(1.0, dt * engine_follow)
-	engine_share += (target_share - engine_share) * follow
-	if running:
-		engine_rev += (clampf(rev, 0.0, 1.5) - engine_rev) * follow   # up to 1.5: the revving kick (paddles.gd)
-	engine_sound.volume_db = engine_db + loudness_db(engine_share) if engine_share > 0.01 else -80.0
-	engine_sound.pitch_scale = lerpf(engine_pitch_low, engine_pitch_high, engine_rev)
-
-
 func lever_drag(level: float) -> void:
 	lever_drag_sound.volume_db = drag_db + loudness_db(level) if level > 0.01 else -80.0
 	lever_drag_sound.pitch_scale = 0.85 + 0.3 * clampf(level, 0.0, 1.0)

@@ -76,13 +76,6 @@ signal overheated
 @export var steam_alpha := 1.0         # how solid a puff is when it appears (it stays so for its first half, then fades)
 @export var steam_drift := 1.2         # metres a second the wind carries a puff (downwind, Wind.from_vector), so it trails
 @export var steam_spread := 0.4        # metres a second each puff wanders sideways at random, so they don't sit in one blob
-@export_group("Engine sound")
-## The engine's chuff-chuff (Sfx.engine, Enrico, Nov 2026): how "revved" it sounds, 0..1, follows the lever's place
-## (where she's allowed to go) and her real speed, half each; boosting adds `boost_rev`; started or vented (signal
-## `revved`) it kicks up by `rev_kick` for `rev_kick_time` seconds, fading, like an engine revving up.
-@export var boost_rev := 0.3
-@export var rev_kick := 0.6
-@export var rev_kick_time := 1.0
 @export_group("Overheated smoke")
 @export var overheat_puffs := 30.0     # puffs a second while she's overheated (the thick plume)
 @export var overheat_size := 1.5       # the puffs × this big while she's overheated
@@ -104,7 +97,6 @@ var splash_turn := 0.0    # how far the wheel has turned since the last splash (
 var splash_level := 0.0   # how loud the splashes are now (0..1): 1 while they push, then down as she slows
 var boost_counts := false  # has the lever been held past boost_wait? (crank.gd, every frame): only then does a boost drain
 var since_boost := 0.0     # seconds since she last boosted (she cools down once this reaches cool_delay)
-var kick_left := 0.0       # seconds left of the engine sound's revving kick (after a start or a vent)
 var puffs: Array[MeshInstance3D] = []   # the pool of steam puffs (made once)
 var puff_ages: Array[float] = []         # seconds since each puff appeared (below 0 = not in use)
 var puff_lives: Array[float] = []        # how long each puff lives (longer for an overheated one)
@@ -122,7 +114,6 @@ var lever_share := 0.5    # the most she may go, 0..1 of her speed (set by the l
 
 func _ready() -> void:
 	make_puffs()
-	revved.connect(_on_revved_for_sound)    # started or vented: the engine's sound revs up for a moment
 
 
 ## Is she running? (Not overheated and the anchor up.)
@@ -269,26 +260,6 @@ func update(dt: float) -> void:
 		power = 0.0
 	spin_wheels(dt)
 	update_steam(dt)
-	update_engine_sound(dt)
-
-
-## Tells the engine's sound how revved she is (Sfx.engine): off (anchored, tied up, overheated) = -1 (it fades out);
-## running = half the lever's place + half her speed share, plus the boost and the kick after a start or a vent.
-func update_engine_sound(dt: float) -> void:
-	kick_left = maxf(0.0, kick_left - dt)
-	if not is_running():
-		Sfx.engine(-1.0, dt)
-		return
-	var speed_part := clampf(absf(boat.speed) / boat.top_speed, 0.0, 1.0)
-	var rev := 0.5 * lever_share + 0.5 * speed_part
-	if is_boosting():
-		rev += boost_rev
-	rev += rev_kick * (kick_left / rev_kick_time)
-	Sfx.engine(rev, dt)
-
-
-func _on_revved_for_sound() -> void:
-	kick_left = rev_kick_time
 
 
 ## The heat: boosting, it rises (and the wait before she cools starts again from 0); not boosting, the wait counts

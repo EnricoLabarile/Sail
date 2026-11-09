@@ -23,7 +23,6 @@
 [ext_resource type="AudioStream" path="res://Assets/SFX/lever_hook.ogg" id="24_lever_hook"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/lever_drag.ogg" id="25_lever_drag"]
 [ext_resource type="AudioStream" path="res://Assets/SFX/lever_done.ogg" id="26_lever_done"]
-[ext_resource type="AudioStream" path="res://Assets/SFX/engine_loop.ogg" id="27_engine"]
 
 [node name="Sfx" type="Node" unique_id=1764671958]
 script = ExtResource("1_sfx")
@@ -120,7 +119,3 @@ volume_db = -8.0
 [node name="LeverDone" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("26_lever_done")
 volume_db = -6.0
-
-[node name="Engine" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("27_engine")
-volume_db = -10.0
