@@ -47,9 +47,7 @@ extends Control
 ## (Keep the damping above ~5: with less, the swing past the middle could reach the left end.)
 ## THE STOP MARK (Enrico, Nov 2026, from his sketch): a thick bar across the plate, left of the middle. The lever held
 ## there (or anywhere past it) stops the boat: her speed share is 0. Between the mark and the middle it grows from 0 to
-## 50%; all the way left still drops the anchor. Let go at the mark or left of it, the lever STAYS PARKED on the mark
-## (Enrico, Nov 2026: she stays stopped with no finger on it); grabbed again, it moves freely and springs back as usual.
-## Where the mark is, from -1 (left end) to 0 (middle).
+## 50%; all the way left still drops the anchor. Where the mark is, from -1 (left end) to 0 (middle).
 @export_range(-0.95, -0.05) var stop_at := -0.55
 @export var spring_stiffness := 160
 @export var spring_damping := 9.0
@@ -83,7 +81,6 @@ const END := 0.98                       # how close to an end (of 1) counts as t
 var lever_speed := 0.0       # how fast the lever is swinging on its spring (half-swings a second; only after letting go)
 var lever := 0.0              # where it is: -1 all the way left, 0 the middle, +1 all the way right
 var drag_index := -1          # the finger on it (-1 = none)
-var parked := false           # let go on the stop mark (or left of it): it rests there, no spring
 var last_a := 0.0             # the finger's angle round the pivot a moment ago
 var shown_heat := 0.0        # the heat the filling shows (0..1): it follows the real one, going down slowly when vented
 var venting := false         # is the filling going down after a vent? (then the knob is drawn with its colours swapped)
@@ -156,22 +153,13 @@ func _gui_input(e: InputEvent) -> void:
 			Sfx.button_press()
 			drag_index = e.index
 			lever_speed = 0.0               # the finger stops the spring's swing
-			parked = false                  # grabbed: free to move again
 			held_time = 0.0                 # the boost's wait starts again
 			last_a = _angle_round_pivot(e.position)
 			var paddles := _paddles()
 			grabbed_in_window = paddles != null and paddles.is_running() and paddles.can_vent()
 			accept_event()
 		elif not e.pressed and e.index == drag_index:
-			drag_index = -1                 # let go: _process springs it back to the middle…
-			if lever <= stop_at:
-				# …unless it's on the stop mark or left of it (Enrico): it stays parked on the mark, so she stays
-				# stopped without a finger on it.
-				parked = true
-				lever = stop_at
-				lever_speed = 0.0
-				click_notches()
-				check_ends()                # (only to notice it has left the left end)
+			drag_index = -1                 # let go: _process springs it back to the middle
 			accept_event()
 	elif e is InputEventScreenDrag and e.index == drag_index:
 		var a := _angle_round_pivot(e.position)
@@ -257,7 +245,6 @@ func _is_stopped() -> bool:
 ## The finger must come off: the spring takes the lever back to the middle.
 func let_go() -> void:
 	drag_index = -1
-	parked = false                      # (an end that springs it back: back to the middle, not to the mark)
 
 
 func _process(dt: float) -> void:
@@ -276,8 +263,7 @@ func _process(dt: float) -> void:
 	# Let go: the spring takes it back to the middle, overshoots and wiggles to a stop (Enrico), clicking each notch it
 	# passes, as when dragged. A spring with damping: the pull toward the middle grows with the distance from it, the
 	# damping brakes the swing; the speed changes by the two, then the lever moves by the speed.
-	# Parked on the stop mark: no spring, it stays there.
-	if drag_index == -1 and not parked and (lever != 0.0 or lever_speed != 0.0):
+	if drag_index == -1 and (lever != 0.0 or lever_speed != 0.0):
 		var pull := -spring_stiffness * lever - spring_damping * lever_speed
 		lever_speed += pull * dt
 		lever = clampf(lever + lever_speed * dt, -1.0, 1.0)
