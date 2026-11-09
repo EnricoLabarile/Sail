@@ -2,33 +2,34 @@
 extends Control
 ## THE THROTTLE LEVER (Enrico, Nov 2026, from his sketch; it replaced the crank turned round, keeping its files and
 ## its name in the scenes): a lever on a pivot at the bottom, swinging left and right over a curved plate. Drag it
-## with a finger. It has FOUR GEARS (Enrico, Nov 2026, like Spirit Tracks' throttle), left to right:
-##   OFF  (all the way left): she stops and the anchor goes down (paddles.turn_off);
-##   LOW  (low_share of her speed), MID (mid_share), HIGH (all the way right, high_share: the BOOST, faster, and it
-##   heats her up, see THE HEAT).
-## Let go, it STAYS in the gear it's in: a little spring settles it on that gear's place (it wiggles a bit, for feel),
-## so the player never has to keep a finger on it. The plate shows the gears with three thin marks between them.
-##   - Pushed out of OFF into any gear while she's off (at anchor, tied up, or overheated): she TURNS ON (anchor up or
-##     cast off, cold again: paddles.turn_on).
-##   - Pulled into OFF (or let go there) while she runs: she TURNS OFF (anchor down).
-##   - Whenever she's off, the lever goes back to OFF by itself (e.g. she overheated, or bumped twice); whenever she
-##     runs with the lever on OFF (Space on the PC started her), it goes to MID.
-##   - ALL THE WAY RIGHT while she runs, close to overheating (paddles.vent_window): she's VENTED, cold again
-##     (paddles.vent). Only with a grab that BEGAN that close (Enrico): pull it back a little and push it right again.
-## The heat rises only while she boosts, the lever in HIGH (paddles.gd heat_rate), or by a bomb or a hit.
+## with a finger; let go and its SPRING brings it back to the middle, always (also after reaching an end).
+##
+## Where it is sets the MOST she may go (paddles.gd set_lever_share; not a brake, she reaches it at her usual rate):
+##   at the STOP MARK (a thick bar left of the middle, `stop_at`) or left of it = 0% (she stops), the middle (at rest) =
+##   50%, all the way right = 100%, in a straight line in between (share_for).
+## The two ends do more:
+##   - ALL THE WAY RIGHT, while she's off (at anchor, tied up, or overheated): she TURNS ON: the anchor comes up
+##     (or she casts off) and the engine is cold (paddles.turn_on). Then the lever springs back to the middle.
+##   - ALL THE WAY RIGHT, while she runs, close to overheating (paddles.vent_window): she's VENTED, cold again
+##     (paddles.vent). The lever stays where the finger holds it (100%). Only with a grab that BEGAN that close
+##     (Enrico): held at 100% from before, the player must let go and push it right again.
+##   - ALL THE WAY LEFT, while the anchor is up: she TURNS OFF: the anchor goes down (paddles.turn_off). Then the
+##     lever springs back to the middle.
+## An end works once each time the lever gets there: to use it again, the lever must leave it first.
+## The heat rises only while she boosts, the lever held past the middle (paddles.gd heat_rate), or by a bomb or a hit.
 ##
 ## THE HEAT (Enrico, Nov 2026: an overheat bar, it was a battery): an ink filling inside the plate, from its left end:
 ## cold = empty, overheated = the whole plate inked, half = up to the middle.
-##   - In HIGH (boosting, so she heats up): the filling carries paper chevrons ">" (zig-zags, like
+##   - Pushed past the middle (boosting, so she heats up): the filling carries paper chevrons ">" (zig-zags, like
 ##     Enrico's pattern) flowing rightwards, the way the heat grows, quicker the faster it rises.
 ##   - THE FLYWHEEL in the knob (Enrico, like a rowing machine's): it spins as long as the paddles run, at its usual
-##     pace in MID, twice that in HIGH, half in LOW, stopped in OFF or when she's
+##     pace with the lever in the middle, faster pushed right, slower pushed left, stopped all the way left or when she's
 ##     off. When she's started or vented it revs up into OVERDRIVE for a moment, then spins down to
 ##     normal, like an engine revving. It has weight: its speed follows the lever smoothly, never jumps.
 ##   - Vented: the filling goes back down over vent_show_time, and meanwhile the knob has its colours swapped and the
 ##     chevrons turn "<" and flow leftwards (Enrico: the heat going out).
 ## THE HINTS (Enrico): a little anchor beside the end that works the anchor now: LEFT while the anchor is up (all the
-## way left drops it), RIGHT while she's at anchor or tied up (pushed into a gear, she weighs it and starts).
+## way left drops it), RIGHT while she's at anchor or tied up (all the way right weighs it and starts her).
 ## Its sounds (Enrico): a light click every notch (NOTCHES across the plate), higher toward the right
 ## (Sfx.crank_click); a firm snap at an end that turns her on, off or vents her (Sfx.lever_done, with the
 ## anchor's own sound); the unlock sound the moment she can be vented (Sfx.crank_unlock).
@@ -39,18 +40,17 @@ extends Control
 ## @tool: drawn in the editor too, so you can place and size it (its place and size are this Control's in crank.tscn).
 ## (In Unreal: a UMG widget with its own OnPaint and touch handling.)
 
-## The spring inside (Enrico): let go, the lever is pulled onto its gear's place like a real spring, overshoots it a
+## The spring inside (Enrico): let go, the lever is pulled back to the middle like a real spring, overshoots it a
 ## little and wiggles to a stop. Stiffness = how hard the spring pulls (more = quicker and faster wiggles);
-## damping = how quickly the wiggle dies out (less = more wiggles, more = it just settles). With 160 and 9 it reaches
-## its place in ~0.15 s, swings about a quarter past it and settles after two or three wiggles.
-## (Keep the damping above ~5: with less, the swing could cross into the next gear.)
+## damping = how quickly the wiggle dies out (less = more wiggles, more = it just settles). With 80 and 7 it reaches
+## the middle in ~0.2 s from an end, swings about a quarter past it and settles after two or three wiggles.
+## (Keep the damping above ~5: with less, the swing past the middle could reach the left end.)
+## THE STOP MARK (Enrico, Nov 2026, from his sketch): a thick bar across the plate, left of the middle. The lever held
+## there (or anywhere past it) stops the boat: her speed share is 0. Between the mark and the middle it grows from 0 to
+## 50%; all the way left still drops the anchor. Where the mark is, from -1 (left end) to 0 (middle).
+@export_range(-0.95, -0.05) var stop_at := -0.55
 @export var spring_stiffness := 160
 @export var spring_damping := 9.0
-## The gears' speeds: the share of her top speed each gear lets her reach (OFF is 0). HIGH is the boost: above
-## mid_share it heats her (paddles.gd heat_rate), so keep low and mid at 0.5 or less.
-@export_range(0.0, 0.5) var low_share := 0.25
-@export_range(0.0, 0.5) var mid_share := 0.5
-@export_range(0.5, 1.0) var high_share := 1.0
 @export var vent_show_time := 0.5      # seconds the filling takes to go back down when she's vented (Enrico: seen, not at once)
 # The chevrons flowing right in the filling while she goes faster than the middle (boosting: the heat rises):
 @export var chevron_count := 7          # how many chevrons across the whole plate
@@ -77,13 +77,9 @@ const PLATE_OUTER := 50.0
 const LEVER_LENGTH := 56.0              # from the pivot to the grip's top
 const NOTCHES := 16                     # clicks across the whole swing
 const END := 0.98                       # how close to an end (of 1) counts as there
-enum Gear { OFF, LOW, MID, HIGH }
-const GEAR_PLACES := [-1.0, -1.0 / 3.0, 1.0 / 3.0, 1.0]   # where the lever rests in each gear (-1 left end .. 1 right end)
-const GEAR_BORDERS := [-2.0 / 3.0, 0.0, 2.0 / 3.0]         # between the gears (the marks on the plate)
 
 var lever_speed := 0.0       # how fast the lever is swinging on its spring (half-swings a second; only after letting go)
-var lever := -1.0             # where it is: -1 all the way left, 0 the middle, +1 all the way right (she starts at anchor: OFF)
-var rest := -1.0              # where the spring settles it: the place of the gear it was let go in (GEAR_PLACES)
+var lever := 0.0              # where it is: -1 all the way left, 0 the middle, +1 all the way right
 var drag_index := -1          # the finger on it (-1 = none)
 var last_a := 0.0             # the finger's angle round the pivot a moment ago
 var shown_heat := 0.0        # the heat the filling shows (0..1): it follows the real one, going down slowly when vented
@@ -94,7 +90,7 @@ var at_right_end := false
 ## Was the lever grabbed once she was close to overheating? (Enrico: to vent her the player must let go and push it
 ## all the way right again; holding it at 100% from before isn't enough, nor is a finger wobbling at the end.)
 var grabbed_in_window := false
-var held_time := 0.0         # seconds it has been in HIGH (since it got there, or since the last vent): for paddles.boost_wait
+var held_time := 0.0         # seconds the finger has held it since the grab (or since the last vent): for paddles.boost_wait
 var was_free := true          # could she be vented a frame ago? (to hear the moment she can)
 var chevron_shift := 0.0      # how far the chevrons have flowed right (in plate shares; it grows while she boosts)
 var flywheel_angle := 0.0     # how far the flywheel has turned (radians)
@@ -157,13 +153,13 @@ func _gui_input(e: InputEvent) -> void:
 			Sfx.button_press()
 			drag_index = e.index
 			lever_speed = 0.0               # the finger stops the spring's swing
+			held_time = 0.0                 # the boost's wait starts again
 			last_a = _angle_round_pivot(e.position)
 			var paddles := _paddles()
 			grabbed_in_window = paddles != null and paddles.is_running() and paddles.can_vent()
 			accept_event()
 		elif not e.pressed and e.index == drag_index:
-			drag_index = -1                 # let go: it stays in the gear it's in
-			settle_in_gear()
+			drag_index = -1                 # let go: _process springs it back to the middle
 			accept_event()
 	elif e is InputEventScreenDrag and e.index == drag_index:
 		var a := _angle_round_pivot(e.position)
@@ -176,37 +172,9 @@ func _gui_input(e: InputEvent) -> void:
 
 ## Moves the lever by `amount` (of the half-swing: 1 = from the middle to an end), clicks its notches and works the ends.
 func move_lever(amount: float) -> void:
-	var gear_before := gear_at(lever)
 	lever = clampf(lever + amount, -1.0, 1.0)
 	click_notches()
-	# Out of OFF into a gear while she's off: she starts (anchor up, or cast off; cold again).
-	var paddles := _paddles()
-	if paddles and gear_before == Gear.OFF and gear_at(lever) != Gear.OFF and not paddles.is_running():
-		paddles.turn_on()
-		Sfx.lever_done()
 	check_ends()
-
-
-## Let go: the spring settles it on the place of the gear it's in (rest). Let go in OFF while she runs: she stops.
-func settle_in_gear() -> void:
-	var gear := gear_at(lever)
-	rest = GEAR_PLACES[gear]
-	var paddles := _paddles()
-	var boat := Boat.current
-	if gear == Gear.OFF and paddles and boat and not boat.anchored:
-		paddles.turn_off()                  # anchor down
-		Sfx.lever_done()
-
-
-## The gear at a place of the lever (-1..1): which of the four parts of the plate it's in.
-func gear_at(place: float) -> int:
-	if place < GEAR_BORDERS[0]:
-		return Gear.OFF
-	if place < GEAR_BORDERS[1]:
-		return Gear.LOW
-	if place < GEAR_BORDERS[2]:
-		return Gear.MID
-	return Gear.HIGH
 
 
 ## A light click for each notch passed, higher toward the right (notch n of NOTCHES at 2^(n/NOTCHES)).
@@ -218,42 +186,65 @@ func click_notches() -> void:
 
 
 ## The ends: each works once when the lever gets there (it must leave it before it works again).
-##   All the way right, while she runs close to overheating (and this grab began that close): she's vented.
-##   All the way left, dragged there while the anchor is up: she stops at once (anchor down); it stays in OFF.
 func check_ends() -> void:
 	var paddles := _paddles()
 	# All the way right.
 	if lever >= END and not at_right_end:
 		at_right_end = true
-		if paddles and paddles.is_running() and paddles.can_vent() and grabbed_in_window:
-			paddles.vent()                  # cold again; she keeps the boost
-			held_time = 0.0                 # just vented: holding it here doesn't heat her until boost_wait has passed
-			Sfx.lever_done()
-			grabbed_in_window = false       # once per grab
+		if paddles:
+			if not paddles.is_running():
+				# Off: she starts (anchor up, cold).
+				var was_stopped := _is_stopped()
+				paddles.turn_on()
+				Sfx.lever_done()
+				if was_stopped:
+					let_go()                # from anchor or a pier: the lever springs back to the middle
+				else:
+					# She had overheated under way (Enrico, Nov 2026): the finger keeps the lever where it is, so a
+					# player who turns her on again in time keeps control and keeps going. Just cooled: holding it
+					# here doesn't heat her until boost_wait has passed (as after a vent).
+					held_time = 0.0
+			elif paddles.can_vent() and grabbed_in_window:
+				# Running, nearly overheated, and this grab began that close: vented, cold again; she keeps the 100%.
+				paddles.vent()
+				held_time = 0.0             # just vented: holding it here doesn't heat her until boost_wait has passed
+				Sfx.lever_done()
+				grabbed_in_window = false   # once per grab
 	elif lever < END:
 		at_right_end = false
-	# All the way left (only by the finger: the lever going back to OFF by itself must not drop the anchor).
+	# All the way left.
 	if lever <= -END and not at_left_end:
 		at_left_end = true
 		var boat := Boat.current
-		if drag_index != -1 and paddles and boat and not boat.anchored:
-			paddles.turn_off()              # she stops: anchor down
+		if paddles and boat and not boat.anchored:
+			paddles.turn_off()              # she stops: anchor down…
 			Sfx.lever_done()
+			let_go()                        # …and the lever springs back to the middle
 	elif lever > -END:
 		at_left_end = false
 
 
-## The share of her speed the lever allows at this place (-1..1): its gear's share (OFF 0, LOW low_share, MID
-## mid_share, HIGH high_share: the boost).
+## The share of her speed the lever allows at this place (-1..1):
+##   right of the middle: 50% → 100% at the right end;
+##   between the stop mark and the middle: 0% at the mark → 50% at the middle;
+##   at the mark or left of it: 0% (she stops; all the way left also drops the anchor, check_ends).
 func share_for(place: float) -> float:
-	match gear_at(place):
-		Gear.LOW:
-			return low_share
-		Gear.MID:
-			return mid_share
-		Gear.HIGH:
-			return high_share
-	return 0.0
+	if place >= 0.0:
+		return 0.5 + 0.5 * place
+	if place <= stop_at:
+		return 0.0
+	return 0.5 * (1.0 - place / stop_at)
+
+
+## Is she stopped at anchor or tied up at a pier (not just overheated)?
+func _is_stopped() -> bool:
+	var boat := Boat.current
+	return boat == null or boat.anchored
+
+
+## The finger must come off: the spring takes the lever back to the middle.
+func let_go() -> void:
+	drag_index = -1
 
 
 func _process(dt: float) -> void:
@@ -269,35 +260,26 @@ func _process(dt: float) -> void:
 		# Boosting: the chevrons flow right, quicker the further past the middle (0 at the middle, full at the right end).
 		var boost: float = (paddles.lever_share - 0.5) / 0.5
 		chevron_shift += dt * chevron_speed * boost / chevron_count
-	# The lever follows her state when nobody holds it: she's off (anchored, tied up, overheated) → back to OFF;
-	# she runs with it on OFF (Space on the PC started her) → MID.
-	if drag_index == -1 and paddles:
-		if not paddles.is_running() and gear_at(rest) != Gear.OFF:
-			rest = GEAR_PLACES[Gear.OFF]
-		elif paddles.is_running() and gear_at(rest) == Gear.OFF:
-			rest = GEAR_PLACES[Gear.MID]
-	# Let go: the spring settles it on its gear's place (rest), overshoots a little and wiggles to a stop (Enrico),
-	# clicking each notch it passes, as when dragged. A spring with damping: the pull toward the rest grows with the
-	# distance from it, the damping brakes the swing; the speed changes by the two, then the lever moves by the speed.
-	if drag_index == -1 and (lever != rest or lever_speed != 0.0):
-		var pull := -spring_stiffness * (lever - rest) - spring_damping * lever_speed
+	# Let go: the spring takes it back to the middle, overshoots and wiggles to a stop (Enrico), clicking each notch it
+	# passes, as when dragged. A spring with damping: the pull toward the middle grows with the distance from it, the
+	# damping brakes the swing; the speed changes by the two, then the lever moves by the speed.
+	if drag_index == -1 and (lever != 0.0 or lever_speed != 0.0):
+		var pull := -spring_stiffness * lever - spring_damping * lever_speed
 		lever_speed += pull * dt
 		lever = clampf(lever + lever_speed * dt, -1.0, 1.0)
-		if absf(lever - rest) < 0.002 and absf(lever_speed) < 0.02:
-			lever = rest                    # still enough: it rests on its gear
+		if absf(lever) < 0.002 and absf(lever_speed) < 0.02:
+			lever = 0.0                     # still enough: it rests in the middle
 			lever_speed = 0.0
 		click_notches()
 		check_ends()                        # (only to notice it has left an end)
 	if paddles:
-		# The most she may go: its gear's share.
+		# The most she may go: 0% at the stop mark and left of it, 50% in the middle, 100% all the way right.
 		paddles.set_lever_share(share_for(lever))
-		# The boost heats her only once the lever has been in HIGH boost_wait seconds (since it got there, or since the
-		# last vent: so venting doesn't heat her at once). Out of HIGH, no heating.
-		if gear_at(lever) == Gear.HIGH:
+		# The boost heats her only while the finger holds it and has held it boost_wait seconds (since the grab or the
+		# last vent); let go, no more heating at once, while her speed eases down with the lever.
+		if drag_index != -1:
 			held_time += dt
-		else:
-			held_time = 0.0
-		paddles.boost_counts = held_time >= paddles.boost_wait
+		paddles.boost_counts = drag_index != -1 and held_time >= paddles.boost_wait
 		# The moment she can be vented (close to overheating, or overheated): the unlock sound, once.
 		var free: bool = paddles.can_vent()
 		if free and not was_free:
@@ -369,11 +351,11 @@ func _draw() -> void:
 	var closed := plate.duplicate()
 	closed.append(plate[0])
 	draw_polyline(closed, ink, 1.6, true)
-	#    The marks between the gears (OFF | LOW | MID | HIGH); paper where the heat's ink filling already covers them.
-	for border in GEAR_BORDERS:
-		var on_plate: float = (border + 1.0) / 2.0              # how far along the plate it is, 0 (left end) .. 1
-		draw_line(at(border * MAX_ANGLE, PLATE_INNER), at(border * MAX_ANGLE, PLATE_OUTER),
-				paper if share > on_plate else ink, 1.6)
+	draw_line(at(0.0, PLATE_INNER), at(0.0, PLATE_OUTER), paper if share > 0.5 else ink, 0.8)
+	#    The stop mark (Enrico): a thick bar across the plate; paper where the heat's ink filling already covers it.
+	var stop_angle := stop_at * MAX_ANGLE
+	var stop_on_plate := (stop_at + 1.0) / 2.0               # how far along the plate it is, 0 (left end) .. 1
+	draw_line(at(stop_angle, PLATE_INNER), at(stop_angle, PLATE_OUTER), paper if share > stop_on_plate else ink, 3.0)
 
 	# 3. The lever: a stem from the pivot, then the grip wound like a spring (an ink box with slanted stripes).
 	var angle := lever * MAX_ANGLE

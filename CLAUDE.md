@@ -339,17 +339,7 @@ For now (Enrico): bombs only (Nov 2026: **the trap, the harpoon and the sail are
   / `crank.gd` and node names; what follows about the crank and its winding is superseded):** a lever on a pivot at
   the bottom swinging ±45° (`MAX_ANGLE`) over a curved plate (ring segment, `PLATE_INNER` 26 / `PLATE_OUTER` 50 units
   from `PIVOT`), a striped grip like a spring, the knob on the pivot; `lever` −1..1, dragged by the finger's angle
-  round the pivot. **THE GEARS** (Enrico, Nov 2026, like Spirit Tracks; it supersedes the spring back to the middle, the
-  stop mark, the linear shares and the right end's turn on described next): four gears, `gear_at(place)` with borders
-  `GEAR_BORDERS` −⅔ / 0 / ⅔ (three thin marks on the plate) and rest places `GEAR_PLACES` −1 / −⅓ / ⅓ / 1: **OFF**
-  (0%, anchor down), **LOW** `low_share` 0.25, **MID** `mid_share` 0.5, **HIGH** `high_share` 1 = the boost (heats
-  her: `is_boosting()` = share > 0.5 and `boost_counts`, i.e. `held_time` ≥ `boost_wait` counted while the lever is
-  in HIGH, finger or not; reset on a vent). **Let go, it stays in its gear** (`settle_in_gear`: `rest` = that gear's
-  place; the spring now pulls toward `rest`, still wiggling); let go in OFF while she runs → `turn_off()`. Dragged out
-  of OFF into a gear while she's off (anchored, tied up, overheated) → `turn_on()` (`move_lever`). Dragged to the left
-  end → `turn_off()` at once (only by the finger). Not held: she's off → `rest` = OFF (so after an overheat or a double
-  bump it goes back to OFF by itself); she runs with `rest` on OFF (Space) → MID. The right end still vents (grab begun
-  in the window). `let_go()`, `_is_stopped()` and `stop_at` are gone. (Before:) let go, a **spring** brings it back to the middle, always, clicking each notch it passes (`click_notches`, as when dragged): **a real spring that wiggles** (Enrico): `lever_speed` changes by −`spring_stiffness` 80 × lever − `spring_damping` 7 × lever_speed, so from an end it reaches the middle in ~0.2 s, swings about a quarter past it and settles after two or three wiggles (rest below 0.002; a grab stops the swing); the speed share follows the wiggle (keep the damping above ~5, or the swing could reach the left end). Its place sets the
+  round the pivot; let go, a **spring** brings it back to the middle, always, clicking each notch it passes (`click_notches`, as when dragged): **a real spring that wiggles** (Enrico): `lever_speed` changes by −`spring_stiffness` 80 × lever − `spring_damping` 7 × lever_speed, so from an end it reaches the middle in ~0.2 s, swings about a quarter past it and settles after two or three wiggles (rest below 0.002; a grab stops the swing); the speed share follows the wiggle (keep the damping above ~5, or the swing could reach the left end). Its place sets the
   most she may go (`paddles.set_lever_share`, `speed_share()`, crank.gd `share_for`): **the stop mark** (Enrico, Nov 2026, from his sketch: a thick ink bar across the plate at `stop_at` −0.55 of the left half, paper where the heat's filling covers it) and left of it 0% (she stops), middle 50%, right end 100%, linear in between; the left end still drops the anchor. **Ends**
   (each works once per arrival, `at_left_end` / `at_right_end`, `END` 0.98): right end while she's off (anchored, tied
   up, or overheated) → `paddles.turn_on()` (anchor up / cast off, cold again); from anchor or a pier the lever
