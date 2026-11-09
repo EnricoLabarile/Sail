@@ -5,7 +5,8 @@ extends Control
 ## with a finger; let go and its SPRING brings it back to the middle, always (also after reaching an end).
 ##
 ## Where it is sets the MOST she may go (paddles.gd set_lever_share; not a brake, she reaches it at her usual rate):
-##   all the way left = 0%, the middle (at rest) = 50%, all the way right = 100%, in a straight line in between.
+##   at the STOP MARK (a thick bar left of the middle, `stop_at`) or left of it = 0% (she stops), the middle (at rest) =
+##   50%, all the way right = 100%, in a straight line in between (share_for).
 ## The two ends do more:
 ##   - ALL THE WAY RIGHT, while she's off (at anchor, tied up, or overheated): she TURNS ON: the anchor comes up
 ##     (or she casts off) and the engine is cold (paddles.turn_on). Then the lever springs back to the middle.
@@ -44,6 +45,10 @@ extends Control
 ## damping = how quickly the wiggle dies out (less = more wiggles, more = it just settles). With 80 and 7 it reaches
 ## the middle in ~0.2 s from an end, swings about a quarter past it and settles after two or three wiggles.
 ## (Keep the damping above ~5: with less, the swing past the middle could reach the left end.)
+## THE STOP MARK (Enrico, Nov 2026, from his sketch): a thick bar across the plate, left of the middle. The lever held
+## there (or anywhere past it) stops the boat: her speed share is 0. Between the mark and the middle it grows from 0 to
+## 50%; all the way left still drops the anchor. Where the mark is, from -1 (left end) to 0 (middle).
+@export_range(-0.95, -0.05) var stop_at := -0.55
 @export var spring_stiffness := 160
 @export var spring_damping := 9.0
 @export var vent_show_time := 0.5      # seconds the filling takes to go back down when she's vented (Enrico: seen, not at once)
@@ -219,6 +224,18 @@ func check_ends() -> void:
 		at_left_end = false
 
 
+## The share of her speed the lever allows at this place (-1..1):
+##   right of the middle: 50% → 100% at the right end;
+##   between the stop mark and the middle: 0% at the mark → 50% at the middle;
+##   at the mark or left of it: 0% (she stops; all the way left also drops the anchor, check_ends).
+func share_for(place: float) -> float:
+	if place >= 0.0:
+		return 0.5 + 0.5 * place
+	if place <= stop_at:
+		return 0.0
+	return 0.5 * (1.0 - place / stop_at)
+
+
 ## Is she stopped at anchor or tied up at a pier (not just overheated)?
 func _is_stopped() -> bool:
 	var boat := Boat.current
@@ -256,8 +273,8 @@ func _process(dt: float) -> void:
 		click_notches()
 		check_ends()                        # (only to notice it has left an end)
 	if paddles:
-		# The most she may go: 0% all the way left, 50% in the middle, 100% all the way right.
-		paddles.set_lever_share(0.5 + 0.5 * lever)
+		# The most she may go: 0% at the stop mark and left of it, 50% in the middle, 100% all the way right.
+		paddles.set_lever_share(share_for(lever))
 		# The boost heats her only while the finger holds it and has held it boost_wait seconds (since the grab or the
 		# last vent); let go, no more heating at once, while her speed eases down with the lever.
 		if drag_index != -1:
@@ -335,6 +352,10 @@ func _draw() -> void:
 	closed.append(plate[0])
 	draw_polyline(closed, ink, 1.6, true)
 	draw_line(at(0.0, PLATE_INNER), at(0.0, PLATE_OUTER), paper if share > 0.5 else ink, 0.8)
+	#    The stop mark (Enrico): a thick bar across the plate; paper where the heat's ink filling already covers it.
+	var stop_angle := stop_at * MAX_ANGLE
+	var stop_on_plate := (stop_at + 1.0) / 2.0               # how far along the plate it is, 0 (left end) .. 1
+	draw_line(at(stop_angle, PLATE_INNER), at(stop_angle, PLATE_OUTER), paper if share > stop_on_plate else ink, 3.0)
 
 	# 3. The lever: a stem from the pivot, then the grip wound like a spring (an ink box with slanted stripes).
 	var angle := lever * MAX_ANGLE
